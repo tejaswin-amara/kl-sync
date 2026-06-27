@@ -1,11 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { loginAndFetchSemesters, ScraperSession } from '@/lib/scraper'
 import { decodeSession, encodeSession } from '@/lib/session'
+
+const loginSchema = z.object({
+  username: z.string().min(1, 'Username is required').max(100, 'Username is too long'),
+  password: z.string().min(1, 'Password is required').max(200, 'Password is too long'),
+  captcha: z.string().min(1, 'Captcha is required').max(50, 'Captcha is too long'),
+  deviceId: z.string().max(200, 'Device ID is too long').optional(),
+  sessionId: z.string().max(5000, 'Session ID is too long').optional(),
+})
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { username, password, captcha, deviceId } = body
+
+    const parseResult = loginSchema.safeParse(body)
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid input', errors: parseResult.error.flatten().fieldErrors },
+        { status: 400 }
+      )
+    }
+
+    const { username, password, captcha, deviceId } = parseResult.data
 
     // The ERP device id is the load-bearing value that avoids its post-login
     // UserAccessToken crash. Prefer the httpOnly cookie we set on a previous
@@ -15,14 +33,7 @@ export async function POST(request: NextRequest) {
     const effectiveDeviceId = deviceId || cookieDeviceId || ''
 
     // Get session ID from header (preferred) or body (fallback)
-    const sessionId = request.headers.get('x-session-id') || body.sessionId
-
-    if (!username || !password || !captcha) {
-      return NextResponse.json(
-        { success: false, message: 'Missing required fields' },
-        { status: 400 }
-      )
-    }
+    const sessionId = request.headers.get('x-session-id') || parseResult.data.sessionId
 
     if (!sessionId) {
       // Fallback to mock login if no session ID provided (and user knows it's mock)
