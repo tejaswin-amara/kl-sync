@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { z } from 'zod'
 import { LogOut, GraduationCap, TrendingUp, TrendingDown, Minus, BookOpen, Search, X, Calculator, Plus, RotateCcw } from 'lucide-react'
+
+
+const AttendanceDataSchema = z.object({
+  attendanceData: z.array(z.record(z.string(), z.any())).min(1)
+}).passthrough()
 
 // ── types ──────────────────────────────────────────────
 type Component = { weight: number; attended: number; conducted: number }
@@ -72,10 +78,18 @@ export function ERPDashboard() {
   useEffect(() => {
     const raw = localStorage.getItem('attendanceData')
     if (!raw) { router.push('/login'); return }
-    const data = JSON.parse(raw)
-    if (!data?.attendanceData?.length) { localStorage.removeItem('attendanceData'); router.push('/login'); return }
-    setInfo(data)
-    try { setCourses(parse(data.attendanceData)) } catch (e) { console.error(e) }
+
+    try {
+      const parsedRaw = JSON.parse(raw)
+      const data = AttendanceDataSchema.parse(parsedRaw)
+      setInfo(data)
+      setCourses(parse(data.attendanceData))
+    } catch (e) {
+      console.error('Invalid attendance data:', e)
+      localStorage.removeItem('attendanceData')
+      router.push('/login')
+      return
+    }
 
     const storedId = localStorage.getItem('studentId')
     if (storedId) setStudentId(storedId)
