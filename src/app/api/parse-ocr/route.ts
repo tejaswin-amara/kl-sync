@@ -830,6 +830,21 @@ function postProcessOCRText(text: string): string {
   processed = processed.replace(/\bO\b/g, '0') // O -> 0 in numbers
   processed = processed.replace(/\bl\b/g, '1') // l -> 1 in numbers
   
+  // Fix letters inside numbers (e.g., '1O' -> '10', 'S1' -> '51')
+  // We only replace if the token consists entirely of numbers and the specific letters,
+  // to avoid corrupting course codes like 23CS235F
+  processed = processed.replace(/\b[0-9OlSZB]+\b/g, match => {
+    if (/[0-9]/.test(match)) {
+      return match
+        .replace(/O/g, '0')
+        .replace(/l/g, '1')
+        .replace(/S/g, '5')
+        .replace(/Z/g, '2')
+        .replace(/B/g, '8')
+    }
+    return match
+  })
+
   // Process line by line to preserve structure
   const lines = processed.split('\n')
   
