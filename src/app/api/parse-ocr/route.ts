@@ -3,6 +3,9 @@ import { NextRequest, NextResponse } from 'next/server'
 // Prefer an env-configured key; fall back to the public free-tier key.
 const OCR_SPACE_API_KEY = process.env.OCR_SPACE_API_KEY || 'K87899142388957'
 
+const OCR_PRIMARY_TIMEOUT_MS = 30000 // 30 seconds for primary engine
+const OCR_BACKUP_TIMEOUT_MS = 20000  // 20 seconds for backup engines
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
@@ -635,7 +638,7 @@ async function performOCRWithOCRSpace(buffer: Buffer): Promise<string> {
     
     // Add timeout handling
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), OCR_PRIMARY_TIMEOUT_MS)
     
     try {
       const response = await fetch('https://api.ocr.space/parse/image', {
@@ -703,7 +706,7 @@ async function performOCRWithEngine1Fallback(buffer: Buffer): Promise<string> {
     
     // Add timeout handling for Engine 2 as well
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 20000) // 20 second timeout for backup
+    const timeoutId = setTimeout(() => controller.abort(), OCR_BACKUP_TIMEOUT_MS)
     
     try {
       const response = await fetch('https://api.ocr.space/parse/image', {
@@ -765,7 +768,7 @@ async function performOCRWithEngine2(buffer: Buffer): Promise<string> {
     formData.append('isCreateSearchablePdf', 'false')
 
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 20000) // 20s timeout
+    const timeoutId = setTimeout(() => controller.abort(), OCR_BACKUP_TIMEOUT_MS)
 
     try {
       const response = await fetch('https://api.ocr.space/parse/image', {
