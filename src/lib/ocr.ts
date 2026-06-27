@@ -1,11 +1,9 @@
 import sharp from 'sharp'
 
-// Prefer an env-configured key; fall back to the public free-tier key.
-// NOTE: the public key is shared by everyone and its monthly quota is regularly
-// exhausted (OCR.space returns HTTP 429 / "E557 Monthly limit reached"), which
-// makes auto-fill silently return nothing. Set your own free OCR_SPACE_API_KEY
-// (https://ocr.space/ocrapi) for reliable captcha solving.
-const OCR_SPACE_API_KEY = process.env.OCR_SPACE_API_KEY || 'K87899142388957'
+// Ensure the OCR_SPACE_API_KEY is configured in the environment.
+// Set your own free OCR_SPACE_API_KEY (https://ocr.space/ocrapi)
+// for reliable captcha solving.
+const OCR_SPACE_API_KEY = process.env.OCR_SPACE_API_KEY
 
 // The KLU login captcha is a single pink colour (RGB 239,71,111) painted on a
 // fully transparent background, so the PNG's alpha channel is a near-perfect
@@ -32,6 +30,11 @@ async function preprocessCaptcha(buffer: Buffer): Promise<Buffer> {
 }
 
 async function ocrSpace(buffer: Buffer, engine: 1 | 2): Promise<string> {
+  if (!OCR_SPACE_API_KEY) {
+    console.error('OCR_SPACE_API_KEY is not set')
+    return ''
+  }
+
   const formData = new FormData()
   formData.append('base64Image', `data:image/png;base64,${buffer.toString('base64')}`)
   formData.append('language', 'eng')
