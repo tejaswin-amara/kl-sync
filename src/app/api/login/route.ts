@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
       csrfToken: result.csrfToken,
       academicYears: result.academicYears,
       semesters: result.semesters,
-      studentName: 'Student' // Placeholder, could be scraped
+      studentName: 'Student' // TODO: Scrape actual student name from the ERP; currently unimplemented.
     }))
 
   } catch (error: any) {
