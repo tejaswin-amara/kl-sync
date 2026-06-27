@@ -33,12 +33,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result)
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Fetch Attendance error:', error)
     return NextResponse.json(
       { 
         success: false, 
-        message: error.message || 'Failed to fetch attendance' 
+        message: error instanceof Error ? error.message : 'Failed to fetch attendance'
       },
       { status: 500 }
     )

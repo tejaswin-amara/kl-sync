@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       success: true,
       text: text
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Solve captcha error:', error)
     return NextResponse.json(
       { success: false, message: 'Failed to solve captcha' },
