@@ -875,7 +875,7 @@ function postProcessOCRText(text: string): string {
   processed = processed.replace(/\b\d{1,2}(23[A-Z]{2,5}\d{3,4}[A-Z]?)\b/g, '$1')
   
   // Fix percentage signs
-  processed = processed.replace(/(\d+)%/g, '$1%')
+  processed = processed.replace(/(\d+)\s+%/g, '$1%')
   
   // Clean up extra spaces but preserve tabs and line breaks
   // processed = processed.replace(/ {2,}/g, ' ') // DISABLED: Preserving table structure
