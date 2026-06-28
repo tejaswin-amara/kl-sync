@@ -827,8 +827,18 @@ function postProcessOCRText(text: string): string {
   processed = processed.replace(/23CC\/(\d{4})/g, '23CC$1') // 23CC/3103 -> 23CC3103
   
   // Fix other common OCR errors (avoid changing valid tokens like type 'S' or timeslot 'S-')
-  processed = processed.replace(/\bO\b/g, '0') // O -> 0 in numbers
-  processed = processed.replace(/\bl\b/g, '1') // l -> 1 in numbers
+  processed = processed.replace(/\b([0-9OlSZ]+)\b/g, (match, _p1, offset, str) => {
+    // Avoid changing valid tokens like timeslot 'S-'
+    if (match === 'S' && str[offset + match.length] === '-') return match
+    // Avoid changing valid standalone tokens like type 'S' or 'Z'
+    if (match === 'S' || match === 'Z') return match
+
+    return match
+      .replace(/O/g, '0')
+      .replace(/l/g, '1')
+      .replace(/S/g, '5')
+      .replace(/Z/g, '2')
+  })
   
   // Process line by line to preserve structure
   const lines = processed.split('\n')
