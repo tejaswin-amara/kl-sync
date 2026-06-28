@@ -817,14 +817,14 @@ function postProcessOCRText(text: string): string {
   
   // Fix common character recognition errors
   // Fix I vs / confusion in course codes
-  processed = processed.replace(/23C\/(\d{4})/g, '23CI$1') // 23C/2001 -> 23CI2001
-  processed = processed.replace(/23SC\/(\d{4})/g, '23SC$1') // 23SC/3201 -> 23SC3201
-  processed = processed.replace(/23MT\/(\d{4})/g, '23MT$1') // 23MT/2004 -> 23MT2004
-  processed = processed.replace(/23CS\/(\d{3}[A-Z])/g, '23CS$1') // 23CS/235F -> 23CS235F
-  processed = processed.replace(/23SDC\/(\d{3}[A-Z])/g, '23SDC$1') // 23SDC/313R -> 23SDC313R
-  processed = processed.replace(/23DEA\/(\d{3}[A-Z]{2})/g, '23DEA$1') // 23DEA/310TR -> 23DEA310TR
-  processed = processed.replace(/23UC\/(\d{4})/g, '23UC$1') // 23UC/0009 -> 23UC0009
-  processed = processed.replace(/23CC\/(\d{4})/g, '23CC$1') // 23CC/3103 -> 23CC3103
+  processed = processed.replace(/23C[I\/](\d{4})/g, '23CI$1') // 23C/2001 -> 23CI2001
+  processed = processed.replace(/23SC[I\/](\d{4})/g, '23SC$1') // 23SC/3201 -> 23SC3201
+  processed = processed.replace(/23MT[I\/](\d{4})/g, '23MT$1') // 23MT/2004 -> 23MT2004
+  processed = processed.replace(/23CS[I\/](\d{3}[A-Z])/g, '23CS$1') // 23CS/235F -> 23CS235F
+  processed = processed.replace(/23SDC[I\/](\d{3}[A-Z])/g, '23SDC$1') // 23SDC/313R -> 23SDC313R
+  processed = processed.replace(/23DEA[I\/](\d{3}[A-Z]{2})/g, '23DEA$1') // 23DEA/310TR -> 23DEA310TR
+  processed = processed.replace(/23UC[I\/](\d{4})/g, '23UC$1') // 23UC/0009 -> 23UC0009
+  processed = processed.replace(/23CC[I\/](\d{4})/g, '23CC$1') // 23CC/3103 -> 23CC3103
   
   // Fix other common OCR errors (avoid changing valid tokens like type 'S' or timeslot 'S-')
   processed = processed.replace(/\bO\b/g, '0') // O -> 0 in numbers
