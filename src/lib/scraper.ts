@@ -106,8 +106,15 @@ async function fetchWithJar(
     const status = res.status;
     const location = res.headers.get('location');
     if (status >= 300 && status < 400 && location) {
+      const nextUrl = new URL(location, currentUrl);
+      const allowedHostname = new URL(ERP_URL).hostname;
+
+      if (nextUrl.hostname !== allowedHostname) {
+        throw new Error(`Security Error: SSRF attempt prevented. Redirect to untrusted host: ${nextUrl.hostname}`);
+      }
+
       // Resolve relative + upgrade http -> https, then follow.
-      let next = new URL(location, currentUrl).toString();
+      let next = nextUrl.toString();
       next = next.replace(/^http:\/\//i, 'https://');
       currentUrl = next;
       // Per browser behaviour, 301/302/303 turn the follow-up into a GET.
@@ -258,7 +265,14 @@ export async function loginAndFetchSemesters(
     // Classic redirect-on-success: follow it to settle cookies.
     const location = loginRes.headers.get('location');
     if (location) {
-      const dest = new URL(location, LOGIN_URL).toString().replace(/^http:\/\//i, 'https://');
+      const nextUrl = new URL(location, LOGIN_URL);
+      const allowedHostname = new URL(ERP_URL).hostname;
+
+      if (nextUrl.hostname !== allowedHostname) {
+        throw new Error(`Security Error: SSRF attempt prevented. Redirect to untrusted host: ${nextUrl.hostname}`);
+      }
+
+      const dest = nextUrl.toString().replace(/^http:\/\//i, 'https://');
       await fetchWithJar(dest, jar);
     }
   } else {
