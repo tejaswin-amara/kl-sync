@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { RefreshCw, LogIn, AlertCircle, Loader2, BookOpen, ChevronDown } from "lucide-react"
 import { useRouter } from 'next/navigation'
 import Cookies from 'js-cookie'
@@ -33,6 +33,14 @@ export default function LoginPage() {
   const [selectedYear, setSelectedYear] = useState('')
   const [selectedSem, setSelectedSem] = useState('')
   const [csrfToken, setCsrfToken] = useState('')
+
+  const academicYearOptions = useMemo(() => {
+    return academicYears.map(o => <option key={o.value} value={o.value} className="bg-[#0c0c0e]">{o.label}</option>)
+  }, [academicYears])
+
+  const semesterOptions = useMemo(() => {
+    return semesters.map(o => <option key={o.value} value={o.value} className="bg-[#0c0c0e]">{o.label}</option>)
+  }, [semesters])
 
   const fetchCaptcha = async (preserveError = false): Promise<string> => {
     setCaptchaLoading(true)
@@ -453,7 +461,7 @@ export default function LoginPage() {
                     className="w-full rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none transition-all duration-200 appearance-none cursor-pointer pr-10"
                     style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
                   >
-                    {academicYears.map(o => <option key={o.value} value={o.value} className="bg-[#0c0c0e]">{o.label}</option>)}
+                    {academicYearOptions}
                   </select>
                   <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'rgba(241,241,243,0.3)' }} />
                 </div>
@@ -470,7 +478,7 @@ export default function LoginPage() {
                     className="w-full rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none transition-all duration-200 appearance-none cursor-pointer pr-10"
                     style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
                   >
-                    {semesters.map(o => <option key={o.value} value={o.value} className="bg-[#0c0c0e]">{o.label}</option>)}
+                    {semesterOptions}
                   </select>
                   <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'rgba(241,241,243,0.3)' }} />
                 </div>
