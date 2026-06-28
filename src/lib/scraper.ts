@@ -220,7 +220,7 @@ export async function loginAndFetchSemesters(
   // backend (SERVERID) and PHP session (PHPSESSID) the captcha was issued for.
   const jar = arrayToJar(session.cookies);
 
-  // The current ERP crashes on login (UserAccessToken bug) unless the request
+  // The current ERP crashes on login (UserAccessToken issue) unless the request
   // carries a previously-issued device cookie. Inject the stored one if we have
   // it so the ERP "finds" the device instead of trying to create it.
   if (deviceId) jar[DEVICE_COOKIE] = deviceId;
@@ -309,7 +309,7 @@ export async function loginAndFetchSemesters(
 
     console.error('[login] not authenticated. parsed errors:', errText || '(none)');
 
-    // 1) The ERP's UserAccessToken crash (their bug) — happens on a CORRECT
+    // 1) The ERP's UserAccessToken crash (their issue) — happens on a CORRECT
     //    login from an unregistered device, and issues a device cookie. If we
     //    harvested one, credentials+captcha were right: drive the device-setup
     //    retry. (Checked first; the 159-byte crash body has no error markup.)
