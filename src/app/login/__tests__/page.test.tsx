@@ -158,16 +158,11 @@ describe('LoginPage Error Handling', () => {
     // Submit login form
     const continueBtns = screen.getAllByRole('button', { name: /Continue/i })
     const continueBtn = continueBtns.find(el => el.closest('div.lg\\:hidden') === null) || continueBtns[0]
-    await user.click(continueBtn)
-
-    // Now we should be on the select-sem step
-    const loadBtns = await screen.findAllByRole('button', { name: /Load Attendance/i })
-    const loadBtn = loadBtns.find(el => el.closest('div.lg\\:hidden') === null) || loadBtns[0]
-
+    
     // Clear mock calls to see what happens on attendance fetch
     mockFetch.mockClear()
-
-    await user.click(loadBtn)
+    
+    await user.click(continueBtn)
 
     // Assert error message
     await waitFor(() => {
@@ -178,7 +173,7 @@ describe('LoginPage Error Handling', () => {
     expect(mockFetch).toHaveBeenCalledWith('/api/captcha')
 
     // Verify loading state is reset
-    expect(loadBtn).not.toBeDisabled()
+    expect(continueBtn).not.toBeDisabled()
   })
 
   it('handles captcha auto-solve failure gracefully', async () => {

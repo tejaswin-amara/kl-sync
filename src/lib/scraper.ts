@@ -468,12 +468,28 @@ export async function fetchProfileData(session: ScraperSession, csrfToken: strin
   // Extract profile text and tables
   const profileDetails: Record<string, string> = {};
   
-  // A generic way to extract label-value pairs often found in profile tables (th -> td)
-  $('th').each((i, el) => {
-    const key = $(el).text().trim();
-    const val = $(el).next('td').text().trim();
+  // A generic way to extract label-value pairs often found in profile tables
+  $('tr').each((i, tr) => {
+    const tds = $(tr).find('td');
+    const ths = $(tr).find('th');
+    
+    let key = '';
+    let val = '';
+
+    if (ths.length === 1 && tds.length === 1) {
+       key = $(ths[0]).text().trim();
+       val = $(tds[0]).text().trim();
+    } else if (tds.length === 2) {
+       key = $(tds[0]).text().trim();
+       val = $(tds[1]).text().trim();
+    } else if (tds.length === 3 && $(tds[1]).text().trim() === ':') {
+       key = $(tds[0]).text().trim();
+       val = $(tds[2]).text().trim();
+    }
+    
     if (key && val && key.length < 50) {
-      profileDetails[key] = val;
+       if (val.startsWith(':')) val = val.substring(1).trim();
+       profileDetails[key] = val;
     }
   });
 
@@ -485,8 +501,8 @@ export async function fetchProfileData(session: ScraperSession, csrfToken: strin
 
 export async function fetchTimetableData(session: ScraperSession, csrfToken: string, academicYear: string, semesterId: string) {
   const jar = arrayToJar(session.cookies);
-  // Using URL provided by user
-  const TIMETABLE_URL = `${ERP_URL}/index.php?r=studentinfo%2Fstudentprofileinfo%2Fviewprofileindi`;
+  // Timetable URL based on user routing clues
+  const TIMETABLE_URL = `${ERP_URL}/index.php?r=studenttimetable%2Fstudenttimetable%2Fstudent-time-table`;
   
   const ajaxParams = new URLSearchParams();
   ajaxParams.append('_csrf', csrfToken);

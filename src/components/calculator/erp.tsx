@@ -117,6 +117,11 @@ export function ERPDashboard() {
   const [timetableData, setTimetableData] = useState<any>(null)
   const [tabLoading, setTabLoading] = useState(false)
   const [tabError, setTabError] = useState<string | null>(null)
+  
+  const [ttYear, setTtYear] = useState('')
+  const [ttSem, setTtSem] = useState('')
+  const [ttYearsObj, setTtYearsObj] = useState<{label: string, value: string}[]>([])
+  const [ttSemsObj, setTtSemsObj] = useState<{label: string, value: string}[]>([])
 
   useEffect(() => {
     const raw = localStorage.getItem('attendanceData')
@@ -138,6 +143,15 @@ export function ERPDashboard() {
 
     const storedId = localStorage.getItem('studentId')
     if (storedId) setStudentId(storedId)
+
+    try {
+      const y = JSON.parse(sessionStorage.getItem('kl_erp_academic_years') || '[]')
+      const s = JSON.parse(sessionStorage.getItem('kl_erp_semesters') || '[]')
+      setTtYearsObj(y)
+      setTtSemsObj(s)
+      setTtYear(localStorage.getItem('kl_erp_year') || (y[0]?.value ?? ''))
+      setTtSem(localStorage.getItem('kl_erp_sem') || (s[0]?.value ?? ''))
+    } catch {}
   }, [router])
 
   const fetchTabData = async (tab: 'profile' | 'timetable') => {
@@ -154,8 +168,8 @@ export function ERPDashboard() {
       const body: any = { csrfToken }
       
       if (tab === 'timetable') {
-        body.academicYear = localStorage.getItem('kl_erp_year') || ''
-        body.semesterId = localStorage.getItem('kl_erp_sem') || ''
+        body.academicYear = ttYear || localStorage.getItem('kl_erp_year') || ''
+        body.semesterId = ttSem || localStorage.getItem('kl_erp_sem') || ''
       }
 
       const res = await fetch(`/api/fetch-${tab}`, {
@@ -183,9 +197,9 @@ export function ERPDashboard() {
 
   const handleTabChange = (tab: 'dashboard' | 'profile' | 'timetable') => {
     setCurrentTab(tab)
-    setActive(null) // clear active course
+    setActive(null)
     if (tab === 'profile' && !profileData) fetchTabData('profile')
-    if (tab === 'timetable' && !timetableData) fetchTabData('timetable')
+    if (tab === 'timetable') fetchTabData('timetable') // always fetch timetable to allow period change
   }
 
   const logout = () => {
@@ -253,10 +267,18 @@ export function ERPDashboard() {
             </button>
           </div>
           <span className="hidden sm:block text-sm font-bold font-mono mr-2" style={{ color: STATUS(overall).color }}>{overall.toFixed(1)}% avg</span>
-          <button onClick={changePeriod} className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer transition-all"
-            style={{ background: 'rgba(99,102,241,.08)', border: '1px solid rgba(99,102,241,.2)', color: '#A5B4FC' }}>
-            <Search size={12} /> Change Period
-          </button>
+          
+          {currentTab === 'timetable' && (
+            <div className="flex gap-2">
+              <select className="bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-gray-200 outline-none" value={ttYear} onChange={(e) => { setTtYear(e.target.value); setTimeout(() => fetchTabData('timetable'), 100) }}>
+                {ttYearsObj.map(y => <option key={y.value} value={y.value}>{y.label}</option>)}
+              </select>
+              <select className="bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-gray-200 outline-none" value={ttSem} onChange={(e) => { setTtSem(e.target.value); setTimeout(() => fetchTabData('timetable'), 100) }}>
+                {ttSemsObj.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select>
+            </div>
+          )}
+
           <button onClick={logout} className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer transition-all"
             style={{ background: 'rgba(248,113,113,.08)', border: '1px solid rgba(248,113,113,.2)', color: '#F87171' }}>
             <LogOut size={12} /> Logout

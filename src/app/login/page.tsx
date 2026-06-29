@@ -195,32 +195,19 @@ export default function LoginPage() {
       if (academicYear) setSelectedYear(academicYear)
       if (semesterId) setSelectedSem(semesterId)
 
-      setStep('select-sem')
-    } catch (err: unknown) {
-      setError(err instanceof Error && err.message ? err.message : 'An unexpected error occurred')
-      await fetchCaptcha(true)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleFetchAttendance = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-    setStatus('Fetching attendance data...')
-    
-    try {
+      // Auto-fetch instead of asking user
+      setStatus('Fetching attendance data...')
+      
       const fetchResponse = await fetch('/api/fetch-attendance', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-session-id': sessionId
+          'x-session-id': data.sessionId
         },
         body: JSON.stringify({
-          csrfToken,
-          academicYear: selectedYear,
-          semesterId: selectedSem
+          csrfToken: data.csrfToken,
+          academicYear: academicYear,
+          semesterId: semesterId
         })
       })
 
@@ -237,16 +224,21 @@ export default function LoginPage() {
       // Save the fetched data and route to dashboard
       localStorage.setItem('attendanceData', JSON.stringify(fetchResult))
       localStorage.setItem('studentId', username)
-      localStorage.setItem('kl_erp_year', selectedYear)
-      localStorage.setItem('kl_erp_sem', selectedSem)
+      localStorage.setItem('kl_erp_year', academicYear)
+      localStorage.setItem('kl_erp_sem', semesterId)
       
       router.push('/')
+      
     } catch (err: unknown) {
       setError(err instanceof Error && err.message ? err.message : 'An unexpected error occurred')
       await fetchCaptcha(true)
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleFetchAttendance = async (e: React.FormEvent) => {
+    e.preventDefault()
   }
 
   return (
@@ -399,12 +391,12 @@ export default function LoginPage() {
                     onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.boxShadow = 'none' }}
                   />
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <div className="h-[46px] w-[100px] rounded-xl overflow-hidden flex items-center justify-center"
-                      style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                    <div className="h-[56px] w-[140px] rounded-xl overflow-hidden flex items-center justify-center"
+                      style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(255,255,255,0.07)' }}>
                       {captchaLoading
-                        ? <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'rgba(241,241,243,0.3)' }} />
+                        ? <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'rgba(0,0,0,0.5)' }} />
                         : captchaImage
-                          ? <img src={captchaImage} alt="Captcha" className="h-full w-full object-contain mix-blend-screen opacity-90 scale-95" />  // eslint-disable-line @next/next/no-img-element
+                          ? <img src={captchaImage} alt="Captcha" className="h-full w-full object-contain mix-blend-multiply opacity-100 scale-105 filter contrast-125" />  // eslint-disable-line @next/next/no-img-element
                           : null}
                     </div>
                     <button
@@ -434,67 +426,7 @@ export default function LoginPage() {
                 Connects directly to the KL University ERP system
               </p>
             </form>
-          ) : (
-            <form onSubmit={handleFetchAttendance} className="space-y-4">
-              <div className="mb-2">
-                <h3 className="text-base font-semibold text-foreground mb-1">Select Period</h3>
-                <p className="text-xs" style={{ color: 'rgba(241,241,243,0.4)' }}>Choose the academic year and semester to load.</p>
-              </div>
-
-              {/* Year select */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold tracking-wider uppercase" style={{ color: 'rgba(241,241,243,0.45)' }}>Academic Year</label>
-                <div className="relative">
-                  <select
-                    value={selectedYear}
-                    onChange={e => setSelectedYear(e.target.value)}
-                    disabled={loading}
-                    className="w-full rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none transition-all duration-200 appearance-none cursor-pointer pr-10"
-                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
-                  >
-                    {academicYearOptions}
-                  </select>
-                  <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'rgba(241,241,243,0.3)' }} />
-                </div>
-              </div>
-
-              {/* Semester select */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold tracking-wider uppercase" style={{ color: 'rgba(241,241,243,0.45)' }}>Semester</label>
-                <div className="relative">
-                  <select
-                    value={selectedSem}
-                    onChange={e => setSelectedSem(e.target.value)}
-                    disabled={loading}
-                    className="w-full rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none transition-all duration-200 appearance-none cursor-pointer pr-10"
-                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
-                  >
-                    {semesterOptions}
-                  </select>
-                  <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'rgba(241,241,243,0.3)' }} />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 mt-2 rounded-xl font-semibold text-sm transition-all duration-200 hover:scale-[0.99] active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
-                style={{ background: 'linear-gradient(135deg, #6366F1, #8B5CF6)', color: '#fff', boxShadow: loading ? 'none' : '0 4px 20px rgba(99,102,241,0.35)' }}
-              >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Load Attendance'}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => { setStep('login'); setStatus(null); setError(null); sessionStorage.clear() }}
-                disabled={loading}
-                className="w-full py-3 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-[0.99] active:scale-[0.97] cursor-pointer"
-                style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(241,241,243,0.5)' }}
-              >
-                ← Back
-              </button>
-            </form>
-          )}
+          ) : null}
         </div>
       </div>
     </div>
