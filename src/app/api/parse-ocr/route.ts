@@ -398,6 +398,15 @@ function smartSplitLine(line: string): string[] {
   return line.split(/\s+/)
 }
 
+// Enhanced course code patterns
+const courseCodePatterns = [
+  { pattern: /^[A-Z]{2,4}[0-9]{3,4}[A-Z]?$/, isGeneric: false },  // Standard: CS101, MATH201A
+  { pattern: /^[A-Z]{3,5}[0-9]{2,4}$/, isGeneric: false },        // Alternative: COMP101, ENGG1001
+  { pattern: /^[A-Z]{2,3}-[0-9]{3,4}$/, isGeneric: false },       // With dash: CS-101, EE-201
+  { pattern: /^[0-9]{2}[A-Z]{2,4}[0-9]{2,3}$/, isGeneric: false }, // Number first: 18CS101
+  { pattern: /^[A-Z0-9-]{5,15}$/, isGeneric: true }               // Generic alphanumeric (catch-all)
+]
+
 // Extract and validate fields with enhanced smart detection
 function extractFields(parts: string[], rawLine: string): {
   coursecode: string
@@ -415,23 +424,14 @@ function extractFields(parts: string[], rawLine: string): {
   let totalAttended = 0
   let confidence = 0
   
-  // Enhanced course code patterns
-  const courseCodePatterns = [
-    /^[A-Z]{2,4}[0-9]{3,4}[A-Z]?$/,  // Standard: CS101, MATH201A
-    /^[A-Z]{3,5}[0-9]{2,4}$/,        // Alternative: COMP101, ENGG1001
-    /^[A-Z]{2,3}-[0-9]{3,4}$/,       // With dash: CS-101, EE-201
-    /^[0-9]{2}[A-Z]{2,4}[0-9]{2,3}$/, // Number first: 18CS101
-    /^[A-Z0-9-]{5,15}$/              // Generic alphanumeric (catch-all)
-  ]
-  
   // Find course code with multiple patterns
   let courseCodeIndex = -1
-  for (const pattern of courseCodePatterns) {
+  for (const { pattern, isGeneric } of courseCodePatterns) {
     courseCodeIndex = parts.findIndex(part => pattern.test(part.toUpperCase()))
     if (courseCodeIndex >= 0) {
       coursecode = parts[courseCodeIndex].toUpperCase()
       // Higher confidence for specific patterns, lower for generic
-      if (pattern.source.includes('Generic')) {
+      if (isGeneric) {
         confidence += 0.15
       } else {
         confidence += 0.3
