@@ -1,15 +1,16 @@
-import nextJest from 'next/jest';
+import type { Config } from 'jest'
+import nextJest from 'next/jest'
 
 const createJestConfig = nextJest({
   dir: './',
-});
+})
 
-/** @type {import('jest').Config} */
-const config = {
+const config: Config = {
+  coverageProvider: 'v8',
   testEnvironment: 'node',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
-};
+}
 
-export default createJestConfig(config);
+export default createJestConfig(config)
