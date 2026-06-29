@@ -46,18 +46,11 @@ export default function LoginPage() {
       const sid = response.headers.get('x-session-id')
       if (sid) setSessionId(sid)
 
-      const blob = await response.blob()
-      const imageUrl = URL.createObjectURL(blob)
-      setCaptchaImage(imageUrl)
+      const data = await response.json()
+      const originalBase64 = data.captchaImage
+      setCaptchaImage(originalBase64)
 
       // Auto-solve logic
-      const originalBase64: string = await new Promise((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onloadend = () => resolve(reader.result as string)
-        reader.onerror = reject
-        reader.readAsDataURL(blob)
-      })
-
       try {
         const res = await fetch('/api/solve-captcha', {
           method: 'POST',
