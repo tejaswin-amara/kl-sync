@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { optimizeImageSize, preprocessImageForOCR } from './image-utils'
 
 // Use the OCR_SPACE_API_KEY from environment variables.
 const OCR_SPACE_API_KEY = process.env.OCR_SPACE_API_KEY
@@ -597,30 +598,7 @@ function extractFields(parts: string[], rawLine: string): {
   }
 }
 
-// Image size optimization to prevent timeouts
-async function optimizeImageSize(buffer: Buffer): Promise<Buffer> {
-  try {
-    // Check if image is too large
-    if (buffer.length <= MAX_IMAGE_SIZE_BYTES) {
-      return buffer
-    }
-    
-    return buffer
-  } catch (error) {
-    console.error('Image optimization failed, using original:', error)
-    return buffer
-  }
-}
 
-// Image preprocessing for better OCR accuracy
-async function preprocessImageForOCR(buffer: Buffer): Promise<Buffer> {
-  try {
-    return buffer
-  } catch (error) {
-    console.error('Image preprocessing failed, using original:', error)
-    return buffer
-  }
-}
 
 // Enhanced OCR.space API integration with better settings for character recognition
 async function performOCRWithOCRSpace(buffer: Buffer): Promise<string> {
