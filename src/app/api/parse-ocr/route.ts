@@ -599,7 +599,6 @@ function extractFields(parts: string[], rawLine: string): {
 }
 
 
-
 // Enhanced OCR.space API integration with better settings for character recognition
 async function performOCRWithOCRSpace(buffer: Buffer): Promise<string> {
   if (!OCR_SPACE_API_KEY) throw new Error('OCR_SPACE_API_KEY is not set')

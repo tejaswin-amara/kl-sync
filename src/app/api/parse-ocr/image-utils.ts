@@ -31,11 +31,9 @@ export async function preprocessImageForOCR(buffer: Buffer): Promise<Buffer> {
     // 3. Adjust brightness
     // 4. Remove noise
     // 5. Sharpen text
-
     if (!Buffer.isBuffer(buffer)) {
       throw new TypeError('Input must be a valid Buffer');
     }
-
     return buffer
   } catch (error) {
     console.error('Image preprocessing failed, using original:', error)
