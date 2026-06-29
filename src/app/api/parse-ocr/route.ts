@@ -826,6 +826,17 @@ async function performOCRWithEngine2(buffer: Buffer): Promise<string> {
   }
 }
 
+const COURSE_CODE_REPLACEMENTS = [
+  { pattern: /23C\/(\d{4})/g, replacement: '23CI$1' }, // 23C/2001 -> 23CI2001
+  { pattern: /23SC\/(\d{4})/g, replacement: '23SC$1' }, // 23SC/3201 -> 23SC3201
+  { pattern: /23MT\/(\d{4})/g, replacement: '23MT$1' }, // 23MT/2004 -> 23MT2004
+  { pattern: /23CS\/(\d{3}[A-Z])/g, replacement: '23CS$1' }, // 23CS/235F -> 23CS235F
+  { pattern: /23SDC\/(\d{3}[A-Z])/g, replacement: '23SDC$1' }, // 23SDC/313R -> 23SDC313R
+  { pattern: /23DEA\/(\d{3}[A-Z]{2})/g, replacement: '23DEA$1' }, // 23DEA/310TR -> 23DEA310TR
+  { pattern: /23UC\/(\d{4})/g, replacement: '23UC$1' }, // 23UC/0009 -> 23UC0009
+  { pattern: /23CC\/(\d{4})/g, replacement: '23CC$1' }, // 23CC/3103 -> 23CC3103
+]
+
 // Post-process OCR text to fix common recognition errors
 function postProcessOCRText(text: string): string {
   
@@ -836,14 +847,9 @@ function postProcessOCRText(text: string): string {
   
   // Fix common character recognition errors
   // Fix I vs / confusion in course codes
-  processed = processed.replace(/23C\/(\d{4})/g, '23CI$1') // 23C/2001 -> 23CI2001
-  processed = processed.replace(/23SC\/(\d{4})/g, '23SC$1') // 23SC/3201 -> 23SC3201
-  processed = processed.replace(/23MT\/(\d{4})/g, '23MT$1') // 23MT/2004 -> 23MT2004
-  processed = processed.replace(/23CS\/(\d{3}[A-Z])/g, '23CS$1') // 23CS/235F -> 23CS235F
-  processed = processed.replace(/23SDC\/(\d{3}[A-Z])/g, '23SDC$1') // 23SDC/313R -> 23SDC313R
-  processed = processed.replace(/23DEA\/(\d{3}[A-Z]{2})/g, '23DEA$1') // 23DEA/310TR -> 23DEA310TR
-  processed = processed.replace(/23UC\/(\d{4})/g, '23UC$1') // 23UC/0009 -> 23UC0009
-  processed = processed.replace(/23CC\/(\d{4})/g, '23CC$1') // 23CC/3103 -> 23CC3103
+  for (const replacement of COURSE_CODE_REPLACEMENTS) {
+    processed = processed.replace(replacement.pattern, replacement.replacement)
+  }
   
   // Fix other common OCR errors (avoid changing valid tokens like type 'S' or timeslot 'S-')
   processed = processed.replace(/\bO\b/g, '0') // O -> 0 in numbers
@@ -856,7 +862,7 @@ function postProcessOCRText(text: string): string {
     if (line.trim() === '') return line
     
     // Split by tabs or multiple spaces, but be more conservative
-    let parts = line.split(/\t+|\s{3,}/)
+    const parts = line.split(/\t+|\s{3,}/)
     
     // If we have a data row (starts with number), ensure it has all columns
     if (/^\d+\s/.test(line.trim())) {
