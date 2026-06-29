@@ -1,23 +1,24 @@
 /**
  * @jest-environment node
  */
+import { vi, describe, it, expect, beforeEach, afterEach, type Mock } from 'vitest';
 import { POST } from './route';
 import { NextRequest } from 'next/server';
 import { fetchAttendanceData } from '@/lib/scraper';
 import { decodeSession } from '@/lib/session';
 
-jest.mock('@/lib/scraper');
-jest.mock('@/lib/session');
+vi.mock('@/lib/scraper');
+vi.mock('@/lib/session');
 
-const mockFetchAttendanceData = fetchAttendanceData as jest.Mock;
-const mockDecodeSession = decodeSession as jest.Mock;
+const mockFetchAttendanceData = fetchAttendanceData as Mock;
+const mockDecodeSession = decodeSession as Mock;
 
 describe('POST /api/fetch-attendance', () => {
-    let consoleErrorSpy: jest.SpyInstance;
+    let consoleErrorSpy: any;
 
     beforeEach(() => {
-        jest.clearAllMocks();
-        consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        vi.clearAllMocks();
+        consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     });
 
     afterEach(() => {

@@ -31,54 +31,8 @@
 - **Testing**: [Vitest](https://vitest.dev/), [@testing-library/react](https://testing-library.com/)
 
 
-## 💻 Local Development
 
-Follow these steps to run the project locally on your machine.
 
-### Prerequisites
-- [Node.js](https://nodejs.org/) (v18 or higher)
-- npm, yarn, pnpm, or bun
-
-### 1. Clone the repository
-```bash
-git clone https://github.com/tejaswin-amara/kl-sync.git
-cd kl-sync
-```
-
-### 2. Install dependencies
-```bash
-npm install
-# or yarn install / pnpm install
-```
-
-### 3. Setup Environment Variables
-Create a `.env.local` file in the root directory and add your OCR API key:
-```env
-OCR_SPACE_API_KEY=your_free_api_key_here
-```
-
-### 4. Run the development server
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
----
-
-## 🧪 Testing
-
-The repository utilizes Vitest for fast, reliable unit and integration tests.
-
-```bash
-# Run the test suite
-npm run test
-
-# Run tests in watch mode
-npx vitest watch
-```
-
----
 
 ## 📝 License
 

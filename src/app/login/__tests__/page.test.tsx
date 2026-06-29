@@ -22,7 +22,7 @@ describe('LoginPage Error Handling', () => {
         return {
           ok: true,
           headers: new Headers({ 'x-session-id': 'test-session-id' }),
-          blob: async () => new Blob(['fake-image-data']),
+          json: async () => ({ captchaImage: 'data:image/png;base64,mock' }),
         }
       }
       return { ok: true, json: async () => ({}) }
@@ -62,7 +62,7 @@ describe('LoginPage Error Handling', () => {
         return {
           ok: true,
           headers: new Headers({ 'x-session-id': 'test-session-id' }),
-          blob: async () => new Blob(['fake-image-data']),
+          json: async () => ({ captchaImage: 'data:image/png;base64,mock' }),
         }
       }
       if (url === '/api/login') {
@@ -118,7 +118,7 @@ describe('LoginPage Error Handling', () => {
         return {
           ok: true,
           headers: new Headers({ 'x-session-id': 'test-session-id' }),
-          blob: async () => new Blob(['fake-image-data']),
+          json: async () => ({ captchaImage: 'data:image/png;base64,mock' }),
         }
       }
       if (url === '/api/login') {
@@ -189,7 +189,7 @@ describe('LoginPage Error Handling', () => {
         return {
           ok: true,
           headers: new Headers({ 'x-session-id': 'test-session' }),
-          blob: async () => new Blob(['test'])
+          json: async () => ({ captchaImage: 'data:image/png;base64,mock' }),
         }
       }
       if (url === '/api/solve-captcha') {

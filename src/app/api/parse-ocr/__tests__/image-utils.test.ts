@@ -2,7 +2,7 @@ import { optimizeImageSize } from '../image-utils'
 
 describe('optimizeImageSize', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('should return the original buffer if its size is <= 2MB', async () => {
@@ -14,7 +14,7 @@ describe('optimizeImageSize', () => {
 
   it('should catch errors thrown when accessing buffer properties and return the original buffer', async () => {
     // Spy on console.error to verify the error is logged and to keep test output clean
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     // Create a mock Buffer that throws an error when accessing 'length'
     const mockBuffer = {} as Buffer

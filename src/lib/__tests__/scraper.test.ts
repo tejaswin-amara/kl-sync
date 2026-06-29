@@ -1,18 +1,18 @@
 import { getCaptcha } from '../scraper';
 
 describe('scraper.ts - getCaptcha Error Handling', () => {
-  let fetchSpy: jest.SpyInstance;
-  let consoleErrorSpy: jest.SpyInstance;
+  let fetchSpy: any;
+  let consoleErrorSpy: any;
 
   beforeEach(() => {
     // Mock fetch
-    fetchSpy = jest.spyOn(global, 'fetch');
+    fetchSpy = vi.spyOn(global, 'fetch');
     // Mock console.error to keep test output clean and allow asserting it was called
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('should throw an error and log to console if network fetch fails', async () => {
@@ -28,7 +28,7 @@ describe('scraper.ts - getCaptcha Error Handling', () => {
     fetchSpy.mockResolvedValueOnce({
       status: 200,
       headers: new Headers(),
-      text: jest.fn().mockResolvedValue('<html><body><form></form></body></html>'),
+      text: vi.fn().mockResolvedValue('<html><body><form></form></body></html>'),
     } as unknown as Response);
 
     await expect(getCaptcha()).rejects.toThrow('CSRF Token not found (ERP login page structure may have changed)');
@@ -40,7 +40,7 @@ describe('scraper.ts - getCaptcha Error Handling', () => {
     fetchSpy.mockResolvedValueOnce({
       status: 200,
       headers: new Headers(),
-      text: jest.fn().mockResolvedValue('<html><body><input name="_csrf" value="test-token" /></body></html>'),
+      text: vi.fn().mockResolvedValue('<html><body><input name="_csrf" value="test-token" /></body></html>'),
     } as unknown as Response);
 
     await expect(getCaptcha()).rejects.toThrow('Captcha element/source not found');

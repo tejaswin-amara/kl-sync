@@ -111,8 +111,8 @@ describe('POST /api/parse-ocr', () => {
 
     const req = new NextRequest('http://localhost/api/parse-ocr', {
       method: 'POST',
-      body: formData
     });
+    req.formData = async () => formData;
 
     global.fetch = async () => { throw new Error('OCR API fetch failed') };
 
@@ -133,8 +133,8 @@ describe('POST /api/parse-ocr', () => {
 
     const req = new NextRequest('http://localhost/api/parse-ocr', {
       method: 'POST',
-      body: formData
     });
+    req.formData = async () => formData;
 
     global.fetch = async () => ({
       json: async () => ({

@@ -2,15 +2,15 @@ import { loginAndFetchSemesters, fetchAttendanceData, ScraperSession } from './s
 
 // Mock the global console.error to avoid noise in the test output
 beforeAll(() => {
-  jest.spyOn(console, 'error').mockImplementation(() => {});
+  vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
 afterAll(() => {
-  (console.error as jest.Mock).mockRestore();
+  (console.error as any).mockRestore();
 });
 
 describe('loginAndFetchSemesters', () => {
-  let mockFetch: jest.Mock;
+  let mockFetch: any;
   const mockSession: ScraperSession = {
     cookies: [{ name: 'PHPSESSID', value: '123' }],
     csrfToken: 'test-csrf-token',
@@ -23,7 +23,7 @@ describe('loginAndFetchSemesters', () => {
     headers: Record<string, string> = {}
   ): Partial<Response> => ({
     status,
-    text: jest.fn().mockResolvedValue(text),
+    text: vi.fn().mockResolvedValue(text),
     headers: {
       get: (key: string) => headers[key.toLowerCase()] || null,
       // For getSetCookie logic in scraper.ts
@@ -32,12 +32,12 @@ describe('loginAndFetchSemesters', () => {
   });
 
   beforeEach(() => {
-    mockFetch = jest.fn();
+    mockFetch = vi.fn();
     global.fetch = mockFetch as any;
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it('should handle happy path with 302 redirect on login', async () => {
@@ -199,7 +199,7 @@ describe('loginAndFetchSemesters', () => {
 
     await expect(
       loginAndFetchSemesters('user', 'pass', 'cap', mockSession)
-    ).rejects.toThrow("KLU ERP server error during login (a bug on the university's side). Please refresh the captcha and try again.");
+    ).rejects.toThrow("KLU ERP server error during login (an issue on the university's side). Please refresh the captcha and try again.");
   });
 
   it('should inject provided deviceId on login', async () => {
@@ -229,7 +229,7 @@ describe('loginAndFetchSemesters', () => {
 
 describe('fetchAttendanceData', () => {
   let mockSession: ScraperSession;
-  let mockFetch: jest.Mock;
+  let mockFetch: any;
 
   beforeEach(() => {
     mockSession = {
@@ -237,7 +237,7 @@ describe('fetchAttendanceData', () => {
       csrfToken: 'test-csrf-token',
       userAgent: 'test-agent',
     };
-    mockFetch = global.fetch as jest.Mock;
+    mockFetch = global.fetch as any;
     mockFetch.mockClear();
   });
 
@@ -269,7 +269,7 @@ describe('fetchAttendanceData', () => {
     mockFetch.mockResolvedValueOnce({
       status: 200,
       headers: new Headers(),
-      text: jest.fn().mockResolvedValueOnce(htmlResponse),
+      text: vi.fn().mockResolvedValueOnce(htmlResponse),
     });
 
     const result = await fetchAttendanceData(mockSession, 'mock-csrf-token', '2023', 'SEM1');
@@ -323,7 +323,7 @@ describe('fetchAttendanceData', () => {
     mockFetch.mockResolvedValueOnce({
       status: 200,
       headers: new Headers(),
-      text: jest.fn().mockResolvedValueOnce(htmlResponse),
+      text: vi.fn().mockResolvedValueOnce(htmlResponse),
     });
 
     const result = await fetchAttendanceData(mockSession, 'mock-csrf-token', '2023', 'SEM1');
@@ -350,7 +350,7 @@ describe('fetchAttendanceData', () => {
     mockFetch.mockResolvedValueOnce({
       status: 200,
       headers: new Headers(),
-      text: jest.fn().mockResolvedValueOnce(htmlResponse),
+      text: vi.fn().mockResolvedValueOnce(htmlResponse),
     });
 
     const result = await fetchAttendanceData(mockSession, 'mock-csrf-token', '2023', 'SEM1');

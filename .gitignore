@@ -44,3 +44,5 @@ next-env.d.ts
 user_data.json
 captcha.png
 
+
+.vercel
