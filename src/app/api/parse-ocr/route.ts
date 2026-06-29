@@ -3,6 +3,11 @@ import { NextRequest, NextResponse } from 'next/server'
 // Prefer an env-configured key; fall back to the public free-tier key.
 const OCR_SPACE_API_KEY = process.env.OCR_SPACE_API_KEY || 'K87899142388957'
 
+// Define the maximum image size (default 2MB)
+const MAX_IMAGE_SIZE_BYTES = process.env.MAX_IMAGE_SIZE_BYTES
+  ? parseInt(process.env.MAX_IMAGE_SIZE_BYTES, 10) || 2 * 1024 * 1024
+  : 2 * 1024 * 1024
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
@@ -571,10 +576,8 @@ function extractFields(parts: string[], rawLine: string): {
 // Image size optimization to prevent timeouts
 async function optimizeImageSize(buffer: Buffer): Promise<Buffer> {
   try {
-    // Check if image is too large (> 2MB)
-    const maxSize = 2 * 1024 * 1024 // 2MB
-    
-    if (buffer.length <= maxSize) {
+    // Check if image is too large
+    if (buffer.length <= MAX_IMAGE_SIZE_BYTES) {
       return buffer
     }
     
