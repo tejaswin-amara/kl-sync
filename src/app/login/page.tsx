@@ -181,7 +181,7 @@ export default function LoginPage() {
       setStep('select-sem')
       
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+      setError(err instanceof Error && err.message ? err.message : 'An unexpected error occurred')
       await fetchCaptcha(true)
     } finally {
       setLoading(false)
@@ -225,7 +225,7 @@ export default function LoginPage() {
       router.push('/')
       
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+      setError(err instanceof Error && err.message ? err.message : 'An unexpected error occurred')
       await fetchCaptcha(true)
     } finally {
       setLoading(false)

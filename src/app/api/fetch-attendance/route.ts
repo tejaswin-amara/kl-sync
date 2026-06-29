@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { 
         success: false, 
-        message: error instanceof Error ? error.message : 'Failed to fetch attendance'
+        message: error instanceof Error && error.message ? error.message : 'Failed to fetch attendance'
       },
       { status: 500 }
     )
