@@ -889,9 +889,9 @@ function postProcessOCRText(text: string): string {
   processed = processedLines.join('\n')
   
   // Ensure proper spacing around numbers (but be careful not to break line structure)
-  // Do NOT insert spaces inside course codes (e.g., 23SC3201).
+  // Do NOT insert spaces inside course codes (e.g., 24SC3201).
   // Instead, collapse any accidentally separated course code tokens.
-  // Examples fixed: "23 SC 3201" -> "23SC3201", "23 SDC 313R" -> "23SDC313R".
+  // Examples fixed: "24 SC 3201" -> "24SC3201", "22 SDC 313R" -> "22SDC313R".
   // Join separated course code tokens that start with a 2-digit year while preserving preceding serial numbers
   processed = processed.replace(/(^|\s)(\d{2})\s+([A-Z]{2,5})\s+(\d{3,4})\s*([A-Z])?\b/g,
     (_m, p0, p1, p2, p3, p4) => `${p0}${p1}${p2}${p3}${p4 ? p4 : ''}`
