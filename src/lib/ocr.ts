@@ -9,8 +9,8 @@ const OCR_SPACE_API_KEY = process.env.OCR_SPACE_API_KEY
 // fully transparent background, so the PNG's alpha channel is a near-perfect
 // text mask. We turn that mask into crisp black-on-white, upscaled with a white
 // margin — OCR.space reads this far more reliably than the raw pink-on-
-// transparent image (which it composites onto black). This is the load-bearing
-// accuracy fix.
+// transparent image (which it composites onto black). This significantly
+// improves accuracy.
 async function preprocessCaptcha(buffer: Buffer): Promise<Buffer> {
   const core = await sharp(buffer)
     .ensureAlpha()
@@ -78,6 +78,7 @@ async function ocrSpace(buffer: Buffer, engine: 1 | 2): Promise<string> {
 // digit look-alikes back to letters, lowercase, and strip everything else.
 function cleanCaptchaText(raw: string): string {
   return (raw || '')
+    .toLowerCase()
     .replace(/0/g, 'o')
     .replace(/1/g, 'l')
     .replace(/2/g, 'z')
@@ -89,7 +90,6 @@ function cleanCaptchaText(raw: string): string {
     .replace(/8/g, 'b')
     .replace(/9/g, 'g')
     .replace(/vv/g, 'w')
-    .toLowerCase()
     .replace(/[^a-z]/g, '')
     .trim()
 }
