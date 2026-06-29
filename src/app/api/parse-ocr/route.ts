@@ -824,14 +824,14 @@ async function performOCRWithEngine2(buffer: Buffer): Promise<string> {
 }
 
 const COURSE_CODE_REPLACEMENTS = [
-  { pattern: /23C\/(\d{4})/g, replacement: '23CI$1' }, // 23C/2001 -> 23CI2001
-  { pattern: /23SC\/(\d{4})/g, replacement: '23SC$1' }, // 23SC/3201 -> 23SC3201
-  { pattern: /23MT\/(\d{4})/g, replacement: '23MT$1' }, // 23MT/2004 -> 23MT2004
-  { pattern: /23CS\/(\d{3}[A-Z])/g, replacement: '23CS$1' }, // 23CS/235F -> 23CS235F
-  { pattern: /23SDC\/(\d{3}[A-Z])/g, replacement: '23SDC$1' }, // 23SDC/313R -> 23SDC313R
-  { pattern: /23DEA\/(\d{3}[A-Z]{2})/g, replacement: '23DEA$1' }, // 23DEA/310TR -> 23DEA310TR
-  { pattern: /23UC\/(\d{4})/g, replacement: '23UC$1' }, // 23UC/0009 -> 23UC0009
-  { pattern: /23CC\/(\d{4})/g, replacement: '23CC$1' }, // 23CC/3103 -> 23CC3103
+  { pattern: /(\d{2})C\/(\d{4})/g, replacement: '$1CI$2' }, // 23C/2001 -> 23CI2001
+  { pattern: /(\d{2})SC\/(\d{4})/g, replacement: '$1SC$2' }, // 23SC/3201 -> 23SC3201
+  { pattern: /(\d{2})MT\/(\d{4})/g, replacement: '$1MT$2' }, // 23MT/2004 -> 23MT2004
+  { pattern: /(\d{2})CS\/(\d{3}[A-Z])/g, replacement: '$1CS$2' }, // 23CS/235F -> 23CS235F
+  { pattern: /(\d{2})SDC\/(\d{3}[A-Z])/g, replacement: '$1SDC$2' }, // 23SDC/313R -> 23SDC313R
+  { pattern: /(\d{2})DEA\/(\d{3}[A-Z]{2})/g, replacement: '$1DEA$2' }, // 23DEA/310TR -> 23DEA310TR
+  { pattern: /(\d{2})UC\/(\d{4})/g, replacement: '$1UC$2' }, // 23UC/0009 -> 23UC0009
+  { pattern: /(\d{2})CC\/(\d{4})/g, replacement: '$1CC$2' }, // 23CC/3103 -> 23CC3103
 ]
 
 // Post-process OCR text to fix common recognition errors
@@ -889,12 +889,12 @@ function postProcessOCRText(text: string): string {
   // Do NOT insert spaces inside course codes (e.g., 23SC3201).
   // Instead, collapse any accidentally separated course code tokens.
   // Examples fixed: "23 SC 3201" -> "23SC3201", "23 SDC 313R" -> "23SDC313R".
-  // Join separated course code tokens that start with '23' while preserving preceding serial numbers
-  processed = processed.replace(/(^|\s)23\s+([A-Z]{2,5})\s+(\d{3,4})\s*([A-Z])?\b/g,
-    (_m, p0, p2, p3, p4) => `${p0}23${p2}${p3}${p4 ? p4 : ''}`
+  // Join separated course code tokens that start with '23' or similar while preserving preceding serial numbers
+  processed = processed.replace(/(^|\s)(\d{2})\s+([A-Z]{2,5})\s+(\d{3,4})\s*([A-Z])?\b/g,
+    (_m, p0, p1, p2, p3, p4) => `${p0}${p1}${p2}${p3}${p4 ? p4 : ''}`
   )
   // If any serial number was accidentally concatenated to course code (e.g., '1023SDC313R'), strip it
-  processed = processed.replace(/\b\d{1,2}(23[A-Z]{2,5}\d{3,4}[A-Z]?)\b/g, '$1')
+  processed = processed.replace(/\b\d{1,2}(\d{2}[A-Z]{2,5}\d{3,4}[A-Z]?)\b/g, '$1')
   
   // Fix percentage signs
   processed = processed.replace(/(\d+)\s+%/g, '$1%')
