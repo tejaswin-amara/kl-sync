@@ -7,8 +7,8 @@ const loginSchema = z.object({
   username: z.string().min(1, 'Username is required').max(100, 'Username is too long'),
   password: z.string().min(1, 'Password is required').max(200, 'Password is too long'),
   captcha: z.string().min(1, 'Captcha is required').max(50, 'Captcha is too long'),
-  deviceId: z.string().max(200, 'Device ID is too long').optional(),
-  sessionId: z.string().max(5000, 'Session ID is too long').optional(),
+  deviceId: z.string().max(5000, 'Device ID is too long').optional(),
+  sessionId: z.string().max(10000, 'Session ID is too long').optional(),
 })
 
 export const runtime = 'edge'
@@ -19,8 +19,11 @@ export async function POST(request: NextRequest) {
 
     const parseResult = loginSchema.safeParse(body)
     if (!parseResult.success) {
+      const errMsgs = Object.entries(parseResult.error.flatten().fieldErrors)
+        .map(([field, errors]) => `${field}: ${errors?.join(', ')}`)
+        .join('; ')
       return NextResponse.json(
-        { success: false, message: 'Invalid input', errors: parseResult.error.flatten().fieldErrors },
+        { success: false, message: `Invalid input: ${errMsgs}`, errors: parseResult.error.flatten().fieldErrors },
         { status: 400 }
       )
     }
