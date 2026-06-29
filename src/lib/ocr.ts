@@ -107,10 +107,13 @@ export async function solveCaptchaWithOCRSpace(base64Image: string): Promise<str
       console.error('Captcha preprocessing failed, using raw image:', e)
     }
 
-    // Engine 2 reads words best; Engine 1 is a fallback when it returns nothing.
-    let text = cleanCaptchaText(await ocrSpace(ocrBuffer, 2))
-    if (!text) text = cleanCaptchaText(await ocrSpace(ocrBuffer, 1))
-    return text
+    // Run both engines in parallel to save time.
+    // Engine 2 reads words best; Engine 1 is a fallback.
+    const [res2, res1] = await Promise.all([
+      ocrSpace(ocrBuffer, 2).then(cleanCaptchaText),
+      ocrSpace(ocrBuffer, 1).then(cleanCaptchaText)
+    ])
+    return res2 || res1 || ''
   } catch (error) {
     console.error('Captcha OCR failed:', error)
     return ''
