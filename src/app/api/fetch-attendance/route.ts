@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result)
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Fetch Attendance error:', error)
     return NextResponse.json(
       { 

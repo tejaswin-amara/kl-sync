@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       studentName: 'Student' // Placeholder, could be scraped
     }))
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Login error:', error)
     return NextResponse.json(
       { 
