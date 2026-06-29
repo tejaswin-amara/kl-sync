@@ -824,14 +824,14 @@ async function performOCRWithEngine2(buffer: Buffer): Promise<string> {
 }
 
 const COURSE_CODE_REPLACEMENTS = [
-  { pattern: /(\d{2})C\/(\d{4})/g, replacement: '$1CI$2' }, // 23C/2001 -> 23CI2001
-  { pattern: /(\d{2})SC\/(\d{4})/g, replacement: '$1SC$2' }, // 23SC/3201 -> 23SC3201
-  { pattern: /(\d{2})MT\/(\d{4})/g, replacement: '$1MT$2' }, // 23MT/2004 -> 23MT2004
-  { pattern: /(\d{2})CS\/(\d{3}[A-Z])/g, replacement: '$1CS$2' }, // 23CS/235F -> 23CS235F
-  { pattern: /(\d{2})SDC\/(\d{3}[A-Z])/g, replacement: '$1SDC$2' }, // 23SDC/313R -> 23SDC313R
-  { pattern: /(\d{2})DEA\/(\d{3}[A-Z]{2})/g, replacement: '$1DEA$2' }, // 23DEA/310TR -> 23DEA310TR
-  { pattern: /(\d{2})UC\/(\d{4})/g, replacement: '$1UC$2' }, // 23UC/0009 -> 23UC0009
-  { pattern: /(\d{2})CC\/(\d{4})/g, replacement: '$1CC$2' }, // 23CC/3103 -> 23CC3103
+  { pattern: /(\d{2})C[\/I](\d{4})/g, replacement: '$1CI$2' }, // 23C/2001 or 23CI2001 -> 23CI2001
+  { pattern: /(\d{2})SC[\/I](\d{4})/g, replacement: '$1SC$2' }, // 23SC/3201 or 23SCI3201 -> 23SC3201
+  { pattern: /(\d{2})MT[\/I](\d{4})/g, replacement: '$1MT$2' }, // 23MT/2004 or 23MTI2004 -> 23MT2004
+  { pattern: /(\d{2})CS[\/I](\d{3}[A-Z])/g, replacement: '$1CS$2' }, // 23CS/235F or 23CSI235F -> 23CS235F
+  { pattern: /(\d{2})SDC[\/I](\d{3}[A-Z])/g, replacement: '$1SDC$2' }, // 23SDC/313R or 23SDCI313R -> 23SDC313R
+  { pattern: /(\d{2})DEA[\/I](\d{3}[A-Z]{2})/g, replacement: '$1DEA$2' }, // 23DEA/310TR or 23DEAI310TR -> 23DEA310TR
+  { pattern: /(\d{2})UC[\/I](\d{4})/g, replacement: '$1UC$2' }, // 23UC/0009 or 23UCI0009 -> 23UC0009
+  { pattern: /(\d{2})CC[\/I](\d{4})/g, replacement: '$1CC$2' }, // 23CC/3103 or 23CCI3103 -> 23CC3103
 ]
 
 // Post-process OCR text to fix common recognition errors
