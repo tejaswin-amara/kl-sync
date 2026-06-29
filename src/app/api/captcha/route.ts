@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getCaptcha } from '@/lib/scraper'
 import { encodeSession } from '@/lib/session'
+export const runtime = 'edge'
 
 export async function GET() {
   try {

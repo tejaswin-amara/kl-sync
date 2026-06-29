@@ -11,6 +11,8 @@ const loginSchema = z.object({
   sessionId: z.string().max(5000, 'Session ID is too long').optional(),
 })
 
+export const runtime = 'edge'
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()

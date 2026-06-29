@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { RefreshCw, LogIn, AlertCircle, Loader2, BookOpen, ChevronDown } from "lucide-react"
 import { useRouter } from 'next/navigation'
-import Cookies from 'js-cookie'
+// ponytail: native localstorage used instead of js-cookie dependency
 
 export default function LoginPage() {
   const router = useRouter()
@@ -90,8 +90,8 @@ export default function LoginPage() {
       if (savedDevice) setDeviceId(savedDevice)
     } catch {}
     
-    const savedUser = Cookies.get('remember_username')
-    const savedPass = Cookies.get('remember_password')
+    const savedUser = localStorage.getItem('remember_username')
+    const savedPass = localStorage.getItem('remember_password')
     if (savedUser && savedPass) {
       setUsername(savedUser)
       setPassword(savedPass)
@@ -146,11 +146,11 @@ export default function LoginPage() {
       }
 
       if (rememberMe) {
-        Cookies.set('remember_username', username, { expires: 30 })
-        Cookies.set('remember_password', password, { expires: 30 })
+        localStorage.setItem('remember_username', username)
+        localStorage.setItem('remember_password', password)
       } else {
-        Cookies.remove('remember_username')
-        Cookies.remove('remember_password')
+        localStorage.removeItem('remember_username')
+        localStorage.removeItem('remember_password')
       }
 
       // Set Options
@@ -180,7 +180,7 @@ export default function LoginPage() {
       if (semesterId) setSelectedSem(semesterId)
 
       setStep('select-sem')
-      
+    } catch (err: any) {
       setError(err instanceof Error && err.message ? err.message : 'An unexpected error occurred')
       await fetchCaptcha(true)
     } finally {
@@ -223,7 +223,7 @@ export default function LoginPage() {
       localStorage.setItem('studentId', username)
       
       router.push('/')
-      
+    } catch (err: any) {
       setError(err instanceof Error && err.message ? err.message : 'An unexpected error occurred')
       await fetchCaptcha(true)
     } finally {
