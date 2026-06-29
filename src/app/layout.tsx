@@ -15,8 +15,8 @@ const firaCode = Fira_Code({
 });
 
 export const metadata: Metadata = {
-  title: "KL Attendance — ERP Portal",
-  description: "Track your KL University attendance course-wise with LTPS-weighted analysis.",
+  title: "KL Sync",
+  description: "A fast, modern, and reliable attendance tracking portal for KL University.",
 };
 
 export default function RootLayout({

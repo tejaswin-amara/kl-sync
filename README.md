@@ -5,9 +5,7 @@
     <strong>A fast, modern, and reliable attendance tracking portal for KL University.</strong>
   </p>
   <br />
-  
-  [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ftejaswin-amara%2Fkl-attendance-v2&env=OCR_SPACE_API_KEY)
-  
+
   [![Next.js](https://img.shields.io/badge/Next.js-16.2-black?style=flat-square&logo=next.js)](https://nextjs.org/)
   [![React](https://img.shields.io/badge/React-19.2-blue?style=flat-square&logo=react)](https://react.dev/)
   [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
@@ -32,19 +30,6 @@
 - **Parsing/Scraping**: [Cheerio](https://cheerio.js.org/), [Zod](https://zod.dev/)
 - **Testing**: [Vitest](https://vitest.dev/), [@testing-library/react](https://testing-library.com/)
 
----
-
-## 🚀 One-Click Deploy (Vercel)
-
-The easiest way to deploy this application is using the Vercel Platform. 
-
-Click the button below to fork and deploy the repository directly to your Vercel account:
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ftejaswin-amara%2Fkl-attendance-v2&env=OCR_SPACE_API_KEY)
-
-> **Note**: You will be prompted to enter the `OCR_SPACE_API_KEY` environment variable during deployment. You can get a free API key from [OCR.space](https://ocr.space/ocrapi).
-
----
 
 ## 💻 Local Development
 
@@ -56,8 +41,8 @@ Follow these steps to run the project locally on your machine.
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/tejaswin-amara/kl-attendance-v2.git
-cd kl-attendance-v2
+git clone https://github.com/tejaswin-amara/kl-sync.git
+cd kl-sync
 ```
 
 ### 2. Install dependencies
