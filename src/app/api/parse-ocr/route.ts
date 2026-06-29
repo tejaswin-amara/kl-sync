@@ -837,8 +837,18 @@ function postProcessOCRText(text: string): string {
   processed = processed.replace(/\b(\d{2}[A-Z]+)[\/I](\d{3,4}[A-Z]*)\b/g, '$1$2') // e.g., 23SC/3201 or 23SCI3201 -> 23SC3201
   
   // Fix other common OCR errors (avoid changing valid tokens like type 'S' or timeslot 'S-')
-  processed = processed.replace(/\bO\b/g, '0') // O -> 0 in numbers
-  processed = processed.replace(/\bl\b/g, '1') // l -> 1 in numbers
+  processed = processed.replace(/\b([0-9OlSZ]+)\b/g, (match, _p1, offset, str) => {
+    // Avoid changing valid tokens like timeslot 'S-'
+    if (match === 'S' && str[offset + match.length] === '-') return match
+    // Avoid changing valid standalone tokens like type 'S' or 'Z'
+    if (match === 'S' || match === 'Z') return match
+
+    return match
+      .replace(/O/g, '0')
+      .replace(/l/g, '1')
+      .replace(/S/g, '5')
+      .replace(/Z/g, '2')
+  })
   
   // Fix letters inside numbers (e.g., '1O' -> '10', 'S1' -> '51')
   // We only replace if the token consists entirely of numbers and the specific letters,
