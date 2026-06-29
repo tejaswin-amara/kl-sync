@@ -1,6 +1,7 @@
 import * as cheerio from 'cheerio';
 
 const ERP_URL = 'https://newerp.kluniversity.in';
+const ALLOWED_HOST = new URL(ERP_URL).hostname;
 const LOGIN_URL = `${ERP_URL}/index.php?r=site%2Flogin`;
 const ATTENDANCE_URL = `${ERP_URL}/index.php?r=studentattendance%2Fstudentdailyattendance%2Fsearchgetinput`;
 const COURSE_LIST_URL = `${ERP_URL}/index.php?r=studentattendance%2Fstudentdailyattendance%2Fcourselist`;
@@ -83,6 +84,11 @@ async function fetchWithJar(
   let body = init.body;
 
   for (let i = 0; i <= maxRedirects; i++) {
+    const currentHost = new URL(currentUrl).hostname;
+    if (currentHost !== ALLOWED_HOST) {
+      throw new Error(`Security Error: Attempted to fetch unauthorized host ${currentHost}`);
+    }
+
     const headers: Record<string, string> = {
       'User-Agent': USER_AGENT,
       ...(init.extraHeaders || {}),
@@ -265,14 +271,11 @@ export async function loginAndFetchSemesters(
     // Classic redirect-on-success: follow it to settle cookies.
     const location = loginRes.headers.get('location');
     if (location) {
-      const nextUrl = new URL(location, LOGIN_URL);
-      const allowedHostname = new URL(ERP_URL).hostname;
-
-      if (nextUrl.hostname !== allowedHostname) {
-        throw new Error(`Security Error: SSRF attempt prevented. Redirect to untrusted host: ${nextUrl.hostname}`);
+      const destUrl = new URL(location, LOGIN_URL);
+      if (destUrl.hostname !== ALLOWED_HOST) {
+        throw new Error(`Security Error: Attempted to redirect to unauthorized host ${destUrl.hostname}`);
       }
-
-      const dest = nextUrl.toString().replace(/^http:\/\//i, 'https://');
+      const dest = destUrl.toString().replace(/^http:\/\//i, 'https://');
       await fetchWithJar(dest, jar);
     }
   } else {
