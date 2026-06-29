@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// Prefer an env-configured key; fall back to the public free-tier key.
-const OCR_SPACE_API_KEY = process.env.OCR_SPACE_API_KEY || 'K87899142388957'
+// Use the OCR_SPACE_API_KEY from environment variables.
+const OCR_SPACE_API_KEY = process.env.OCR_SPACE_API_KEY
 
 // Define the maximum image size (default 2MB)
 const MAX_IMAGE_SIZE_BYTES = process.env.MAX_IMAGE_SIZE_BYTES
@@ -10,6 +10,11 @@ const MAX_IMAGE_SIZE_BYTES = process.env.MAX_IMAGE_SIZE_BYTES
 
 export async function POST(request: NextRequest) {
   try {
+    if (!OCR_SPACE_API_KEY) {
+      console.error('OCR_SPACE_API_KEY is not set')
+      return NextResponse.json({ error: 'Server configuration error: OCR_SPACE_API_KEY is not set' }, { status: 500 })
+    }
+
     const formData = await request.formData()
     const file = formData.get('image') as File
     
@@ -616,6 +621,7 @@ async function preprocessImageForOCR(buffer: Buffer): Promise<Buffer> {
 
 // Enhanced OCR.space API integration with better settings for character recognition
 async function performOCRWithOCRSpace(buffer: Buffer): Promise<string> {
+  if (!OCR_SPACE_API_KEY) throw new Error('OCR_SPACE_API_KEY is not set')
   try {
     // Check image size and optimize if needed
     const optimizedBuffer = await optimizeImageSize(buffer)
@@ -690,6 +696,7 @@ async function performOCRWithOCRSpace(buffer: Buffer): Promise<string> {
 
 // Try OCR with Engine 1 as backup
 async function performOCRWithEngine1Fallback(buffer: Buffer): Promise<string> {
+  if (!OCR_SPACE_API_KEY) throw new Error('OCR_SPACE_API_KEY is not set')
   try {
     // Use the same optimization and preprocessing
     const optimizedBuffer = await optimizeImageSize(buffer)
@@ -753,6 +760,7 @@ async function performOCRWithEngine1Fallback(buffer: Buffer): Promise<string> {
 
 // Try OCR with Engine 2 as an alternative helper
 async function performOCRWithEngine2(buffer: Buffer): Promise<string> {
+  if (!OCR_SPACE_API_KEY) throw new Error('OCR_SPACE_API_KEY is not set')
   try {
     // Reuse optimization and preprocessing steps
     const optimizedBuffer = await optimizeImageSize(buffer)
