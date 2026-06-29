@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:jest": "jest"
+    "test:jest": "jest",
+    "test:native": "tsx --test src/**/*.test.ts"
   },
   "dependencies": {
     "cheerio": "^1.2.0",
@@ -42,6 +43,7 @@
     "tailwindcss": "^4",
     "ts-jest": "^29.4.11",
     "ts-node": "^10.9.2",
+    "tsx": "^4.22.4",
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.9"
