@@ -823,17 +823,6 @@ async function performOCRWithEngine2(buffer: Buffer): Promise<string> {
   }
 }
 
-const COURSE_CODE_REPLACEMENTS = [
-  { pattern: /(\d{2})C[\/I](\d{4})/g, replacement: '$1CI$2' }, // 23C/2001 or 23CI2001 -> 23CI2001
-  { pattern: /(\d{2})SC[\/I](\d{4})/g, replacement: '$1SC$2' }, // 23SC/3201 or 23SCI3201 -> 23SC3201
-  { pattern: /(\d{2})MT[\/I](\d{4})/g, replacement: '$1MT$2' }, // 23MT/2004 or 23MTI2004 -> 23MT2004
-  { pattern: /(\d{2})CS[\/I](\d{3}[A-Z])/g, replacement: '$1CS$2' }, // 23CS/235F or 23CSI235F -> 23CS235F
-  { pattern: /(\d{2})SDC[\/I](\d{3}[A-Z])/g, replacement: '$1SDC$2' }, // 23SDC/313R or 23SDCI313R -> 23SDC313R
-  { pattern: /(\d{2})DEA[\/I](\d{3}[A-Z]{2})/g, replacement: '$1DEA$2' }, // 23DEA/310TR or 23DEAI310TR -> 23DEA310TR
-  { pattern: /(\d{2})UC[\/I](\d{4})/g, replacement: '$1UC$2' }, // 23UC/0009 or 23UCI0009 -> 23UC0009
-  { pattern: /(\d{2})CC[\/I](\d{4})/g, replacement: '$1CC$2' }, // 23CC/3103 or 23CCI3103 -> 23CC3103
-]
-
 // Post-process OCR text to fix common recognition errors
 function postProcessOCRText(text: string): string {
   
@@ -842,10 +831,10 @@ function postProcessOCRText(text: string): string {
   // First, normalize line endings and remove excessive whitespace
   processed = processed.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
   
-    // Fix I vs / confusion in course codes (generalize to any 2-digit year)
-  for (const replacement of COURSE_CODE_REPLACEMENTS) {
-    processed = processed.replace(replacement.pattern, replacement.replacement)
-  }
+  // Fix common character recognition errors
+  // Fix I vs / confusion in course codes
+  processed = processed.replace(/\b(\d{2})C[\/I](\d{3,4}[A-Z]*)\b/g, '$1CI$2') // e.g., 23C/2001 or 23CI2001 -> 23CI2001
+  processed = processed.replace(/\b(\d{2}[A-Z]+)[\/I](\d{3,4}[A-Z]*)\b/g, '$1$2') // e.g., 23SC/3201 or 23SCI3201 -> 23SC3201
   
   // Fix other common OCR errors (avoid changing valid tokens like type 'S' or timeslot 'S-')
   processed = processed.replace(/\bO\b/g, '0') // O -> 0 in numbers
