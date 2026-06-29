@@ -1,36 +1,100 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
+  <br />
+  <h1>🎓 KL Attendance V2</h1>
+  <p>
+    <strong>A fast, modern, and reliable attendance tracking portal for KL University.</strong>
+  </p>
+  <br />
+  
+  [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ftejaswin-amara%2Fkl-attendance-v2&env=OCR_SPACE_API_KEY)
+  
+  [![Next.js](https://img.shields.io/badge/Next.js-16.2-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+  [![React](https://img.shields.io/badge/React-19.2-blue?style=flat-square&logo=react)](https://react.dev/)
+  [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
+  [![Vitest](https://img.shields.io/badge/Vitest-Passing-brightgreen?style=flat-square&logo=vitest)](https://vitest.dev/)
+</div>
 
-## Getting Started
+<hr />
 
-First, run the development server:
+## ✨ Features
 
+- 🚀 **Next.js 16 App Router** - Blazing fast server-side rendering and static generation via Turbopack.
+- 🎨 **Modern Interface** - Responsive, clean, and beautiful UI built with **Tailwind CSS v4** and `lucide-react` icons.
+- 🤖 **Frictionless Login** - Automated captcha bypassing using OCR.space integration and sharp image preprocessing.
+- 🛡️ **Robust Security** - Strict `zod` validation, secure session management, and comprehensive error handling.
+- ✅ **High Test Coverage** - Fully unified end-to-end and unit testing powered by **Vitest** and Testing Library.
+
+## 🛠️ Tech Stack
+
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router, Server Actions)
+- **UI Library**: [React 19](https://react.dev/)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **Parsing/Scraping**: [Cheerio](https://cheerio.js.org/), [Zod](https://zod.dev/)
+- **Testing**: [Vitest](https://vitest.dev/), [@testing-library/react](https://testing-library.com/)
+
+---
+
+## 🚀 One-Click Deploy (Vercel)
+
+The easiest way to deploy this application is using the Vercel Platform. 
+
+Click the button below to fork and deploy the repository directly to your Vercel account:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ftejaswin-amara%2Fkl-attendance-v2&env=OCR_SPACE_API_KEY)
+
+> **Note**: You will be prompted to enter the `OCR_SPACE_API_KEY` environment variable during deployment. You can get a free API key from [OCR.space](https://ocr.space/ocrapi).
+
+---
+
+## 💻 Local Development
+
+Follow these steps to run the project locally on your machine.
+
+### Prerequisites
+- [Node.js](https://nodejs.org/) (v18 or higher)
+- npm, yarn, pnpm, or bun
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/tejaswin-amara/kl-attendance-v2.git
+cd kl-attendance-v2
+```
+
+### 2. Install dependencies
+```bash
+npm install
+# or yarn install / pnpm install
+```
+
+### 3. Setup Environment Variables
+Create a `.env.local` file in the root directory and add your OCR API key:
+```env
+OCR_SPACE_API_KEY=your_free_api_key_here
+```
+
+### 4. Run the development server
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🧪 Testing
 
-## Learn More
+The repository utilizes Vitest for fast, reliable unit and integration tests.
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# Run the test suite
+npm run test
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Run tests in watch mode
+npx vitest watch
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 📝 License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is licensed under the MIT License - see the LICENSE file for details.
