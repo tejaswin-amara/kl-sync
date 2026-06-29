@@ -1,6 +1,6 @@
 <div align="center">
   <br />
-  <h1>🎓 KL Attendance V2</h1>
+  <h1>🎓 KL Sync</h1>
   <p>
     <strong>A fast, modern, and reliable attendance tracking portal for KL University.</strong>
   </p>
