@@ -810,9 +810,8 @@ function postProcessOCRText(text: string): string {
   processed = processed.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
   
   // Fix common character recognition errors
-  // Fix I vs / confusion in course codes
-  processed = processed.replace(/\b(\d{2})C[\/I](\d{3,4}[A-Z]*)\b/g, '$1CI$2') // e.g., 23C/2001 or 23CI2001 -> 23CI2001
-  processed = processed.replace(/\b(\d{2}[A-Z]+)[\/I](\d{3,4}[A-Z]*)\b/g, '$1$2') // e.g., 23SC/3201 or 23SCI3201 -> 23SC3201
+    processed = processed.replace(/\b(\d{2})C[\/\|l1I\s](\d{3,4}[A-Z]*)\b/g, '$1CI$2') // e.g., 23C/2001 or 23CI2001 -> 23CI2001
+  processed = processed.replace(/\b(\d{2}[A-Z]+)[\/\|l1I\s](\d{3,4}[A-Z]*)\b/g, '$1$2') // e.g., 23SC/3201 or 23SCI3201 -> 23SC3201
   
   // Fix other common OCR errors (avoid changing valid tokens like type 'S' or timeslot 'S-')
   processed = processed.replace(/\b([0-9OlSZ]+)\b/g, (match, _p1, offset, str) => {
