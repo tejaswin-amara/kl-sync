@@ -38,18 +38,34 @@ export async function POST(request: NextRequest) {
       
       // Transform to column-based structure
       const columnData = {
-        courseCode: parsedRecords.map(r => r.coursecode),
-        courseName: parsedRecords.map(r => r.coursename),
-        type: parsedRecords.map(r => r.type),
-        timeSlot: parsedRecords.map(r => r.timeslot),
-        academicYear: parsedRecords.map(r => r.academicyear),
-        semester: parsedRecords.map(r => r.semester),
-        status: parsedRecords.map(r => r.status),
-        totalConducted: parsedRecords.map(r => r.totalConducted),
-        totalAttended: parsedRecords.map(r => r.totalAttended),
-        totalAbsent: parsedRecords.map(r => r.totalAbsent),
-        tcbr: parsedRecords.map(r => r.tcbr),
-        percentage: parsedRecords.map(r => r.percentage)
+        courseCode: [] as string[],
+        courseName: [] as string[],
+        type: [] as string[],
+        timeSlot: [] as string[],
+        academicYear: [] as string[],
+        semester: [] as string[],
+        status: [] as string[],
+        totalConducted: [] as number[],
+        totalAttended: [] as number[],
+        totalAbsent: [] as number[],
+        tcbr: [] as number[],
+        percentage: [] as number[],
+      }
+
+      for (let i = 0, len = parsedRecords.length; i < len; i++) {
+        const r = parsedRecords[i];
+        columnData.courseCode.push(r.coursecode);
+        columnData.courseName.push(r.coursename);
+        columnData.type.push(r.type);
+        columnData.timeSlot.push(r.timeslot);
+        columnData.academicYear.push(r.academicyear);
+        columnData.semester.push(r.semester);
+        columnData.status.push(r.status);
+        columnData.totalConducted.push(r.totalConducted);
+        columnData.totalAttended.push(r.totalAttended);
+        columnData.totalAbsent.push(r.totalAbsent);
+        columnData.tcbr.push(r.tcbr);
+        columnData.percentage.push(r.percentage);
       }
 
       // Prepare cleaned CSV preview rows (without Time Slot, Academic Year, Semester, Status)
