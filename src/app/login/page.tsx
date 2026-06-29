@@ -249,80 +249,34 @@ export default function LoginPage() {
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
         <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-emerald-600/10 rounded-full blur-[100px] pointer-events-none mix-blend-screen" />
 
-        <div className="w-full max-w-[460px] relative z-10 flex flex-col gap-8">
-          
-          {/* Header Area */}
-          <div className="flex items-start justify-between">
-            <div className="flex flex-col gap-2">
-              <div className="bg-white/5 backdrop-blur-md rounded-2xl p-3 border border-white/10 shadow-2xl inline-flex w-fit">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/logo.png" alt="KLH" className="h-8 object-contain drop-shadow-lg" />
-              </div>
-              <h1 className="text-4xl font-extrabold tracking-tight mt-4 text-transparent bg-clip-text bg-gradient-to-br from-white to-white/50">
-                KL Sync<br />Portal
-              </h1>
-            </div>
-            
-            {/* Live Indicator */}
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-sm shadow-[0_0_20px_rgba(16,185,129,0.15)] mt-2">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">System Live</span>
-            </div>
-          </div>
-
-          {/* Announcements Card */}
-          <div className="relative group mt-4">
+        {/* Central Logo Display */}
+        <div className="w-full max-w-[460px] relative z-10 flex flex-col items-center justify-center gap-6">
+          <div className="relative group w-full">
             {/* Hover glow effect */}
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500/30 to-violet-500/30 rounded-[24px] blur opacity-50 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
+            <div className="absolute -inset-2 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-emerald-500/20 rounded-3xl blur-xl opacity-50 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse" />
             
-            <div className="relative bg-[#0a0a0f]/80 backdrop-blur-xl border border-white/10 p-6 rounded-[22px] shadow-2xl flex flex-col gap-5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-4 bg-indigo-500 rounded-full" />
-                  <h3 className="text-sm font-semibold tracking-wide text-white">Latest Updates</h3>
-                </div>
-                <span className="text-[10px] bg-white/5 px-2 py-1 rounded-md text-white/40 font-mono">v1.2.0</span>
+            <div className="relative bg-white/5 backdrop-blur-2xl rounded-3xl p-10 border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.8)] flex flex-col items-center gap-8 transform group-hover:scale-[1.02] transition-transform duration-500">
+              <div className="bg-white rounded-2xl p-5 shadow-2xl">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/logo.png" alt="KLH" className="h-16 object-contain" />
+              </div>
+              
+              <div className="flex flex-col items-center text-center">
+                <h1 className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white via-white/90 to-white/50">
+                  KL Sync Portal
+                </h1>
+                <p className="text-sm text-white/50 font-medium mt-3 max-w-[280px]">
+                  Secure, real-time attendance tracking and analytics.
+                </p>
               </div>
 
-              <div className="flex flex-col gap-3">
-                
-                {/* Item 1 */}
-                <div className="group/item flex gap-4 p-3 -mx-3 rounded-xl hover:bg-white/5 transition-colors cursor-default">
-                  <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center shrink-0 border border-indigo-500/30 text-indigo-400 group-hover/item:scale-110 transition-transform">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-                  </div>
-                  <div className="flex flex-col gap-1 w-full">
-                    <div className="flex justify-between items-center w-full">
-                      <span className="text-xs font-medium text-indigo-300">Database Sync</span>
-                      <span className="text-[9px] text-white/30 font-mono">Just now</span>
-                    </div>
-                    <p className="text-[13px] text-white/70 leading-relaxed">
-                      AY 2025-2026 Even Semester registration data is live. Real-time LTPS simulation active.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-                {/* Item 2 */}
-                <div className="group/item flex gap-4 p-3 -mx-3 rounded-xl hover:bg-white/5 transition-colors cursor-default">
-                  <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0 border border-emerald-500/30 text-emerald-400 group-hover/item:scale-110 transition-transform">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                  </div>
-                  <div className="flex flex-col gap-1 w-full">
-                    <div className="flex justify-between items-center w-full">
-                      <span className="text-xs font-medium text-emerald-300">Local Security</span>
-                      <span className="text-[9px] text-white/30 font-mono">Active</span>
-                    </div>
-                    <p className="text-[13px] text-white/70 leading-relaxed">
-                      Zero-knowledge architecture. All credentials remain encrypted in your local browser storage.
-                    </p>
-                  </div>
-                </div>
-
+              {/* Live Indicator */}
+              <div className="flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-sm mt-2">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+                <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">System Live & Secure</span>
               </div>
             </div>
           </div>
