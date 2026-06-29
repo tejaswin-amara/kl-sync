@@ -477,10 +477,7 @@ function parseAttendanceHtml(html: string) {
         if (cells.length > 0) {
             cells.each((j, cell) => {
                 const header = headers[j] || `col_${j}`;
-                // Clean up header key to be more friendly (optional)
-                // rowData[header] = $(cell).text().trim();
-                // Let's keep it simple
-                 rowData[header] = $(cell).text().trim();
+                rowData[header] = $(cell).text().trim();
             });
             data.push(rowData);
         }
