@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import userEvent from '@testing-library/user-event'
 import LoginPage from '../page'
+import '@testing-library/jest-dom'
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
@@ -26,6 +27,20 @@ describe('LoginPage Error Handling', () => {
       }
       return { ok: true, json: async () => ({}) }
     })
+
+    class MockFileReader {
+      onloadend: (() => void) | null = null;
+      onerror: ((error: any) => void) | null = null;
+      result = 'data:image/png;base64,mock';
+
+      readAsDataURL() {
+        setTimeout(() => {
+          if (this.onloadend) this.onloadend();
+        }, 10);
+      }
+    }
+    (global as any).FileReader = MockFileReader;
+    (global as any).URL.createObjectURL = vi.fn(() => 'blob:mock-url');
   })
 
   afterEach(() => {
@@ -62,7 +77,6 @@ describe('LoginPage Error Handling', () => {
     global.fetch = mockFetch
 
     // Use getAllByPlaceholderText because it seems there are multiple rendered elements initially
-    // due to multiple layout renders/hiding classes maybe (e.g. mobile vs desktop)
     const studentIdInputs = screen.getAllByPlaceholderText(/210003xxxx/i)
     const passwordInputs = screen.getAllByPlaceholderText(/Enter password/i)
     const captchaInputs = screen.getAllByPlaceholderText(/Auto-solving/i)
@@ -165,5 +179,68 @@ describe('LoginPage Error Handling', () => {
 
     // Verify loading state is reset
     expect(loadBtn).not.toBeDisabled()
+  })
+
+  it('handles captcha auto-solve failure gracefully', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const mockFetch = vi.fn().mockImplementation(async (url) => {
+      if (url === '/api/captcha') {
+        return {
+          ok: true,
+          headers: new Headers({ 'x-session-id': 'test-session' }),
+          blob: async () => new Blob(['test'])
+        }
+      }
+      if (url === '/api/solve-captcha') {
+        throw new Error('Auto-solve network error')
+      }
+      return { ok: true, json: async () => ({}) }
+    })
+    global.fetch = mockFetch
+
+    render(<LoginPage />)
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith('Captcha auto-solve failed', expect.any(Error))
+    })
+
+    consoleSpy.mockRestore()
+  })
+
+  it('handles general captcha fetch failure', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const mockFetch = vi.fn().mockImplementation(async () => {
+      throw new Error('Network error during initial captcha load')
+    })
+    global.fetch = mockFetch
+
+    render(<LoginPage />)
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error))
+      expect(screen.getByText('Failed to load CAPTCHA. Please try again.')).toBeInTheDocument()
+    })
+
+    consoleSpy.mockRestore()
+  })
+
+  it('handles unsuccessful captcha fetch (non-200 response)', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const mockFetch = vi.fn().mockImplementation(async () => {
+      return { ok: false }
+    })
+    global.fetch = mockFetch
+
+    render(<LoginPage />)
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error))
+      expect(screen.getByText('Failed to load CAPTCHA. Please try again.')).toBeInTheDocument()
+    })
+
+    consoleSpy.mockRestore()
   })
 })
