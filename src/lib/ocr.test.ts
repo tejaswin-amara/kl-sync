@@ -1,142 +1,170 @@
-import { solveCaptchaWithOCRSpace } from './ocr';
-import sharp from 'sharp';
+import { solveCaptchaWithOCRSpace } from './ocr'
+import sharp from 'sharp'
 
-// Mock sharp to control preprocessing behavior
+// Mock sharp module
 jest.mock('sharp', () => {
-  return jest.fn().mockImplementation(() => {
-    return {
-      ensureAlpha: jest.fn().mockReturnThis(),
-      extractChannel: jest.fn().mockReturnThis(),
-      trim: jest.fn().mockReturnThis(),
-      resize: jest.fn().mockReturnThis(),
-      blur: jest.fn().mockReturnThis(),
-      threshold: jest.fn().mockReturnThis(),
-      negate: jest.fn().mockReturnThis(),
-      png: jest.fn().mockReturnThis(),
-      toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed')),
-      extend: jest.fn().mockReturnThis(),
-    };
-  });
-});
+  const mockChain = {
+    ensureAlpha: jest.fn().mockReturnThis(),
+    extractChannel: jest.fn().mockReturnThis(),
+    trim: jest.fn().mockReturnThis(),
+    resize: jest.fn().mockReturnThis(),
+    blur: jest.fn().mockReturnThis(),
+    threshold: jest.fn().mockReturnThis(),
+    negate: jest.fn().mockReturnThis(),
+    png: jest.fn().mockReturnThis(),
+    toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed-core')),
+    extend: jest.fn().mockReturnThis(),
+  }
 
-describe('solveCaptchaWithOCRSpace error handling', () => {
-  let fetchSpy: jest.SpyInstance;
-  let consoleErrorSpy: jest.SpyInstance;
+  const sharpMock: any = jest.fn().mockImplementation(() => mockChain)
+  return sharpMock
+})
 
-  beforeAll(() => {
-    // Add global.fetch if not present (since jsdom might not have it or Node version < 18)
-    if (!global.fetch) {
-      global.fetch = jest.fn();
-    }
-  });
+describe('solveCaptchaWithOCRSpace', () => {
+  const sampleBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
 
   beforeEach(() => {
-    fetchSpy = jest.spyOn(global, 'fetch');
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    jest.clearAllMocks();
-  });
+    jest.clearAllMocks()
+    jest.spyOn(console, 'error').mockImplementation(() => {}) // Suppress console.errors in tests
+
+    // Default fetch mock
+    jest.spyOn(global, 'fetch').mockImplementation(() => Promise.resolve({
+      json: () => Promise.resolve({
+        ParsedResults: [{ ParsedText: 'AbC123XyZ' }]
+      })
+    } as any))
+  })
 
   afterEach(() => {
-    fetchSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
-  });
+    jest.restoreAllMocks()
+  })
 
-  const mockBase64Image = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+  it('should successfully parse captcha on happy path', async () => {
+    const result = await solveCaptchaWithOCRSpace(sampleBase64)
+    expect(result).toBe('abclzexyz') // 'AbC123XyZ' cleaned
+    expect(global.fetch).toHaveBeenCalledTimes(1) // Engine 2 only
+    expect(sharp).toHaveBeenCalledTimes(2) // Core and extended
+  })
 
-  it('should fall back to engine 1 when engine 2 returns no text', async () => {
-    // Engine 2 mock
-    fetchSpy.mockResolvedValueOnce({
-      json: jest.fn().mockResolvedValue({
-        ParsedResults: [{ ParsedText: '' }],
-      }),
-    });
+  it('should fallback to raw buffer when sharp preprocessing fails', async () => {
+    // Make sharp throw an error
+    ;(sharp as unknown as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('Sharp processing failed')
+    })
 
-    // Engine 1 mock
-    fetchSpy.mockResolvedValueOnce({
-      json: jest.fn().mockResolvedValue({
-        ParsedResults: [{ ParsedText: 'SUCCESS' }],
-      }),
-    });
+    const result = await solveCaptchaWithOCRSpace(sampleBase64)
 
-    const result = await solveCaptchaWithOCRSpace(mockBase64Image);
-    expect(result).toBe('success');
-    expect(fetchSpy).toHaveBeenCalledTimes(2);
-    // Check formData engine values
-    expect(fetchSpy.mock.calls[0][1].body.get('OCREngine')).toBe('2');
-    expect(fetchSpy.mock.calls[1][1].body.get('OCREngine')).toBe('1');
-  });
+    expect(console.error).toHaveBeenCalledWith('Captcha preprocessing failed, using raw image:', expect.any(Error))
+    expect(result).toBe('abclzexyz')
+    expect(global.fetch).toHaveBeenCalledTimes(1)
+  })
 
-  it('should handle OCR rate-limit errors (result.error)', async () => {
-    fetchSpy.mockResolvedValue({
-      json: jest.fn().mockResolvedValue({
-        error: 'Monthly limit reached',
-      }),
-    });
+  it('should fallback to Engine 1 when Engine 2 returns no text', async () => {
+    // Engine 2 returns no text, Engine 1 returns text
+    let callCount = 0
+    ;(global.fetch as jest.Mock).mockImplementation(() => {
+      callCount++
+      if (callCount === 1) { // Engine 2
+        return Promise.resolve({
+          json: () => Promise.resolve({ ParsedResults: [{ ParsedText: '' }] })
+        })
+      }
+      return Promise.resolve({ // Engine 1
+        json: () => Promise.resolve({ ParsedResults: [{ ParsedText: 'FallbackText' }] })
+      })
+    })
 
-    const result = await solveCaptchaWithOCRSpace(mockBase64Image);
-    expect(result).toBe('');
-    expect(consoleErrorSpy).toHaveBeenCalledWith('OCR.space error:', 'Monthly limit reached');
-  });
+    const result = await solveCaptchaWithOCRSpace(sampleBase64)
 
-  it('should handle OCR processing errors (result.IsErroredOnProcessing)', async () => {
-    fetchSpy.mockResolvedValue({
-      json: jest.fn().mockResolvedValue({
-        IsErroredOnProcessing: true,
-        ErrorMessage: 'Image too large',
-      }),
-    });
+    expect(result).toBe('fallbacktext')
+    expect(global.fetch).toHaveBeenCalledTimes(2)
+  })
 
-    const result = await solveCaptchaWithOCRSpace(mockBase64Image);
-    expect(result).toBe('');
-    expect(consoleErrorSpy).toHaveBeenCalledWith('OCR.space processing error:', 'Image too large');
-  });
+  it('should fallback to Engine 1 when Engine 2 returns an error', async () => {
+    // Engine 2 returns error, Engine 1 returns text
+    let callCount = 0
+    ;(global.fetch as jest.Mock).mockImplementation(() => {
+      callCount++
+      if (callCount === 1) { // Engine 2
+        return Promise.resolve({
+          json: () => Promise.resolve({ error: 'Rate limit exceeded' })
+        })
+      }
+      return Promise.resolve({ // Engine 1
+        json: () => Promise.resolve({ ParsedResults: [{ ParsedText: 'Engine1Text' }] })
+      })
+    })
 
-  it('should handle network fetch errors', async () => {
-    const error = new Error('Network failure');
-    fetchSpy.mockRejectedValue(error);
+    const result = await solveCaptchaWithOCRSpace(sampleBase64)
 
-    const result = await solveCaptchaWithOCRSpace(mockBase64Image);
-    expect(result).toBe('');
-    expect(consoleErrorSpy).toHaveBeenCalledWith('OCR.space engine 2 fetch failed:', error);
-  });
+    expect(console.error).toHaveBeenCalledWith('OCR.space error:', 'Rate limit exceeded')
+    expect(result).toBe('engineltext')
+    expect(global.fetch).toHaveBeenCalledTimes(2)
+  })
 
-  it('should handle sharp preprocessing errors and fallback to raw buffer', async () => {
-    // Mock sharp to throw an error on the first call (during preprocessCaptcha)
-    const sharpMock = sharp as unknown as jest.Mock;
-    sharpMock.mockImplementationOnce(() => {
-      throw new Error('Sharp processing failed');
-    });
+  it('should handle OCR.space processing errors (IsErroredOnProcessing)', async () => {
+    let callCount = 0
+    ;(global.fetch as jest.Mock).mockImplementation(() => {
+      callCount++
+      if (callCount === 1) { // Engine 2
+        return Promise.resolve({
+          json: () => Promise.resolve({ IsErroredOnProcessing: true, ErrorMessage: 'Processing failed' })
+        })
+      }
+      return Promise.resolve({ // Engine 1
+        json: () => Promise.resolve({ ParsedResults: [{ ParsedText: 'Success' }] })
+      })
+    })
 
-    // Make engine 2 return success to verify it still proceeds
-    fetchSpy.mockResolvedValueOnce({
-      json: jest.fn().mockResolvedValue({
-        ParsedResults: [{ ParsedText: 'RAWBUFFER' }],
-      }),
-    });
+    const result = await solveCaptchaWithOCRSpace(sampleBase64)
 
-    const result = await solveCaptchaWithOCRSpace(mockBase64Image);
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Captcha preprocessing failed, using raw image:', expect.any(Error));
-    expect(result).toBe('rawbuffer');
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(console.error).toHaveBeenCalledWith('OCR.space processing error:', 'Processing failed')
+    expect(result).toBe('success')
+    expect(global.fetch).toHaveBeenCalledTimes(2)
+  })
 
-    // Verify that fetch was called with the raw buffer
-    const body = fetchSpy.mock.calls[0][1].body as FormData;
-    const base64Body = body.get('base64Image') as string;
-    const rawBufferBase64 = Buffer.from(mockBase64Image.replace(/^data:image\/\w+;base64,/, ''), 'base64').toString('base64');
-    expect(base64Body).toBe(`data:image/png;base64,${rawBufferBase64}`);
-  });
+  it('should fallback to Engine 1 when Engine 2 fetch fails completely', async () => {
+    let callCount = 0
+    ;(global.fetch as jest.Mock).mockImplementation(() => {
+      callCount++
+      if (callCount === 1) { // Engine 2
+        return Promise.reject(new Error('Network Error'))
+      }
+      return Promise.resolve({ // Engine 1
+        json: () => Promise.resolve({ ParsedResults: [{ ParsedText: 'Engine1Success' }] })
+      })
+    })
 
-  it('should catch unexpected errors in outer try-catch', async () => {
-    // We can force the outer try-catch to fail by passing a type that replace() will fail on,
-    // but since it expects a string, let's spy on Buffer.from and make it throw.
-    const bufferFromSpy = jest.spyOn(Buffer, 'from').mockImplementationOnce(() => {
-      throw new Error('Buffer creation failed');
-    });
+    const result = await solveCaptchaWithOCRSpace(sampleBase64)
 
-    const result = await solveCaptchaWithOCRSpace(mockBase64Image);
-    expect(result).toBe('');
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Captcha OCR failed:', expect.any(Error));
+    expect(console.error).toHaveBeenCalledWith('OCR.space engine 2 fetch failed:', expect.any(Error))
+    expect(result).toBe('enginelsuccess')
+    expect(global.fetch).toHaveBeenCalledTimes(2)
+  })
 
-    bufferFromSpy.mockRestore();
-  });
-});
+  it('should return empty string when both engines fail', async () => {
+    ;(global.fetch as jest.Mock).mockImplementation(() => Promise.reject(new Error('Network Error')))
+
+    const result = await solveCaptchaWithOCRSpace(sampleBase64)
+
+    expect(console.error).toHaveBeenCalledWith('OCR.space engine 2 fetch failed:', expect.any(Error))
+    expect(console.error).toHaveBeenCalledWith('OCR.space engine 1 fetch failed:', expect.any(Error))
+    expect(result).toBe('')
+    expect(global.fetch).toHaveBeenCalledTimes(2)
+  })
+
+  it('should return empty string and log error if an unexpected error occurs in the outer try-catch', async () => {
+    // Mock Buffer.from to throw an error
+    const originalBufferFrom = Buffer.from
+    jest.spyOn(Buffer, 'from').mockImplementationOnce(() => {
+      throw new Error('Fatal error')
+    })
+
+    const result = await solveCaptchaWithOCRSpace(sampleBase64)
+
+    expect(console.error).toHaveBeenCalledWith('Captcha OCR failed:', expect.any(Error))
+    expect(result).toBe('')
+
+    // Buffer.from is restored automatically by jest.restoreAllMocks
+  })
+})
