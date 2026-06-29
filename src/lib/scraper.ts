@@ -207,7 +207,7 @@ export interface LoginResult {
   // The signed device cookie issued by the ERP. The client persists this and
   // sends it back on future logins (see the device-registration note below).
   deviceId?: string;
-  // True when this attempt registered a new device but the ERP's buggy
+  // True when this attempt registered a new device but the ERP's failing
   // post-login token step aborted it. The captcha is now spent, so the client
   // must fetch a fresh captcha and submit once more — this time the stored
   // deviceId makes the login succeed.
@@ -227,7 +227,7 @@ export async function loginAndFetchSemesters(
   // backend (SERVERID) and PHP session (PHPSESSID) the captcha was issued for.
   const jar = arrayToJar(session.cookies);
 
-  // The current ERP crashes on login (UserAccessToken bug) unless the request
+  // The current ERP crashes on login (UserAccessToken error) unless the request
   // carries a previously-issued device cookie. Inject the stored one if we have
   // it so the ERP "finds" the device instead of trying to create it.
   if (deviceId) jar[DEVICE_COOKIE] = deviceId;
@@ -323,7 +323,7 @@ export async function loginAndFetchSemesters(
 
     console.error('[login] not authenticated. parsed errors:', errText || '(none)');
 
-    // 1) The ERP's UserAccessToken crash (their bug) — happens on a CORRECT
+    // 1) The ERP's UserAccessToken crash (their error) — happens on a CORRECT
     //    login from an unregistered device, and issues a device cookie. If we
     //    harvested one, credentials+captcha were right: drive the device-setup
     //    retry. (Checked first; the 159-byte crash body has no error markup.)
@@ -344,7 +344,7 @@ export async function loginAndFetchSemesters(
     }
     if (isTokenCrash) {
       throw new Error(
-        "KLU ERP server error during login (a bug on the university's side). " +
+        "KLU ERP server error during login (an issue on the university's side). " +
           'Please refresh the captcha and try again.'
       );
     }
