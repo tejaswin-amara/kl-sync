@@ -141,7 +141,7 @@ describe('POST /api/parse-ocr', () => {
         IsErroredOnProcessing: true,
         ErrorMessage: ['Invalid API Key']
       })
-    } as any);
+    } as unknown);
 
     const response = await POST(req);
     expect(response.status).toBe(500);

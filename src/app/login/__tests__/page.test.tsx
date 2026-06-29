@@ -30,7 +30,7 @@ describe('LoginPage Error Handling', () => {
 
     class MockFileReader {
       onloadend: (() => void) | null = null;
-      onerror: ((error: any) => void) | null = null;
+      onerror: ((error: unknown) => void) | null = null;
       result = 'data:image/png;base64,mock';
 
       readAsDataURL() {
@@ -39,8 +39,8 @@ describe('LoginPage Error Handling', () => {
         }, 10);
       }
     }
-    (global as any).FileReader = MockFileReader;
-    (global as any).URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+    (global as unknown).FileReader = MockFileReader;
+    (global as unknown).URL.createObjectURL = vi.fn(() => 'blob:mock-url');
   })
 
   afterEach(() => {

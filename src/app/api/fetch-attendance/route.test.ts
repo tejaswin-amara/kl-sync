@@ -14,7 +14,7 @@ const mockFetchAttendanceData = fetchAttendanceData as Mock;
 const mockDecodeSession = decodeSession as Mock;
 
 describe('POST /api/fetch-attendance', () => {
-    let consoleErrorSpy: any;
+    let consoleErrorSpy: unknown;
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -25,7 +25,7 @@ describe('POST /api/fetch-attendance', () => {
         consoleErrorSpy.mockRestore();
     });
 
-    const createRequest = (body: any, headers = new Headers()) => {
+    const createRequest = (body: unknown, headers = new Headers()) => {
         return new NextRequest('http://localhost:3000/api/fetch-attendance', {
             method: 'POST',
             body: JSON.stringify(body),

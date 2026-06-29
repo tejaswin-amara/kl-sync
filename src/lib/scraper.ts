@@ -9,7 +9,7 @@ const COURSE_LIST_URL = `${ERP_URL}/index.php?r=studentattendance%2Fstudentdaily
 const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
 export interface ScraperSession {
-  cookies: any[];
+  cookies: { name: string; value: string }[];
   csrfToken: string;
   userAgent: string;
 }
@@ -28,7 +28,7 @@ type CookieJar = Record<string, string>;
 // Robustly read all Set-Cookie headers (one cookie each), preferring the
 // dedicated array API and falling back to a careful comma-split.
 function getSetCookies(res: Response): string[] {
-  const anyHeaders = res.headers as any;
+  const anyHeaders = res.headers as unknown as { getSetCookie?: () => string[] };
   if (typeof anyHeaders.getSetCookie === 'function') {
     return anyHeaders.getSetCookie();
   }
@@ -451,11 +451,94 @@ export async function fetchAttendanceData(
   };
 }
 
+export async function fetchProfileData(session: ScraperSession, csrfToken: string) {
+  const jar = arrayToJar(session.cookies);
+  const PROFILE_URL = `${ERP_URL}/index.php?r=studentinfo%2Fstudentprofileinfo%2Fviewprofileindi`;
+  
+  const res = await fetchWithJar(PROFILE_URL, jar, {
+    method: 'GET',
+    extraHeaders: {
+      'Referer': ATTENDANCE_URL,
+    },
+  });
+
+  const html = await res.text();
+  const $ = cheerio.load(html);
+  
+  // Extract profile text and tables
+  const profileDetails: Record<string, string> = {};
+  
+  // A generic way to extract label-value pairs often found in profile tables (th -> td)
+  $('th').each((i, el) => {
+    const key = $(el).text().trim();
+    const val = $(el).next('td').text().trim();
+    if (key && val && key.length < 50) {
+      profileDetails[key] = val;
+    }
+  });
+
+  return {
+    success: true,
+    profileData: Object.keys(profileDetails).length > 0 ? profileDetails : { status: "Please verify exact ERP URL and HTML structure", htmlPreview: html.substring(0, 1000) }
+  };
+}
+
+export async function fetchTimetableData(session: ScraperSession, csrfToken: string, academicYear: string, semesterId: string) {
+  const jar = arrayToJar(session.cookies);
+  // Using URL provided by user
+  const TIMETABLE_URL = `${ERP_URL}/index.php?r=studentinfo%2Fstudentprofileinfo%2Fviewprofileindi`;
+  
+  const ajaxParams = new URLSearchParams();
+  ajaxParams.append('_csrf', csrfToken);
+  if (academicYear) ajaxParams.append('DynamicModel[academicyear]', academicYear);
+  if (semesterId) ajaxParams.append('DynamicModel[semesterid]', semesterId);
+  
+  // Hit the page first via GET to see if it loads directly or needs the POST.
+  let res = await fetchWithJar(TIMETABLE_URL, jar, {
+    method: 'GET',
+    extraHeaders: { 'Referer': ATTENDANCE_URL },
+  });
+
+  let html = await res.text();
+  
+  // If it's a form requiring POST (timetable with year and sem)
+  if (html.includes('keep student data') || html.includes('Search') || academicYear) {
+     res = await fetchWithJar(TIMETABLE_URL, jar, {
+      method: 'POST',
+      body: ajaxParams,
+      extraHeaders: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'Referer': TIMETABLE_URL,
+      },
+    });
+    html = await res.text();
+  }
+
+  const $ = cheerio.load(html);
+  const timetableData: string[][] = [];
+  
+  // Generic extraction of the largest table on the page
+  const table = $('table').first();
+  table.find('tr').each((i, tr) => {
+    const row: string[] = [];
+    $(tr).find('th, td').each((j, td) => {
+      row.push($(td).text().trim());
+    });
+    if (row.length > 0) timetableData.push(row);
+  });
+
+  return {
+    success: true,
+    timetableData: timetableData.length > 0 ? timetableData : [["No table found. Please verify exact ERP URL."]],
+    htmlPreview: html.substring(0, 1000)
+  };
+}
+
 function parseAttendanceHtml(html: string) {
     const $ = cheerio.load(html);
     const table = $('table').first();
     const headers: string[] = [];
-    const data: any[] = [];
+    const data: Record<string, string>[] = [];
 
     // Get headers
     // Try standard thead > tr > th
@@ -474,14 +557,13 @@ function parseAttendanceHtml(html: string) {
     // Get data
     // If we used the first row as header, we should skip it
     const rows = table.find('tr');
-    const startIndex = (table.find('thead').length > 0) ? 0 : 1; 
     // Wait, if using thead, tbody rows start at 0 (relative to tbody) or we just select tbody tr
     
     const bodyRows = table.find('tbody tr');
     const rowsToIterate = bodyRows.length > 0 ? bodyRows : rows.slice(1);
 
     rowsToIterate.each((i, row) => {
-        const rowData: any = {};
+        const rowData: Record<string, string> = {};
         const cells = $(row).find('td');
         
         // Check for "No results found"

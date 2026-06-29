@@ -1,8 +1,9 @@
 import { getCaptcha } from '../scraper';
+import type { MockInstance } from 'vitest';
 
 describe('scraper.ts - getCaptcha Error Handling', () => {
-  let fetchSpy: any;
-  let consoleErrorSpy: any;
+  let fetchSpy: MockInstance;
+  let consoleErrorSpy: MockInstance;
 
   beforeEach(() => {
     // Mock fetch

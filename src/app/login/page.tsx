@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { RefreshCw, LogIn, AlertCircle, Loader2, BookOpen, ChevronDown } from "lucide-react"
+import { RefreshCw, LogIn, AlertCircle, Loader2, ChevronDown } from "lucide-react"
 import { useRouter } from 'next/navigation'
-// ponytail: native localstorage used instead of js-cookie dependency
 
 export default function LoginPage() {
   const router = useRouter()
@@ -84,8 +83,18 @@ export default function LoginPage() {
   }
 
   useEffect(() => {
-    fetchCaptcha()
     try {
+      const storedSession = sessionStorage.getItem('kl_erp_session_id')
+      if (storedSession) {
+        setSessionId(storedSession)
+        setCsrfToken(sessionStorage.getItem('kl_erp_csrf_token') || '')
+        setAcademicYears(JSON.parse(sessionStorage.getItem('kl_erp_academic_years') || '[]'))
+        setSemesters(JSON.parse(sessionStorage.getItem('kl_erp_semesters') || '[]'))
+        setStep('select-sem')
+      } else {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        fetchCaptcha()
+      }
       const savedDevice = localStorage.getItem('kl_erp_device_id')
       if (savedDevice) setDeviceId(savedDevice)
     } catch {}
@@ -158,17 +167,24 @@ export default function LoginPage() {
       setAcademicYears(data.academicYears || [])
       setSemesters(data.semesters || [])
       setCsrfToken(data.csrfToken || '')
+      
+      try {
+        sessionStorage.setItem('kl_erp_session_id', data.sessionId || '')
+        sessionStorage.setItem('kl_erp_csrf_token', data.csrfToken || '')
+        sessionStorage.setItem('kl_erp_academic_years', JSON.stringify(data.academicYears || []))
+        sessionStorage.setItem('kl_erp_semesters', JSON.stringify(data.semesters || []))
+      } catch {}
 
       // Auto-select the correct academic year and semester
       let academicYear = '';
       if (data.academicYears && data.academicYears.length > 0) {
-        const sortedYears = [...data.academicYears].sort((a: any, b: any) => b.label.localeCompare(a.label));
+        const sortedYears = [...data.academicYears].sort((a: {label: string, value: string}, b: {label: string, value: string}) => b.label.localeCompare(a.label));
         academicYear = sortedYears[0].value;
       }
       
       let semesterId = '';
       if (data.semesters && data.semesters.length > 0) {
-        const evenSem = data.semesters.find((s: any) => s.label.toLowerCase().includes('even'));
+        const evenSem = data.semesters.find((s: {label: string, value: string}) => s.label.toLowerCase().includes('even'));
         if (evenSem) {
           semesterId = evenSem.value;
         } else {
@@ -180,7 +196,7 @@ export default function LoginPage() {
       if (semesterId) setSelectedSem(semesterId)
 
       setStep('select-sem')
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err instanceof Error && err.message ? err.message : 'An unexpected error occurred')
       await fetchCaptcha(true)
     } finally {
@@ -221,9 +237,11 @@ export default function LoginPage() {
       // Save the fetched data and route to dashboard
       localStorage.setItem('attendanceData', JSON.stringify(fetchResult))
       localStorage.setItem('studentId', username)
+      localStorage.setItem('kl_erp_year', selectedYear)
+      localStorage.setItem('kl_erp_sem', selectedSem)
       
       router.push('/')
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err instanceof Error && err.message ? err.message : 'An unexpected error occurred')
       await fetchCaptcha(true)
     } finally {
@@ -391,7 +409,7 @@ export default function LoginPage() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => fetchCaptcha()}
+                      onClick={() =>  fetchCaptcha()}
                       disabled={captchaLoading}
                       className="p-3 rounded-xl transition-all duration-200 hover:scale-95 active:scale-90 cursor-pointer"
                       style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
@@ -468,7 +486,7 @@ export default function LoginPage() {
 
               <button
                 type="button"
-                onClick={() => { setStep('login'); setStatus(null); setError(null) }}
+                onClick={() => { setStep('login'); setStatus(null); setError(null); sessionStorage.clear() }}
                 disabled={loading}
                 className="w-full py-3 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-[0.99] active:scale-[0.97] cursor-pointer"
                 style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(241,241,243,0.5)' }}

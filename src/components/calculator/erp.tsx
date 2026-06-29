@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { z } from 'zod'
-import { LogOut, GraduationCap, TrendingUp, TrendingDown, Minus, BookOpen, Search, X, Calculator, Plus, RotateCcw } from 'lucide-react'
+import { LogOut, GraduationCap, TrendingUp, TrendingDown, Minus, BookOpen, Search, X, Calculator, RotateCcw, User, Calendar, LayoutDashboard, Loader2 } from 'lucide-react'
 
 
 const AttendanceDataSchema = z.object({
@@ -27,7 +27,7 @@ const STATUS = (p: number) =>
     ? { label: 'Condonation',  color: '#FBBF24', bg: 'rgba(251,191,36,.09)', border: 'rgba(251,191,36,.28)',  Icon: Minus        }
     : { label: 'Not Eligible', color: '#F87171', bg: 'rgba(248,113,113,.09)',border: 'rgba(248,113,113,.28)', Icon: TrendingDown  }
 
-function parse(raw: any[]): Course[] {
+function parse(raw: Record<string, string>[]): Course[] {
   const r0 = raw[0], keys = Object.keys(r0)
   const codeKey     = keys.find(k => /code/i.test(k))
   const descKey     = keys.find(k => /description|title|name|subject|course/i.test(k) && !/code/i.test(k) && k !== codeKey)
@@ -36,8 +36,9 @@ function parse(raw: any[]): Course[] {
   const attendedKey = keys.find(k => /attended|present/i.test(k))
   const conductedKey= keys.find(k => /conducted|total|held/i.test(k))
 
-  const groups: Record<string, any[]> = {}
-  raw.forEach(row => {
+  const groups: Record<string, Record<string, string>[]> = {}
+  raw.forEach(r => {
+    const row = r as Record<string, string>
     const key = row[codeKey ?? ''] || row[descKey ?? ''] || 'Unknown'
     ;(groups[key] ??= []).push(row)
   })
@@ -66,14 +67,56 @@ function parse(raw: any[]): Course[] {
   })
 }
 
+// ── ui components ──────────────────────────────────────────
+function ProgressRing({ radius, stroke, progress, color }: { radius: number, stroke: number, progress: number, color: string }) {
+  const normalizedRadius = radius - stroke * 2;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDashoffset = circumference - (Math.min(progress, 100) / 100) * circumference;
+
+  return (
+    <div className="relative flex items-center justify-center" style={{ width: radius * 2, height: radius * 2 }}>
+      <svg height={radius * 2} width={radius * 2} className="transform -rotate-90">
+        <circle
+          stroke="rgba(255,255,255,0.05)"
+          fill="transparent"
+          strokeWidth={stroke}
+          r={normalizedRadius}
+          cx={radius}
+          cy={radius}
+        />
+        <circle
+          stroke={color}
+          fill="transparent"
+          strokeWidth={stroke}
+          strokeDasharray={circumference + ' ' + circumference}
+          style={{ strokeDashoffset, transition: 'stroke-dashoffset 0.5s ease-in-out', filter: `drop-shadow(0 0 4px ${color}66)` }}
+          strokeLinecap="round"
+          r={normalizedRadius}
+          cx={radius}
+          cy={radius}
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center font-mono font-bold" style={{ color, fontSize: radius * 0.55 }}>
+        {progress.toFixed(0)}
+      </div>
+    </div>
+  )
+}
+
 // ── component ────────────────────────────────────────────
 export function ERPDashboard() {
   const router = useRouter()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [info, setInfo] = useState<any>(null)
   const [courses, setCourses] = useState<Course[]>([])
   const [active, setActive] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [studentId, setStudentId] = useState<string>('Student')
+  const [currentTab, setCurrentTab] = useState<'dashboard' | 'profile' | 'timetable'>('dashboard')
+  const [profileData, setProfileData] = useState<any>(null)
+  const [timetableData, setTimetableData] = useState<any>(null)
+  const [tabLoading, setTabLoading] = useState(false)
+  const [tabError, setTabError] = useState<string | null>(null)
 
   useEffect(() => {
     const raw = localStorage.getItem('attendanceData')
@@ -82,8 +125,10 @@ export function ERPDashboard() {
     try {
       const parsedRaw = JSON.parse(raw)
       const data = AttendanceDataSchema.parse(parsedRaw)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setInfo(data)
-      setCourses(parse(data.attendanceData))
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCourses(parse(data.attendanceData as Record<string, string>[]))
     } catch (e) {
       console.error('Invalid attendance data:', e)
       localStorage.removeItem('attendanceData')
@@ -95,9 +140,62 @@ export function ERPDashboard() {
     if (storedId) setStudentId(storedId)
   }, [router])
 
+  const fetchTabData = async (tab: 'profile' | 'timetable') => {
+    setTabLoading(true)
+    setTabError(null)
+    try {
+      const sessionId = sessionStorage.getItem('kl_erp_session_id')
+      const csrfToken = sessionStorage.getItem('kl_erp_csrf_token')
+      
+      if (!sessionId || !csrfToken) {
+        throw new Error('Session expired. Please log in again.')
+      }
+
+      const body: any = { csrfToken }
+      
+      if (tab === 'timetable') {
+        body.academicYear = localStorage.getItem('kl_erp_year') || ''
+        body.semesterId = localStorage.getItem('kl_erp_sem') || ''
+      }
+
+      const res = await fetch(`/api/fetch-${tab}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-session-id': sessionId
+        },
+        body: JSON.stringify(body)
+      })
+      const data = await res.json()
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || `Failed to fetch ${tab}`)
+      }
+
+      if (tab === 'profile') setProfileData(data.profileData)
+      if (tab === 'timetable') setTimetableData(data.timetableData)
+    } catch (err: any) {
+      setTabError(err.message)
+    } finally {
+      setTabLoading(false)
+    }
+  }
+
+  const handleTabChange = (tab: 'dashboard' | 'profile' | 'timetable') => {
+    setCurrentTab(tab)
+    setActive(null) // clear active course
+    if (tab === 'profile' && !profileData) fetchTabData('profile')
+    if (tab === 'timetable' && !timetableData) fetchTabData('timetable')
+  }
+
   const logout = () => {
     localStorage.removeItem('attendanceData')
     localStorage.removeItem('studentId')
+    sessionStorage.clear()
+    router.push('/login')
+  }
+
+  const changePeriod = () => {
     router.push('/login')
   }
 
@@ -130,7 +228,7 @@ export function ERPDashboard() {
       </div>
 
       {/* ── Top bar ── */}
-      <header className="relative z-10 flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,.07)', background: 'rgba(7,7,10,.8)', backdropFilter: 'blur(14px)' }}>
+      <header className="relative z-10 flex items-center justify-between px-5 py-3 border-b flex-wrap gap-3" style={{ borderColor: 'rgba(255,255,255,.07)', background: 'rgba(7,7,10,.8)', backdropFilter: 'blur(14px)' }}>
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(99,102,241,.15)', border: '1px solid rgba(99,102,241,.3)' }}>
             <GraduationCap size={15} style={{ color: '#818CF8' }} />
@@ -142,8 +240,23 @@ export function ERPDashboard() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="hidden sm:block text-sm font-bold font-mono" style={{ color: STATUS(overall).color }}>{overall.toFixed(1)}% avg</span>
+        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+          <div className="flex bg-white/[0.05] rounded-xl p-1 border border-white/[0.05]">
+            <button onClick={() => handleTabChange('dashboard')} className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${currentTab === 'dashboard' ? 'bg-indigo-500/20 text-indigo-300' : 'text-gray-400 hover:text-gray-200'}`}>
+              <LayoutDashboard size={14} /> Dashboard
+            </button>
+            <button onClick={() => handleTabChange('profile')} className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${currentTab === 'profile' ? 'bg-indigo-500/20 text-indigo-300' : 'text-gray-400 hover:text-gray-200'}`}>
+              <User size={14} /> Profile
+            </button>
+            <button onClick={() => handleTabChange('timetable')} className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${currentTab === 'timetable' ? 'bg-indigo-500/20 text-indigo-300' : 'text-gray-400 hover:text-gray-200'}`}>
+              <Calendar size={14} /> Timetable
+            </button>
+          </div>
+          <span className="hidden sm:block text-sm font-bold font-mono mr-2" style={{ color: STATUS(overall).color }}>{overall.toFixed(1)}% avg</span>
+          <button onClick={changePeriod} className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer transition-all"
+            style={{ background: 'rgba(99,102,241,.08)', border: '1px solid rgba(99,102,241,.2)', color: '#A5B4FC' }}>
+            <Search size={12} /> Change Period
+          </button>
           <button onClick={logout} className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer transition-all"
             style={{ background: 'rgba(248,113,113,.08)', border: '1px solid rgba(248,113,113,.2)', color: '#F87171' }}>
             <LogOut size={12} /> Logout
@@ -193,7 +306,7 @@ export function ERPDashboard() {
             <div className="flex-1 overflow-y-auto py-2 custom-scrollbar">
               {filteredCourses.length === 0 ? (
                 <div className="p-6 text-center text-xs" style={{ color: 'rgba(239,239,239,.3)' }}>No matching courses</div>
-              ) : filteredCourses.map((c, idx) => {
+              ) : filteredCourses.map((c) => {
                 const originalIndex = courses.findIndex(orig => orig.code === c.code)
                 const s = STATUS(c.pct)
                 const isActive = active === originalIndex
@@ -217,9 +330,55 @@ export function ERPDashboard() {
           </aside>
         )}
 
-        {/* Main Panel - Responsive Master-Detail */}
+        {/* Main Panel */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar w-full">
-          {sel ? (
+          {tabLoading ? (
+             <div className="flex flex-col items-center justify-center h-full text-indigo-400">
+               <Loader2 className="w-8 h-8 animate-spin mb-4" />
+               <p className="font-mono text-sm">Loading Data...</p>
+             </div>
+          ) : tabError ? (
+             <div className="flex flex-col items-center justify-center h-full text-red-400">
+               <X className="w-8 h-8 mb-4" />
+               <p className="font-mono text-sm">{tabError}</p>
+               <button onClick={() => fetchTabData(currentTab as any)} className="mt-4 px-4 py-2 bg-white/5 rounded border border-white/10 text-xs">Retry</button>
+             </div>
+          ) : currentTab === 'profile' ? (
+             <div className="max-w-4xl mx-auto w-full up">
+               <h2 className="text-xl font-bold mb-6 text-white border-b border-white/10 pb-4 flex items-center gap-3"><User className="text-indigo-400"/> Student Profile</h2>
+               {profileData && (
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   {Object.entries(profileData).map(([key, val]) => (
+                     <div key={key} className="card p-4">
+                       <span className="text-[10px] font-mono text-gray-500 uppercase">{key}</span>
+                       <p className="text-sm font-semibold text-gray-200 mt-1">{String(val) || '-'}</p>
+                     </div>
+                   ))}
+                 </div>
+               )}
+             </div>
+          ) : currentTab === 'timetable' ? (
+             <div className="max-w-6xl mx-auto w-full up">
+               <h2 className="text-xl font-bold mb-6 text-white border-b border-white/10 pb-4 flex items-center gap-3"><Calendar className="text-indigo-400"/> Weekly Timetable</h2>
+               {timetableData && (
+                 <div className="overflow-x-auto card rounded-xl border border-white/10">
+                   <table className="w-full text-left text-sm text-gray-300">
+                     <tbody>
+                       {timetableData.map((row: string[], i: number) => (
+                         <tr key={i} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                           {row.map((cell: string, j: number) => (
+                             <td key={j} className={`px-4 py-3 ${i === 0 ? 'font-bold bg-white/[0.04] text-white' : ''}`}>
+                               {cell}
+                             </td>
+                           ))}
+                         </tr>
+                       ))}
+                     </tbody>
+                   </table>
+                 </div>
+               )}
+             </div>
+          ) : sel ? (
             /* WIDESCREEN detail view next to sidebar */
             <div className="w-full max-w-4xl mx-auto">
               <DetailView course={sel} onClose={() => setActive(null)} />
@@ -244,9 +403,9 @@ export function ERPDashboard() {
                           <p className="text-[10px] font-mono uppercase tracking-widest truncate" style={{ color: 'rgba(239,239,239,.35)' }}>{c.code}</p>
                           <p className="text-sm font-semibold mt-0.5 leading-snug line-clamp-2" style={{ color: '#EFEFEF' }}>{c.description || c.code}</p>
                         </div>
-                        <div className="shrink-0 text-right">
-                          <p className="text-2xl font-bold font-mono leading-none" style={{ color: s.color }}>{c.pct.toFixed(0)}%</p>
-                          <span className="badge mt-1.5" style={{ color: s.color, background: s.bg, borderColor: s.border }}>{s.label}</span>
+                        <div className="shrink-0 flex flex-col items-end gap-1.5">
+                          <ProgressRing radius={20} stroke={3} progress={c.pct} color={s.color} />
+                          <span className="badge mt-0.5" style={{ color: s.color, background: s.bg, borderColor: s.border }}>{s.label}</span>
                         </div>
                       </div>
                       <div className="pl-2">
@@ -277,8 +436,11 @@ function DetailView({ course, onClose }: { course: Course; onClose: () => void }
 
   // Reset simulator when course changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSimAttended({})
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSimConducted({})
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsSimulating(false)
   }, [course])
 

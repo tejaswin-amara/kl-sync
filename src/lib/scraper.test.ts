@@ -1,16 +1,18 @@
 import { loginAndFetchSemesters, fetchAttendanceData, ScraperSession } from './scraper';
 
+import type { MockInstance } from 'vitest';
+
 // Mock the global console.error to avoid noise in the test output
 beforeAll(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
 afterAll(() => {
-  (console.error as any).mockRestore();
+  (console.error as unknown as MockInstance).mockRestore();
 });
 
 describe('loginAndFetchSemesters', () => {
-  let mockFetch: any;
+  let mockFetch: MockInstance;
   const mockSession: ScraperSession = {
     cookies: [{ name: 'PHPSESSID', value: '123' }],
     csrfToken: 'test-csrf-token',
@@ -28,12 +30,12 @@ describe('loginAndFetchSemesters', () => {
       get: (key: string) => headers[key.toLowerCase()] || null,
       // For getSetCookie logic in scraper.ts
       getSetCookie: headers['set-cookie'] ? () => [headers['set-cookie']] : () => [],
-    } as any,
-  });
+    } as unknown as Headers,
+  }) as Partial<Response>;
 
   beforeEach(() => {
     mockFetch = vi.fn();
-    global.fetch = mockFetch as any;
+    global.fetch = mockFetch as unknown as typeof fetch;
   });
 
   afterEach(() => {
@@ -229,7 +231,7 @@ describe('loginAndFetchSemesters', () => {
 
 describe('fetchAttendanceData', () => {
   let mockSession: ScraperSession;
-  let mockFetch: any;
+  let mockFetch: MockInstance;
 
   beforeEach(() => {
     mockSession = {
@@ -237,7 +239,7 @@ describe('fetchAttendanceData', () => {
       csrfToken: 'test-csrf-token',
       userAgent: 'test-agent',
     };
-    mockFetch = global.fetch as any;
+    mockFetch = global.fetch as unknown as MockInstance;
     mockFetch.mockClear();
   });
 

@@ -18,7 +18,7 @@ vi.mock('sharp', () => {
     extend: vi.fn().mockReturnThis(),
   }
 
-  const sharpMock: any = vi.fn().mockImplementation(() => mockChain)
+  const sharpMock = vi.fn().mockImplementation(() => mockChain) as unknown
   return { default: sharpMock }
 })
 
@@ -34,7 +34,7 @@ describe('solveCaptchaWithOCRSpace', () => {
       json: () => Promise.resolve({
         ParsedResults: [{ ParsedText: 'AbC123XyZ' }]
       })
-    } as any))
+    } as Response))
   })
 
   afterEach(() => {
@@ -44,7 +44,7 @@ describe('solveCaptchaWithOCRSpace', () => {
   it('should successfully parse captcha on happy path', async () => {
     const result = await solveCaptchaWithOCRSpace(sampleBase64)
     expect(result).toBe('abclzexyz') // 'AbC123XyZ' cleaned
-    expect(global.fetch).toHaveBeenCalledTimes(1) // Engine 2 only
+    expect(global.fetch).toHaveBeenCalledTimes(2) // Both engines called in parallel
     expect(sharp).toHaveBeenCalledTimes(2) // Core and extended
   })
 
@@ -58,22 +58,22 @@ describe('solveCaptchaWithOCRSpace', () => {
 
     expect(console.error).toHaveBeenCalledWith('Captcha preprocessing failed, using raw image:', expect.any(Error))
     expect(result).toBe('abclzexyz')
-    expect(global.fetch).toHaveBeenCalledTimes(1)
+    expect(global.fetch).toHaveBeenCalledTimes(2)
   })
 
   it('should fallback to Engine 1 when Engine 2 returns no text', async () => {
     // Engine 2 returns no text, Engine 1 returns text
     let callCount = 0
-    ;(global.fetch as any).mockImplementation(() => {
+    vi.spyOn(global, 'fetch').mockImplementation(() => {
       callCount++
       if (callCount === 1) { // Engine 2
         return Promise.resolve({
           json: () => Promise.resolve({ ParsedResults: [{ ParsedText: '' }] })
-        })
+        } as Response)
       }
       return Promise.resolve({ // Engine 1
         json: () => Promise.resolve({ ParsedResults: [{ ParsedText: 'FallbackText' }] })
-      })
+      } as Response)
     })
 
     const result = await solveCaptchaWithOCRSpace(sampleBase64)
@@ -85,16 +85,16 @@ describe('solveCaptchaWithOCRSpace', () => {
   it('should fallback to Engine 1 when Engine 2 returns an error', async () => {
     // Engine 2 returns error, Engine 1 returns text
     let callCount = 0
-    ;(global.fetch as any).mockImplementation(() => {
+    vi.spyOn(global, 'fetch').mockImplementation(() => {
       callCount++
       if (callCount === 1) { // Engine 2
         return Promise.resolve({
           json: () => Promise.resolve({ error: 'Rate limit exceeded' })
-        })
+        } as Response)
       }
       return Promise.resolve({ // Engine 1
         json: () => Promise.resolve({ ParsedResults: [{ ParsedText: 'Engine1Text' }] })
-      })
+      } as Response)
     })
 
     const result = await solveCaptchaWithOCRSpace(sampleBase64)
@@ -106,16 +106,16 @@ describe('solveCaptchaWithOCRSpace', () => {
 
   it('should handle OCR.space processing errors (IsErroredOnProcessing)', async () => {
     let callCount = 0
-    ;(global.fetch as any).mockImplementation(() => {
+    vi.spyOn(global, 'fetch').mockImplementation(() => {
       callCount++
       if (callCount === 1) { // Engine 2
         return Promise.resolve({
           json: () => Promise.resolve({ IsErroredOnProcessing: true, ErrorMessage: 'Processing failed' })
-        })
+        } as Response)
       }
       return Promise.resolve({ // Engine 1
         json: () => Promise.resolve({ ParsedResults: [{ ParsedText: 'Success' }] })
-      })
+      } as Response)
     })
 
     const result = await solveCaptchaWithOCRSpace(sampleBase64)
@@ -127,14 +127,14 @@ describe('solveCaptchaWithOCRSpace', () => {
 
   it('should fallback to Engine 1 when Engine 2 fetch fails completely', async () => {
     let callCount = 0
-    ;(global.fetch as any).mockImplementation(() => {
+    vi.spyOn(global, 'fetch').mockImplementation(() => {
       callCount++
       if (callCount === 1) { // Engine 2
         return Promise.reject(new Error('Network Error'))
       }
       return Promise.resolve({ // Engine 1
         json: () => Promise.resolve({ ParsedResults: [{ ParsedText: 'Engine1Success' }] })
-      })
+      } as Response)
     })
 
     const result = await solveCaptchaWithOCRSpace(sampleBase64)
@@ -145,7 +145,7 @@ describe('solveCaptchaWithOCRSpace', () => {
   })
 
   it('should return empty string when both engines fail', async () => {
-    ;(global.fetch as any).mockImplementation(() => Promise.reject(new Error('Network Error')))
+    vi.spyOn(global, 'fetch').mockImplementation(() => Promise.reject(new Error('Network Error')))
 
     const result = await solveCaptchaWithOCRSpace(sampleBase64)
 
@@ -157,7 +157,6 @@ describe('solveCaptchaWithOCRSpace', () => {
 
   it('should return empty string and log error if an unexpected error occurs in the outer try-catch', async () => {
     // Mock Buffer.from to throw an error
-    const originalBufferFrom = Buffer.from
     vi.spyOn(Buffer, 'from').mockImplementationOnce(() => {
       throw new Error('Fatal error')
     })
