@@ -330,34 +330,6 @@ function DetailView({ course, onClose }: { course: Course; onClose: () => void }
   const simulatedPct = wt > 0 ? (ws / wt) * 100 : 0
   const simStatus = STATUS(simulatedPct)
 
-  // advice calculators
-  const classesNeeded = (target: number) => {
-    const pct = isSimulating ? simulatedPct : course.pct
-    if (pct >= target) return null
-    
-    const totalConducted = active.reduce((acc, [key, val]) => acc + (simConducted[key] ?? val.conducted), 0)
-    const totalAttended  = active.reduce((acc, [key, val]) => acc + (simAttended[key] ?? val.attended), 0)
-    let extra = 0
-    while (extra < 1000) {
-      extra++
-      if (((totalAttended + extra) / (totalConducted + extra)) * 100 >= target) return extra
-    }
-    return null
-  }
-
-  const need75 = (isSimulating ? simulatedPct : course.pct) < 75  ? classesNeeded(75)  : null
-  const need85 = (isSimulating ? simulatedPct : course.pct) < 85  ? classesNeeded(85)  : null
-  
-  const canSkip = (isSimulating ? simulatedPct : course.pct) >= 75 ? (() => {
-    const totalConducted = active.reduce((acc, [key, val]) => acc + (simConducted[key] ?? val.conducted), 0)
-    const totalAttended  = active.reduce((acc, [key, val]) => acc + (simAttended[key] ?? val.attended), 0)
-    let skip = 0
-    while (skip < 200) {
-      if (((totalAttended) / (totalConducted + skip + 1)) * 100 < 75) break
-      skip++
-    }
-    return skip
-  })() : null
 
   return (
     <div className="up w-full">
@@ -481,16 +453,6 @@ function DetailView({ course, onClose }: { course: Course; onClose: () => void }
         </div>
       )}
 
-      {/* Advice card */}
-      {(need75 !== null || need85 !== null || canSkip !== null) && (
-        <div className="card p-4 flex flex-col gap-2">
-          <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'rgba(239,239,239,.3)' }}>Attendance Advice</p>
-          {need75 !== null && <p className="text-xs" style={{ color: '#FBBF24' }}>Attend <strong>{need75}</strong> more class{need75!==1?'es':''} to reach <strong>75%</strong> (condonation threshold).</p>}
-          {need85 !== null && <p className="text-xs" style={{ color: '#A78BFA' }}>Attend <strong>{need85}</strong> more class{need85!==1?'es':''} to reach <strong>85%</strong> (eligible threshold).</p>}
-          {canSkip !== null && canSkip > 0 && <p className="text-xs" style={{ color: '#34D399' }}>You can skip up to <strong>{canSkip}</strong> class{canSkip!==1?'es':''} and stay above 75%.</p>}
-          {canSkip === 0 && <p className="text-xs" style={{ color: '#FBBF24' }}>You cannot afford to miss any classes.</p>}
-        </div>
-      )}
     </div>
   )
 }
