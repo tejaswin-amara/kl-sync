@@ -17,11 +17,12 @@
 ## ✨ Features
 
 - 🚀 **Next.js 16 & Turbopack** - Blazing fast server-side rendering and edge caching using `unstable_cache`.
+- ⚡ **Vercel Edge Network** - Zero cold-start API routes powered by the Edge Runtime.
 - 📱 **Native PWA Support** - Fully offline-capable and installable on iOS/Android via Service Workers.
 - 🎨 **Glassmorphism UI** - Gorgeous, animated interface powered by **Framer Motion** and **Tailwind CSS v4**.
 - 🔍 **Command Palette (⌘K)** - Lightning-fast global navigation and search using `cmdk`.
 - 🧮 **Live Attendance Simulator** - Auto-calculates exact classes needed to cross 75% or 85% eligibility thresholds.
-- 🤖 **Frictionless Login** - Automated CAPTCHA bypassing via OCR.
+- 🪄 **Opt-in OCR CAPTCHA** - A "Magic Wand" UI to automatically solve CAPTCHA challenges via OCR only when you want it to.
 - ✅ **High Test Coverage** - Fully unified end-to-end and unit testing powered by **Vitest** (44/44 passing).
 
 ## 🛠️ Tech Stack
