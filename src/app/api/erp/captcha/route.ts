@@ -3,7 +3,6 @@ import { getCaptcha } from '@/lib/scraper'
 import { encodeSession } from '@/lib/session'
 import { solveCaptchaWithOCRSpace } from '@/lib/ocr'
 
-export const runtime = 'edge'
 
 export async function GET() {
   try {

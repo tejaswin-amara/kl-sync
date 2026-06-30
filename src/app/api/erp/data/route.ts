@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { decodeSession } from '@/lib/session'
 import { fetchTimetable, fetchProfile, fetchAttendance } from '@/lib/scraper'
 
-export const runtime = 'edge'
 
 export async function POST(request: NextRequest) {
   try {
