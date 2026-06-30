@@ -9,6 +9,7 @@
   --color-destructive: var(--destructive);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+  --animate-grid: grid 15s linear infinite;
 }
 
 @layer base {
@@ -33,6 +34,11 @@
     -webkit-font-smoothing: antialiased;
   }
   ::selection { background: rgba(99,102,241,.28); }
+}
+
+@keyframes grid {
+  0% { transform: translateY(-50%); }
+  100% { transform: translateY(0); }
 }
 
 /* ── Ambient blobs ── */

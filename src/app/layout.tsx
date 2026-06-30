@@ -26,6 +26,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { DotPattern } from "@/components/ui/dot-pattern";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -34,10 +36,21 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${firaSans.variable} ${firaCode.variable} antialiased min-h-screen bg-[#060608] text-foreground overflow-x-hidden custom-scrollbar`}
+        className={`${firaSans.variable} ${firaCode.variable} antialiased min-h-screen bg-[#060608] text-foreground overflow-x-hidden custom-scrollbar relative`}
       >
         <PwaRegistry />
-        {children}
+        <DotPattern
+          width={28}
+          height={28}
+          cx={2}
+          cy={2}
+          cr={1.5}
+          className="opacity-[0.15] mix-blend-screen"
+        />
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,transparent_20%,#060608_100%)] z-0" />
+        <div className="relative z-10">
+          {children}
+        </div>
       </body>
     </html>
   );

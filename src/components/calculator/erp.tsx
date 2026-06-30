@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { LogOut, GraduationCap, TrendingUp, TrendingDown, Minus, BookOpen, Search, X, Calculator, RotateCcw, User, Calendar, LayoutDashboard, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { NumberTicker } from '@/components/ui/number-ticker'
 // ── types ──────────────────────────────────────────────
 type Component = { weight: number; attended: number; conducted: number }
 type Course = {
@@ -91,7 +92,7 @@ function ProgressRing({ radius, stroke, progress, color }: { radius: number, str
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center font-mono font-bold" style={{ color, fontSize: radius * 0.55 }}>
-        {progress.toFixed(0)}
+        <NumberTicker value={progress} />
       </div>
     </div>
   )
@@ -256,7 +257,7 @@ export function ERPDashboard() {
               <Calendar size={14} /> Timetable
             </button>
           </div>
-          <span className="hidden sm:block text-sm font-bold font-mono mr-2" style={{ color: STATUS(overall).color }}>{overall.toFixed(1)}% avg</span>
+          <span className="hidden sm:block text-sm font-bold font-mono mr-2" style={{ color: STATUS(overall).color }}><NumberTicker value={overall} decimalPlaces={1} />% avg</span>
           
           {currentTab === 'timetable' && (
             <div className="flex gap-2">
@@ -291,7 +292,7 @@ export function ERPDashboard() {
                 { label: 'At Risk', val: atRisk, color: '#F87171' },
               ].map(s => (
                 <div key={s.label} className="flex flex-col items-center py-3 px-2 border-r last:border-r-0" style={{ borderColor: 'rgba(255,255,255,.06)' }}>
-                  <span className="text-xl font-bold font-mono leading-none" style={{ color: s.color }}>{s.val}</span>
+                  <span className="text-xl font-bold font-mono leading-none" style={{ color: s.color }}><NumberTicker value={s.val} /></span>
                   <span className="text-[9px] mt-1 font-semibold tracking-widest uppercase" style={{ color: 'rgba(239,239,239,.3)' }}>{s.label}</span>
                 </div>
               ))}
@@ -334,7 +335,7 @@ export function ERPDashboard() {
                       <p className="text-[10px] font-mono truncate" style={{ color: 'rgba(239,239,239,.4)' }}>{c.code}</p>
                       <p className="text-xs font-semibold leading-tight truncate mt-0.5" style={{ color: isActive ? '#FFFFFF' : '#EFEFEF' }}>{c.description || c.code}</p>
                     </div>
-                    <span className="text-xs font-bold font-mono shrink-0" style={{ color: s.color }}>{c.pct.toFixed(0)}%</span>
+                    <span className="text-xs font-bold font-mono shrink-0" style={{ color: s.color }}><NumberTicker value={c.pct} />%</span>
                   </button>
                 )
               })}

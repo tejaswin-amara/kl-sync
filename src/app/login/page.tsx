@@ -4,6 +4,9 @@ import { useState, useEffect, useMemo } from 'react'
 import { RefreshCw, LogIn, AlertCircle, Loader2, ChevronDown } from "lucide-react"
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
+import { clsx, type ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+import { RetroGrid } from "@/components/ui/retro-grid"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -247,8 +250,8 @@ export default function LoginPage() {
     <div className="min-h-screen flex bg-zinc-950 text-zinc-50 relative overflow-hidden font-sans">
       {/* LEFT: BRANDING PANEL (Taste-Skill asymmetric split) */}
       <div className="hidden lg:flex w-[45%] relative border-r border-zinc-900 overflow-hidden bg-zinc-900 flex-col">
-        {/* Brand Background Pattern instead of Purple Blob */}
-        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#27272a 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+        {/* Magic UI Retro Grid Background */}
+        <RetroGrid className="opacity-60" />
         
         <div className="relative z-10 flex-1 flex flex-col p-16 justify-between">
           <div>
