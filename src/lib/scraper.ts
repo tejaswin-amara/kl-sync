@@ -27,48 +27,11 @@ type CookieJar = Record<string, string>;
 
 // Robustly read all Set-Cookie headers (one cookie each), preferring the
 // dedicated array API and falling back to a careful comma-split.
-function getSetCookies(res: Response): string[] {
-  const anyHeaders = res.headers as unknown as { getSetCookie?: () => string[] };
-  if (typeof anyHeaders.getSetCookie === 'function') {
-    return anyHeaders.getSetCookie();
-  }
-  const raw = res.headers.get('set-cookie');
-  if (!raw) return [];
-  // Split only on commas that begin a new "name=value" pair (not commas inside
-  // Expires dates).
-  return raw.split(/,(?=\s*[^=;,]+=)/);
-}
-
-function mergeSetCookies(jar: CookieJar, res: Response): void {
-  for (const sc of getSetCookies(res)) {
-    const firstSemi = sc.indexOf(';');
-    const pair = (firstSemi > -1 ? sc.slice(0, firstSemi) : sc).trim();
-    const eq = pair.indexOf('=');
-    if (eq > -1) {
-      const name = pair.slice(0, eq).trim();
-      const value = pair.slice(eq + 1).trim();
-      if (name) jar[name] = value;
-    }
-  }
-}
-
-function cookieHeader(jar: CookieJar): string {
-  return Object.entries(jar)
-    .map(([k, v]) => `${k}=${v}`)
-    .join('; ');
-}
-
-function jarToArray(jar: CookieJar): { name: string; value: string }[] {
-  return Object.entries(jar).map(([name, value]) => ({ name, value }));
-}
-
-function arrayToJar(cookies: { name: string; value: string }[]): CookieJar {
-  const jar: CookieJar = {};
-  for (const c of cookies || []) {
-    if (c && c.name) jar[c.name] = c.value;
-  }
-  return jar;
-}
+const getSetCookies = (res: any): string[] => res.headers.getSetCookie?.() || (res.headers.get('set-cookie') || '').split(/,(?=\s*[^=;,]+=)/).filter(Boolean);
+const mergeSetCookies = (jar: CookieJar, res: Response) => getSetCookies(res).map(c => c.split(';')[0].split('=')).forEach(([k, ...v]) => k && (jar[k.trim()] = v.join('=').trim()));
+const cookieHeader = (jar: CookieJar) => Object.entries(jar).map(([k, v]) => `${k}=${v}`).join('; ');
+const jarToArray = (jar: CookieJar) => Object.entries(jar).map(([name, value]) => ({ name, value }));
+const arrayToJar = (cookies: { name: string; value: string }[]) => Object.fromEntries((cookies || []).map(c => [c.name, c.value]));
 
 // Fetch with manual redirect following so we capture cookies on every hop and
 // keep the jar consistent. The ERP redirects to http:// — we upgrade back to
