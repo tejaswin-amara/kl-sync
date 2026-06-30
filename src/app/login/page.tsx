@@ -271,12 +271,14 @@ export default function LoginPage() {
 
       const fetchResult = await fetchResponse.json()
       
-      if (!fetchResponse.ok || !fetchResult.success) {
-         throw new Error(fetchResult.message || 'Failed to fetch attendance data')
-      }
-      
-      if (!fetchResult.attendanceData || fetchResult.attendanceData.length === 0) {
-         throw new Error('No results found for this Academic Year/Semester.')
+      if (!fetchResponse.ok || !fetchResult.success || !fetchResult.attendanceData || fetchResult.attendanceData.length === 0) {
+         // Auto-fetch failed (likely wrong academic year/semester guessed).
+         // Transition to the manual selection screen so the user can choose.
+         setError(fetchResult.message || 'No results found for the auto-selected semester. Please select manually.')
+         setStatus(null)
+         setStep('select-sem')
+         setLoading(false)
+         return
       }
 
       // Save the fetched data and route to dashboard
@@ -289,7 +291,10 @@ export default function LoginPage() {
       
     } catch (err: unknown) {
       setError(err instanceof Error && err.message ? err.message : 'An unexpected error occurred')
-      await fetchCaptcha(true)
+      // If we crashed during core login, we should stay on the login step and refresh captcha
+      if (step === 'login') {
+        await fetchCaptcha(true)
+      }
     } finally {
       setLoading(false)
     }
@@ -297,56 +302,60 @@ export default function LoginPage() {
 
   const handleFetchAttendance = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!selectedYear || !selectedSem) {
+      setError('Please select an Academic Year and Semester')
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+    setStatus('Fetching attendance data...')
+
+    try {
+      const fetchResponse = await fetch('/api/erp/data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-session-id': sessionId
+        },
+        body: JSON.stringify({
+          action: 'attendance',
+          csrfToken: csrfToken,
+          academicYear: selectedYear,
+          semesterId: selectedSem
+        })
+      })
+
+      const fetchResult = await fetchResponse.json()
+      
+      if (!fetchResponse.ok || !fetchResult.success) {
+         throw new Error(fetchResult.message || 'Failed to fetch attendance data')
+      }
+      
+      if (!fetchResult.attendanceData || fetchResult.attendanceData.length === 0) {
+         throw new Error('No results found for this Academic Year/Semester.')
+      }
+
+      // Save the fetched data and route to dashboard
+      localStorage.setItem('attendanceData', JSON.stringify(fetchResult))
+      localStorage.setItem('studentId', username || 'Student')
+      localStorage.setItem('kl_erp_year', selectedYear)
+      localStorage.setItem('kl_erp_sem', selectedSem)
+      
+      router.push('/')
+      
+    } catch (err: unknown) {
+      setError(err instanceof Error && err.message ? err.message : 'An unexpected error occurred')
+    } finally {
+      setLoading(false)
+      setStatus(null)
+    }
   }
 
   return (
     <div className="min-h-screen flex bg-zinc-950 text-zinc-50 relative overflow-hidden font-sans">
-      {/* LEFT: BRANDING PANEL (Taste-Skill asymmetric split) */}
-      <div className="hidden lg:flex w-[45%] relative border-r border-zinc-900 overflow-hidden bg-zinc-900 flex-col">
-        {/* Magic UI Retro Grid Background */}
-        <RetroGrid className="opacity-60" />
-        
-        <div className="relative z-10 flex-1 flex flex-col p-16 justify-between">
-          <div>
-            <div className="bg-white rounded-2xl p-4 shadow-xl inline-block mb-12">
-              <img src="/logo.png" alt="KLH" className="h-10 object-contain" />
-            </div>
-            <motion.h1 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="text-5xl font-semibold tracking-tight text-white leading-[1.1] mb-6"
-            >
-              Academic sync,<br />precision engineered.
-            </motion.h1>
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="text-lg text-zinc-400 max-w-md leading-relaxed"
-            >
-              Secure, real-time access to your timetable, profile, and attendance metrics directly from the core ERP.
-            </motion.p>
-          </div>
-          
-          {/* Material Status Chip */}
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.5 }}
-            className="flex items-center gap-3 px-4 py-3 rounded-full bg-emerald-500/10 border border-emerald-500/20 w-max"
-          >
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
-            <span className="text-xs font-semibold text-emerald-400 tracking-wide uppercase">System Live & Secure</span>
-          </motion.div>
-        </div>
-      </div>
-
-      {/* RIGHT: LOGIN FORM */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-12 relative">
+      {/* LEFT: LOGIN FORM */}
+      <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-12 relative z-10 bg-zinc-950">
         <div className="w-full max-w-[380px]">
           
           <div className="lg:hidden mb-12">
@@ -464,7 +473,106 @@ export default function LoginPage() {
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><LogIn className="w-4 h-4" /> Continue</>}
               </motion.button>
             </form>
-          ) : null}
+          ) : (
+            <form onSubmit={handleFetchAttendance} className="space-y-5">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-medium tracking-wide uppercase text-zinc-500">Academic Year</label>
+                <div className="relative">
+                  <select
+                    value={selectedYear}
+                    onChange={e => setSelectedYear(e.target.value)}
+                    className="w-full appearance-none rounded-xl px-4 py-3.5 bg-zinc-900 border border-zinc-800 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
+                  >
+                    <option value="" disabled>Select Year</option>
+                    {academicYearOptions}
+                  </select>
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-medium tracking-wide uppercase text-zinc-500">Semester</label>
+                <div className="relative">
+                  <select
+                    value={selectedSem}
+                    onChange={e => setSelectedSem(e.target.value)}
+                    className="w-full appearance-none rounded-xl px-4 py-3.5 bg-zinc-900 border border-zinc-800 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
+                  >
+                    <option value="" disabled>Select Semester</option>
+                    {semesterOptions}
+                  </select>
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+                </div>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 0.995 }}
+                whileTap={{ scale: 0.98 }}
+                type="submit"
+                disabled={loading || !selectedYear || !selectedSem}
+                className="w-full py-4 mt-6 rounded-xl font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-emerald-500 text-zinc-950 hover:bg-emerald-400 shadow-[0_1px_2px_rgba(0,0,0,0.1)]"
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Fetch Attendance'}
+              </motion.button>
+              
+              <button 
+                type="button" 
+                onClick={() => {
+                  setStep('login')
+                  setStatus(null)
+                  setError(null)
+                  fetchCaptcha(false)
+                }}
+                className="w-full py-3 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
+              >
+                Back to Login
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+
+      {/* RIGHT: BRANDING PANEL (Flipped from left to right) */}
+      <div className="hidden lg:flex w-[45%] relative border-l border-zinc-900 overflow-hidden bg-zinc-900 flex-col">
+        {/* Magic UI Retro Grid Background */}
+        <RetroGrid className="opacity-60" />
+        
+        <div className="relative z-10 flex-1 flex flex-col p-16 justify-between">
+          <div>
+            <div className="bg-white rounded-2xl p-4 shadow-xl inline-block mb-12">
+              <img src="/logo.png" alt="KLH" className="h-10 object-contain" />
+            </div>
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="text-5xl font-semibold tracking-tight text-white leading-[1.1] mb-6"
+            >
+              Academic sync,<br />precision engineered.
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              className="text-lg text-zinc-400 max-w-md leading-relaxed"
+            >
+              Secure, real-time access to your timetable, profile, and attendance metrics directly from the core ERP.
+            </motion.p>
+          </div>
+          
+          {/* Material Status Chip */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 0.5 }}
+            className="flex items-center gap-3 px-4 py-3 rounded-full bg-emerald-500/10 border border-emerald-500/20 w-max"
+          >
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+            <span className="text-xs font-semibold text-emerald-400 tracking-wide uppercase">System Live & Secure</span>
+          </motion.div>
         </div>
       </div>
     </div>
