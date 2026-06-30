@@ -16,11 +16,13 @@
 
 ## ✨ Features
 
-- 🚀 **Next.js 16 App Router** - Blazing fast server-side rendering and static generation via Turbopack.
-- 🎨 **Modern Interface** - Responsive, clean, and beautiful UI built with **Tailwind CSS v4** and `lucide-react` icons.
-- 🤖 **Frictionless Login** - Automated captcha bypassing using OCR.space integration and sharp image preprocessing.
-- 🛡️ **Robust Security** - Strict `zod` validation, secure session management, and comprehensive error handling.
-- ✅ **High Test Coverage** - Fully unified end-to-end and unit testing powered by **Vitest** and Testing Library.
+- 🚀 **Next.js 16 & Turbopack** - Blazing fast server-side rendering and edge caching using `unstable_cache`.
+- 📱 **Native PWA Support** - Fully offline-capable and installable on iOS/Android via Service Workers.
+- 🎨 **Glassmorphism UI** - Gorgeous, animated interface powered by **Framer Motion** and **Tailwind CSS v4**.
+- 🔍 **Command Palette (⌘K)** - Lightning-fast global navigation and search using `cmdk`.
+- 🧮 **Live Attendance Simulator** - Auto-calculates exact classes needed to cross 75% or 85% eligibility thresholds.
+- 🤖 **Frictionless Login** - Automated CAPTCHA bypassing via OCR.
+- ✅ **High Test Coverage** - Fully unified end-to-end and unit testing powered by **Vitest** (44/44 passing).
 
 ## 🛠️ Tech Stack
 
