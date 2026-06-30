@@ -1,42 +1,16 @@
-import sharp from 'sharp'
-
 // Ensure the OCR_SPACE_API_KEY is configured in the environment.
 // Set your own free OCR_SPACE_API_KEY (https://ocr.space/ocrapi)
 // for reliable captcha solving.
 const OCR_SPACE_API_KEY = process.env.OCR_SPACE_API_KEY
 
-// The KLU login captcha is a single pink colour (RGB 239,71,111) painted on a
-// fully transparent background, so the PNG's alpha channel is a near-perfect
-// text mask. We turn that mask into crisp black-on-white, upscaled with a white
-// margin — OCR.space reads this far more reliably than the raw pink-on-
-// transparent image (which it composites onto black). This significantly
-// improves accuracy.
-async function preprocessCaptcha(buffer: Buffer): Promise<Buffer> {
-  const core = await sharp(buffer)
-    .ensureAlpha()
-    .extractChannel(3) // alpha: text ≈ 255, background = 0
-    .trim({ threshold: 10 }) // crop to the glyph bounding box -> normalizes scale
-    .resize(520, 180, { fit: 'fill', kernel: 'cubic' })
-    .blur(1.0) // smooth the upscaled edges before binarizing
-    .threshold(75) // binarize -> text = white (255), background = black (0)
-    .negate() // -> black text on white
-    .png()
-    .toBuffer()
-  // Re-open as a fresh raster so the white border renders correctly.
-  return sharp(core)
-    .extend({ top: 30, bottom: 30, left: 30, right: 30, background: { r: 255, g: 255, b: 255 } })
-    .png()
-    .toBuffer()
-}
-
-async function ocrSpace(buffer: Buffer, engine: 1 | 2): Promise<string> {
+async function ocrSpace(base64Data: string, engine: 1 | 2): Promise<string> {
   if (!OCR_SPACE_API_KEY) {
     console.error('OCR_SPACE_API_KEY is not set')
     return ''
   }
 
   const formData = new FormData()
-  formData.append('base64Image', `data:image/png;base64,${buffer.toString('base64')}`)
+  formData.append('base64Image', base64Data)
   formData.append('language', 'eng')
   formData.append('isOverlayRequired', 'false')
   formData.append('OCREngine', String(engine))
@@ -96,22 +70,11 @@ function cleanCaptchaText(raw: string): string {
 
 export async function solveCaptchaWithOCRSpace(base64Image: string): Promise<string> {
   try {
-    const raw = base64Image.replace(/^data:image\/\w+;base64,/, '')
-    const inputBuffer = Buffer.from(raw, 'base64')
-
-    // Clean the image first; fall back to the raw bytes if sharp fails.
-    let ocrBuffer: Buffer = inputBuffer
-    try {
-      ocrBuffer = await preprocessCaptcha(inputBuffer)
-    } catch (e) {
-      console.error('Captcha preprocessing failed, using raw image:', e)
-    }
-
     // Run both engines in parallel to save time.
     // Engine 2 reads words best; Engine 1 is a fallback.
     const [res2, res1] = await Promise.all([
-      ocrSpace(ocrBuffer, 2).then(cleanCaptchaText),
-      ocrSpace(ocrBuffer, 1).then(cleanCaptchaText)
+      ocrSpace(base64Image, 2).then(cleanCaptchaText),
+      ocrSpace(base64Image, 1).then(cleanCaptchaText)
     ])
     return res2 || res1 || ''
   } catch (error) {

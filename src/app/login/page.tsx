@@ -75,11 +75,55 @@ export default function LoginPage() {
   const handleAutoSolve = async () => {
     if (!captchaImage) return
     setAutoSolving(true)
+    setError(null)
     try {
+      // 1. Process image entirely on the client using HTML5 Canvas
+      // to bypass Vercel serverless image processing limitations
+      const processedBase64 = await new Promise<string>((resolve, reject) => {
+        const img = new Image()
+        img.crossOrigin = 'Anonymous'
+        img.onload = () => {
+          const scale = 3
+          const canvas = document.createElement('canvas')
+          canvas.width = img.width * scale + 40 // add padding
+          canvas.height = img.height * scale + 40
+          const ctx = canvas.getContext('2d')
+          if (!ctx) return reject('No canvas context')
+
+          // Fill white background
+          ctx.fillStyle = '#FFFFFF'
+          ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+          // Draw scaled image in center
+          ctx.imageSmoothingEnabled = true
+          ctx.drawImage(img, 20, 20, img.width * scale, img.height * scale)
+
+          // Binarize: if pixel is non-white (the pink text), make it black
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+          const data = imageData.data
+          for (let i = 0; i < data.length; i += 4) {
+             const r = data[i]
+             const g = data[i + 1]
+             const b = data[i + 2]
+             // If not pure white (which is our background), make it pitch black
+             if (r < 250 || g < 250 || b < 250) {
+                 data[i] = 0
+                 data[i + 1] = 0
+                 data[i + 2] = 0
+             }
+          }
+          ctx.putImageData(imageData, 0, 0)
+          resolve(canvas.toDataURL('image/png'))
+        }
+        img.onerror = () => reject('Failed to load image for processing')
+        img.src = captchaImage
+      })
+
+      // 2. Send clean black-on-white image to API
       const res = await fetch('/api/erp/captcha', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: captchaImage }),
+        body: JSON.stringify({ image: processedBase64 }),
       })
       const data = await res.json()
       if (data.success && data.text) {
@@ -88,6 +132,7 @@ export default function LoginPage() {
         setError('Auto-solve failed. Please enter manually.')
       }
     } catch (e) {
+      console.error(e)
       setError('Auto-solve failed. Please enter manually.')
     } finally {
       setAutoSolving(false)
