@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { RefreshCw, LogIn, AlertCircle, Loader2, ChevronDown } from "lucide-react"
+import { RefreshCw, LogIn, AlertCircle, Loader2, ChevronDown, Wand2 } from "lucide-react"
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { clsx, type ClassValue } from 'clsx'
@@ -45,6 +45,8 @@ export default function LoginPage() {
     return semesters.map(o => <option key={o.value} value={o.value} className="bg-[#0c0c0e]">{o.label}</option>)
   }, [semesters])
 
+  const [autoSolving, setAutoSolving] = useState(false)
+
   const fetchCaptcha = async (preserveError = false): Promise<string> => {
     setCaptchaLoading(true)
     if (!preserveError) setError(null)
@@ -60,22 +62,6 @@ export default function LoginPage() {
       const data = await response.json()
       const originalBase64 = data.captchaImage
       setCaptchaImage(originalBase64)
-
-      // Auto-solve logic
-      try {
-        const res = await fetch('/api/erp/captcha', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: originalBase64 }),
-        })
-        const data = await res.json()
-        if (data.success && data.text) {
-          setCaptcha(data.text)
-          return data.text
-        }
-      } catch (e) {
-        console.error('Captcha auto-solve failed', e)
-      }
       return ''
     } catch (err) {
       console.error(err)
@@ -83,6 +69,28 @@ export default function LoginPage() {
       return ''
     } finally {
       setCaptchaLoading(false)
+    }
+  }
+
+  const handleAutoSolve = async () => {
+    if (!captchaImage) return
+    setAutoSolving(true)
+    try {
+      const res = await fetch('/api/erp/captcha', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: captchaImage }),
+      })
+      const data = await res.json()
+      if (data.success && data.text) {
+        setCaptcha(data.text)
+      } else {
+        setError('Auto-solve failed. Please enter manually.')
+      }
+    } catch (e) {
+      setError('Auto-solve failed. Please enter manually.')
+    } finally {
+      setAutoSolving(false)
     }
   }
 
@@ -368,10 +376,19 @@ export default function LoginPage() {
                     type="text"
                     value={captcha}
                     onChange={e => setCaptcha(e.target.value)}
-                    placeholder="Auto-solving..."
+                    placeholder="Enter captcha"
                     className="flex-1 rounded-xl px-4 py-3.5 bg-zinc-900 border border-zinc-800 text-sm font-mono text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
                   />
                   <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={handleAutoSolve}
+                      disabled={autoSolving || !captchaImage}
+                      title="Auto-solve with OCR"
+                      className="h-[52px] w-[52px] rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-emerald-500 hover:text-emerald-400 hover:bg-zinc-800 transition-all disabled:opacity-50"
+                    >
+                      {autoSolving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                    </button>
                     <div className="h-[52px] w-[120px] rounded-xl overflow-hidden flex items-center justify-center bg-white shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
                       {captchaLoading
                         ? <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />

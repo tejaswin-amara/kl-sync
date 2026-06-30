@@ -79,7 +79,7 @@ describe('LoginPage Error Handling', () => {
     // Use getAllByPlaceholderText because it seems there are multiple rendered elements initially
     const studentIdInputs = screen.getAllByPlaceholderText(/210003xxxx/i)
     const passwordInputs = screen.getAllByPlaceholderText(/••••••••/i)
-    const captchaInputs = screen.getAllByPlaceholderText(/Auto-solving/i)
+    const captchaInputs = screen.getAllByPlaceholderText(/Enter captcha/i)
 
     const studentIdInput = studentIdInputs.find(el => el.closest('div.lg\\:hidden') === null) || studentIdInputs[0]
     const passwordInput = passwordInputs.find(el => el.closest('div.lg\\:hidden') === null) || passwordInputs[0]
@@ -145,7 +145,7 @@ describe('LoginPage Error Handling', () => {
 
     const studentIdInputs = screen.getAllByPlaceholderText(/210003xxxx/i)
     const passwordInputs = screen.getAllByPlaceholderText(/••••••••/i)
-    const captchaInputs = screen.getAllByPlaceholderText(/Auto-solving/i)
+    const captchaInputs = screen.getAllByPlaceholderText(/Enter captcha/i)
 
     const studentIdInput = studentIdInputs.find(el => el.closest('div.lg\\:hidden') === null) || studentIdInputs[0]
     const passwordInput = passwordInputs.find(el => el.closest('div.lg\\:hidden') === null) || passwordInputs[0]
@@ -177,8 +177,8 @@ describe('LoginPage Error Handling', () => {
   })
 
   it('handles captcha auto-solve failure gracefully', async () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
+    const user = userEvent.setup()
+    
     const mockFetch = vi.fn().mockImplementation(async (url, options) => {
       if (url === '/api/erp/captcha') {
         if (options?.method === 'POST') {
@@ -195,12 +195,16 @@ describe('LoginPage Error Handling', () => {
     global.fetch = mockFetch
 
     render(<LoginPage />)
+    
+    // Wait for the captcha image to load so the button is enabled
+    const autoSolveBtn = await screen.findByTitle('Auto-solve with OCR')
+    await waitFor(() => expect(autoSolveBtn).not.toBeDisabled())
+    
+    await user.click(autoSolveBtn)
 
     await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith('Captcha auto-solve failed', expect.any(Error))
+      expect(screen.getByText('Auto-solve failed. Please enter manually.')).toBeInTheDocument()
     })
-
-    consoleSpy.mockRestore()
   })
 
   it('handles general captcha fetch failure', async () => {
