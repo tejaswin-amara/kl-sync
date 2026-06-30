@@ -526,7 +526,7 @@ function parseAttendanceHtml(html: string) {
   // Extract rows
   const rows = table.find('tbody tr').length ? table.find('tbody tr') : table.find('tr').slice(1);
   
-  return rows.map((_, row) => {
+  return rows.toArray().map((row) => {
     const cells = $(row).find('td');
     if (cells.length === 1 && $(cells[0]).text().includes('No results found')) return null;
     if (cells.length === 0) return null;
@@ -536,5 +536,5 @@ function parseAttendanceHtml(html: string) {
       rowData[headers[j] || `col_${j}`] = $(cell).text().trim();
     });
     return rowData;
-  }).toArray().filter(Boolean) as Record<string, string>[];
+  }).filter(Boolean) as Record<string, string>[];
 }
