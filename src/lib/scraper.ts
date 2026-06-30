@@ -551,52 +551,27 @@ export async function fetchTimetableData(session: ScraperSession, csrfToken: str
 }
 
 function parseAttendanceHtml(html: string) {
-    const $ = cheerio.load(html);
-    const table = $('table').first();
-    const headers: string[] = [];
-    const data: Record<string, string>[] = [];
+  const $ = cheerio.load(html);
+  const table = $('table').first();
+  
+  // Extract headers
+  let headers = table.find('thead th').map((_, el) => $(el).text().trim()).toArray();
+  if (!headers.length) {
+    headers = table.find('tr').first().find('th, td').map((_, el) => $(el).text().trim()).toArray();
+  }
 
-    // Get headers
-    // Try standard thead > tr > th
-    table.find('thead tr th').each((i, el) => {
-        headers.push($(el).text().trim());
+  // Extract rows
+  const rows = table.find('tbody tr').length ? table.find('tbody tr') : table.find('tr').slice(1);
+  
+  return rows.map((_, row) => {
+    const cells = $(row).find('td');
+    if (cells.length === 1 && $(cells[0]).text().includes('No results found')) return null;
+    if (cells.length === 0) return null;
+
+    const rowData: Record<string, string> = {};
+    cells.each((j, cell) => {
+      rowData[headers[j] || `col_${j}`] = $(cell).text().trim();
     });
-    
-    // If no headers found, try the first row of the table body or just the first tr
-    if (headers.length === 0) {
-        const firstRow = table.find('tr').first();
-        firstRow.find('th, td').each((i, el) => {
-            headers.push($(el).text().trim());
-        });
-    }
-
-    // Get data
-    // If we used the first row as header, we should skip it
-    const rows = table.find('tr');
-    // Wait, if using thead, tbody rows start at 0 (relative to tbody) or we just select tbody tr
-    
-    const bodyRows = table.find('tbody tr');
-    const rowsToIterate = bodyRows.length > 0 ? bodyRows : rows.slice(1);
-
-    rowsToIterate.each((i, row) => {
-        const rowData: Record<string, string> = {};
-        const cells = $(row).find('td');
-        
-        // Check for "No results found"
-        // The ERP displays a single cell spanning columns with this text when no data exists
-        if (cells.length === 1 && $(cells[0]).text().trim().includes('No results found')) {
-            return; // Skip this row
-        }
-
-        // Only process if we have cells matching headers roughly
-        if (cells.length > 0) {
-            cells.each((j, cell) => {
-                const header = headers[j] || `col_${j}`;
-                rowData[header] = $(cell).text().trim();
-            });
-            data.push(rowData);
-        }
-    });
-
-    return data;
+    return rowData;
+  }).toArray().filter(Boolean) as Record<string, string>[];
 }

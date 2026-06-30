@@ -1,34 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { loginAndFetchSemesters, ScraperSession } from '@/lib/scraper'
 import { decodeSession, encodeSession } from '@/lib/session'
-
-const loginSchema = z.object({
-  username: z.string().min(1, 'Username is required').max(100, 'Username is too long'),
-  password: z.string().min(1, 'Password is required').max(200, 'Password is too long'),
-  captcha: z.string().min(1, 'Captcha is required').max(50, 'Captcha is too long'),
-  deviceId: z.string().max(5000, 'Device ID is too long').optional(),
-  sessionId: z.string().max(10000, 'Session ID is too long').optional(),
-})
 
 export const runtime = 'edge'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    const { username, password, captcha, deviceId, sessionId: bodySessionId } = body || {}
 
-    const parseResult = loginSchema.safeParse(body)
-    if (!parseResult.success) {
-      const errMsgs = Object.entries(parseResult.error.flatten().fieldErrors)
-        .map(([field, errors]) => `${field}: ${errors?.join(', ')}`)
-        .join('; ')
-      return NextResponse.json(
-        { success: false, message: `Invalid input: ${errMsgs}`, errors: parseResult.error.flatten().fieldErrors },
-        { status: 400 }
-      )
+    if (!username || typeof username !== 'string' || username.length > 100) {
+      return NextResponse.json({ success: false, message: 'Invalid username' }, { status: 400 })
     }
-
-    const { username, password, captcha, deviceId } = parseResult.data
+    if (!password || typeof password !== 'string' || password.length > 200) {
+      return NextResponse.json({ success: false, message: 'Invalid password' }, { status: 400 })
+    }
+    if (!captcha || typeof captcha !== 'string' || captcha.length > 50) {
+      return NextResponse.json({ success: false, message: 'Invalid captcha' }, { status: 400 })
+    }
 
     // The ERP device id is the load-bearing value that avoids its post-login
     // UserAccessToken crash. Prefer the httpOnly cookie we set on a previous
@@ -38,7 +27,7 @@ export async function POST(request: NextRequest) {
     const effectiveDeviceId = deviceId || cookieDeviceId || ''
 
     // Get session ID from header (preferred) or body (fallback)
-    const sessionId = request.headers.get('x-session-id') || parseResult.data.sessionId
+    const sessionId = request.headers.get('x-session-id') || bodySessionId
 
     if (!sessionId) {
       // Fallback to mock login if no session ID provided (and user knows it's mock)

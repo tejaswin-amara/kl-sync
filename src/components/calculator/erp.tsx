@@ -2,14 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { z } from 'zod'
 import { LogOut, GraduationCap, TrendingUp, TrendingDown, Minus, BookOpen, Search, X, Calculator, RotateCcw, User, Calendar, LayoutDashboard, Loader2 } from 'lucide-react'
-
-
-const AttendanceDataSchema = z.object({
-  attendanceData: z.array(z.record(z.string(), z.any())).min(1)
-}).passthrough()
-
+import { motion } from 'framer-motion'
 // ── types ──────────────────────────────────────────────
 type Component = { weight: number; attended: number; conducted: number }
 type Course = {
@@ -128,8 +122,8 @@ export function ERPDashboard() {
     if (!raw) { router.push('/login'); return }
 
     try {
-      const parsedRaw = JSON.parse(raw)
-      const data = AttendanceDataSchema.parse(parsedRaw)
+      const data = JSON.parse(raw)
+      if (!data?.attendanceData || !Array.isArray(data.attendanceData) || data.attendanceData.length === 0) throw new Error('Invalid schema')
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setInfo(data)
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -172,13 +166,13 @@ export function ERPDashboard() {
         body.semesterId = ttSem || localStorage.getItem('kl_erp_sem') || ''
       }
 
-      const res = await fetch(`/api/fetch-${tab}`, {
+      const res = await fetch(`/api/erp/data`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-session-id': sessionId
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify({ ...body, action: tab })
       })
       const data = await res.json()
 
@@ -234,12 +228,8 @@ export function ERPDashboard() {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)' }}>
 
-      {/* ── Ambient ── */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-        <div className="blob blob-a" style={{ width: 650, height: 650, top: '-12%', left: '-8%',  background: '#4F46E5' }} />
-        <div className="blob blob-b" style={{ width: 550, height: 550, bottom: '-8%', right: '-5%', background: '#7C3AED' }} />
-        <div className="blob blob-c" style={{ width: 350, height: 350, top: '45%',   left: '38%', background: '#2563EB' }} />
-      </div>
+      {/* ── Ambient (Material Clean) ── */}
+      <div className="fixed inset-0 pointer-events-none bg-zinc-950" style={{ zIndex: 0 }} />
 
       {/* ── Top bar ── */}
       <header className="relative z-10 flex items-center justify-between px-5 py-3 border-b flex-wrap gap-3" style={{ borderColor: 'rgba(255,255,255,.07)', background: 'rgba(7,7,10,.8)', backdropFilter: 'blur(14px)' }}>
@@ -366,30 +356,44 @@ export function ERPDashboard() {
                <button onClick={() => fetchTabData(currentTab as any)} className="mt-4 px-4 py-2 bg-white/5 rounded border border-white/10 text-xs">Retry</button>
              </div>
           ) : currentTab === 'profile' ? (
-             <div className="max-w-4xl mx-auto w-full up">
-               <h2 className="text-xl font-bold mb-6 text-white border-b border-white/10 pb-4 flex items-center gap-3"><User className="text-indigo-400"/> Student Profile</h2>
+             <div className="w-full">
+               <div className="flex items-center justify-between mb-6">
+                 <h2 className="text-xl font-semibold tracking-tight text-white flex items-center gap-2"><User className="text-zinc-400 w-5 h-5"/> Student Profile</h2>
+               </div>
                {profileData && (
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <motion.div 
+                   initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.03 } } }}
+                   className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+                 >
                    {Object.entries(profileData).map(([key, val]) => (
-                     <div key={key} className="card p-4">
-                       <span className="text-[10px] font-mono text-gray-500 uppercase">{key}</span>
-                       <p className="text-sm font-semibold text-gray-200 mt-1">{String(val) || '-'}</p>
-                     </div>
+                     <motion.div 
+                       key={key} 
+                       variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}
+                       className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 shadow-sm"
+                     >
+                       <span className="text-[10px] font-bold tracking-wider text-zinc-500 uppercase">{key}</span>
+                       <p className="text-sm font-medium text-white mt-1">{String(val) || '-'}</p>
+                     </motion.div>
                    ))}
-                 </div>
+                 </motion.div>
                )}
              </div>
           ) : currentTab === 'timetable' ? (
-             <div className="max-w-6xl mx-auto w-full up">
-               <h2 className="text-xl font-bold mb-6 text-white border-b border-white/10 pb-4 flex items-center gap-3"><Calendar className="text-indigo-400"/> Weekly Timetable</h2>
+             <div className="w-full">
+               <div className="flex items-center justify-between mb-6">
+                 <h2 className="text-xl font-semibold tracking-tight text-white flex items-center gap-2"><Calendar className="text-zinc-400 w-5 h-5"/> Weekly Timetable</h2>
+               </div>
                {timetableData && (
-                 <div className="overflow-x-auto card rounded-xl border border-white/10">
-                   <table className="w-full text-left text-sm text-gray-300">
+                 <motion.div 
+                   initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                   className="overflow-x-auto bg-zinc-900 border border-zinc-800 rounded-2xl shadow-sm"
+                 >
+                   <table className="w-full text-left text-sm text-zinc-300">
                      <tbody>
                        {timetableData.map((row: string[], i: number) => (
-                         <tr key={i} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                         <tr key={i} className={`border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors ${i === 0 ? 'bg-zinc-950/50' : ''}`}>
                            {row.map((cell: string, j: number) => (
-                             <td key={j} className={`px-4 py-3 ${i === 0 ? 'font-bold bg-white/[0.04] text-white' : ''}`}>
+                             <td key={j} className={`px-5 py-3.5 ${i === 0 ? 'font-semibold text-zinc-400 text-xs tracking-wider uppercase' : 'font-medium'}`}>
                                {cell}
                              </td>
                            ))}
@@ -397,7 +401,7 @@ export function ERPDashboard() {
                        ))}
                      </tbody>
                    </table>
-                 </div>
+                 </motion.div>
                )}
              </div>
           ) : sel ? (
@@ -407,38 +411,53 @@ export function ERPDashboard() {
             </div>
           ) : (
             /* Grid overview when no course is active */
-            <div className="up w-full">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-bold uppercase tracking-wider" style={{ color: 'rgba(239,239,239,.4)' }}>Dashboard Overview</h2>
-                <span className="text-xs font-mono" style={{ color: 'rgba(239,239,239,.3)' }}>Select a course to open live simulator</span>
+            <div className="w-full">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold tracking-tight text-white">Dashboard Overview</h2>
+                <span className="text-sm font-medium text-zinc-400">Select a course to open live simulator</span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+              <motion.div 
+                initial="hidden" 
+                animate="visible" 
+                variants={{
+                  visible: { transition: { staggerChildren: 0.05 } }
+                }}
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-5"
+              >
                 {courses.map((c, i) => {
                   const s = STATUS(c.pct)
                   return (
-                    <button key={c.code} onClick={() => setActive(i)}
-                      className="card text-left p-4 flex flex-col gap-3 cursor-pointer relative overflow-hidden shine-on-hover up"
-                      style={{ animationDelay: `${i * 0.04}s` }}>
-                      <div style={{ position:'absolute', top:0, left:0, width:3, height:'100%', background: s.color, borderRadius:'4px 0 0 4px' }} />
-                      <div className="pl-2 flex justify-between items-start gap-2">
+                    <motion.button 
+                      key={c.code} 
+                      onClick={() => setActive(i)}
+                      variants={{
+                        hidden: { opacity: 0, y: 20 },
+                        visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
+                      }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="bg-zinc-900 border border-zinc-800 rounded-2xl text-left p-5 flex flex-col gap-4 cursor-pointer relative overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <div style={{ position:'absolute', top:0, left:0, width:4, height:'100%', background: s.color }} />
+                      <div className="pl-2 flex justify-between items-start gap-3">
                         <div className="min-w-0">
-                          <p className="text-[10px] font-mono uppercase tracking-widest truncate" style={{ color: 'rgba(239,239,239,.35)' }}>{c.code}</p>
-                          <p className="text-sm font-semibold mt-0.5 leading-snug line-clamp-2" style={{ color: '#EFEFEF' }}>{c.description || c.code}</p>
+                          <p className="text-xs font-mono tracking-widest text-zinc-500 mb-1">{c.code}</p>
+                          <p className="text-base font-semibold leading-snug text-white line-clamp-2">{c.description || c.code}</p>
                         </div>
-                        <div className="shrink-0 flex flex-col items-end gap-1.5">
-                          <ProgressRing radius={20} stroke={3} progress={c.pct} color={s.color} />
-                          <span className="badge mt-0.5" style={{ color: s.color, background: s.bg, borderColor: s.border }}>{s.label}</span>
-                        </div>
-                      </div>
-                      <div className="pl-2">
-                        <div className="progress-track">
-                          <div className="progress-fill" style={{ width: `${Math.min(c.pct, 100)}%`, background: `linear-gradient(90deg,${s.color}99,${s.color})`, boxShadow: `0 0 6px ${s.color}55` }} />
+                        <div className="shrink-0 flex flex-col items-end gap-2">
+                          <ProgressRing radius={22} stroke={3.5} progress={c.pct} color={s.color} />
+                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ color: s.color, background: s.bg, border: `1px solid ${s.border}` }}>{s.label}</span>
                         </div>
                       </div>
-                    </button>
+                      <div className="pl-2 mt-auto pt-2">
+                        <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${Math.min(c.pct, 100)}%`, background: s.color, boxShadow: `0 0 8px ${s.color}80` }} />
+                        </div>
+                      </div>
+                    </motion.button>
                   )
                 })}
-              </div>
+              </motion.div>
             </div>
           )}
         </main>

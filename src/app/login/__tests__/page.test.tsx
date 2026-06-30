@@ -18,7 +18,7 @@ describe('LoginPage Error Handling', () => {
     originalFetch = global.fetch
     // Setup initial fetch mock for useEffect's fetchCaptcha call
     global.fetch = vi.fn().mockImplementation(async (url) => {
-      if (url === '/api/captcha') {
+      if (url === '/api/erp/captcha') {
         return {
           ok: true,
           headers: new Headers({ 'x-session-id': 'test-session-id' }),
@@ -54,11 +54,11 @@ describe('LoginPage Error Handling', () => {
     render(<LoginPage />)
 
     // Initial fetchCaptcha call happens in useEffect
-    expect(global.fetch).toHaveBeenCalledWith('/api/captcha')
+    expect(global.fetch).toHaveBeenCalledWith('/api/erp/captcha')
 
     // Override fetch mock for login failure
     const mockFetch = vi.fn().mockImplementation(async (url) => {
-      if (url === '/api/captcha') {
+      if (url === '/api/erp/captcha') {
         return {
           ok: true,
           headers: new Headers({ 'x-session-id': 'test-session-id' }),
@@ -78,7 +78,7 @@ describe('LoginPage Error Handling', () => {
 
     // Use getAllByPlaceholderText because it seems there are multiple rendered elements initially
     const studentIdInputs = screen.getAllByPlaceholderText(/210003xxxx/i)
-    const passwordInputs = screen.getAllByPlaceholderText(/Enter password/i)
+    const passwordInputs = screen.getAllByPlaceholderText(/••••••••/i)
     const captchaInputs = screen.getAllByPlaceholderText(/Auto-solving/i)
 
     const studentIdInput = studentIdInputs.find(el => el.closest('div.lg\\:hidden') === null) || studentIdInputs[0]
@@ -104,7 +104,7 @@ describe('LoginPage Error Handling', () => {
     })
 
     // Verify it refetched captcha
-    expect(mockFetch).toHaveBeenCalledWith('/api/captcha')
+    expect(mockFetch).toHaveBeenCalledWith('/api/erp/captcha')
 
     // Verify loading state is reset
     expect(submitBtn).not.toBeDisabled()
@@ -114,7 +114,7 @@ describe('LoginPage Error Handling', () => {
     const user = userEvent.setup()
 
     const mockFetch = vi.fn().mockImplementation(async (url) => {
-      if (url === '/api/captcha') {
+      if (url === '/api/erp/captcha') {
         return {
           ok: true,
           headers: new Headers({ 'x-session-id': 'test-session-id' }),
@@ -131,7 +131,7 @@ describe('LoginPage Error Handling', () => {
           })
         }
       }
-      if (url === '/api/fetch-attendance') {
+      if (url === '/api/erp/data') {
         return {
            ok: false,
            json: async () => ({ message: 'Failed to fetch attendance data' })
@@ -144,7 +144,7 @@ describe('LoginPage Error Handling', () => {
     render(<LoginPage />)
 
     const studentIdInputs = screen.getAllByPlaceholderText(/210003xxxx/i)
-    const passwordInputs = screen.getAllByPlaceholderText(/Enter password/i)
+    const passwordInputs = screen.getAllByPlaceholderText(/••••••••/i)
     const captchaInputs = screen.getAllByPlaceholderText(/Auto-solving/i)
 
     const studentIdInput = studentIdInputs.find(el => el.closest('div.lg\\:hidden') === null) || studentIdInputs[0]
@@ -170,7 +170,7 @@ describe('LoginPage Error Handling', () => {
     })
 
     // Verify it refetched captcha in the finally block
-    expect(mockFetch).toHaveBeenCalledWith('/api/captcha')
+    expect(mockFetch).toHaveBeenCalledWith('/api/erp/captcha')
 
     // Verify loading state is reset
     expect(continueBtn).not.toBeDisabled()
@@ -179,16 +179,16 @@ describe('LoginPage Error Handling', () => {
   it('handles captcha auto-solve failure gracefully', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    const mockFetch = vi.fn().mockImplementation(async (url) => {
-      if (url === '/api/captcha') {
+    const mockFetch = vi.fn().mockImplementation(async (url, options) => {
+      if (url === '/api/erp/captcha') {
+        if (options?.method === 'POST') {
+          throw new Error('Auto-solve network error')
+        }
         return {
           ok: true,
           headers: new Headers({ 'x-session-id': 'test-session' }),
           json: async () => ({ captchaImage: 'data:image/png;base64,mock' }),
         }
-      }
-      if (url === '/api/solve-captcha') {
-        throw new Error('Auto-solve network error')
       }
       return { ok: true, json: async () => ({}) }
     })

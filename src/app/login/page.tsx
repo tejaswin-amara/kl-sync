@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { RefreshCw, LogIn, AlertCircle, Loader2, ChevronDown } from "lucide-react"
 import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -47,7 +48,7 @@ export default function LoginPage() {
     setCaptcha('')
 
     try {
-      const response = await fetch('/api/captcha')
+      const response = await fetch('/api/erp/captcha')
       if (!response.ok) throw new Error('Failed to load captcha')
 
       const sid = response.headers.get('x-session-id')
@@ -59,7 +60,7 @@ export default function LoginPage() {
 
       // Auto-solve logic
       try {
-        const res = await fetch('/api/solve-captcha', {
+        const res = await fetch('/api/erp/captcha', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ image: originalBase64 }),
@@ -198,13 +199,14 @@ export default function LoginPage() {
       // Auto-fetch instead of asking user
       setStatus('Fetching attendance data...')
       
-      const fetchResponse = await fetch('/api/fetch-attendance', {
+      const fetchResponse = await fetch('/api/erp/data', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-session-id': data.sessionId
         },
         body: JSON.stringify({
+          action: 'attendance',
           csrfToken: data.csrfToken,
           academicYear: academicYear,
           semesterId: semesterId
@@ -242,189 +244,160 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-stretch bg-background relative overflow-hidden">
-
-      {/* AMBIENT MESH */}
-      <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden">
-        <div className="absolute top-[-15%] left-[-10%] w-[700px] h-[700px] bg-indigo-600 ambient-blob blob-1" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] bg-violet-600 ambient-blob blob-2" />
-        <div className="absolute top-[40%] left-[40%] w-[400px] h-[400px] bg-blue-700 ambient-blob blob-3" />
-      </div>
-
-      {/* BRANDING PANEL (desktop only) */}
-      <div className="hidden lg:flex flex-1 flex-col items-center justify-center p-12 relative overflow-hidden"
-        style={{ borderRight: '1px solid rgba(255,255,255,0.05)' }}>
+    <div className="min-h-screen flex bg-zinc-950 text-zinc-50 relative overflow-hidden font-sans">
+      {/* LEFT: BRANDING PANEL (Taste-Skill asymmetric split) */}
+      <div className="hidden lg:flex w-[45%] relative border-r border-zinc-900 overflow-hidden bg-zinc-900 flex-col">
+        {/* Brand Background Pattern instead of Purple Blob */}
+        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#27272a 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
         
-        {/* Ambient background glows */}
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
-        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-emerald-600/10 rounded-full blur-[100px] pointer-events-none mix-blend-screen" />
-
-        {/* Central Logo Display */}
-        <div className="w-full max-w-[460px] relative z-10 flex flex-col items-center justify-center gap-6">
-          <div className="relative group w-full">
-            {/* Hover glow effect */}
-            <div className="absolute -inset-2 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-emerald-500/20 rounded-3xl blur-xl opacity-50 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse" />
-            
-            <div className="relative bg-white/5 backdrop-blur-2xl rounded-3xl p-10 border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.8)] flex flex-col items-center gap-8 transform group-hover:scale-[1.02] transition-transform duration-500">
-              <div className="bg-white rounded-2xl p-5 shadow-2xl">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/logo.png" alt="KLH" className="h-16 object-contain" />
-              </div>
-              
-              <div className="flex flex-col items-center text-center">
-                <h1 className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white via-white/90 to-white/50">
-                  KL Sync Portal
-                </h1>
-                <p className="text-sm text-white/50 font-medium mt-3 max-w-[280px]">
-                  Secure, real-time attendance tracking and analytics.
-                </p>
-              </div>
-
-              {/* Live Indicator */}
-              <div className="flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-sm mt-2">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                </span>
-                <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">System Live & Secure</span>
-              </div>
+        <div className="relative z-10 flex-1 flex flex-col p-16 justify-between">
+          <div>
+            <div className="bg-white rounded-2xl p-4 shadow-xl inline-block mb-12">
+              <img src="/logo.png" alt="KLH" className="h-10 object-contain" />
             </div>
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="text-5xl font-semibold tracking-tight text-white leading-[1.1] mb-6"
+            >
+              Academic sync,<br />precision engineered.
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              className="text-lg text-zinc-400 max-w-md leading-relaxed"
+            >
+              Secure, real-time access to your timetable, profile, and attendance metrics directly from the core ERP.
+            </motion.p>
           </div>
+          
+          {/* Material Status Chip */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 0.5 }}
+            className="flex items-center gap-3 px-4 py-3 rounded-full bg-emerald-500/10 border border-emerald-500/20 w-max"
+          >
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+            <span className="text-xs font-semibold text-emerald-400 tracking-wide uppercase">System Live & Secure</span>
+          </motion.div>
         </div>
       </div>
 
-      {/* LOGIN PANEL */}
-      <div className="flex flex-1 flex-col items-center justify-center p-6 sm:p-10 lg:max-w-[480px] w-full">
-
-        {/* Mobile logo */}
-        <div className="lg:hidden mb-8">
-          <div className="bg-white rounded-xl p-2.5 shadow-md inline-flex">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="KLH" className="h-8 object-contain" />
-          </div>
-        </div>
-
-        <div className="w-full max-w-[400px] up">
-
-          {/* Header */}
-          <div className="mb-7">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground mb-1.5">Welcome back</h2>
-            <p className="text-sm" style={{ color: 'rgba(241,241,243,0.45)' }}>Sign in to view your attendance report</p>
+      {/* RIGHT: LOGIN FORM */}
+      <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-12 relative">
+        <div className="w-full max-w-[380px]">
+          
+          <div className="lg:hidden mb-12">
+            <div className="bg-white rounded-xl p-3 shadow-md inline-block">
+              <img src="/logo.png" alt="KLH" className="h-8 object-contain" />
+            </div>
           </div>
 
-          {/* Alerts */}
+          <div className="mb-10">
+            <h2 className="text-3xl font-semibold tracking-tight text-white mb-2">Sign in</h2>
+            <p className="text-zinc-400 text-sm">Enter your student credentials to continue.</p>
+          </div>
+
           {error && (
-            <div className="mb-5 flex items-start gap-2.5 p-3.5 rounded-xl text-sm up"
-              style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#FCA5A5' }}>
-              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-              <p>{error}</p>
-            </div>
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+              <AlertCircle className="w-5 h-5 shrink-0" />
+              <p className="leading-tight">{error}</p>
+            </motion.div>
           )}
+          
           {status && !error && (
-            <div className="mb-5 flex items-start gap-2.5 p-3.5 rounded-xl text-sm up"
-              style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', color: '#A5B4FC' }}>
-              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-              <p>{status}</p>
-            </div>
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm">
+              <AlertCircle className="w-5 h-5 shrink-0" />
+              <p className="leading-tight">{status}</p>
+            </motion.div>
           )}
 
           {step === 'login' ? (
-            <form onSubmit={handleLogin} className="space-y-4">
-
-              {/* Student ID */}
+            <form onSubmit={handleLogin} className="space-y-5">
+              
+              {/* Material-style input block */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold tracking-wider uppercase" style={{ color: 'rgba(241,241,243,0.45)' }}>Student ID</label>
+                <label className="text-[11px] font-medium tracking-wide uppercase text-zinc-500">Student ID</label>
                 <input
                   type="text"
                   value={username}
                   onChange={e => setUsername(e.target.value)}
                   placeholder="210003xxxx"
-                  className="w-full rounded-xl px-4 py-3 text-sm font-mono text-foreground placeholder:text-foreground/20 focus:outline-none transition-all duration-200"
-                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
-                  onFocus={e => { e.currentTarget.style.borderColor = 'rgba(99,102,241,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.1)' }}
-                  onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.boxShadow = 'none' }}
+                  className="w-full rounded-xl px-4 py-3.5 bg-zinc-900 border border-zinc-800 text-sm font-mono text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
                 />
               </div>
 
-              {/* Password */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold tracking-wider uppercase" style={{ color: 'rgba(241,241,243,0.45)' }}>Password</label>
+                <label className="text-[11px] font-medium tracking-wide uppercase text-zinc-500">Password</label>
                 <input
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="Enter password"
-                  className="w-full rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-foreground/20 focus:outline-none transition-all duration-200"
-                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
-                  onFocus={e => { e.currentTarget.style.borderColor = 'rgba(99,102,241,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.1)' }}
-                  onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.boxShadow = 'none' }}
+                  placeholder="••••••••"
+                  className="w-full rounded-xl px-4 py-3.5 bg-zinc-900 border border-zinc-800 text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
                 />
               </div>
 
-              {/* Remember me */}
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-3">
                 <input
                   type="checkbox"
                   id="remember"
                   checked={rememberMe}
                   onChange={e => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded cursor-pointer accent-indigo-500"
-                  style={{ accentColor: '#6366F1' }}
+                  className="w-4 h-4 rounded bg-zinc-900 border-zinc-800 text-emerald-500 focus:ring-emerald-500/50 focus:ring-offset-zinc-950"
                 />
-                <label htmlFor="remember" className="text-xs cursor-pointer select-none" style={{ color: 'rgba(241,241,243,0.45)' }}>
+                <label htmlFor="remember" className="text-sm text-zinc-400 cursor-pointer select-none">
                   Remember my credentials
                 </label>
               </div>
 
-              {/* Captcha */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold tracking-wider uppercase" style={{ color: 'rgba(241,241,243,0.45)' }}>Verification</label>
-                <div className="flex gap-2">
+              {/* Captcha Block */}
+              <div className="space-y-1.5 pt-2">
+                <label className="text-[11px] font-medium tracking-wide uppercase text-zinc-500">Verification</label>
+                <div className="flex gap-3">
                   <input
                     type="text"
                     value={captcha}
                     onChange={e => setCaptcha(e.target.value)}
                     placeholder="Auto-solving..."
-                    className="flex-1 rounded-xl px-4 py-3 text-sm font-mono text-foreground placeholder:text-foreground/20 focus:outline-none transition-all duration-200"
-                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
-                    onFocus={e => { e.currentTarget.style.borderColor = 'rgba(99,102,241,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.1)' }}
-                    onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.boxShadow = 'none' }}
+                    className="flex-1 rounded-xl px-4 py-3.5 bg-zinc-900 border border-zinc-800 text-sm font-mono text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
                   />
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <div className="h-[56px] w-[140px] rounded-xl overflow-hidden flex items-center justify-center"
-                      style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="h-[52px] w-[120px] rounded-xl overflow-hidden flex items-center justify-center bg-white shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
                       {captchaLoading
-                        ? <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'rgba(0,0,0,0.5)' }} />
+                        ? <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />
                         : captchaImage
-                          ? <img src={captchaImage} alt="Captcha" className="h-full w-full object-contain mix-blend-multiply opacity-100 scale-105 filter contrast-125" />  // eslint-disable-line @next/next/no-img-element
+                          ? <img src={captchaImage} alt="Captcha" className="h-full w-full object-contain mix-blend-multiply opacity-100 scale-105 filter contrast-125" />
                           : null}
                     </div>
                     <button
                       type="button"
-                      onClick={() =>  fetchCaptcha()}
+                      onClick={() => fetchCaptcha()}
                       disabled={captchaLoading}
-                      className="p-3 rounded-xl transition-all duration-200 hover:scale-95 active:scale-90 cursor-pointer"
-                      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+                      className="h-[52px] w-[52px] rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all disabled:opacity-50"
                     >
-                      <RefreshCw className={`w-4 h-4 ${captchaLoading ? 'animate-spin' : ''}`} style={{ color: 'rgba(241,241,243,0.5)' }} />
+                      <RefreshCw className={`w-4 h-4 ${captchaLoading ? 'animate-spin' : ''}`} />
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* Submit */}
-              <button
+              {/* Material Button with Tactile Feedback */}
+              <motion.button
+                whileHover={{ scale: 0.995 }}
+                whileTap={{ scale: 0.98 }}
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 mt-2 rounded-xl font-semibold text-sm transition-all duration-200 hover:scale-[0.99] active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
-                style={{ background: 'linear-gradient(135deg, #6366F1, #8B5CF6)', color: '#fff', boxShadow: loading ? 'none' : '0 4px 20px rgba(99,102,241,0.35)' }}
+                className="w-full py-4 mt-6 rounded-xl font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-zinc-100 text-zinc-900 hover:bg-white shadow-[0_1px_2px_rgba(0,0,0,0.1)]"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><LogIn className="w-4 h-4" /> Continue</>}
-              </button>
-
-              <p className="text-center text-[11px] pt-3 border-t" style={{ color: 'rgba(241,241,243,0.2)', borderColor: 'rgba(255,255,255,0.05)' }}>
-                Connects directly to the KL University ERP system
-              </p>
+              </motion.button>
             </form>
           ) : null}
         </div>
