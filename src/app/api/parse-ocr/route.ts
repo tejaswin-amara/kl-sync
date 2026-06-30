@@ -30,9 +30,9 @@ export async function POST(request: NextRequest) {
     
     // Minimal Ponytail Regex Parser for Attendance
     const parsedRecords = extractedText.split('\n')
-      .map(line => line.trim())
-      .filter(line => /^[a-zA-Z0-9-]{4,10}/.test(line)) // lines starting with a plausible course code
-      .map(line => {
+      .map((line: string) => line.trim())
+      .filter((line: string) => /^[a-zA-Z0-9-]{4,10}/.test(line)) // lines starting with a plausible course code
+      .map((line: string) => {
         // Regex extracts: Code, LTPS, Conducted, Attended
         const m = line.match(/^([a-zA-Z0-9-]+)\s+(.+?)\s+([LTPSltps])\s+(\d+)\s+(\d+)/)
         if (!m) return null

@@ -3,6 +3,7 @@ import { unstable_cache } from 'next/cache'
 import { decodeSession } from '@/lib/session'
 import { fetchTimetableData, fetchProfileData, fetchAttendanceData } from '@/lib/scraper'
 
+export const runtime = 'edge'
 
 export async function POST(request: NextRequest) {
   try {

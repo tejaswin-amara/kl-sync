@@ -24,6 +24,19 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "KL Sync",
   },
+  openGraph: {
+    title: "KL Sync",
+    description: "A fast, modern, and reliable attendance tracking portal for KL University.",
+    url: "https://kl-sync.vercel.app",
+    siteName: "KL Sync",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "KL Sync",
+    description: "A fast, modern, and reliable attendance tracking portal for KL University.",
+  },
 };
 
 import { DotPattern } from "@/components/ui/dot-pattern";
