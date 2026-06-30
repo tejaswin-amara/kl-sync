@@ -9,8 +9,8 @@ export async function POST(request: NextRequest) {
     const file = formData.get('image') as File
     if (!file) return NextResponse.json({ error: 'No image file provided' }, { status: 400 })
 
-    let buffer = Buffer.from(await file.arrayBuffer())
-    buffer = await optimizeImageSize(buffer)
+    let buffer = Buffer.from(await file.arrayBuffer() as ArrayBuffer)
+    buffer = await optimizeImageSize(buffer as any)
 
     // OCR.space API Call
     const ocrFormData = new FormData()

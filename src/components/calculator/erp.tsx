@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { LogOut, GraduationCap, TrendingUp, TrendingDown, Minus, BookOpen, Search, X, Calculator, RotateCcw, User, Calendar, LayoutDashboard, Loader2 } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { NumberTicker } from '@/components/ui/number-ticker'
+import { GlassCard } from '@/components/ui/glass-card'
 // ── types ──────────────────────────────────────────────
 type Component = { weight: number; attended: number; conducted: number }
 type Course = {
@@ -20,7 +21,7 @@ const STATUS = (p: number) =>
     ? { label: 'Eligible',     color: '#34D399', bg: 'rgba(52,211,153,.09)',  border: 'rgba(52,211,153,.28)',  Icon: TrendingUp   }
   : p >= 75
     ? { label: 'Condonation',  color: '#FBBF24', bg: 'rgba(251,191,36,.09)', border: 'rgba(251,191,36,.28)',  Icon: Minus        }
-    : { label: 'Not Eligible', color: '#F87171', bg: 'rgba(248,113,113,.09)',border: 'rgba(248,113,113,.28)', Icon: TrendingDown  }
+    : { label: 'Detained',     color: '#F87171', bg: 'rgba(248,113,113,.09)',border: 'rgba(248,113,113,.28)', Icon: TrendingDown  }
 
 function parse(raw: Record<string, string>[]): Course[] {
   const r0 = raw[0], keys = Object.keys(r0)
@@ -60,6 +61,26 @@ function parse(raw: Record<string, string>[]): Course[] {
     })
     return { code, description: rows[0][descKey ?? ''] || code, components, pct: wt > 0 ? (ws / wt) * 100 : 0 }
   })
+}
+
+function getClassesNeeded(course: Course, targetPct: number): number {
+  if (course.pct >= targetPct) return 0
+  let x = 0, currentPct = course.pct
+  const mainComp = Object.entries(course.components).reduce((a, b) => a[1].weight > b[1].weight ? a : b)[0]
+  while (currentPct < targetPct && x < 100) {
+    x++
+    let ws = 0, wt = 0
+    Object.entries(course.components).forEach(([key, val]) => {
+      if (val.conducted > 0 || key === mainComp) {
+        const att = val.attended + (key === mainComp ? x : 0)
+        const cond = Math.max(1, val.conducted + (key === mainComp ? x : 0))
+        ws += (att / cond) * val.weight
+        wt += val.weight
+      }
+    })
+    currentPct = wt > 0 ? (ws / wt) * 100 : 0
+  }
+  return x === 100 ? -1 : x
 }
 
 // ── ui components ──────────────────────────────────────────
@@ -370,10 +391,11 @@ export function ERPDashboard() {
                      <motion.div 
                        key={key} 
                        variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}
-                       className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 shadow-sm"
                      >
-                       <span className="text-[10px] font-bold tracking-wider text-zinc-500 uppercase">{key}</span>
-                       <p className="text-sm font-medium text-white mt-1">{String(val) || '-'}</p>
+                       <GlassCard className="p-5" glowIntensity="medium">
+                         <span className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">{key}</span>
+                         <p className="text-sm font-medium text-white mt-1">{String(val) || '-'}</p>
+                       </GlassCard>
                      </motion.div>
                    ))}
                  </motion.div>
@@ -427,35 +449,41 @@ export function ERPDashboard() {
               >
                 {courses.map((c, i) => {
                   const s = STATUS(c.pct)
+                  const classesNeeded75 = getClassesNeeded(c, 75)
+                  const classesNeeded85 = getClassesNeeded(c, 85)
                   return (
-                    <motion.button 
+                    <motion.div 
                       key={c.code} 
-                      onClick={() => setActive(i)}
                       variants={{
                         hidden: { opacity: 0, y: 20 },
                         visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
                       }}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="bg-zinc-900 border border-zinc-800 rounded-2xl text-left p-5 flex flex-col gap-4 cursor-pointer relative overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                     >
-                      <div style={{ position:'absolute', top:0, left:0, width:4, height:'100%', background: s.color }} />
-                      <div className="pl-2 flex justify-between items-start gap-3">
-                        <div className="min-w-0">
-                          <p className="text-xs font-mono tracking-widest text-zinc-500 mb-1">{c.code}</p>
-                          <p className="text-base font-semibold leading-snug text-white line-clamp-2">{c.description || c.code}</p>
+                      <GlassCard glowIntensity="medium" className="p-5 flex flex-col gap-4 cursor-pointer relative overflow-hidden h-full">
+                        <button onClick={() => setActive(i)} className="absolute inset-0 w-full h-full text-left outline-none" />
+                        <div style={{ position:'absolute', top:0, left:0, width:4, height:'100%', background: s.color }} />
+                        <div className="pl-2 flex justify-between items-start gap-3 relative pointer-events-none">
+                          <div className="min-w-0">
+                            <p className="text-xs font-mono tracking-widest text-zinc-400 mb-1">{c.code}</p>
+                            <p className="text-base font-semibold leading-snug text-white line-clamp-2">{c.description || c.code}</p>
+                          </div>
+                          <div className="shrink-0 flex flex-col items-end gap-2">
+                            <ProgressRing radius={22} stroke={3.5} progress={c.pct} color={s.color} />
+                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ color: s.color, background: s.bg, border: `1px solid ${s.border}` }}>{s.label}</span>
+                          </div>
                         </div>
-                        <div className="shrink-0 flex flex-col items-end gap-2">
-                          <ProgressRing radius={22} stroke={3.5} progress={c.pct} color={s.color} />
-                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ color: s.color, background: s.bg, border: `1px solid ${s.border}` }}>{s.label}</span>
+                        <div className="pl-2 relative pointer-events-none mb-2">
+                           {c.pct < 75 && classesNeeded75 > 0 && <p className="text-[10px] font-mono text-zinc-400 mt-1">Need <b className="text-white">{classesNeeded75}</b> classes for 75%</p>}
+                           {c.pct >= 75 && c.pct < 85 && classesNeeded85 > 0 && <p className="text-[10px] font-mono text-zinc-400 mt-1">Need <b className="text-white">{classesNeeded85}</b> classes for 85%</p>}
+                           {c.pct >= 85 && <p className="text-[10px] font-mono text-emerald-400/70 mt-1">Safely above 85%</p>}
                         </div>
-                      </div>
-                      <div className="pl-2 mt-auto pt-2">
-                        <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-                          <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${Math.min(c.pct, 100)}%`, background: s.color, boxShadow: `0 0 8px ${s.color}80` }} />
+                        <div className="pl-2 mt-auto pt-2 relative pointer-events-none">
+                          <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                            <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${Math.min(c.pct, 100)}%`, background: s.color, boxShadow: `0 0 8px ${s.color}80` }} />
+                          </div>
                         </div>
-                      </div>
-                    </motion.button>
+                      </GlassCard>
+                    </motion.div>
                   )
                 })}
               </motion.div>

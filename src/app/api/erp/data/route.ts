@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { unstable_cache } from 'next/cache'
 import { decodeSession } from '@/lib/session'
-import { fetchTimetable, fetchProfile, fetchAttendance } from '@/lib/scraper'
+import { fetchTimetableData, fetchProfileData, fetchAttendanceData } from '@/lib/scraper'
 
 
 export async function POST(request: NextRequest) {
@@ -16,19 +17,37 @@ export async function POST(request: NextRequest) {
     switch (action) {
       case 'profile': {
         if (!csrfToken) return NextResponse.json({ success: false, message: 'Missing CSRF token' }, { status: 400 })
-        const profileData = await fetchProfile(session, csrfToken)
+        const getCachedProfile = unstable_cache(
+          async () => fetchProfileData(session, csrfToken),
+          ['profile', sessionId],
+          { revalidate: 3600 } // Cache for 1 hour
+        )
+        const profileData = await getCachedProfile()
         return NextResponse.json({ success: true, profileData })
       }
       case 'timetable': {
         if (!csrfToken || !academicYear || !semesterId) {
           return NextResponse.json({ success: false, message: 'Missing required parameters' }, { status: 400 })
         }
-        const timetableData = await fetchTimetable(session, csrfToken, academicYear, semesterId)
+        const getCachedTimetable = unstable_cache(
+          async () => fetchTimetableData(session, csrfToken, academicYear, semesterId),
+          ['timetable', sessionId, academicYear, semesterId],
+          { revalidate: 3600 }
+        )
+        const timetableData = await getCachedTimetable()
         return NextResponse.json({ success: true, timetableData })
       }
       case 'attendance': {
-        const data = await fetchAttendance(session)
-        return NextResponse.json({ success: true, attendanceData: data.attendanceData, studentId: data.studentId })
+        if (!csrfToken || !academicYear || !semesterId) {
+          return NextResponse.json({ success: false, message: 'Missing required parameters' }, { status: 400 })
+        }
+        const getCachedAttendance = unstable_cache(
+          async () => fetchAttendanceData(session, csrfToken, academicYear, semesterId),
+          ['attendance', sessionId, academicYear, semesterId],
+          { revalidate: 3600 }
+        )
+        const data = await getCachedAttendance()
+        return NextResponse.json({ success: true, attendanceData: data.attendanceData })
       }
       default:
         return NextResponse.json({ success: false, message: 'Invalid action' }, { status: 400 })

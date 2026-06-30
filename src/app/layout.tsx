@@ -27,6 +27,7 @@ export const metadata: Metadata = {
 };
 
 import { DotPattern } from "@/components/ui/dot-pattern";
+import { CommandMenu } from "@/components/command-menu";
 
 export default function RootLayout({
   children,
@@ -51,6 +52,7 @@ export default function RootLayout({
         <div className="relative z-10">
           {children}
         </div>
+        <CommandMenu />
       </body>
     </html>
   );
