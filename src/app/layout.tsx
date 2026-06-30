@@ -29,30 +29,39 @@ export const metadata: Metadata = {
 import { DotPattern } from "@/components/ui/dot-pattern";
 import { CommandMenu } from "@/components/command-menu";
 
+import { ThemeProvider } from "@/components/theme-provider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${firaSans.variable} ${firaCode.variable} antialiased min-h-screen bg-[#060608] text-foreground overflow-x-hidden custom-scrollbar relative`}
+        className={`${firaSans.variable} ${firaCode.variable} antialiased min-h-screen bg-background text-foreground overflow-x-hidden custom-scrollbar relative`}
       >
-        <PwaRegistry />
-        <DotPattern
-          width={28}
-          height={28}
-          cx={2}
-          cy={2}
-          cr={1.5}
-          className="opacity-[0.15] mix-blend-screen"
-        />
-        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,transparent_20%,#060608_100%)] z-0" />
-        <div className="relative z-10">
-          {children}
-        </div>
-        <CommandMenu />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <PwaRegistry />
+          <DotPattern
+            width={28}
+            height={28}
+            cx={2}
+            cy={2}
+            cr={1.5}
+            className="opacity-[0.15] mix-blend-screen dark:opacity-20"
+          />
+          <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,transparent_20%,var(--background)_100%)] z-0" />
+          <div className="relative z-10">
+            {children}
+          </div>
+          <CommandMenu />
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -119,6 +119,23 @@ function ProgressRing({ radius, stroke, progress, color }: { radius: number, str
   )
 }
 
+import { useTheme } from "next-themes"
+import { Sun, Moon } from "lucide-react"
+
+export function ThemeToggle() {
+  const { theme, setTheme } = useTheme()
+  return (
+    <button
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-gray-200 transition-colors"
+    >
+      <Sun className="h-4 w-4 hidden dark:block" />
+      <Moon className="h-4 w-4 block dark:hidden" />
+      <span className="sr-only">Toggle theme</span>
+    </button>
+  )
+}
+
 // ── component ────────────────────────────────────────────
 export function ERPDashboard() {
   const router = useRouter()
@@ -251,30 +268,30 @@ export function ERPDashboard() {
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)' }}>
 
       {/* ── Ambient (Material Clean) ── */}
-      <div className="fixed inset-0 pointer-events-none bg-zinc-950" style={{ zIndex: 0 }} />
+      <div className="fixed inset-0 pointer-events-none bg-zinc-50 dark:bg-zinc-950" style={{ zIndex: 0 }} />
 
       {/* ── Top bar ── */}
-      <header className="relative z-10 flex items-center justify-between px-5 py-3 border-b flex-wrap gap-3" style={{ borderColor: 'rgba(255,255,255,.07)', background: 'rgba(7,7,10,.8)', backdropFilter: 'blur(14px)' }}>
+      <header className="relative z-10 flex items-center justify-between px-5 py-3 border-b flex-wrap gap-3 border-zinc-200 dark:border-white/10 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(99,102,241,.15)', border: '1px solid rgba(99,102,241,.3)' }}>
             <GraduationCap size={15} style={{ color: '#818CF8' }} />
           </div>
           <div>
-            <p className="font-bold text-sm leading-none" style={{ color: '#EFEFEF' }}>{studentId}</p>
-            <p className="text-[11px] mt-0.5 font-mono" style={{ color: 'rgba(239,239,239,.35)' }}>
+            <p className="font-bold text-sm leading-none text-zinc-900 dark:text-zinc-100">{studentId}</p>
+            <p className="text-[11px] mt-0.5 font-mono text-zinc-500 dark:text-zinc-400">
               {info?.attendanceData?.[0]?.Year || '2025-2026'} · {info?.attendanceData?.[0]?.Semester || 'Even Sem'}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-          <div className="flex bg-white/[0.05] rounded-xl p-1 border border-white/[0.05]">
-            <button onClick={() => handleTabChange('dashboard')} className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${currentTab === 'dashboard' ? 'bg-indigo-500/20 text-indigo-300' : 'text-gray-400 hover:text-gray-200'}`}>
+          <div className="flex bg-zinc-100 dark:bg-white/[0.05] rounded-xl p-1 border border-zinc-200 dark:border-white/[0.05]">
+            <button onClick={() => handleTabChange('dashboard')} className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${currentTab === 'dashboard' ? 'bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300' : 'text-zinc-500 dark:text-gray-400 hover:text-zinc-900 dark:hover:text-gray-200'}`}>
               <LayoutDashboard size={14} /> Dashboard
             </button>
-            <button onClick={() => handleTabChange('profile')} className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${currentTab === 'profile' ? 'bg-indigo-500/20 text-indigo-300' : 'text-gray-400 hover:text-gray-200'}`}>
+            <button onClick={() => handleTabChange('profile')} className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${currentTab === 'profile' ? 'bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300' : 'text-zinc-500 dark:text-gray-400 hover:text-zinc-900 dark:hover:text-gray-200'}`}>
               <User size={14} /> Profile
             </button>
-            <button onClick={() => handleTabChange('timetable')} className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${currentTab === 'timetable' ? 'bg-indigo-500/20 text-indigo-300' : 'text-gray-400 hover:text-gray-200'}`}>
+            <button onClick={() => handleTabChange('timetable')} className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${currentTab === 'timetable' ? 'bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300' : 'text-zinc-500 dark:text-gray-400 hover:text-zinc-900 dark:hover:text-gray-200'}`}>
               <Calendar size={14} /> Timetable
             </button>
           </div>
@@ -282,14 +299,16 @@ export function ERPDashboard() {
           
           {currentTab === 'timetable' && (
             <div className="flex gap-2">
-              <select className="bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-gray-200 outline-none" value={ttYear} onChange={(e) => { setTtYear(e.target.value); setTimeout(() => fetchTabData('timetable'), 100) }}>
+              <select className="bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-lg px-2 py-1.5 text-xs text-zinc-900 dark:text-gray-200 outline-none" value={ttYear} onChange={(e) => { setTtYear(e.target.value); setTimeout(() => fetchTabData('timetable'), 100) }}>
                 {ttYearsObj.map(y => <option key={y.value} value={y.value}>{y.label}</option>)}
               </select>
-              <select className="bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-gray-200 outline-none" value={ttSem} onChange={(e) => { setTtSem(e.target.value); setTimeout(() => fetchTabData('timetable'), 100) }}>
+              <select className="bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-lg px-2 py-1.5 text-xs text-zinc-900 dark:text-gray-200 outline-none" value={ttSem} onChange={(e) => { setTtSem(e.target.value); setTimeout(() => fetchTabData('timetable'), 100) }}>
                 {ttSemsObj.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
               </select>
             </div>
           )}
+          
+          <ThemeToggle />
 
           <button onClick={logout} className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer transition-all"
             style={{ background: 'rgba(248,113,113,.08)', border: '1px solid rgba(248,113,113,.2)', color: '#F87171' }}>

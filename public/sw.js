@@ -1,18 +1,28 @@
-// ponytail: minimal service worker for PWA installation capability, no bloated precaching
-const CACHE_NAME = 'kl-sync-v1';
-
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(['/', '/manifest.json', '/logo.png']);
+    caches.open('kl-sync-v1').then((cache) => {
+      return cache.addAll([
+        '/login',
+        '/icon.png'
+      ]);
     })
   );
+  self.skipWaiting();
 });
 
 self.addEventListener('fetch', (event) => {
+  // Network first, fallback to cache for HTML and API
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
+    fetch(event.request)
+      .then((response) => {
+        const resClone = response.clone();
+        caches.open('kl-sync-v1').then((cache) => {
+          if (event.request.method === 'GET') {
+            cache.put(event.request, resClone);
+          }
+        });
+        return response;
+      })
+      .catch(() => caches.match(event.request).then(res => res))
   );
 });

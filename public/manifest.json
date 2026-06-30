@@ -1,20 +1,15 @@
 {
-  "name": "KL Sync Portal",
-  "short_name": "KL Sync",
-  "description": "Secure, real-time attendance tracking and analytics.",
-  "start_url": "/",
+  "name": "KL Sync",
+  "short_name": "KLSync",
+  "description": "Lightning fast attendance dashboard",
+  "start_url": "/login",
   "display": "standalone",
-  "background_color": "#07070a",
-  "theme_color": "#6366F1",
+  "background_color": "#09090b",
+  "theme_color": "#6366f1",
   "icons": [
     {
-      "src": "/logo.png",
+      "src": "/icon.png",
       "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/logo.png",
-      "sizes": "512x512",
       "type": "image/png"
     }
   ]
