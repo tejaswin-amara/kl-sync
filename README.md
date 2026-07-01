@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/tejaswin-amara/kl-sync/master/public/attendance_preview.png" alt="KL Sync – Attendance Analytics Dashboard" width="640" />
+<img src="https://raw.githubusercontent.com/tejaswin-amara/kl-sync/master/public/logo.png" alt="KL University – Bachupally Campus" width="480" />
 
 <h1>⚡ KL Sync</h1>
 
