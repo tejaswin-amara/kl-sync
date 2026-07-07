@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { GlassCard } from '@/components/ui/glass-card';
@@ -86,14 +86,16 @@ export default function FeePage() {
                         const colName = Object.keys(row)[j].toLowerCase();
                         let displayVal = val;
                         
-                        // Add â‚¹ symbol if it's amount
-                        if (typeof val === 'string' && /^\d+$/.test(val.trim()) && (colName.includes('amount') || colName.includes('fee'))) {
-                          displayVal = `â‚¹${val}`;
+                        // Add ₹ symbol if it's amount
+                        if (typeof val === 'string' && /^-?\d+(\.\d+)?$/.test(val.trim()) && (colName.includes('amount') || colName.includes('fee') || colName.includes('scholarship') || colName.includes('concession') || colName.includes('balance'))) {
+                          const numVal = parseFloat(val.trim());
+                          displayVal = numVal < 0 ? `-₹${Math.abs(numVal)}` : `₹${val.trim()}`;
                         }
 
                         // Status styling
-                        if (colName.includes('status')) {
-                          if (isPaid) {
+                        if (colName.includes('status') || colName.includes('remarks') || colName === 'scholarship' || colName === 'concession') {
+                          const vLow = String(val).toLowerCase();
+                          if (isPaid || vLow.includes('scholarship') || vLow.includes('concession')) {
                             displayVal = <span className="inline-flex items-center gap-1 bg-green-500/10 text-green-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider"><CheckCircle className="w-3.5 h-3.5" />{val}</span>;
                           } else if (isPending) {
                             displayVal = <span className="inline-flex items-center gap-1 bg-red-500/10 text-red-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider"><Clock className="w-3.5 h-3.5" />{val}</span>;
