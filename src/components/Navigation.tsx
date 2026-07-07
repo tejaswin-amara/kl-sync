@@ -38,17 +38,18 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
 
     if (!cachedName) {
       fetch('/api/fetch-profile').then(res => res.json()).then(data => {
-        if (data.success && data.profile && data.profile.name) {
-          localStorage.setItem('kl_student_name', data.profile.name);
-          localStorage.setItem('kl_student_profile', JSON.stringify(data.profile));
-          if (data.profile.photoUrl) {
-            localStorage.setItem('kl_student_photo', data.profile.photoUrl);
+        const profileData = data.profile || data.data; // Handle both possible structures
+        if (data.success && profileData && profileData.name) {
+          localStorage.setItem('kl_student_name', profileData.name);
+          localStorage.setItem('kl_student_profile', JSON.stringify(profileData));
+          if (profileData.photoUrl) {
+            localStorage.setItem('kl_student_photo', profileData.photoUrl);
           }
           setUser(prev => ({ 
             ...prev, 
-            name: data.profile.name,
-            initials: data.profile.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase(),
-            photoUrl: data.profile.photoUrl || ''
+            name: profileData.name,
+            initials: profileData.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase(),
+            photoUrl: profileData.photoUrl || ''
           }));
         }
       }).catch(() => {});
