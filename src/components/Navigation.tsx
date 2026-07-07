@@ -199,7 +199,7 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
 
               <div className="flex-1 py-2 px-3 flex flex-col justify-between [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                 <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 px-3 shrink-0">Menu</div>
-                <div className="flex-1 flex flex-col justify-evenly mt-2 mb-2">
+                <div className="flex-1 flex flex-col gap-1 mt-2 mb-2">
                   {navItems.map((item) => {
                     const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
                     const Icon = item.icon;
@@ -208,13 +208,13 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
                         key={item.href}
                         href={item.href}
                         onClick={() => setDrawerOpen(false)}
-                        className={`w-full text-left px-3 py-1 flex items-center gap-2.5 transition-all cursor-pointer rounded-xl text-[13px] font-medium ${
+                        className={`w-full text-left px-3 flex-1 flex items-center gap-3 transition-all cursor-pointer rounded-xl text-[14px] font-medium ${
                           isActive 
                             ? 'bg-indigo-500/10 text-indigo-400 shadow-[inset_0_0_0_1px_rgba(99,102,241,0.2)]' 
                             : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/5'
                         }`}
                       >
-                        <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-400' : 'text-zinc-500'} shrink-0`} />
+                        <Icon className={`w-[18px] h-[18px] ${isActive ? 'text-indigo-400' : 'text-zinc-500'} shrink-0`} />
                         <span className="truncate">{item.label}</span>
                       </Link>
                     )
