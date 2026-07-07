@@ -174,7 +174,7 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
             >
               
               <div className="p-6 border-b" style={{ borderColor: 'rgba(255,255,255,.06)' }}>
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between">
                   <Link href="/dashboard" className="flex items-center gap-2">
                     <img src="/logo.png" alt="KL" className="h-8 w-auto object-contain" />
                     <span className="font-bold text-lg text-zinc-100 tracking-tight">KL Sync</span>
@@ -182,24 +182,6 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
                   <button className="lg:hidden p-2 -mr-2 rounded-lg hover:bg-white/10 text-zinc-400" onClick={() => setDrawerOpen(false)}>
                     <X className="w-5 h-5" />
                   </button>
-                </div>
-
-                <div className="flex items-center gap-3 py-1">
-                  <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-sm shadow-sm overflow-hidden border border-white/10 relative shrink-0">
-                    {user.id !== 'Student ID' && user.id !== 'Loading...' && (
-                      <img 
-                        src={user.photoUrl ? `/api/fetch-photo?path=${encodeURIComponent(user.photoUrl)}` : `/api/fetch-photo?id=${user.id}`} 
-                        alt="Profile" 
-                        className="w-full h-full object-cover absolute inset-0 z-10"
-                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                      />
-                    )}
-                    <span className="text-zinc-400 z-0 relative">{user.initials}</span>
-                  </div>
-                  <div className="min-w-0">
-                    <h2 className="text-sm font-semibold text-zinc-100 truncate">{user.name}</h2>
-                    <p className="text-[11px] font-mono text-zinc-500 mt-0.5">{user.id}</p>
-                  </div>
                 </div>
               </div>
 
