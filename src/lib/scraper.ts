@@ -492,35 +492,46 @@ function parseProfileData(html: string) {
   // Clean up any extraneous strings from the name
   if (name) data.name = name.replace(/University ID.*/i, '').trim();
 
-  // 2. Extract exact photo URL
-  const imgMatch = html.match(/src=["']([^"']*(?:studentphotos|profile)[^"']*)["']/i);
-  if (imgMatch) {
+  // 2. Extract exact photo URL (ignoring scripts)
+  const imgMatch = html.match(/<img[^>]*src=["']([^"']*(?:studentphotos|profile|uploads)[^"']*)["']/i);
+  if (imgMatch && !imgMatch[1].toLowerCase().endsWith('.js')) {
     data.photoUrl = imgMatch[1];
   }
 
   // University ID from text like 'University ID : 2520090104'
   const uidMatch = text.match(/University\s*ID\s*[:\s]*(\d+)/i);
   if (uidMatch) data.universityId = uidMatch[1];
-  // Key-value rows from the profile table
-  const fieldMap: Record<string, string> = {
-    'admission date': 'admissionDate',
-    'date of birth': 'dob',
-    'blood group': 'bloodGroup',
-    'email': 'email',
-    'height': 'height',
-    'weight': 'weight',
-    'regulation': 'regulation',
-    'program': 'program',
-  };
+  // 3. Extract ALL dynamic profile fields
+  const extendedDetails: Record<string, string> = {};
   $('table tr').each((_i, row) => {
     const cells = $(row).find('td');
-    if (cells.length >= 2) {
-      const label = $(cells[0]).text().trim().toLowerCase();
-      const value = $(cells[1]).text().trim().replace(/^:\s*/, '');
-      const key = fieldMap[label];
-      if (key) data[key] = value;
+    // Parse in pairs (Label, Value)
+    for (let i = 0; i < cells.length; i += 2) {
+      if (i + 1 < cells.length) {
+        let label = $(cells[i]).text().trim();
+        let value = $(cells[i + 1]).text().trim().replace(/^:\s*/, '').trim();
+        
+        // Clean up labels and ignore empty or purely symbolic labels
+        label = label.replace(/^:\s*/, '').replace(/:$/, '').trim();
+        if (label && label.length > 1 && value && value !== ':') {
+          extendedDetails[label] = value;
+          
+          // Also map standard fields for backward compatibility with existing UI
+          const lKey = label.toLowerCase();
+          if (lKey.includes('admission date')) data.admissionDate = value;
+          if (lKey.includes('date of birth') || lKey === 'dob') data.dob = value;
+          if (lKey.includes('blood group')) data.bloodGroup = value;
+          if (lKey.includes('email')) data.email = value;
+          if (lKey.includes('height')) data.height = value;
+          if (lKey.includes('weight')) data.weight = value;
+          if (lKey.includes('regulation')) data.regulation = value;
+          if (lKey.includes('program')) data.program = value;
+        }
+      }
     }
   });
+
+  data.extendedProfile = JSON.stringify(extendedDetails);
 
   return data;
 }

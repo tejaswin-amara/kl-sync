@@ -88,19 +88,34 @@ export default function ProfilePage() {
           {/* Profile Details Grid */}
           <div className="p-4 sm:p-6 bg-zinc-950/50 backdrop-blur-md">
             <h4 className="text-sm font-semibold text-zinc-100 mb-4 flex items-center gap-2">
-              
-              Personal Information
+              All Information
             </h4>
             
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-               {Object.entries(data).filter(([k]) => k !== 'name' && k !== 'universityId').map(([k, v]) => (
-                  <div key={k} className="flex flex-col p-2.5 bg-[#2c2c2c] rounded border border-white/10 hover:border-[var(--color-primary)]/50 transition-colors">
-                    <span className="text-[9px] font-bold tracking-widest uppercase text-zinc-500 text-gray-400 truncate">
-                      {k.replace(/([A-Z])/g, ' $1').trim()}
-                    </span>
-                    <span className="text-xs text-zinc-100 truncate" title={String(v)}>{String(v) || 'Not Provided'}</span>
-                  </div>
-               ))}
+               {(() => {
+                 let displayData: Record<string, string> = {};
+                 
+                 // If extended profile is available, parse it and use it.
+                 // Otherwise fallback to the legacy standard data keys.
+                 if (data.extendedProfile) {
+                   try {
+                     displayData = JSON.parse(data.extendedProfile);
+                   } catch (e) {}
+                 } else {
+                   displayData = { ...data };
+                 }
+
+                 return Object.entries(displayData)
+                   .filter(([k]) => !['name', 'universityId', 'photoUrl', 'extendedProfile', 'success', 'rawHtmlLength'].includes(k))
+                   .map(([k, v]) => (
+                    <div key={k} className="flex flex-col p-2.5 bg-[#2c2c2c] rounded border border-white/10 hover:border-[var(--color-primary)]/50 transition-colors">
+                      <span className="text-[9px] font-bold tracking-widest uppercase text-zinc-500 text-gray-400 truncate" title={k}>
+                        {k.replace(/([A-Z])/g, ' $1').trim()}
+                      </span>
+                      <span className="text-xs text-zinc-100 truncate" title={String(v)}>{String(v) || 'Not Provided'}</span>
+                    </div>
+                 ));
+               })()}
             </div>
           </div>
         </div>
