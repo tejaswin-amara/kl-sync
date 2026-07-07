@@ -17,6 +17,8 @@ export async function GET(request: NextRequest) {
     }
 
     const result = await fetchProfileData(session);
+    console.log('[fetch-profile] ALL IMAGES:', result.data.allImages);
+    console.log('[fetch-profile] ALL LINKS:', result.data.allLinks);
     return NextResponse.json(result);
   } catch (error: any) {
     console.error('[fetch-profile] Error:', error);

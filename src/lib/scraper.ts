@@ -533,6 +533,19 @@ function parseProfileData(html: string) {
 
   data.extendedProfile = JSON.stringify(extendedDetails);
 
+  // Debug: Grab ALL images and ALL links
+  const allImages: string[] = [];
+  $('img').each((_i, img) => {
+    allImages.push($(img).attr('src') || 'none');
+  });
+  data.allImages = allImages;
+  
+  const allLinks: string[] = [];
+  $('a').each((_i, a) => {
+    allLinks.push($(a).attr('href') || 'none');
+  });
+  data.allLinks = allLinks;
+
   return data;
 }
 
