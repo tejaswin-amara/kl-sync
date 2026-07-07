@@ -473,7 +473,7 @@ export async function fetchGenericModuleData(session: ScraperSession, targetUrl:
   // --- Profile parser ---
 function parseProfileData(html: string) {
   const $ = cheerio.load(html);
-  const data: Record<string, string> = {};
+  const data: Record<string, any> = {};
 
   const text = $('body').text() || html;
 
