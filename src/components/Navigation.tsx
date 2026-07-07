@@ -65,6 +65,15 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
     return () => { window.fetch = originalFetch; };
   }, []);
 
+  const handleSignOut = () => {
+    sessionStorage.clear();
+    localStorage.removeItem('studentId');
+    localStorage.removeItem('kl_student_name');
+    localStorage.removeItem('kl_student_profile');
+    document.cookie = "kl_erp_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    window.location.href = '/';
+  };
+
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/dashboard/profile', label: 'Profile', icon: User },
@@ -212,13 +221,13 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
               </div>
 
               <div className="p-4 border-t" style={{ borderColor: 'rgba(255,255,255,.06)' }}>
-                <Link
-                  href="/"
+                <button
+                  onClick={handleSignOut}
                   className="w-full text-left px-3 py-1 flex items-center gap-2.5 transition-all cursor-pointer rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10"
                 >
                   <LogOut className="w-4 h-4" />
                   Sign Out
-                </Link>
+                </button>
               </div>
             </motion.aside>
           </>
