@@ -146,7 +146,6 @@ export default function DashboardOverview() {
         </GlassCard>
 
         <GlassCard className="p-8 flex flex-col items-center justify-center text-center relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           <Award className="w-12 h-12 text-indigo-400 mb-4 opacity-80" />
           <div className="z-10">
             <p className="text-xs font-semibold tracking-widest text-zinc-400 uppercase mb-2">Cumulative GPA</p>

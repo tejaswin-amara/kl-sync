@@ -29,15 +29,13 @@ export function OcrTool() {
     try {
       setLoading(true);
       setProgress(10);
-      const worker = await createWorker({
+      const worker = await createWorker('eng', 1, {
         logger: m => {
           if (m.status === 'recognizing text') {
             setProgress(parseInt((m.progress * 100).toString()));
           }
         }
       });
-      await worker.loadLanguage('eng');
-      await worker.initialize('eng');
       const { data: { text } } = await worker.recognize(image);
       setText(text);
       await worker.terminate();

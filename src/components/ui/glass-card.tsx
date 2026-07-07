@@ -19,7 +19,7 @@ export const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
       <motion.div
         ref={ref}
         className={cn(
-          "relative overflow-hidden rounded-xl border border-white/10 bg-white/5 backdrop-blur-md shadow-2xl",
+          "relative overflow-hidden rounded-xl border border-white/10 bg-white/5 backdrop-blur-md shadow-2xl p-6",
           className
         )}
         whileHover={{ y: -2 }}
@@ -37,9 +37,7 @@ export const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
           )} />
         )}
         
-        <div className="relative z-10 p-6">
-          {children}
-        </div>
+        {children}
       </motion.div>
     )
   }
