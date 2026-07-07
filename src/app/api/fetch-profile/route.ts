@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result);
   } catch (error: any) {
     console.error('[fetch-profile] Error:', error);
-    return NextResponse.json({ success: false, error: error.message || 'Failed to fetch data' }, { status: 500 });
+    const status = error.message?.includes('Session expired') ? 401 : 500;
+    return NextResponse.json({ success: false, error: error.message || 'Failed to fetch data' }, { status });
   }
 }

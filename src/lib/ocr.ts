@@ -64,8 +64,8 @@ async function ocrSpace(buffer: Buffer, engine: 1 | 2): Promise<string> {
         continue // Try next key
       }
       if (result.IsErroredOnProcessing) {
-        console.error('OCR.space processing error:', result.ErrorMessage)
-        return ''
+        console.warn(`OCR.space processing error with key ${key}:`, result.ErrorMessage)
+        continue
       }
       const parsedText = result.ParsedResults?.[0]?.ParsedText || ''
       if (parsedText) return parsedText;
