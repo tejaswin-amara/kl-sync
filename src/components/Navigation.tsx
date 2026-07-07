@@ -24,26 +24,31 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function Navigation({ children }: { children: React.ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const pathname = usePathname();
-  const [user, setUser] = useState({ name: 'Student', initials: 'ST', id: 'Loading...' });
+  const [user, setUser] = useState({ name: 'Student', initials: 'ST', id: 'Loading...', photoUrl: '' });
 
   useEffect(() => {
     const cachedName = localStorage.getItem('kl_student_name');
+    const cachedPhoto = localStorage.getItem('kl_student_photo') || '';
     const name = cachedName || 'Student';
     const id = localStorage.getItem('studentId') || 'Student ID';
     const initials = name !== 'Student' 
       ? name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() 
       : 'ST';
-    setUser({ name, initials, id });
+    setUser({ name, initials, id, photoUrl: cachedPhoto });
 
     if (!cachedName) {
       fetch('/api/fetch-profile').then(res => res.json()).then(data => {
         if (data.success && data.profile && data.profile.name) {
           localStorage.setItem('kl_student_name', data.profile.name);
           localStorage.setItem('kl_student_profile', JSON.stringify(data.profile));
+          if (data.profile.photoUrl) {
+            localStorage.setItem('kl_student_photo', data.profile.photoUrl);
+          }
           setUser(prev => ({ 
             ...prev, 
             name: data.profile.name,
-            initials: data.profile.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
+            initials: data.profile.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase(),
+            photoUrl: data.profile.photoUrl || ''
           }));
         }
       }).catch(() => {});
@@ -69,6 +74,7 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
     sessionStorage.clear();
     localStorage.removeItem('studentId');
     localStorage.removeItem('kl_student_name');
+    localStorage.removeItem('kl_student_photo');
     localStorage.removeItem('kl_student_profile');
     document.cookie = "kl_erp_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     window.location.href = '/';
@@ -130,14 +136,14 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
              <span className="absolute top-2 right-2.5 w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
            </Link>
            <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-xs shadow-sm overflow-hidden border border-white/10 relative">
-             {user.id !== 'Student ID' && user.id !== 'Loading...' && (
-               <img 
-                 src={`/api/fetch-photo?id=${user.id}`} 
-                 alt="Profile" 
-                 className="w-full h-full object-cover absolute inset-0 z-10"
-                 onError={(e) => { e.currentTarget.style.display = 'none'; }}
-               />
-             )}
+              {user.id !== 'Student ID' && user.id !== 'Loading...' && (
+                <img 
+                  src={user.photoUrl ? `/api/fetch-photo?path=${encodeURIComponent(user.photoUrl)}` : `/api/fetch-photo?id=${user.id}`} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover absolute inset-0 z-10"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+              )}
              <span className="text-zinc-400 z-0 relative">{user.initials}</span>
            </div>
         </div>
@@ -182,7 +188,7 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
                   <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-sm shadow-sm overflow-hidden border border-white/10 relative shrink-0">
                     {user.id !== 'Student ID' && user.id !== 'Loading...' && (
                       <img 
-                        src={`/api/fetch-photo?id=${user.id}`} 
+                        src={user.photoUrl ? `/api/fetch-photo?path=${encodeURIComponent(user.photoUrl)}` : `/api/fetch-photo?id=${user.id}`} 
                         alt="Profile" 
                         className="w-full h-full object-cover absolute inset-0 z-10"
                         onError={(e) => { e.currentTarget.style.display = 'none'; }}
@@ -197,9 +203,9 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
                 </div>
               </div>
 
-              <div className="flex-1 py-2 px-3 flex flex-col justify-between [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 px-3 shrink-0">Menu</div>
-                <div className="flex-1 flex flex-col gap-1 mt-2 mb-2">
+              <div className="flex-1 py-2 px-3 flex flex-col overflow-y-auto custom-scrollbar">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 px-3 shrink-0 mb-2">Menu</div>
+                <div className="flex-1 flex flex-col justify-evenly min-h-[450px]">
                   {navItems.map((item) => {
                     const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
                     const Icon = item.icon;
@@ -208,7 +214,7 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
                         key={item.href}
                         href={item.href}
                         onClick={() => setDrawerOpen(false)}
-                        className={`w-full text-left px-3 flex-1 flex items-center gap-3 transition-all cursor-pointer rounded-xl text-[14px] font-medium ${
+                        className={`w-full text-left px-3 py-3 flex items-center gap-3 transition-all cursor-pointer rounded-xl text-[14px] font-medium ${
                           isActive 
                             ? 'bg-indigo-500/10 text-indigo-400 shadow-[inset_0_0_0_1px_rgba(99,102,241,0.2)]' 
                             : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/5'
@@ -259,14 +265,14 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
             <div className="h-8 w-px bg-white/10 mx-1"></div>
             <div className="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-1.5 pr-3 rounded-full transition-colors">
               <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-xs shadow-sm overflow-hidden border border-white/10 relative shrink-0">
-                {user.id !== 'Student ID' && user.id !== 'Loading...' && (
-                  <img 
-                    src={`/api/fetch-photo?id=${user.id}`} 
-                    alt="Profile" 
-                    className="w-full h-full object-cover absolute inset-0 z-10"
-                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                  />
-                )}
+              {user.id !== 'Student ID' && user.id !== 'Loading...' && (
+                <img 
+                  src={user.photoUrl ? `/api/fetch-photo?path=${encodeURIComponent(user.photoUrl)}` : `/api/fetch-photo?id=${user.id}`} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover absolute inset-0 z-10"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+              )}
                 <span className="text-zinc-400 z-0 relative">{user.initials}</span>
               </div>
               <span className="text-sm font-semibold text-zinc-100 hidden sm:block">{user.name}</span>

@@ -30,7 +30,18 @@ export default function DashboardOverview() {
     const name = localStorage.getItem('kl_student_name');
     if (name) setStudentName(name);
 
-    // Fetch CGPA & Credits
+    // Instant load from cache
+    const cachedCgpa = localStorage.getItem('kl_dashboard_cgpa');
+    const cachedCredits = localStorage.getItem('kl_dashboard_credits');
+    const cachedAttendance = localStorage.getItem('kl_dashboard_attendance');
+    const cachedFee = localStorage.getItem('kl_dashboard_fee');
+    
+    if (cachedCgpa) setCgpa(Number(cachedCgpa));
+    if (cachedCredits) setCompletedCredits(Number(cachedCredits));
+    if (cachedAttendance) setAttendance(Number(cachedAttendance));
+    if (cachedFee) setPendingFee(Number(cachedFee));
+
+    // Fetch CGPA & Credits in background
     fetch('/api/fetch-cgpa')
       .then(res => res.json())
       .then(resData => {
@@ -49,7 +60,10 @@ export default function DashboardOverview() {
            });
            setCompletedCredits(totalCredits);
            if (totalCredits > 0) {
-             setCgpa(Number((totalPoints / totalCredits).toFixed(2)));
+             const calculatedCgpa = Number((totalPoints / totalCredits).toFixed(2));
+             setCgpa(calculatedCgpa);
+             localStorage.setItem('kl_dashboard_cgpa', calculatedCgpa.toString());
+             localStorage.setItem('kl_dashboard_credits', totalCredits.toString());
            }
 
            let yearId = localStorage.getItem('kl_erp_year') || '';
@@ -89,12 +103,16 @@ export default function DashboardOverview() {
                      }
                    });
                    if (totalConducted > 0) {
-                     setAttendance(Math.round((totalAttended / totalConducted) * 100));
+                     const calculatedAttendance = Math.round((totalAttended / totalConducted) * 100);
+                     setAttendance(calculatedAttendance);
+                     localStorage.setItem('kl_dashboard_attendance', calculatedAttendance.toString());
                    } else {
                      const pctKey = Object.keys(resData.attendanceData[0]).find(k => k.toLowerCase().includes('%') || k.toLowerCase().includes('percent') || k.toLowerCase().includes('attendance'));
                      if (pctKey) {
                        const sum = resData.attendanceData.reduce((s: number, r: any) => s + (parseFloat(r[pctKey]) || 0), 0);
-                       setAttendance(Math.round(sum / resData.attendanceData.length));
+                       const calculatedAttendance = Math.round(sum / resData.attendanceData.length);
+                       setAttendance(calculatedAttendance);
+                       localStorage.setItem('kl_dashboard_attendance', calculatedAttendance.toString());
                      }
                    }
                  }
@@ -116,6 +134,7 @@ export default function DashboardOverview() {
             })
             .reduce((sum: number, row: any) => sum + (parseFloat(row['Amount']) || 0), 0);
           setPendingFee(pending);
+          localStorage.setItem('kl_dashboard_fee', pending.toString());
         }
       })
       .catch(console.error);

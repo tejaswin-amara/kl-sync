@@ -5,7 +5,8 @@ import { decodeSession } from '@/lib/session';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
-  if (!id) return new NextResponse('Missing ID', { status: 400 });
+  const path = searchParams.get('path');
+  if (!id && !path) return new NextResponse('Missing ID or path', { status: 400 });
 
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get('kl_erp_session');
@@ -14,7 +15,11 @@ export async function GET(request: Request) {
   const session = decodeSession(sessionCookie.value);
   
   try {
-    const res = await fetch(`https://newerp.kluniversity.in/uploads/studentphotos/${id}.jpg`, {
+    let targetUrl = `https://newerp.kluniversity.in/uploads/studentphotos/${id}.jpg`;
+    if (path) {
+      targetUrl = path.startsWith('http') ? path : `https://newerp.kluniversity.in${path.startsWith('/') ? path : '/' + path}`;
+    }
+    const res = await fetch(targetUrl, {
       headers: {
         'Cookie': session.cookies.map((c: any) => `${c.name}=${c.value}`).join('; '),
         'Referer': 'https://newerp.kluniversity.in/',

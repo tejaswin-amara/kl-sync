@@ -470,18 +470,35 @@ export async function fetchGenericModuleData(session: ScraperSession, targetUrl:
   };
 }
 
-// --- Profile parser ---
+  // --- Profile parser ---
 function parseProfileData(html: string) {
   const $ = cheerio.load(html);
   const data: Record<string, string> = {};
 
-  // Name from profile_bg section
+  const text = $('body').text() || html;
+
+  // 1. More aggressive name parsing
   const profileBg = $('.profile_bg');
   const nameEl = profileBg.find('h4').filter((_i, el) => !$(el).text().includes('Student Profile'));
-  data.name = nameEl.text().trim() || profileBg.contents().filter((_i, el) => el.type === 'text').text().trim();
+  let name = nameEl.text().trim() || profileBg.contents().filter((_i, el) => el.type === 'text').text().trim();
+  
+  if (!name || name.length < 3) {
+    // Look for "Welcome : AMARA TEJASWIN" or similar
+    const welcomeMatch = text.match(/(?:Welcome|Hello|Name)[\s:-]*([A-Za-z\s]{4,40})(?:\s|\||$)/i);
+    if (welcomeMatch) {
+       name = welcomeMatch[1].trim();
+    }
+  }
+  // Clean up any extraneous strings from the name
+  if (name) data.name = name.replace(/University ID.*/i, '').trim();
+
+  // 2. Extract exact photo URL
+  const imgMatch = html.match(/src=["']([^"']*(?:studentphotos|profile)[^"']*)["']/i);
+  if (imgMatch) {
+    data.photoUrl = imgMatch[1];
+  }
 
   // University ID from text like 'University ID : 2520090104'
-  const text = $('body').text();
   const uidMatch = text.match(/University\s*ID\s*[:\s]*(\d+)/i);
   if (uidMatch) data.universityId = uidMatch[1];
   // Key-value rows from the profile table
