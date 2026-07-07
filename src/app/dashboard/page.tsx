@@ -151,7 +151,7 @@ export default function DashboardOverview() {
             <p className="text-xs font-semibold tracking-widest text-zinc-400 uppercase mb-2">Cumulative GPA</p>
             <div className="flex items-baseline justify-center gap-1">
               <span className="text-6xl font-black tracking-tighter text-zinc-100">
-                {cgpa > 0 ? <NumberTicker value={cgpa} /> : '0.00'}
+                {cgpa > 0 ? <NumberTicker value={cgpa} decimalPlaces={2} /> : '0.00'}
               </span>
             </div>
           </div>

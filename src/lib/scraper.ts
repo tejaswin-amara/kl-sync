@@ -347,7 +347,17 @@ export async function loginAndFetchSemesters(
 // --- GENERIC TABLE PARSER ----------------------------------------------------
 function parseGenericTable(html: string) {
     const $ = cheerio.load(html);
-    const table = $('table').first();
+    
+    let table = $('table').first();
+    let maxRows = 0;
+    $('table').each((_i, el) => {
+        const rowCount = $(el).find('tr').length;
+        if (rowCount > maxRows) {
+            maxRows = rowCount;
+            table = $(el);
+        }
+    });
+
     const data: any[] = [];
 
     // Extract headers: find the row with the most 'th' or 'td' in thead
