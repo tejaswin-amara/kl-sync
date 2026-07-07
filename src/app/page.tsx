@@ -31,7 +31,6 @@ export default function LoginPage() {
   const [status, setStatus] = useState<string | null>(null)
   
   // Selection State
-  const [step, setStep] = useState<'login' | 'select-sem'>('login')
   const [academicYears, setAcademicYears] = useState<{value: string, label: string}[]>([])
   const [semesters, setSemesters] = useState<{value: string, label: string}[]>([])
   const [selectedYear, setSelectedYear] = useState('')
@@ -150,7 +149,7 @@ export default function LoginPage() {
         setCsrfToken(sessionStorage.getItem('kl_erp_csrf_token') || '')
         setAcademicYears(JSON.parse(sessionStorage.getItem('kl_erp_academic_years') || '[]'))
         setSemesters(JSON.parse(sessionStorage.getItem('kl_erp_semesters') || '[]'))
-        setStep('select-sem')
+        router.push('/dashboard')
       } else {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchCaptcha()
@@ -261,68 +260,13 @@ export default function LoginPage() {
         try { localStorage.setItem('studentId', username); } catch {}
       }
 
-      setStep('select-sem')
-      
-    } catch (err: unknown) {
-      setError(err instanceof Error && err.message ? err.message : 'An unexpected error occurred')
-      // If we crashed during core login, we should stay on the login step and refresh captcha
-      if (step === 'login') {
-        await fetchCaptcha(true)
-      }
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleFetchAttendance = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!selectedYear || !selectedSem) {
-      setError('Please select an Academic Year and Semester')
-      return
-    }
-
-    setLoading(true)
-    setError(null)
-    setStatus('Fetching attendance data...')
-
-    try {
-      const fetchResponse = await fetch('/api/fetch-attendance', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-session-id': sessionId
-        },
-        body: JSON.stringify({
-          action: 'attendance',
-          csrfToken: csrfToken,
-          academicYear: selectedYear,
-          semesterId: selectedSem
-        })
-      })
-
-      const fetchResult = await fetchResponse.json()
-      
-      if (!fetchResponse.ok || !fetchResult.success) {
-         throw new Error(fetchResult.message || 'Failed to fetch attendance data')
-      }
-      
-      if (!fetchResult.attendanceData || fetchResult.attendanceData.length === 0) {
-         throw new Error('No results found for this Academic Year/Semester.')
-      }
-
-      // Save the fetched data and route to dashboard
-      localStorage.setItem('attendanceData', JSON.stringify(fetchResult))
-      localStorage.setItem('studentId', username || 'Student')
-      localStorage.setItem('kl_erp_year', selectedYear)
-      localStorage.setItem('kl_erp_sem', selectedSem)
-      
       router.push('/dashboard')
       
     } catch (err: unknown) {
       setError(err instanceof Error && err.message ? err.message : 'An unexpected error occurred')
+      await fetchCaptcha(true)
     } finally {
       setLoading(false)
-      setStatus(null)
     }
   }
 
@@ -401,8 +345,7 @@ export default function LoginPage() {
             </motion.div>
           )}
 
-          {step === 'login' ? (
-            <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleLogin} className="space-y-5">
               
               {/* Material-style input block */}
               <div className="space-y-1.5">
@@ -491,62 +434,6 @@ export default function LoginPage() {
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><LogIn className="w-4 h-4" /> Continue</>}
               </motion.button>
             </form>
-          ) : (
-            <form onSubmit={handleFetchAttendance} className="space-y-5">
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-medium tracking-wide uppercase text-zinc-500">Academic Year</label>
-                <div className="relative">
-                  <select
-                    value={selectedYear}
-                    onChange={e => setSelectedYear(e.target.value)}
-                    className="w-full appearance-none rounded-xl px-4 py-3.5 bg-zinc-900 border border-zinc-800 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
-                  >
-                    <option value="" disabled>Select Year</option>
-                    {academicYearOptions}
-                  </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-medium tracking-wide uppercase text-zinc-500">Semester</label>
-                <div className="relative">
-                  <select
-                    value={selectedSem}
-                    onChange={e => setSelectedSem(e.target.value)}
-                    className="w-full appearance-none rounded-xl px-4 py-3.5 bg-zinc-900 border border-zinc-800 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
-                  >
-                    <option value="" disabled>Select Semester</option>
-                    {semesterOptions}
-                  </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
-                </div>
-              </div>
-
-              <motion.button
-                whileHover={{ scale: 0.995 }}
-                whileTap={{ scale: 0.98 }}
-                type="submit"
-                disabled={loading || !selectedYear || !selectedSem}
-                className="w-full py-4 mt-6 rounded-xl font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-emerald-500 text-zinc-950 hover:bg-emerald-400 shadow-[0_1px_2px_rgba(0,0,0,0.1)]"
-              >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Fetch Attendance'}
-              </motion.button>
-              
-              <button 
-                type="button" 
-                onClick={() => {
-                  setStep('login')
-                  setStatus(null)
-                  setError(null)
-                  fetchCaptcha(false)
-                }}
-                className="w-full py-3 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
-              >
-                Back to Login
-              </button>
-            </form>
-          )}
         </div>
       </div>
     </div>

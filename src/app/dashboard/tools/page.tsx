@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Loader2, Wrench, AlertCircle, Percent, Target } from 'lucide-react';
 import { SimpleCalculator } from '@/components/attendance-calculator';
 import { GlassCard } from '@/components/ui/glass-card';
+import { OcrTool } from '@/components/ocr-tool';
 
 export default function ToolsPage() {
   const [totalClasses, setTotalClasses] = useState(0);
@@ -206,6 +207,8 @@ export default function ToolsPage() {
 
              </div>
           </GlassCard>
+          
+          <OcrTool />
         </div>
       )}
     </div>

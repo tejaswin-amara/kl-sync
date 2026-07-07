@@ -1,5 +1,5 @@
 ﻿# SOVEREIGN EVOLUTION REPORT (v14.0.0-CloudNative)
-> Generated: 2026-07-07 20:18:50
+> Generated: 2026-07-07 21:11:04
 
 ## Intelligence Signals
 | Signal | Value |

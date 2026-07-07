@@ -1,7 +1,17 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+function Card({ className, children }: any) { return <div className={`rounded-xl border border-white/10 bg-zinc-950/50 text-zinc-100 shadow-sm ${className}`}>{children}</div> }
+function CardHeader({ className, children }: any) { return <div className={`flex flex-col space-y-1.5 p-6 ${className}`}>{children}</div> }
+function CardTitle({ className, children }: any) { return <h3 className={`font-semibold leading-none tracking-tight ${className}`}>{children}</h3> }
+function CardDescription({ className, children }: any) { return <p className={`text-sm text-zinc-400 ${className}`}>{children}</p> }
+function CardContent({ className, children }: any) { return <div className={`p-6 pt-0 ${className}`}>{children}</div> }
+
+function Alert({ variant = "default", className, children }: any) {
+  const vClass = variant === "destructive" ? "border-red-500/50 text-red-500 [&>svg]:text-red-500" : "bg-background text-foreground";
+  return <div role="alert" className={`relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7 ${vClass} ${className}`}>{children}</div>
+}
+function AlertTitle({ className, children }: any) { return <h5 className={`mb-1 font-medium leading-none tracking-tight ${className}`}>{children}</h5> }
+function AlertDescription({ className, children }: any) { return <div className={`text-sm [&_p]:leading-relaxed ${className}`}>{children}</div> }
 import { AlertCircle, CheckCircle2, XCircle } from "lucide-react"
 
 interface SimpleCalculatorProps {
