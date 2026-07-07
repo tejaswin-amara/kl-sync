@@ -52,14 +52,16 @@ export default function DashboardOverview() {
              setCgpa(Number((totalPoints / totalCredits).toFixed(2)));
            }
 
-           let yearId = '';
-           let semId = '';
-           const yStr = localStorage.getItem('kl_academic_years');
-           const sStr = localStorage.getItem('kl_semesters');
-           if (yStr && sStr) {
+           let yearId = localStorage.getItem('kl_erp_year') || '';
+           let semId = localStorage.getItem('kl_erp_sem') || '';
+           const yStr = sessionStorage.getItem('kl_erp_academic_years');
+           const sStr = sessionStorage.getItem('kl_erp_semesters');
+           if (!yearId && yStr) {
              const years = JSON.parse(yStr);
-             const semesters = JSON.parse(sStr);
              if (years.length > 0) yearId = years[0].value;
+           }
+           if (!semId && sStr) {
+             const semesters = JSON.parse(sStr);
              if (semesters.length > 0) semId = semesters[0].value;
            }
 
@@ -67,7 +69,7 @@ export default function DashboardOverview() {
              setActiveYearId(yearId);
              setActiveSemId(semId);
              
-             const csrf = localStorage.getItem('kl_csrf');
+             const csrf = sessionStorage.getItem('kl_erp_csrf_token');
              fetch('/api/fetch-attendance', {
                method: 'POST',
                headers: { 'Content-Type': 'application/json' },
@@ -78,7 +80,7 @@ export default function DashboardOverview() {
                  if (resData.success && resData.attendanceData && resData.attendanceData.length > 0) {
                    let totalAttended = 0;
                    let totalConducted = 0;
-                   resData.attendanceData.forEach((row: any) => {
+                   resData.attendanceData = resData.attendanceData.filter((row: any) => { const yrKey = Object.keys(row).find(k => k.toLowerCase().includes('year')); const semKey = Object.keys(row).find(k => k.toLowerCase().includes('sem')); if (yrKey && semKey) return row[yrKey].includes(yearId) && row[semKey].includes(semId); if (yrKey) return row[yrKey].includes(yearId); if (semKey) return row[semKey].includes(semId); return true; }); resData.attendanceData.forEach((row: any) => {
                      const condKey = Object.keys(row).find(k => k.toLowerCase().includes('conducted'));
                      const attKey = Object.keys(row).find(k => k.toLowerCase().includes('attended'));
                      if (condKey && attKey) {
@@ -124,8 +126,8 @@ export default function DashboardOverview() {
       
       {/* Welcome Banner */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 card bg-zinc-900/40 p-8 flex flex-col justify-center relative overflow-hidden backdrop-blur-xl border border-white/5">
-          <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+        <GlassCard className="lg:col-span-2 p-8 flex flex-col justify-center relative overflow-hidden group" glowIntensity="medium">
+          <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none transition-transform duration-700 group-hover:scale-110">
              <GraduationCap className="w-48 h-48 text-indigo-500" />
           </div>
           <div className="relative z-10">
@@ -141,7 +143,7 @@ export default function DashboardOverview() {
               You are connected to the live ERP system. Your academic overview has been synchronized successfully.
             </p>
           </div>
-        </div>
+        </GlassCard>
 
         <GlassCard className="p-8 flex flex-col items-center justify-center text-center relative overflow-hidden group">
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -159,7 +161,7 @@ export default function DashboardOverview() {
 
       {/* Quick Stats Grid */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Link href="/dashboard/attendance" className="card p-6 flex items-center gap-5 group bg-zinc-900/40 backdrop-blur-xl border border-white/5 hover:border-emerald-500/30 transition-all">
+        <Link href="/dashboard/attendance" className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md shadow-2xl p-6 flex items-center gap-5 group hover:bg-white/10 hover:-translate-y-1 transition-all duration-300">
           <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-emerald-500/20 transition-all">
             <Activity className="w-7 h-7" />
           </div>
@@ -171,7 +173,7 @@ export default function DashboardOverview() {
           </div>
         </Link>
         
-        <Link href="/dashboard/fee" className="card p-6 flex items-center gap-5 group bg-zinc-900/40 backdrop-blur-xl border border-white/5 hover:border-red-500/30 transition-all">
+        <Link href="/dashboard/fee" className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md shadow-2xl p-6 flex items-center gap-5 group hover:bg-white/10 hover:-translate-y-1 transition-all duration-300">
           <div className="w-14 h-14 rounded-2xl bg-red-500/10 text-red-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-red-500/20 transition-all">
             <Wallet className="w-7 h-7" />
           </div>
@@ -183,7 +185,7 @@ export default function DashboardOverview() {
           </div>
         </Link>
 
-        <Link href="/dashboard/marks" className="card p-6 flex items-center gap-5 group bg-zinc-900/40 backdrop-blur-xl border border-white/5 hover:border-purple-500/30 transition-all">
+        <Link href="/dashboard/marks" className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md shadow-2xl p-6 flex items-center gap-5 group hover:bg-white/10 hover:-translate-y-1 transition-all duration-300">
           <div className="w-14 h-14 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-purple-500/20 transition-all">
             <TrendingUp className="w-7 h-7" />
           </div>
@@ -213,7 +215,7 @@ function TodayScheduleWidget({ activeYearId, activeSemId }: { activeYearId: stri
     if (!activeYearId || !activeSemId) return;
     setLoading(true);
     try {
-      const csrf = localStorage.getItem('kl_csrf');
+      const csrf = sessionStorage.getItem('kl_erp_csrf_token');
       fetch('/api/fetch-timetable', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -242,7 +244,7 @@ function TodayScheduleWidget({ activeYearId, activeSemId }: { activeYearId: stri
   }, [activeYearId, activeSemId]);
 
   return (
-    <div className="card bg-zinc-900/40 backdrop-blur-xl border border-white/5 flex flex-col h-full overflow-hidden">
+    <GlassCard className="flex flex-col h-full !p-0" glowIntensity="low">
       <div className="p-5 border-b border-white/5 flex justify-between items-center bg-zinc-950/30">
         <div className="flex items-center gap-3">
           <CalendarDays className="w-5 h-5 text-indigo-400" />
@@ -294,11 +296,11 @@ function TodayScheduleWidget({ activeYearId, activeSemId }: { activeYearId: stri
         )}
       </div>
       
-      <Link href="/dashboard/timetable" className="flex items-center justify-center gap-2 w-full p-4 text-[11px] font-bold tracking-widest text-indigo-400 border-t border-white/5 hover:bg-white/5 transition-colors uppercase">
+      <Link href="/dashboard/timetable" className="flex items-center justify-center gap-2 w-full p-4 text-[11px] font-bold tracking-widest text-indigo-400 border-t border-white/5 hover:bg-white/5 transition-colors uppercase mt-auto">
         View Full Timetable
         <ChevronRight className="w-4 h-4" />
       </Link>
-    </div>
+    </GlassCard>
   );
 }
 
@@ -310,7 +312,7 @@ function CurrentCoursesWidget({ activeYearId, activeSemId }: { activeYearId: str
     if (!activeYearId || !activeSemId) return;
     setLoading(true);
     try {
-      const csrf = localStorage.getItem('kl_csrf');
+      const csrf = sessionStorage.getItem('kl_erp_csrf_token');
       fetch('/api/fetch-marks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -331,7 +333,7 @@ function CurrentCoursesWidget({ activeYearId, activeSemId }: { activeYearId: str
   }, [activeYearId, activeSemId]);
 
   return (
-    <div className="card bg-zinc-900/40 backdrop-blur-xl border border-white/5 flex flex-col h-full overflow-hidden">
+    <GlassCard className="flex flex-col h-full !p-0" glowIntensity="low">
       <div className="p-5 border-b border-white/5 flex justify-between items-center bg-zinc-950/30">
         <div className="flex items-center gap-3">
           <BookOpen className="w-5 h-5 text-purple-400" />
@@ -353,9 +355,9 @@ function CurrentCoursesWidget({ activeYearId, activeSemId }: { activeYearId: str
         ) : (
           <div className="flex flex-col divide-y divide-white/5">
             {courses.map((course, idx) => {
-              const code = course['Course Code'] || 'N/A';
-              const name = course['Course Name'] || 'N/A';
-              const components = course['Evaluation Components'] || 'No components';
+              const keys = Object.keys(course); const codeKey = keys.find(k => k.toLowerCase().includes('code')) || 'Course Code'; const nameKey = keys.find(k => k.toLowerCase().includes('name') || k.toLowerCase().includes('title')) || 'Course Name'; const compKey = keys.find(k => k.toLowerCase().includes('eval') || k.toLowerCase().includes('component')) || 'Evaluation Components'; const code = course[codeKey] || 'N/A';
+              const name = course[nameKey] || 'N/A';
+              const components = course[compKey] || 'No components';
               return (
                 <div key={idx} className="p-5 flex items-start gap-4 hover:bg-white/[0.02] transition-colors cursor-default">
                   <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center shrink-0 border border-purple-500/20">
@@ -379,6 +381,8 @@ function CurrentCoursesWidget({ activeYearId, activeSemId }: { activeYearId: str
         View All Courses
         <ChevronRight className="w-4 h-4" />
       </Link>
-    </div>
+    </GlassCard>
   );
 }
+
+

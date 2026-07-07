@@ -245,53 +245,23 @@ export default function LoginPage() {
       
       let semesterId = '';
       if (data.semesters && data.semesters.length > 0) {
-        const evenSem = data.semesters.find((s: {label: string, value: string}) => s.label.toLowerCase().includes('even'));
-        if (evenSem) {
-          semesterId = evenSem.value;
-        } else {
-          semesterId = data.semesters[0].value; // fallback to the first one (usually latest if descending)
-        }
+        const oddSem = data.semesters.find((s: {label: string, value: string}) => s.label.toLowerCase().includes('odd'));
+        semesterId = oddSem ? oddSem.value : data.semesters[0].value;
       }
 
-      if (academicYear) setSelectedYear(academicYear)
-      if (semesterId) setSelectedSem(semesterId)
-
-      // Auto-fetch instead of asking user
-      setStatus('Fetching attendance data...')
-      
-      const fetchResponse = await fetch('/api/fetch-attendance', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-session-id': data.sessionId
-        },
-        body: JSON.stringify({
-          action: 'attendance',
-          csrfToken: data.csrfToken,
-          academicYear: academicYear,
-          semesterId: semesterId
-        })
-      })
-
-      const fetchResult = await fetchResponse.json()
-      
-      if (!fetchResponse.ok || !fetchResult.success || !fetchResult.attendanceData || fetchResult.attendanceData.length === 0) {
-         // Auto-fetch failed (likely wrong academic year/semester guessed).
-         // Transition to the manual selection screen so the user can choose.
-         setError(fetchResult.message || 'No results found for the auto-selected semester. Please select manually.')
-         setStatus(null)
-         setStep('select-sem')
-         setLoading(false)
-         return
+      if (academicYear) {
+        setSelectedYear(academicYear);
+        try { localStorage.setItem('kl_erp_year', academicYear); } catch {}
+      }
+      if (semesterId) {
+        setSelectedSem(semesterId);
+        try { localStorage.setItem('kl_erp_sem', semesterId); } catch {}
+      }
+      if (username) {
+        try { localStorage.setItem('studentId', username); } catch {}
       }
 
-      // Save the fetched data and route to dashboard
-      localStorage.setItem('attendanceData', JSON.stringify(fetchResult))
-      localStorage.setItem('studentId', username)
-      localStorage.setItem('kl_erp_year', academicYear)
-      localStorage.setItem('kl_erp_sem', semesterId)
-      
-      router.push('/')
+      setStep('select-sem')
       
     } catch (err: unknown) {
       setError(err instanceof Error && err.message ? err.message : 'An unexpected error occurred')
@@ -346,7 +316,7 @@ export default function LoginPage() {
       localStorage.setItem('kl_erp_year', selectedYear)
       localStorage.setItem('kl_erp_sem', selectedSem)
       
-      router.push('/')
+      router.push('/dashboard')
       
     } catch (err: unknown) {
       setError(err instanceof Error && err.message ? err.message : 'An unexpected error occurred')

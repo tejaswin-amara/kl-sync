@@ -27,12 +27,42 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
   const [user, setUser] = useState({ name: 'Student', initials: 'ST', id: 'Loading...' });
 
   useEffect(() => {
-    const name = localStorage.getItem('kl_student_name') || 'Student';
-    const id = localStorage.getItem('kl_university_id') || 'Student ID';
+    const cachedName = localStorage.getItem('kl_student_name');
+    const name = cachedName || 'Student';
+    const id = localStorage.getItem('studentId') || 'Student ID';
     const initials = name !== 'Student' 
-      ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() 
+      ? name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() 
       : 'ST';
     setUser({ name, initials, id });
+
+    if (!cachedName) {
+      fetch('/api/fetch-profile').then(res => res.json()).then(data => {
+        if (data.success && data.profile && data.profile.name) {
+          localStorage.setItem('kl_student_name', data.profile.name);
+          localStorage.setItem('kl_student_profile', JSON.stringify(data.profile));
+          setUser(prev => ({ 
+            ...prev, 
+            name: data.profile.name,
+            initials: data.profile.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
+          }));
+        }
+      }).catch(() => {});
+    }
+
+    // Global interceptor for API session expiration
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+      const response = await originalFetch(...args);
+      const url = args[0] as string;
+      if (url && url.startsWith && url.startsWith('/api/fetch-')) {
+        const ct = response.headers.get('content-type') || '';
+        if (response.status === 401 || (!ct.includes('application/json') && response.status !== 500)) {
+           window.location.href = '/';
+        }
+      }
+      return response;
+    };
+    return () => { window.fetch = originalFetch; };
   }, []);
 
   const navItems = [
@@ -46,16 +76,29 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
     { href: '/dashboard/circulars', label: 'Circulars', icon: Megaphone },
     { href: '/dashboard/hostels', label: 'Hostel Info', icon: Building2 },
     { href: '/dashboard/library', label: 'Library', icon: BookOpen },
+    { href: '/dashboard/tools', label: 'Tools & Calcs', icon: CheckSquare },
   ];
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50 flex overflow-hidden">
       
       {/* Ambient background matching kl-attendance-v2 */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="blob blob-a bg-indigo-500 top-[10%] left-[20%] w-[30vw] h-[30vw]" />
-        <div className="blob blob-b bg-purple-500 top-[40%] right-[10%] w-[25vw] h-[25vw]" />
-        <div className="blob blob-c bg-emerald-500 bottom-[10%] left-[30%] w-[35vw] h-[35vw]" />
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <motion.div 
+          animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3], rotate: [0, 90, 0] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute rounded-full blur-[100px] bg-indigo-500 top-[10%] left-[20%] w-[30vw] h-[30vw]" 
+        />
+        <motion.div 
+          animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2], translate: ['0%', '-10%', '0%'] }}
+          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute rounded-full blur-[120px] bg-purple-500 top-[40%] right-[10%] w-[25vw] h-[25vw]" 
+        />
+        <motion.div 
+          animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.5, 0.3], rotate: [0, -90, 0] }}
+          transition={{ duration: 22, repeat: Infinity, ease: "easeInOut", delay: 5 }}
+          className="absolute rounded-full blur-[100px] bg-emerald-500 bottom-[10%] left-[30%] w-[35vw] h-[35vw]" 
+        />
       </div>
 
       {/* Mobile Header */}
@@ -67,16 +110,16 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
           >
             <Menu className="w-5 h-5 text-zinc-300" />
           </button>
-          <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="KL" className="h-6 object-contain filter invert" />
+          <Link href="/dashboard" className="flex items-center gap-2">
+            <img src="/logo.png" alt="KL" className="h-6 object-contain" />
             <span className="font-bold text-sm text-zinc-100">KL Sync</span>
-          </div>
+          </Link>
         </div>
         <div className="flex items-center gap-3">
-           <button className="relative p-2 rounded-full hover:bg-white/10 transition-colors text-zinc-300">
+           <Link href="/dashboard/circulars" className="relative p-2 rounded-full hover:bg-white/10 transition-colors text-zinc-300">
              <Bell className="w-4 h-4" />
              <span className="absolute top-2 right-2.5 w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-           </button>
+           </Link>
            <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-xs shadow-sm overflow-hidden border border-white/10 relative">
              {user.id !== 'Student ID' && user.id !== 'Loading...' && (
                <img 
@@ -117,10 +160,10 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
               
               <div className="p-6 border-b" style={{ borderColor: 'rgba(255,255,255,.06)' }}>
                 <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-2">
-                    <img src="/logo.png" alt="KL" className="h-7 object-contain filter invert" />
+                  <Link href="/dashboard" className="flex items-center gap-2">
+                    <img src="/logo.png" alt="KL" className="h-8 w-auto object-contain" />
                     <span className="font-bold text-lg text-zinc-100 tracking-tight">KL Sync</span>
-                  </div>
+                  </Link>
                   <button className="lg:hidden p-2 -mr-2 rounded-lg hover:bg-white/10 text-zinc-400" onClick={() => setDrawerOpen(false)}>
                     <X className="w-5 h-5" />
                   </button>
@@ -145,8 +188,8 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto py-4 px-3 custom-scrollbar space-y-1">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 px-3 mb-2 mt-2">Menu</div>
+              <div className="flex-1 overflow-y-auto py-2 px-3 space-y-0.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 px-3 mb-1 mt-1">Menu</div>
                 {navItems.map((item) => {
                   const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
                   const Icon = item.icon;
@@ -155,7 +198,7 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
                       key={item.href}
                       href={item.href}
                       onClick={() => setDrawerOpen(false)}
-                      className={`w-full text-left px-3 py-2.5 flex items-center gap-3 transition-all cursor-pointer rounded-xl text-sm font-medium ${
+                      className={`w-full text-left px-3 py-1 flex items-center gap-2.5 transition-all cursor-pointer rounded-xl text-sm font-medium ${
                         isActive 
                           ? 'bg-indigo-500/10 text-indigo-400 shadow-[inset_0_0_0_1px_rgba(99,102,241,0.2)]' 
                           : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/5'
@@ -171,7 +214,7 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
               <div className="p-4 border-t" style={{ borderColor: 'rgba(255,255,255,.06)' }}>
                 <Link
                   href="/"
-                  className="w-full text-left px-3 py-2.5 flex items-center gap-3 transition-all cursor-pointer rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10"
+                  className="w-full text-left px-3 py-1 flex items-center gap-2.5 transition-all cursor-pointer rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10"
                 >
                   <LogOut className="w-4 h-4" />
                   Sign Out
@@ -198,10 +241,25 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
                <Calendar className="w-3.5 h-3.5" />
                Current Sem
             </button>
-            <button className="relative p-2 rounded-full hover:bg-white/10 transition-colors text-zinc-400 bg-white/5 border border-white/5">
+            <Link href="/dashboard/circulars" className="relative p-2 rounded-full hover:bg-white/10 transition-colors text-zinc-400 bg-white/5 border border-white/5">
               <Bell className="w-4 h-4" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
-            </button>
+            </Link>
+            <div className="h-8 w-px bg-white/10 mx-1"></div>
+            <div className="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-1.5 pr-3 rounded-full transition-colors">
+              <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-xs shadow-sm overflow-hidden border border-white/10 relative shrink-0">
+                {user.id !== 'Student ID' && user.id !== 'Loading...' && (
+                  <img 
+                    src={`/api/fetch-photo?id=${user.id}`} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover absolute inset-0 z-10"
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
+                )}
+                <span className="text-zinc-400 z-0 relative">{user.initials}</span>
+              </div>
+              <span className="text-sm font-semibold text-zinc-100 hidden sm:block">{user.name}</span>
+            </div>
           </div>
         </header>
 
@@ -215,3 +273,5 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
     </div>
   );
 }
+
+

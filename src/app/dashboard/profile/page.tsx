@@ -1,5 +1,8 @@
-﻿'use client';
+'use client';
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { GlassCard } from '@/components/ui/glass-card';
+import { Loader2, AlertCircle, Inbox, ChevronDown, TrendingUp, TrendingDown, AlertTriangle, CalendarOff, Armchair, Megaphone, Bed, Book, CheckCircle, Clock } from 'lucide-react';
 
 export default function ProfilePage() {
   const [data, setData] = useState<any>(null);
@@ -7,6 +10,14 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const cached = localStorage.getItem('kl_student_profile');
+    if (cached) {
+      try {
+        setData(JSON.parse(cached));
+        setLoading(false);
+      } catch (e) {}
+    }
+
     fetch('/api/fetch-profile')
       .then(res => {
         const ct = res.headers.get('content-type') || '';
@@ -20,8 +31,11 @@ export default function ProfilePage() {
           throw new Error(resData.error || 'Failed to fetch data');
         }
         setData(resData.data || {});
+        localStorage.setItem('kl_student_profile', JSON.stringify(resData.data || {}));
       })
-      .catch(err => setError(err.message))
+      .catch(err => {
+        if (!cached) setError(err.message);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -34,26 +48,26 @@ export default function ProfilePage() {
 
       {loading ? (
         <div className="card bg-zinc-900/40 backdrop-blur-xl border border-white/5 min-h-[400px] flex flex-col items-center justify-center">
-          <span className="material-symbols-outlined text-4xl text-indigo-400 animate-spin mb-4">progress_activity</span>
+          <Loader2 className="w-10 h-10 text-indigo-400 animate-spin mb-4" />
           <span className="text-base text-zinc-400 text-gray-400">Syncing your profile...</span>
         </div>
       ) : error ? (
         <div className="card bg-zinc-900/40 backdrop-blur-xl border border-white/5 min-h-[400px] flex flex-col items-center justify-center p-8 text-center">
-          <div className="w-16 h-16 rounded bg-[#CF6679]/10 flex items-center justify-center text-[#CF6679] mb-4">
-            <span className="material-symbols-outlined text-4xl">error</span>
+          <div className="w-16 h-16 rounded bg-red-500/10 flex items-center justify-center text-red-400 mb-4">
+            <AlertCircle className="w-10 h-10" />
           </div>
-          <p className="md-h5 text-[#CF6679]">Failed to load profile</p>
+          <p className="md-h5 text-red-400">Failed to load profile</p>
           <p className="text-sm text-zinc-500 text-gray-400 mt-2 max-w-md">{error}</p>
         </div>
       ) : data ? (
         <div className="card bg-zinc-900/40 backdrop-blur-xl border border-white/5 overflow-hidden">
           {/* Profile Header */}
-          <div className="bg-[var(--color-primary-variant)] p-8 sm:p-12 relative">
-            <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-end gap-6">
-              <div className="w-32 h-32 rounded bg-[var(--color-surface)] border-2 border-[var(--color-primary)] shadow-md flex items-center justify-center text-zinc-100 text-5xl md-h3 overflow-hidden relative">
+          <div className="bg-[var(--color-primary-variant)] p-4 sm:p-6 relative">
+            <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-end gap-4">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded bg-zinc-950/50 backdrop-blur-md border-2 border-[var(--color-primary)] shadow-md flex items-center justify-center text-zinc-100 text-3xl overflow-hidden relative">
                 {data.universityId ? (
                   <img 
-                    src={`https://newerp.kluniversity.in/uploads/studentphotos/${data.universityId}.jpg`} 
+                    src={`/api/fetch-photo?id=${data.universityId}`} 
                     alt="Profile" 
                     className="w-full h-full object-cover absolute inset-0 z-10"
                     onError={(e) => { e.currentTarget.style.display = 'none'; }}
@@ -61,10 +75,10 @@ export default function ProfilePage() {
                 ) : null}
                 <span className="z-0 relative">{data.name ? data.name.charAt(0).toUpperCase() : 'U'}</span>
               </div>
-              <div className="text-center sm:text-left text-[var(--color-on-primary)] pb-2 z-20">
+              <div className="text-center sm:text-left text-[var(--color-on-primary)] pb-1 z-20">
                 <h3 className="text-3xl font-bold tracking-tight">{data.name || 'Unknown Student'}</h3>
                 <div className="inline-flex items-center gap-2 mt-3 px-3 py-1 bg-black/20 rounded">
-                  <span className="material-symbols-outlined text-[16px]">badge</span>
+                  
                   <span className="text-xs text-zinc-500 font-mono tracking-wider tracking-wider">ID: {data.universityId || 'N/A'}</span>
                 </div>
               </div>
@@ -72,19 +86,19 @@ export default function ProfilePage() {
           </div>
           
           {/* Profile Details Grid */}
-          <div className="p-8 bg-[var(--color-surface)]">
-            <h4 className="md-h6 text-zinc-100 mb-6 flex items-center gap-2">
-              <span className="material-symbols-outlined text-indigo-400">person</span>
+          <div className="p-4 sm:p-6 bg-zinc-950/50 backdrop-blur-md">
+            <h4 className="text-sm font-semibold text-zinc-100 mb-4 flex items-center gap-2">
+              
               Personal Information
             </h4>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                {Object.entries(data).filter(([k]) => k !== 'name' && k !== 'universityId').map(([k, v]) => (
-                  <div key={k} className="flex flex-col gap-1 p-4 bg-[#2c2c2c] rounded border border-[#333] hover:border-[var(--color-primary)]/50 transition-colors">
-                    <span className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 text-gray-400">
+                  <div key={k} className="flex flex-col p-2.5 bg-[#2c2c2c] rounded border border-white/10 hover:border-[var(--color-primary)]/50 transition-colors">
+                    <span className="text-[9px] font-bold tracking-widest uppercase text-zinc-500 text-gray-400 truncate">
                       {k.replace(/([A-Z])/g, ' $1').trim()}
                     </span>
-                    <span className="text-base text-zinc-400 text-zinc-100 break-words">{String(v) || 'Not Provided'}</span>
+                    <span className="text-xs text-zinc-100 truncate" title={String(v)}>{String(v) || 'Not Provided'}</span>
                   </div>
                ))}
             </div>

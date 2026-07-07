@@ -339,7 +339,7 @@ export async function loginAndFetchSemesters(
     },
     csrfToken,
     academicYears,
-    semesters,
+      semesters,
     deviceId: jar[DEVICE_COOKIE],
   };
 }
@@ -348,19 +348,27 @@ export async function loginAndFetchSemesters(
 function parseGenericTable(html: string) {
     const $ = cheerio.load(html);
     const table = $('table').first();
-    const headers: string[] = [];
     const data: any[] = [];
 
-    table.find('thead tr th').each((i, el) => {
-        headers.push($(el).text().trim());
-    });
-    
-    if (headers.length === 0) {
-        const firstRow = table.find('tr').first();
-        firstRow.find('th, td').each((i, el) => {
-            headers.push($(el).text().trim());
-        });
+    // Extract headers: find the row with the most 'th' or 'td' in thead
+    let headerRow = table.find('thead tr').last();
+    if (headerRow.length === 0) {
+        headerRow = table.find('tr').first();
     }
+
+    const headers: string[] = [];
+    headerRow.find('th, td').each((i, el) => {
+        let text = $(el).text().trim();
+        if (!text) text = `Column_${i}`;
+        // deduplicate headers
+        let suffix = 0;
+        let finalStr = text;
+        while (headers.includes(finalStr)) {
+            suffix++;
+            finalStr = `${text}_${suffix}`;
+        }
+        headers.push(finalStr);
+    });
 
     const rows = table.find('tr');
     const bodyRows = table.find('tbody tr');
@@ -373,12 +381,18 @@ function parseGenericTable(html: string) {
         if (cells.length === 1 && $(cells[0]).text().trim().includes('No results found')) {
             return;
         }
+        // skip if it's just a header row in tbody
+        if (cells.length === 0) return;
 
-        if (cells.length > 0) {
-            cells.each((j, cell) => {
-                const header = headers[j] || `col_${j}`;
-                rowData[header] = $(cell).text().trim();
-            });
+        cells.each((j, cell) => {
+            if (headers[j]) {
+                rowData[headers[j]] = $(cell).text().trim();
+            } else {
+                rowData[`Column_${j}`] = $(cell).text().trim();
+            }
+        });
+        
+        if (Object.keys(rowData).length > 0) {
             data.push(rowData);
         }
     });
@@ -457,9 +471,9 @@ function parseProfileData(html: string) {
   data.name = nameEl.text().trim() || profileBg.contents().filter((_i, el) => el.type === 'text').text().trim();
 
   // University ID from text like 'University ID : 2520090104'
-  const uidMatch = html.match(/University\s*ID\s*:\s*(\S+)/);
+  const text = $('body').text();
+  const uidMatch = text.match(/University\s*ID\s*[:\s]*(\d+)/i);
   if (uidMatch) data.universityId = uidMatch[1];
-
   // Key-value rows from the profile table
   const fieldMap: Record<string, string> = {
     'admission date': 'admissionDate',
@@ -587,4 +601,5 @@ export const fetchExamSeatingData = (s: ScraperSession) => fetchGenericModuleDat
 export const fetchCircularsData = (s: ScraperSession) => fetchGenericModuleData(s, CIRCULARS_URL);
 export const fetchHostelData = (s: ScraperSession) => fetchGenericModuleData(s, HOSTEL_INFO_URL);
 export const fetchLibraryData = (s: ScraperSession) => fetchGenericModuleData(s, LIBRARY_URL);
+
 

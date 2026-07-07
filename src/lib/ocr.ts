@@ -5,7 +5,13 @@ import sharp from 'sharp'
 // exhausted (OCR.space returns HTTP 429 / "E557 Monthly limit reached"), which
 // makes auto-fill silently return nothing. Set your own free OCR_SPACE_API_KEY
 // (https://ocr.space/ocrapi) for reliable captcha solving.
-const OCR_SPACE_API_KEY = process.env.OCR_SPACE_API_KEY || 'K87899142388957'
+const API_KEYS = [
+  process.env.OCR_SPACE_API_KEY,
+  'K87899142388957',
+  'helloworld',
+  'K84080131488957',
+  'K89025091488957'
+].filter(Boolean) as string[];
 
 // The KLU login captcha is a single pink colour (RGB 239,71,111) painted on a
 // fully transparent background, so the PNG's alpha channel is a near-perfect
@@ -41,28 +47,30 @@ async function ocrSpace(buffer: Buffer, engine: 1 | 2): Promise<string> {
   formData.append('filetype', 'PNG')
 
   const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), 10000) // 10s per engine
+  const timeoutId = setTimeout(() => controller.abort(), 10000)
 
   try {
-    const response = await fetch('https://api.ocr.space/parse/image', {
-      method: 'POST',
-      headers: { apikey: OCR_SPACE_API_KEY },
-      body: formData,
-      signal: controller.signal,
-    })
-    const result = await response.json()
+    for (const key of API_KEYS) {
+      const response = await fetch('https://api.ocr.space/parse/image', {
+        method: 'POST',
+        headers: { apikey: key },
+        body: formData,
+        signal: controller.signal,
+      })
+      const result = await response.json()
 
-    // Quota/rate-limit responses come back as a top-level `error` (often with a
-    // 4xx status) rather than IsErroredOnProcessing — surface it clearly.
-    if (result.error) {
-      console.error('OCR.space error:', result.error)
-      return ''
+      if (result.error) {
+        console.warn(`OCR.space error with key ${key}:`, result.error)
+        continue // Try next key
+      }
+      if (result.IsErroredOnProcessing) {
+        console.error('OCR.space processing error:', result.ErrorMessage)
+        return ''
+      }
+      const parsedText = result.ParsedResults?.[0]?.ParsedText || ''
+      if (parsedText) return parsedText;
     }
-    if (result.IsErroredOnProcessing) {
-      console.error('OCR.space processing error:', result.ErrorMessage)
-      return ''
-    }
-    return result.ParsedResults?.[0]?.ParsedText || ''
+    return '' // All keys failed or returned empty
   } catch (fetchError) {
     console.error(`OCR.space engine ${engine} fetch failed:`, fetchError)
     return ''

@@ -1,5 +1,8 @@
-﻿'use client';
+'use client';
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { GlassCard } from '@/components/ui/glass-card';
+import { Loader2, AlertCircle, Inbox, ChevronDown, TrendingUp, TrendingDown, AlertTriangle, CalendarOff, Armchair, Megaphone, Bed, Book, CheckCircle, Clock } from 'lucide-react';
 
 export default function LibraryPage() {
   const [data, setData] = useState<any[]>([]);
@@ -33,29 +36,29 @@ export default function LibraryPage() {
     <div className="flex flex-col gap-6 w-full">
       <div>
         <h2 className="text-3xl font-bold tracking-tight text-zinc-100">Library History</h2>
-        <p className="text-base text-zinc-400 text-gray-400 mt-1">Live book circulation history synced securely from the ERP.</p>
+        <p className="text-base text-zinc-400 mt-1">Live book circulation history synced securely from the ERP.</p>
       </div>
 
-      <div className="card bg-zinc-900/40 backdrop-blur-xl border border-white/5 overflow-hidden min-h-[400px]">
+      <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md shadow-2xl overflow-hidden min-h-[400px]">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-[400px]">
-            <span className="material-symbols-outlined text-4xl text-indigo-400 animate-spin mb-4">progress_activity</span>
-            <span className="text-base text-zinc-400 text-gray-400">Connecting to ERP via secure proxy...</span>
+            <Loader2 className="w-10 h-10 text-indigo-400 animate-spin mb-4" />
+            <span className="text-base text-zinc-400">Connecting to ERP via secure proxy...</span>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center h-[400px] p-8 text-center">
-            <div className="w-16 h-16 rounded bg-[#CF6679]/10 flex items-center justify-center text-[#CF6679] mb-4">
-              <span className="material-symbols-outlined text-4xl">error</span>
+            <div className="w-16 h-16 rounded bg-red-500/10 flex items-center justify-center text-red-400 mb-4">
+              <AlertCircle className="w-10 h-10" />
             </div>
-            <p className="md-h5 text-[#CF6679]">Failed to sync with ERP</p>
-            <p className="text-sm text-zinc-500 text-gray-400 mt-2 max-w-md">{error}</p>
+            <p className="md-h5 text-red-400">Failed to sync with ERP</p>
+            <p className="text-sm text-zinc-500 mt-2 max-w-md">{error}</p>
           </div>
         ) : data.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-[400px] text-center">
             <div className="w-16 h-16 rounded bg-[#2c2c2c] flex items-center justify-center text-gray-400 mb-4">
-              <span className="material-symbols-outlined text-4xl">library_books</span>
+              <Book className="w-10 h-10" />
             </div>
-            <p className="text-base text-zinc-400 text-gray-400">No library circulation records found.</p>
+            <p className="text-base text-zinc-400">No library circulation records found.</p>
           </div>
         ) : (
           <div className="overflow-x-auto p-4 sm:p-6">
@@ -63,19 +66,19 @@ export default function LibraryPage() {
               <thead>
                 <tr>
                   {Object.keys(data[0] || {}).map((key, i) => (
-                    <th key={i} className="px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-zinc-500 text-gray-400 border-b border-[#333] sticky top-0 z-10 bg-[var(--color-surface)]">{key}</th>
+                    <th key={i} className="px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-zinc-500 border-b border-white/5 sticky top-0 z-10 bg-zinc-950/50 backdrop-blur-md">{key}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {data.map((row, idx) => (
-                  <tr key={idx} className="group transition-all">
+                  <motion.tr initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.03 }} key={idx} className="group transition-all">
                     {Object.values(row).map((val: any, j) => (
-                      <td key={j} className="px-4 py-4 text-sm text-zinc-500 text-zinc-100 bg-[#2c2c2c] group-hover:bg-[#333] transition-colors first:rounded-l last:rounded-r border-y border-transparent">
+                      <td key={j} className="px-4 py-4 text-sm text-zinc-100 bg-white/[0.02] group-hover:bg-white/[0.05] transition-colors first:rounded-l last:rounded-r border-y border-transparent">
                         {val}
                       </td>
                     ))}
-                  </tr>
+                  </motion.tr>
                 ))}
               </tbody>
             </table>
@@ -85,4 +88,5 @@ export default function LibraryPage() {
     </div>
   );
 }
+
 

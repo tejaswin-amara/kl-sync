@@ -45,3 +45,5 @@ scratch/
 test.ts
 generate_full_docs.js
 
+
+.vercel
