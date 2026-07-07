@@ -493,7 +493,7 @@ function parseProfileData(html: string) {
   if (name) data.name = name.replace(/University ID.*/i, '').trim();
 
   // 2. Extract exact photo URL (ignoring scripts)
-  const imgMatch = html.match(/<img[^>]*src=["']([^"']*(?:studentphotos|profile|uploads)[^"']*)["']/i);
+  const imgMatch = html.match(/<img[^>]*src=["']([^"']*(?:studentphotos|profile|uploads|data:\s*image)[^"']*)["']/i);
   if (imgMatch && !imgMatch[1].toLowerCase().endsWith('.js')) {
     data.photoUrl = imgMatch[1];
   }

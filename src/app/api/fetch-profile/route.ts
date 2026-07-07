@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { decodeSession } from '@/lib/session';
 import { fetchProfileData, ScraperSession } from '@/lib/scraper';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const sessionCookie = request.cookies.get('kl_erp_session');
@@ -17,6 +19,7 @@ export async function GET(request: NextRequest) {
     }
 
     const result = await fetchProfileData(session);
+    console.log('[fetch-profile] DATA KEYS:', Object.keys(result.data));
     console.log('[fetch-profile] ALL IMAGES:', result.data.allImages);
     console.log('[fetch-profile] ALL LINKS:', result.data.allLinks);
     return NextResponse.json(result);
