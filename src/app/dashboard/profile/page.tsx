@@ -117,7 +117,20 @@ export default function ProfilePage() {
                  const allEntries = Object.entries(displayData).filter(([k]) => !ignoredKeys.includes(k));
                  
                  const scalarEntries = allEntries.filter(([k, v]) => !Array.isArray(v) && typeof v !== 'object');
-                 const arrayEntries = allEntries.filter(([k, v]) => Array.isArray(v) && v.length > 0);
+                 const arrayEntries = allEntries.filter(([k, v]) => {
+                   if (!Array.isArray(v) || v.length === 0) return false;
+                   if (v.length === 1) {
+                     const vals = Object.values(v[0]);
+                     if (vals.some(val => typeof val === 'string' && (
+                       val.toLowerCase().includes('no results found') ||
+                       val.toLowerCase().includes('no records') ||
+                       val.toLowerCase().includes('no data')
+                     ))) {
+                       return false;
+                     }
+                   }
+                   return true;
+                 });
 
                  return (
                    <>
