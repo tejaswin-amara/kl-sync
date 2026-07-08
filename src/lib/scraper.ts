@@ -505,93 +505,91 @@ function parseProfileData(html: string) {
   // 3. Extract ALL dynamic profile fields
   const extendedDetails: any = {};
   
-  // First, try parsing tables based on headers
+  // Generic Table Extractor
   $('table').each((_i, table) => {
     const $table = $(table);
     const rows = $table.find('tr');
     if (rows.length < 2) return;
 
-    // Check the first row for headers
-    const headers = $(rows[0]).find('th, td').map((_j, el) => $(el).text().trim().replace(/[\r\n]+/g, ' ')).get();
-    const headerStr = headers.join('|').toLowerCase();
+    const $firstRow = $(rows[0]);
+    
+    // Determine if it's a "Label-Value pair" table or a "Data Grid" table.
+    let hasColons = false;
+    let firstRowCells = $firstRow.find('th, td');
+    for (let i = 0; i < firstRowCells.length; i += 2) {
+       if ($(firstRowCells[i]).text().includes(':') || (i+1 < firstRowCells.length && $(firstRowCells[i+1]).text().includes(':'))) {
+           hasColons = true;
+       }
+    }
 
-    // Detect table types based on headers
-    if (headerStr.includes('address type') && headerStr.includes('door no')) {
-      const addressData: any[] = [];
-      rows.slice(1).each((_k, row) => {
-        const cells = $(row).find('td').map((_l, el) => $(el).text().trim()).get();
-        if (cells.length >= 4) {
-          addressData.push({
-            'Address Type': cells[1] || '',
-            'Door No': cells[2] || '',
-            'Street': cells[3] || ''
-          });
-        }
-      });
-      extendedDetails.addressDetails = addressData;
-    } else if (headerStr.includes('contact type') && headerStr.includes('contact relation')) {
-      const contactData: any[] = [];
-      rows.slice(1).each((_k, row) => {
-        const cells = $(row).find('td').map((_l, el) => $(el).text().trim()).get();
-        if (cells.length >= 4) {
-          contactData.push({
-            'Contact Type': cells[1] || '',
-            'Contact Relation': cells[2] || '',
-            'Phone Number': cells[3] || ''
-          });
-        }
-      });
-      extendedDetails.contactInformation = contactData;
-    } else if (headerStr.includes('identity type') && headerStr.includes('identity no')) {
-      const identityData: any[] = [];
-      rows.slice(1).each((_k, row) => {
-        const cells = $(row).find('td').map((_l, el) => $(el).text().trim()).get();
-        if (cells.length >= 6) {
-          identityData.push({
-            'Identity Type': cells[1] || '',
-            'Identity No': cells[2] || '',
-            'Issued Authority': cells[3] || '',
-            'Issued On': cells[4] || '',
-            'Date Of Expiry': cells[5] || '',
-            'Place Of Issue': cells[6] || ''
-          });
-        }
-      });
-      extendedDetails.identityInformation = identityData;
-    } else if (headerStr.includes('dependent') && headerStr.includes('first name') && headerStr.includes('last name')) {
-      const dependentsData: any[] = [];
-      rows.slice(1).each((_k, row) => {
-        const cells = $(row).find('td').map((_l, el) => $(el).text().trim()).get();
-        if (cells.length >= 6) {
-          dependentsData.push({
-            'Dependent': cells[1] || '',
-            'First Name': cells[2] || '',
-            'Last Name': cells[3] || '',
-            'Middle Name': cells[4] || '',
-            'Date Of Birth': cells[5] || '',
-            'Gender': cells[6] || ''
-          });
-        }
-      });
-      extendedDetails.dependentsDetails = dependentsData;
+    // Determine the table's name
+    let tableName = `table${_i + 1}`;
+    
+    // Check preceding elements for a heading
+    const prevHeading = $table.prevAll('h1, h2, h3, h4, h5, h6, legend, .panel-heading').first().text().trim();
+    // Check parent's preceding elements (sometimes tables are wrapped in a div)
+    const parentHeading = $table.parent().prevAll('h1, h2, h3, h4, h5, h6, legend, .panel-heading').first().text().trim();
+    
+    // Check for tab names if they are inside a tab pane (e.g. Yii CJuiTabs)
+    let tabLinkName = '';
+    const tabPaneId = $table.closest('.tab-pane, [id^="tab"], [id^="yt"]').attr('id');
+    if (tabPaneId) {
+       tabLinkName = $(`a[href="#${tabPaneId}"]`).text().trim();
+    }
+
+    if (tabLinkName) {
+      tableName = tabLinkName;
+    } else if (prevHeading) {
+      tableName = prevHeading;
+    } else if (parentHeading) {
+      tableName = parentHeading;
+    }
+
+    // Generate a clean camelCase key for the table
+    const cleanKey = tableName.replace(/[^a-zA-Z0-9\s]/g, '').replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
+      return index === 0 ? word.toLowerCase() : word.toUpperCase();
+    }).replace(/\s+/g, '');
+
+    const finalKey = cleanKey || `section${_i + 1}`;
+
+    // Extract as Tabular Data Grid
+    if (!hasColons || $firstRow.find('th').length > 0) {
+      const headers = firstRowCells.map((_j, el) => $(el).text().trim().replace(/[\r\n]+/g, ' ')).get();
+      
+      if (headers.filter(h => h).length > 0) {
+         const tableData: any[] = [];
+         rows.slice(1).each((_k, row) => {
+           const cells = $(row).find('td').map((_l, el) => $(el).text().trim()).get();
+           if (cells.length > 0) {
+             const rowObj: any = {};
+             headers.forEach((h, idx) => {
+               if (h) rowObj[h] = cells[idx] || '';
+             });
+             // Only push if there's at least one non-empty value
+             if (Object.values(rowObj).some(v => v !== '')) {
+                tableData.push(rowObj);
+             }
+           }
+         });
+         
+         if (tableData.length > 0) {
+            extendedDetails[finalKey] = tableData;
+         }
+      }
     } else {
-      // Fallback: parse as pairs if it looks like the Personal Information table
-      // We only do this if it's not one of the tabular data tables
+      // Fallback: parse as pairs (Personal Information)
       const cells = $table.find('td');
       for (let i = 0; i < cells.length; i += 2) {
         if (i + 1 < cells.length) {
           let label = $(cells[i]).text().trim();
           let value = $(cells[i + 1]).text().trim().replace(/^:\s*/, '').trim();
           
-          // Clean up labels and ignore empty or purely symbolic labels
           label = label.replace(/^:\s*/, '').replace(/:$/, '').trim();
           if (label && label.length > 1 && value && value !== ':') {
-            // Only assign if it's a simple string (to avoid overwriting arrays if logic overlaps)
             if (!extendedDetails[label]) {
               extendedDetails[label] = value;
             }
             
-            // Also map standard fields for backward compatibility with existing UI
             const lKey = label.toLowerCase();
             if (lKey.includes('admission date')) data.admissionDate = value;
             if (lKey.includes('date of birth') || lKey === 'dob') data.dob = value;
