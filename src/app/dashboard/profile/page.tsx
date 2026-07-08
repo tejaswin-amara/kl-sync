@@ -115,7 +115,7 @@ export default function ProfilePage() {
                  const ignoredKeys = ['name', 'universityId', 'photoUrl', 'extendedProfile', 'success', 'rawHtmlLength', 'allImages', 'allLinks'];
                  const allEntries = Object.entries(displayData).filter(([k]) => !ignoredKeys.includes(k));
                  
-                 const scalarEntries = allEntries.filter(([k, v]) => !Array.isArray(v) && typeof v !== 'object');
+                 const scalarEntries = allEntries.filter(([k, v]) => !Array.isArray(v) && typeof v !== 'object' && !k.toLowerCase().includes('photo') && !String(v).startsWith('http') && !String(v).startsWith('data:image'));
                  const arrayEntries = allEntries.filter(([k, v]) => {
                    if (!Array.isArray(v) || v.length === 0) return false;
                    if (v.length === 1) {
@@ -186,7 +186,15 @@ export default function ProfilePage() {
                                    {(v as any[]).map((row, idx) => (
                                      <tr key={idx} className="hover:bg-white/[0.02] transition-colors">
                                        {Object.values(row).map((val: any, cellIdx) => (
-                                         <td key={cellIdx} className="p-3 text-xs text-zinc-300">{val}</td>
+                                         <td key={cellIdx} className="p-3 text-xs text-zinc-300">
+                                           {typeof val === 'object' && val !== null && val.type === 'link' ? (
+                                             <a href={val.url} target="_blank" rel="noopener noreferrer" className="text-[var(--color-primary)] hover:underline">
+                                               {val.text}
+                                             </a>
+                                           ) : (
+                                             String(val)
+                                           )}
+                                         </td>
                                        ))}
                                      </tr>
                                    ))}

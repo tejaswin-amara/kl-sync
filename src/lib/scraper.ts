@@ -726,7 +726,16 @@ function parseProfileData(pages: { name: string, html: string }[]) {
             if (headers.filter((h: string) => h).length > 0) {
                const tableData: any[] = [];
                rows.slice(headerRowIdx + 1).each((_k: any, row: any) => {
-                 const cells = $(row).find('td').map((_l: any, el: any) => $(el).text().trim()).get();
+                 const cells = $(row).find('td').map((_l: any, el: any) => {
+                   const $el = $(el);
+                   const link = $el.find('a').first();
+                   if (link.length > 0 && link.attr('href')) {
+                     let href = link.attr('href');
+                     if (href.startsWith('/')) href = `https://newerp.kluniversity.in${href}`;
+                     return { type: 'link', text: $el.text().trim() || 'Link', url: href };
+                   }
+                   return $el.text().trim();
+                 }).get();
                  if (cells.length > 0) {
                    const rowObj: any = {};
                    headers.forEach((h: string, idx: number) => {
