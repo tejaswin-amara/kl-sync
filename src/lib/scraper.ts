@@ -501,50 +501,113 @@ function parseProfileData(html: string) {
   // University ID from text like 'University ID : 2520090104'
   const uidMatch = text.match(/University\s*ID\s*[:\s]*(\d+)/i);
   if (uidMatch) data.universityId = uidMatch[1];
+    
   // 3. Extract ALL dynamic profile fields
-  const extendedDetails: Record<string, string> = {};
-  $('table tr').each((_i, row) => {
-    const cells = $(row).find('td');
-    // Parse in pairs (Label, Value)
-    for (let i = 0; i < cells.length; i += 2) {
-      if (i + 1 < cells.length) {
-        let label = $(cells[i]).text().trim();
-        let value = $(cells[i + 1]).text().trim().replace(/^:\s*/, '').trim();
-        
-        // Clean up labels and ignore empty or purely symbolic labels
-        label = label.replace(/^:\s*/, '').replace(/:$/, '').trim();
-        if (label && label.length > 1 && value && value !== ':') {
-          extendedDetails[label] = value;
+  const extendedDetails: any = {};
+  
+  // First, try parsing tables based on headers
+  $('table').each((_i, table) => {
+    const $table = $(table);
+    const rows = $table.find('tr');
+    if (rows.length < 2) return;
+
+    // Check the first row for headers
+    const headers = $(rows[0]).find('th, td').map((_j, el) => $(el).text().trim().replace(/[\r\n]+/g, ' ')).get();
+    const headerStr = headers.join('|').toLowerCase();
+
+    // Detect table types based on headers
+    if (headerStr.includes('address type') && headerStr.includes('door no')) {
+      const addressData: any[] = [];
+      rows.slice(1).each((_k, row) => {
+        const cells = $(row).find('td').map((_l, el) => $(el).text().trim()).get();
+        if (cells.length >= 4) {
+          addressData.push({
+            'Address Type': cells[1] || '',
+            'Door No': cells[2] || '',
+            'Street': cells[3] || ''
+          });
+        }
+      });
+      extendedDetails.addressDetails = addressData;
+    } else if (headerStr.includes('contact type') && headerStr.includes('contact relation')) {
+      const contactData: any[] = [];
+      rows.slice(1).each((_k, row) => {
+        const cells = $(row).find('td').map((_l, el) => $(el).text().trim()).get();
+        if (cells.length >= 4) {
+          contactData.push({
+            'Contact Type': cells[1] || '',
+            'Contact Relation': cells[2] || '',
+            'Phone Number': cells[3] || ''
+          });
+        }
+      });
+      extendedDetails.contactInformation = contactData;
+    } else if (headerStr.includes('identity type') && headerStr.includes('identity no')) {
+      const identityData: any[] = [];
+      rows.slice(1).each((_k, row) => {
+        const cells = $(row).find('td').map((_l, el) => $(el).text().trim()).get();
+        if (cells.length >= 6) {
+          identityData.push({
+            'Identity Type': cells[1] || '',
+            'Identity No': cells[2] || '',
+            'Issued Authority': cells[3] || '',
+            'Issued On': cells[4] || '',
+            'Date Of Expiry': cells[5] || '',
+            'Place Of Issue': cells[6] || ''
+          });
+        }
+      });
+      extendedDetails.identityInformation = identityData;
+    } else if (headerStr.includes('dependent') && headerStr.includes('first name') && headerStr.includes('last name')) {
+      const dependentsData: any[] = [];
+      rows.slice(1).each((_k, row) => {
+        const cells = $(row).find('td').map((_l, el) => $(el).text().trim()).get();
+        if (cells.length >= 6) {
+          dependentsData.push({
+            'Dependent': cells[1] || '',
+            'First Name': cells[2] || '',
+            'Last Name': cells[3] || '',
+            'Middle Name': cells[4] || '',
+            'Date Of Birth': cells[5] || '',
+            'Gender': cells[6] || ''
+          });
+        }
+      });
+      extendedDetails.dependentsDetails = dependentsData;
+    } else {
+      // Fallback: parse as pairs if it looks like the Personal Information table
+      // We only do this if it's not one of the tabular data tables
+      const cells = $table.find('td');
+      for (let i = 0; i < cells.length; i += 2) {
+        if (i + 1 < cells.length) {
+          let label = $(cells[i]).text().trim();
+          let value = $(cells[i + 1]).text().trim().replace(/^:\s*/, '').trim();
           
-          // Also map standard fields for backward compatibility with existing UI
-          const lKey = label.toLowerCase();
-          if (lKey.includes('admission date')) data.admissionDate = value;
-          if (lKey.includes('date of birth') || lKey === 'dob') data.dob = value;
-          if (lKey.includes('blood group')) data.bloodGroup = value;
-          if (lKey.includes('email')) data.email = value;
-          if (lKey.includes('height')) data.height = value;
-          if (lKey.includes('weight')) data.weight = value;
-          if (lKey.includes('regulation')) data.regulation = value;
-          if (lKey.includes('program')) data.program = value;
+          // Clean up labels and ignore empty or purely symbolic labels
+          label = label.replace(/^:\s*/, '').replace(/:$/, '').trim();
+          if (label && label.length > 1 && value && value !== ':') {
+            // Only assign if it's a simple string (to avoid overwriting arrays if logic overlaps)
+            if (!extendedDetails[label]) {
+              extendedDetails[label] = value;
+            }
+            
+            // Also map standard fields for backward compatibility with existing UI
+            const lKey = label.toLowerCase();
+            if (lKey.includes('admission date')) data.admissionDate = value;
+            if (lKey.includes('date of birth') || lKey === 'dob') data.dob = value;
+            if (lKey.includes('blood group')) data.bloodGroup = value;
+            if (lKey.includes('email')) data.email = value;
+            if (lKey.includes('height')) data.height = value;
+            if (lKey.includes('weight')) data.weight = value;
+            if (lKey.includes('regulation')) data.regulation = value;
+            if (lKey.includes('program')) data.program = value;
+          }
         }
       }
     }
   });
 
   data.extendedProfile = JSON.stringify(extendedDetails);
-
-  // Debug: Grab ALL images and ALL links
-  const allImages: string[] = [];
-  $('img').each((_i, img) => {
-    allImages.push($(img).attr('src') || 'none');
-  });
-  data.allImages = allImages;
-  
-  const allLinks: string[] = [];
-  $('a').each((_i, a) => {
-    allLinks.push($(a).attr('href') || 'none');
-  });
-  data.allLinks = allLinks;
 
   return data;
 }

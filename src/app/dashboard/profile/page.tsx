@@ -75,7 +75,7 @@ export default function ProfilePage() {
               <div className="w-20 h-20 sm:w-24 sm:h-24 rounded bg-zinc-950/50 backdrop-blur-md border-2 border-[var(--color-primary)] shadow-md flex items-center justify-center text-zinc-100 text-3xl overflow-hidden relative">
                 {data.universityId ? (
                   <img 
-                    src={data.photoUrl ? `/api/fetch-photo?path=${encodeURIComponent(data.photoUrl)}` : `/api/fetch-photo?id=${data.universityId}`} 
+                    src={data.photoUrl?.startsWith('data:image') ? data.photoUrl : (data.photoUrl ? `/api/fetch-photo?path=${encodeURIComponent(data.photoUrl)}` : `/api/fetch-photo?id=${data.universityId}`)} 
                     alt="Profile" 
                     className="w-full h-full object-cover absolute inset-0 z-10"
                     onError={(e) => { e.currentTarget.style.display = 'none'; }}
@@ -99,9 +99,9 @@ export default function ProfilePage() {
               All Information
             </h4>
             
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div>
                {(() => {
-                 let displayData: Record<string, string> = {};
+                 let displayData: Record<string, any> = {};
                  
                  // If extended profile is available, parse it and use it.
                  // Otherwise fallback to the legacy standard data keys.
@@ -113,16 +113,52 @@ export default function ProfilePage() {
                    displayData = { ...data };
                  }
 
-                 return Object.entries(displayData)
-                   .filter(([k]) => !['name', 'universityId', 'photoUrl', 'extendedProfile', 'success', 'rawHtmlLength'].includes(k))
-                   .map(([k, v]) => (
-                    <div key={k} className="flex flex-col p-2.5 bg-[#2c2c2c] rounded border border-white/10 hover:border-[var(--color-primary)]/50 transition-colors">
-                      <span className="text-[9px] font-bold tracking-widest uppercase text-zinc-500 text-gray-400 truncate" title={k}>
-                        {k.replace(/([A-Z])/g, ' $1').trim()}
-                      </span>
-                      <span className="text-xs text-zinc-100 truncate" title={String(v)}>{String(v) || 'Not Provided'}</span>
-                    </div>
-                 ));
+                 const ignoredKeys = ['name', 'universityId', 'photoUrl', 'extendedProfile', 'success', 'rawHtmlLength', 'allImages', 'allLinks'];
+                 const allEntries = Object.entries(displayData).filter(([k]) => !ignoredKeys.includes(k));
+                 
+                 const scalarEntries = allEntries.filter(([k, v]) => !Array.isArray(v) && typeof v !== 'object');
+                 const arrayEntries = allEntries.filter(([k, v]) => Array.isArray(v) && v.length > 0);
+
+                 return (
+                   <>
+                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                       {scalarEntries.map(([k, v]) => (
+                         <div key={k} className="flex flex-col p-2.5 bg-[#2c2c2c] rounded border border-white/10 hover:border-[var(--color-primary)]/50 transition-colors">
+                           <span className="text-[9px] font-bold tracking-widest uppercase text-zinc-500 text-gray-400 truncate" title={k}>
+                             {k.replace(/([A-Z])/g, ' $1').trim()}
+                           </span>
+                           <span className="text-xs text-zinc-100 truncate" title={String(v)}>{String(v) || 'Not Provided'}</span>
+                         </div>
+                       ))}
+                     </div>
+                     
+                     {arrayEntries.map(([k, v]: [string, any]) => (
+                       <div key={k} className="mt-8">
+                         <h4 className="text-sm font-semibold text-zinc-100 mb-3 capitalize">{k.replace(/([A-Z])/g, ' $1').trim()}</h4>
+                         <div className="overflow-x-auto rounded-xl border border-white/10">
+                           <table className="w-full text-left border-collapse">
+                             <thead>
+                               <tr className="border-b border-white/10">
+                                 {Object.keys(v[0]).map(header => (
+                                   <th key={header} className="p-3 text-[10px] uppercase tracking-wider text-zinc-400 font-semibold bg-[#2c2c2c]/50">{header}</th>
+                                 ))}
+                               </tr>
+                             </thead>
+                             <tbody className="divide-y divide-white/5 bg-black/20">
+                               {(v as any[]).map((row, idx) => (
+                                 <tr key={idx} className="hover:bg-white/[0.02] transition-colors">
+                                   {Object.values(row).map((val: any, cellIdx) => (
+                                     <td key={cellIdx} className="p-3 text-xs text-zinc-300">{val}</td>
+                                   ))}
+                                 </tr>
+                               ))}
+                             </tbody>
+                           </table>
+                         </div>
+                       </div>
+                     ))}
+                   </>
+                 );
                })()}
             </div>
           </div>
