@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Cookies from 'js-cookie';
 import { 
   LayoutDashboard, 
   User, 
@@ -77,7 +78,7 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
     localStorage.removeItem('kl_student_name');
     localStorage.removeItem('kl_student_photo');
     localStorage.removeItem('kl_student_profile');
-    document.cookie = "kl_erp_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    Cookies.remove('kl_erp_session');
     window.location.href = '/';
   };
 

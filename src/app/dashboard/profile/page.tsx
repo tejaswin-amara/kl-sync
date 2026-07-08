@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Loader2, AlertCircle, Inbox, ChevronDown, TrendingUp, TrendingDown, AlertTriangle, CalendarOff, Armchair, Megaphone, Bed, Book, CheckCircle, Clock } from 'lucide-react';
+import Cookies from 'js-cookie';
 
 export default function ProfilePage() {
   const [data, setData] = useState<any>(null);
@@ -34,7 +35,14 @@ export default function ProfilePage() {
         localStorage.setItem('kl_student_profile', JSON.stringify(resData.data || {}));
       })
       .catch(err => {
-        if (!cached) setError(err.message);
+        if (err.message.includes('Session expired') || err.message.includes('Unauthorized')) {
+          localStorage.removeItem('kl_student_profile');
+          // Dispatch a custom event to force sign out, or redirect directly
+          Cookies.remove('kl_erp_session');
+          window.location.href = '/';
+        } else if (!cached) {
+          setError(err.message);
+        }
       })
       .finally(() => setLoading(false));
   }, []);
