@@ -9,6 +9,7 @@ export default function ProfilePage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string | null>(null);
 
   useEffect(() => {
     const cached = localStorage.getItem('kl_student_profile');
@@ -103,8 +104,6 @@ export default function ProfilePage() {
                {(() => {
                  let displayData: Record<string, any> = {};
                  
-                 // If extended profile is available, parse it and use it.
-                 // Otherwise fallback to the legacy standard data keys.
                  if (data.extendedProfile) {
                    try {
                      displayData = JSON.parse(data.extendedProfile);
@@ -132,9 +131,11 @@ export default function ProfilePage() {
                    return true;
                  });
 
+                 const currentTab = activeTab || (arrayEntries.length > 0 ? arrayEntries[0][0] : null);
+
                  return (
                    <>
-                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-8">
                        {scalarEntries.map(([k, v]) => (
                          <div key={k} className="flex flex-col p-2.5 bg-[#2c2c2c] rounded border border-white/10 hover:border-[var(--color-primary)]/50 transition-colors">
                            <span className="text-[9px] font-bold tracking-widest uppercase text-zinc-500 text-gray-400 truncate" title={k}>
@@ -145,31 +146,57 @@ export default function ProfilePage() {
                        ))}
                      </div>
                      
-                     {arrayEntries.map(([k, v]: [string, any]) => (
-                       <div key={k} className="mt-8">
-                         <h4 className="text-sm font-semibold text-zinc-100 mb-3 capitalize">{k.replace(/([A-Z])/g, ' $1').trim()}</h4>
-                         <div className="overflow-x-auto rounded-xl border border-white/10">
-                           <table className="w-full text-left border-collapse">
-                             <thead>
-                               <tr className="border-b border-white/10">
-                                 {Object.keys(v[0]).map(header => (
-                                   <th key={header} className="p-3 text-[10px] uppercase tracking-wider text-zinc-400 font-semibold bg-[#2c2c2c]/50">{header}</th>
-                                 ))}
-                               </tr>
-                             </thead>
-                             <tbody className="divide-y divide-white/5 bg-black/20">
-                               {(v as any[]).map((row, idx) => (
-                                 <tr key={idx} className="hover:bg-white/[0.02] transition-colors">
-                                   {Object.values(row).map((val: any, cellIdx) => (
-                                     <td key={cellIdx} className="p-3 text-xs text-zinc-300">{val}</td>
-                                   ))}
-                                 </tr>
-                               ))}
-                             </tbody>
-                           </table>
+                     {arrayEntries.length > 0 && (
+                       <div className="mt-8">
+                         <div className="flex flex-wrap gap-2 mb-6">
+                           {arrayEntries.map(([k]) => (
+                             <button
+                               key={k}
+                               onClick={() => setActiveTab(k)}
+                               className={`px-4 py-2 text-xs font-semibold rounded-full transition-all ${
+                                 currentTab === k 
+                                   ? 'bg-zinc-100 text-zinc-950' 
+                                   : 'bg-zinc-900/50 text-zinc-400 hover:text-zinc-200 border border-white/10 hover:border-white/20'
+                               }`}
+                             >
+                               {k.replace(/([A-Z])/g, ' $1').trim()}
+                             </button>
+                           ))}
                          </div>
+
+                         {arrayEntries.map(([k, v]: [string, any]) => {
+                           if (k !== currentTab) return null;
+                           
+                           return (
+                             <motion.div 
+                               initial={{ opacity: 0, y: 10 }}
+                               animate={{ opacity: 1, y: 0 }}
+                               key={k} 
+                               className="overflow-x-auto rounded-xl border border-white/10"
+                             >
+                               <table className="w-full text-left border-collapse">
+                                 <thead>
+                                   <tr className="border-b border-white/10">
+                                     {Object.keys(v[0]).map(header => (
+                                       <th key={header} className="p-3 text-[10px] uppercase tracking-wider text-zinc-400 font-semibold bg-[#2c2c2c]/50">{header}</th>
+                                     ))}
+                                   </tr>
+                                 </thead>
+                                 <tbody className="divide-y divide-white/5 bg-black/20">
+                                   {(v as any[]).map((row, idx) => (
+                                     <tr key={idx} className="hover:bg-white/[0.02] transition-colors">
+                                       {Object.values(row).map((val: any, cellIdx) => (
+                                         <td key={cellIdx} className="p-3 text-xs text-zinc-300">{val}</td>
+                                       ))}
+                                     </tr>
+                                   ))}
+                                 </tbody>
+                               </table>
+                             </motion.div>
+                           );
+                         })}
                        </div>
-                     ))}
+                     )}
                    </>
                  );
                })()}
