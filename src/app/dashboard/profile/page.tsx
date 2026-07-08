@@ -76,7 +76,7 @@ export default function ProfilePage() {
               <div className="w-20 h-20 sm:w-24 sm:h-24 rounded bg-zinc-950/50 backdrop-blur-md border-2 border-[var(--color-primary)] shadow-md flex items-center justify-center text-zinc-100 text-3xl overflow-hidden relative">
                 {data.universityId ? (
                   <img 
-                    src={data.photoUrl?.startsWith('data:image') ? data.photoUrl : (data.photoUrl ? `/api/fetch-photo?path=${encodeURIComponent(data.photoUrl)}` : `/api/fetch-photo?id=${data.universityId}`)} 
+                    src={data.photoUrl?.replace(/\\s/g, '').startsWith('data:image') ? data.photoUrl : (data.photoUrl ? `/api/fetch-photo?path=${encodeURIComponent(data.photoUrl)}` : `/api/fetch-photo?id=${data.universityId}`)} 
                     alt="Profile" 
                     className="w-full h-full object-cover absolute inset-0 z-10"
                     onError={(e) => { e.currentTarget.style.display = 'none'; }}

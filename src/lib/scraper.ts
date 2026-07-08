@@ -661,7 +661,11 @@ function parseProfileData(pages: { name: string, html: string }[]) {
   if (!data.photoUrl) {
     const imgMatch = mainHtml.match(/<img[^>]*src=["']([^"']*(?:studentphotos|profile|uploads|data:\s*image)[^"']*)["']/i);
     if (imgMatch && !imgMatch[1].toLowerCase().endsWith('.js')) {
-      data.photoUrl = imgMatch[1];
+      let photoSrc = imgMatch[1];
+      if (photoSrc.replace(/\\s/g, '').toLowerCase().startsWith('data:image')) {
+          photoSrc = photoSrc.replace(/\\s/g, '');
+      }
+      data.photoUrl = photoSrc;
     }
   }
     
