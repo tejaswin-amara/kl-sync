@@ -130,11 +130,19 @@ Your ERP username and password are used once, to authenticate against the real E
 
 ## Contributing
 
-Issues and pull requests are welcome. [Open one here](https://github.com/tejaswin-amara/kl-sync/issues).
+Issues and pull requests are welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md) for guidelines.
 
 ## License
 
-No license file is included, so the default is full copyright with all rights reserved. Ask before reusing the code.
+This project is under copyright. See [`LICENSE`](LICENSE) for details.
+
+## Security
+
+To report a vulnerability securely, see [`SECURITY.md`](SECURITY.md).
+
+## Code of Conduct
+
+We're committed to a welcoming community. See [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
 
 ---
 
