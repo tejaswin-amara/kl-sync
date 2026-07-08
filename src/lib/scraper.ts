@@ -470,145 +470,7 @@ export async function fetchGenericModuleData(session: ScraperSession, targetUrl:
   };
 }
 
-  // --- Profile parser ---
-function parseProfileData(html: string) {
-  const $ = cheerio.load(html);
-  const data: Record<string, any> = {};
-
-  const text = $('body').text() || html;
-
-  // 1. More aggressive name parsing
-  const profileBg = $('.profile_bg');
-  const nameEl = profileBg.find('h4').filter((_i, el) => !$(el).text().includes('Student Profile'));
-  let name = nameEl.text().trim() || profileBg.contents().filter((_i, el) => el.type === 'text').text().trim();
   
-  if (!name || name.length < 3) {
-    // Look for "Welcome : AMARA TEJASWIN" or similar
-    const welcomeMatch = text.match(/(?:Welcome|Hello|Name)[\s:-]*([A-Za-z\s]{4,40})(?:\s|\||$)/i);
-    if (welcomeMatch) {
-       name = welcomeMatch[1].trim();
-    }
-  }
-  // Clean up any extraneous strings from the name
-  if (name) data.name = name.replace(/University ID.*/i, '').trim();
-
-  // 2. Extract exact photo URL (ignoring scripts)
-  const imgMatch = html.match(/<img[^>]*src=["']([^"']*(?:studentphotos|profile|uploads|data:\s*image)[^"']*)["']/i);
-  if (imgMatch && !imgMatch[1].toLowerCase().endsWith('.js')) {
-    data.photoUrl = imgMatch[1];
-  }
-
-  // University ID from text like 'University ID : 2520090104'
-  const uidMatch = text.match(/University\s*ID\s*[:\s]*(\d+)/i);
-  if (uidMatch) data.universityId = uidMatch[1];
-    
-  // 3. Extract ALL dynamic profile fields
-  const extendedDetails: any = {};
-  
-  // Generic Table Extractor
-  $('table').each((_i, table) => {
-    const $table = $(table);
-    const rows = $table.find('tr');
-    if (rows.length < 2) return;
-
-    const $firstRow = $(rows[0]);
-    
-    // Determine if it's a "Label-Value pair" table or a "Data Grid" table.
-    let hasColons = false;
-    let firstRowCells = $firstRow.find('th, td');
-    for (let i = 0; i < firstRowCells.length; i += 2) {
-       if ($(firstRowCells[i]).text().includes(':') || (i+1 < firstRowCells.length && $(firstRowCells[i+1]).text().includes(':'))) {
-           hasColons = true;
-       }
-    }
-
-    // Determine the table's name
-    let tableName = `table${_i + 1}`;
-    
-    // Check preceding elements for a heading
-    const prevHeading = $table.prevAll('h1, h2, h3, h4, h5, h6, legend, .panel-heading').first().text().trim();
-    // Check parent's preceding elements (sometimes tables are wrapped in a div)
-    const parentHeading = $table.parent().prevAll('h1, h2, h3, h4, h5, h6, legend, .panel-heading').first().text().trim();
-    
-    // Check for tab names if they are inside a tab pane (e.g. Yii CJuiTabs)
-    let tabLinkName = '';
-    const tabPaneId = $table.closest('.tab-pane, [id^="tab"], [id^="yt"]').attr('id');
-    if (tabPaneId) {
-       tabLinkName = $(`a[href="#${tabPaneId}"]`).text().trim();
-    }
-
-    if (tabLinkName) {
-      tableName = tabLinkName;
-    } else if (prevHeading) {
-      tableName = prevHeading;
-    } else if (parentHeading) {
-      tableName = parentHeading;
-    }
-
-    // Generate a clean camelCase key for the table
-    const cleanKey = tableName.replace(/[^a-zA-Z0-9\s]/g, '').replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
-      return index === 0 ? word.toLowerCase() : word.toUpperCase();
-    }).replace(/\s+/g, '');
-
-    const finalKey = cleanKey || `section${_i + 1}`;
-
-    // Extract as Tabular Data Grid
-    if (!hasColons || $firstRow.find('th').length > 0) {
-      const headers = firstRowCells.map((_j, el) => $(el).text().trim().replace(/[\r\n]+/g, ' ')).get();
-      
-      if (headers.filter(h => h).length > 0) {
-         const tableData: any[] = [];
-         rows.slice(1).each((_k, row) => {
-           const cells = $(row).find('td').map((_l, el) => $(el).text().trim()).get();
-           if (cells.length > 0) {
-             const rowObj: any = {};
-             headers.forEach((h, idx) => {
-               if (h) rowObj[h] = cells[idx] || '';
-             });
-             // Only push if there's at least one non-empty value
-             if (Object.values(rowObj).some(v => v !== '')) {
-                tableData.push(rowObj);
-             }
-           }
-         });
-         
-         if (tableData.length > 0) {
-            extendedDetails[finalKey] = tableData;
-         }
-      }
-    } else {
-      // Fallback: parse as pairs (Personal Information)
-      const cells = $table.find('td');
-      for (let i = 0; i < cells.length; i += 2) {
-        if (i + 1 < cells.length) {
-          let label = $(cells[i]).text().trim();
-          let value = $(cells[i + 1]).text().trim().replace(/^:\s*/, '').trim();
-          
-          label = label.replace(/^:\s*/, '').replace(/:$/, '').trim();
-          if (label && label.length > 1 && value && value !== ':') {
-            if (!extendedDetails[label]) {
-              extendedDetails[label] = value;
-            }
-            
-            const lKey = label.toLowerCase();
-            if (lKey.includes('admission date')) data.admissionDate = value;
-            if (lKey.includes('date of birth') || lKey === 'dob') data.dob = value;
-            if (lKey.includes('blood group')) data.bloodGroup = value;
-            if (lKey.includes('email')) data.email = value;
-            if (lKey.includes('height')) data.height = value;
-            if (lKey.includes('weight')) data.weight = value;
-            if (lKey.includes('regulation')) data.regulation = value;
-            if (lKey.includes('program')) data.program = value;
-          }
-        }
-      }
-    }
-  });
-
-  data.extendedProfile = JSON.stringify(extendedDetails);
-
-  return data;
-}
 
 // --- POST-based fetchers (need csrf + form params) ---
 
@@ -703,9 +565,204 @@ export async function fetchProfileData(session: ScraperSession) {
   });
   const html = await res.text();
   if (html.includes('id="login-form"')) throw new Error('Session expired or invalid ERP route.');
-  return { success: true, data: parseProfileData(html) };
+
+  // Extract all profile tab URLs from the HTML
+  const tabUrls = new Set<string>();
+  const cheerio = require('cheerio');
+  const $ = cheerio.load(html);
+  
+  // 1. Extract from <a> tags inside nav/tabs
+  $('a').each((_i: any, a: any) => {
+    const href = $(a).attr('href');
+    if (href && href.includes('index.php?r=') && !href.includes('viewprofileindi')) {
+       if ($(a).parents('li, .nav, .tabs, .ui-tabs-nav, .tab-pane').length > 0) {
+           tabUrls.add(href);
+       }
+    }
+  });
+
+  // 2. Extract from CJuiTabs javascript configs
+  const scriptRegex = /'url'\s*:\s*'(\/index\.php\?r=[^']+)'/gi;
+  let match;
+  while ((match = scriptRegex.exec(html)) !== null) {
+    if (!match[1].includes('viewprofileindi')) {
+      tabUrls.add(match[1].replace('&amp;', '&'));
+    }
+  }
+
+  // Fetch all tab URLs concurrently
+  const tabPromises = Array.from(tabUrls).map(async (url) => {
+      try {
+          const tabRes = await fetchWithJar(`https://newerp.kluniversity.in${url}`, jar, {
+              method: 'GET',
+              extraHeaders: { Origin: ERP_URL, Referer: PROFILE_URL, 'X-Requested-With': 'XMLHttpRequest' },
+          });
+          return await tabRes.text();
+      } catch (e) {
+          return '';
+      }
+  });
+
+  const tabHtmls = await Promise.all(tabPromises);
+  const allHtmls = [html, ...tabHtmls];
+
+  return { success: true, data: parseProfileData(allHtmls) };
 }
 
+function parseProfileData(htmls: string[]) {
+  const cheerio = require('cheerio');
+  const mainHtml = htmls[0];
+  const $main = cheerio.load(mainHtml);
+  const data: Record<string, any> = {};
+
+  const text = $main('body').text() || mainHtml;
+
+  // 1. Name parsing
+  const profileBg = $main('.profile_bg');
+  const nameEl = profileBg.find('h4').filter((_i: any, el: any) => !$main(el).text().includes('Student Profile'));
+  let name = nameEl.text().trim() || profileBg.contents().filter((_i: any, el: any) => el.type === 'text').text().trim();
+  
+  if (!name || name.length < 3) {
+    const welcomeMatch = text.match(/(?:Welcome|Hello|Name)[\s:-]*([A-Za-z\s]{4,40})(?:\s|\||$)/i);
+    if (welcomeMatch) name = welcomeMatch[1].trim();
+  }
+  if (name) data.name = name.replace(/University ID.*/i, '').trim();
+
+  // University ID
+  const uidMatch = text.match(/University\s*ID\s*[:\s]*(\d+)/i);
+  if (uidMatch) data.universityId = uidMatch[1];
+
+  // 2. Photo extraction
+  $main('img').each((_i: any, img: any) => {
+    const src = $main(img).attr('src');
+    if (src) {
+        const lowerSrc = src.toLowerCase();
+        if (lowerSrc.endsWith('.js') || lowerSrc.includes('logo') || lowerSrc.includes('captcha')) return;
+        
+        const uid = data.universityId || '';
+        if (lowerSrc.includes('studentphotos') || lowerSrc.includes('profile') || (uid && src.includes(uid))) {
+            data.photoUrl = src;
+        }
+    }
+  });
+  if (!data.photoUrl) {
+    const imgMatch = mainHtml.match(/<img[^>]*src=["']([^"']*(?:studentphotos|profile|uploads|data:\s*image)[^"']*)["']/i);
+    if (imgMatch && !imgMatch[1].toLowerCase().endsWith('.js')) {
+      data.photoUrl = imgMatch[1];
+    }
+  }
+    
+  // 3. Extract ALL dynamic profile fields across ALL fetched HTMLs
+  const extendedDetails: any = {};
+  
+  htmls.forEach((html, pageIdx) => {
+      const $ = cheerio.load(html);
+      
+      $('table').each((_i: any, table: any) => {
+          const $table = $(table);
+          const rows = $table.find('tr');
+          if (rows.length < 2) return;
+
+          // Find the row with the most cells to be the header row
+          let maxCells = 0;
+          let headerRowIdx = 0;
+          let potentialHeaders: string[] = [];
+          
+          rows.slice(0, 3).each((idx: number, row: any) => {
+             const cells = $(row).find('th, td');
+             if (cells.length > maxCells) {
+                 maxCells = cells.length;
+                 headerRowIdx = idx;
+                 potentialHeaders = cells.map((_: any, el: any) => $(el).text().trim().replace(/[\r\n]+/g, ' ')).get();
+             }
+          });
+
+          // Re-evaluate hasColons based on the potentialHeaders
+          let hasColons = false;
+          for (let i = 0; i < potentialHeaders.length; i += 2) {
+             if (potentialHeaders[i].includes(':') || (i+1 < potentialHeaders.length && potentialHeaders[i+1].includes(':'))) {
+                 hasColons = true;
+             }
+          }
+
+          let tableName = `table${pageIdx}_${_i + 1}`;
+          const prevHeading = $table.prevAll('h1, h2, h3, h4, h5, h6, legend, .panel-heading').first().text().trim();
+          const parentHeading = $table.parent().prevAll('h1, h2, h3, h4, h5, h6, legend, .panel-heading').first().text().trim();
+          
+          let tabLinkName = '';
+          const tabPaneId = $table.closest('.tab-pane, [id^="tab"], [id^="yt"]').attr('id');
+          if (tabPaneId) {
+             tabLinkName = $main(`a[href="#${tabPaneId}"]`).text().trim();
+          }
+
+          if (tabLinkName) {
+            tableName = tabLinkName;
+          } else if (prevHeading) {
+            tableName = prevHeading;
+          } else if (parentHeading) {
+            tableName = parentHeading;
+          }
+
+          const cleanKey = tableName.replace(/[^a-zA-Z0-9\s]/g, '').replace(/(?:^\w|[A-Z]|\b\w)/g, (word: string, index: number) => {
+            return index === 0 ? word.toLowerCase() : word.toUpperCase();
+          }).replace(/\s+/g, '');
+
+          const finalKey = cleanKey || `section${pageIdx}_${_i + 1}`;
+
+          if (!hasColons) {
+            const headers = potentialHeaders;
+            if (headers.filter((h: string) => h).length > 0) {
+               const tableData: any[] = [];
+               rows.slice(headerRowIdx + 1).each((_k: any, row: any) => {
+                 const cells = $(row).find('td').map((_l: any, el: any) => $(el).text().trim()).get();
+                 if (cells.length > 0) {
+                   const rowObj: any = {};
+                   headers.forEach((h: string, idx: number) => {
+                     if (h) rowObj[h] = cells[idx] || '';
+                   });
+                   if (Object.values(rowObj).some((v: any) => v !== '')) {
+                      tableData.push(rowObj);
+                   }
+                 }
+               });
+               
+               if (tableData.length > 0) {
+                  extendedDetails[finalKey] = tableData;
+               }
+            }
+          } else {
+             // Fallback for pairs (only on the main page to avoid overriding)
+             if (pageIdx === 0) {
+                 const cells = $table.find('td');
+                 for (let i = 0; i < cells.length; i += 2) {
+                   if (i + 1 < cells.length) {
+                     let label = $(cells[i]).text().trim();
+                     let value = $(cells[i + 1]).text().trim().replace(/^:\s*/, '').trim();
+                     label = label.replace(/^:\s*/, '').replace(/:$/, '').trim();
+                     if (label && label.length > 1 && value && value !== ':') {
+                       if (!extendedDetails[label]) {
+                         extendedDetails[label] = value;
+                       }
+                       const lKey = label.toLowerCase();
+                       if (lKey.includes('admission date')) data.admissionDate = value;
+                       if (lKey.includes('date of birth') || lKey === 'dob') data.dob = value;
+                       if (lKey.includes('blood group')) data.bloodGroup = value;
+                       if (lKey.includes('email')) data.email = value;
+                       if (lKey.includes('height')) data.height = value;
+                       if (lKey.includes('weight')) data.weight = value;
+                       if (lKey.includes('regulation')) data.regulation = value;
+                       if (lKey.includes('program')) data.program = value;
+                     }
+                   }
+                 }
+             }
+          }
+      });
+  });
+
+  data.extendedProfile = JSON.stringify(extendedDetails);
+  return data;
+}
 // --- Simple GET fetchers ---
 export const fetchFeeData = (s: ScraperSession) => fetchGenericModuleData(s, FEE_URL);
 export const fetchCGPAData = (s: ScraperSession) => fetchGenericModuleData(s, CGPA_URL);
@@ -713,5 +770,6 @@ export const fetchExamSeatingData = (s: ScraperSession) => fetchGenericModuleDat
 export const fetchCircularsData = (s: ScraperSession) => fetchGenericModuleData(s, CIRCULARS_URL);
 export const fetchHostelData = (s: ScraperSession) => fetchGenericModuleData(s, HOSTEL_INFO_URL);
 export const fetchLibraryData = (s: ScraperSession) => fetchGenericModuleData(s, LIBRARY_URL);
+
 
 
