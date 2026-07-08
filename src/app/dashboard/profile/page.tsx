@@ -159,7 +159,7 @@ export default function ProfilePage() {
                                    : 'bg-zinc-900/50 text-zinc-400 hover:text-zinc-200 border border-white/10 hover:border-white/20'
                                }`}
                              >
-                               {k.replace(/([A-Z])/g, ' $1').trim()}
+                               {k.includes(' ') || k.toLowerCase() === k ? k : k.replace(/([A-Z])/g, ' $1').trim()}
                              </button>
                            ))}
                          </div>

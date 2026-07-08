@@ -567,51 +567,64 @@ export async function fetchProfileData(session: ScraperSession) {
   if (html.includes('id="login-form"')) throw new Error('Session expired or invalid ERP route.');
 
   // Extract all profile tab URLs from the HTML
-  const tabUrls = new Set<string>();
+  const tabUrls = new Map<string, string>();
   const cheerio = require('cheerio');
   const $ = cheerio.load(html);
   
   // 1. Extract from <a> tags inside nav/tabs
   $('a').each((_i: any, a: any) => {
     const href = $(a).attr('href');
+    const text = $(a).text().trim();
     if (href && href.includes('index.php?r=') && !href.includes('viewprofileindi')) {
-       if ($(a).parents('li, .nav, .tabs, .ui-tabs-nav, .tab-pane').length > 0) {
-           tabUrls.add(href);
+       if ($(a).parents('li, .nav, .tabs, .ui-tabs-nav, .tab-pane, .panel').length > 0) {
+           tabUrls.set(href, text || 'Unknown Tab');
        }
     }
   });
 
   // 2. Extract from CJuiTabs javascript configs
-  const scriptRegex = /'url'\s*:\s*'(\/index\.php\?r=[^']+)'/gi;
-  let match;
-  while ((match = scriptRegex.exec(html)) !== null) {
-    if (!match[1].includes('viewprofileindi')) {
-      tabUrls.add(match[1].replace('&amp;', '&'));
+  const scriptRegex1 = /'([^']+)'\s*:\s*\{\s*'ajax'\s*:\s*'(\/index\.php\?r=[^']+)'/gi;
+  let match1;
+  while ((match1 = scriptRegex1.exec(html)) !== null) {
+    if (!match1[2].includes('viewprofileindi')) {
+      tabUrls.set(match1[2].replace('&amp;', '&'), match1[1]);
+    }
+  }
+
+  // 3. Extract from generic url configs
+  const scriptRegex2 = /'url'\s*:\s*'(\/index\.php\?r=[^']+)'/gi;
+  let match2;
+  while ((match2 = scriptRegex2.exec(html)) !== null) {
+    if (!match2[1].includes('viewprofileindi')) {
+      const u = match2[1].replace('&amp;', '&');
+      if (!tabUrls.has(u)) {
+        tabUrls.set(u, 'Unknown Tab');
+      }
     }
   }
 
   // Fetch all tab URLs concurrently
-  const tabPromises = Array.from(tabUrls).map(async (url) => {
+  const tabPromises = Array.from(tabUrls.entries()).map(async ([url, name]) => {
       try {
           const tabRes = await fetchWithJar(`https://newerp.kluniversity.in${url}`, jar, {
               method: 'GET',
               extraHeaders: { Origin: ERP_URL, Referer: PROFILE_URL, 'X-Requested-With': 'XMLHttpRequest' },
           });
-          return await tabRes.text();
+          return { name, html: await tabRes.text() };
       } catch (e) {
-          return '';
+          return { name, html: '' };
       }
   });
 
   const tabHtmls = await Promise.all(tabPromises);
-  const allHtmls = [html, ...tabHtmls];
+  const allPages = [{ name: 'Personal Information', html }, ...tabHtmls];
 
-  return { success: true, data: parseProfileData(allHtmls) };
+  return { success: true, data: parseProfileData(allPages) };
 }
 
-function parseProfileData(htmls: string[]) {
+function parseProfileData(pages: { name: string, html: string }[]) {
   const cheerio = require('cheerio');
-  const mainHtml = htmls[0];
+  const mainHtml = pages[0].html;
   const $main = cheerio.load(mainHtml);
   const data: Record<string, any> = {};
 
@@ -655,8 +668,8 @@ function parseProfileData(htmls: string[]) {
   // 3. Extract ALL dynamic profile fields across ALL fetched HTMLs
   const extendedDetails: any = {};
   
-  htmls.forEach((html, pageIdx) => {
-      const $ = cheerio.load(html);
+  pages.forEach((page, pageIdx) => {
+      const $ = cheerio.load(page.html);
       
       $('table').each((_i: any, table: any) => {
           const $table = $(table);
@@ -685,7 +698,7 @@ function parseProfileData(htmls: string[]) {
              }
           }
 
-          let tableName = `table${pageIdx}_${_i + 1}`;
+          let tableName = page.name && page.name !== 'Unknown Tab' ? page.name : `table${pageIdx}_${_i + 1}`;
           const prevHeading = $table.prevAll('h1, h2, h3, h4, h5, h6, legend, .panel-heading').first().text().trim();
           const parentHeading = $table.parent().prevAll('h1, h2, h3, h4, h5, h6, legend, .panel-heading').first().text().trim();
           
@@ -697,16 +710,15 @@ function parseProfileData(htmls: string[]) {
 
           if (tabLinkName) {
             tableName = tabLinkName;
-          } else if (prevHeading) {
+          } else if (prevHeading && prevHeading.length > 2 && prevHeading.length < 50) {
             tableName = prevHeading;
-          } else if (parentHeading) {
+          } else if (parentHeading && parentHeading.length > 2 && parentHeading.length < 50) {
             tableName = parentHeading;
+          } else if (_i > 0 && page.name && page.name !== 'Unknown Tab') {
+            tableName = `${page.name} ${_i + 1}`;
           }
 
-          const cleanKey = tableName.replace(/[^a-zA-Z0-9\s]/g, '').replace(/(?:^\w|[A-Z]|\b\w)/g, (word: string, index: number) => {
-            return index === 0 ? word.toLowerCase() : word.toUpperCase();
-          }).replace(/\s+/g, '');
-
+          const cleanKey = tableName.replace(/[^a-zA-Z0-9\s]/g, '');
           const finalKey = cleanKey || `section${pageIdx}_${_i + 1}`;
 
           if (!hasColons) {
