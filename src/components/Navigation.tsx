@@ -89,7 +89,6 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
     { href: '/dashboard/marks', label: 'Marks', icon: Star },
     { href: '/dashboard/timetable', label: 'Timetable', icon: Calendar },
     { href: '/dashboard/fee', label: 'Fee Details', icon: CreditCard },
-    { href: '/dashboard/exam-seating', label: 'Exams', icon: Armchair },
     { href: '/dashboard/circulars', label: 'Circulars', icon: Megaphone },
     { href: '/dashboard/hostels', label: 'Hostel Info', icon: Building2 },
     { href: '/dashboard/library', label: 'Library', icon: BookOpen },
