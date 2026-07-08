@@ -10,7 +10,7 @@ export default function FeePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/fetch-fee')
+    fetch('/api/erp-proxy/fee')
       .then(res => {
         const ct = res.headers.get('content-type') || '';
         if (!ct.includes('application/json')) {

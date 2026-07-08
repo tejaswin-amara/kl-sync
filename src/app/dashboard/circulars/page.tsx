@@ -10,7 +10,7 @@ export default function CircularsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/fetch-circulars')
+    fetch('/api/erp-proxy/circulars')
       .then(res => {
         const ct = res.headers.get('content-type') || '';
         if (!ct.includes('application/json')) {

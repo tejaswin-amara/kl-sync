@@ -10,7 +10,7 @@ export default function ExamSeatingPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/fetch-exam-seating')
+    fetch('/api/erp-proxy/exam-seating')
       .then(res => {
         const ct = res.headers.get('content-type') || '';
         if (!ct.includes('application/json')) {

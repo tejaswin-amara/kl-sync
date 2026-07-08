@@ -40,7 +40,7 @@ export default function AttendanceDashboard() {
     setError(null);
     try {
       const csrf = sessionStorage.getItem('kl_erp_csrf_token');
-      const res = await fetch('/api/fetch-attendance', {
+      const res = await fetch('/api/erp-proxy/attendance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ academicYear: selectedYear, semesterId: selectedSem, csrfToken: csrf })

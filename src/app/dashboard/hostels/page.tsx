@@ -10,7 +10,7 @@ export default function HostelsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/fetch-hostel')
+    fetch('/api/erp-proxy/hostel')
       .then(res => {
         const ct = res.headers.get('content-type') || '';
         if (!ct.includes('application/json')) {

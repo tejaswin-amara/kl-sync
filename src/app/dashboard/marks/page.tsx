@@ -50,7 +50,7 @@ export default function MarksPage() {
       
       const csrf = sessionStorage.getItem('kl_erp_csrf_token');
       
-      const res = await fetch('/api/fetch-marks', {
+      const res = await fetch('/api/erp-proxy/marks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ academicYear: year, semesterId: sem, csrfToken: csrf })

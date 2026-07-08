@@ -43,7 +43,7 @@ export default function TimetablePage() {
     setError(null);
     try {
       const csrf = sessionStorage.getItem('kl_erp_csrf_token');
-      const res = await fetch('/api/fetch-timetable', {
+      const res = await fetch('/api/erp-proxy/timetable', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ academicYear: selectedYear, semesterId: selectedSem, csrfToken: csrf })

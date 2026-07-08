@@ -19,7 +19,7 @@ export default function ToolsPage() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const cgpaRes = await fetch('/api/fetch-cgpa');
+      const cgpaRes = await fetch('/api/erp-proxy/cgpa');
       const cgpaData = await cgpaRes.json();
       if (cgpaData.success && cgpaData.data) {
          let totalCreds = 0;
@@ -46,7 +46,7 @@ export default function ToolsPage() {
       
       if (yearId && semId) {
         const csrf = sessionStorage.getItem('kl_erp_csrf_token');
-        const attRes = await fetch('/api/fetch-attendance', {
+        const attRes = await fetch('/api/erp-proxy/attendance', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ academicYear: yearId, semesterId: semId, csrfToken: csrf })

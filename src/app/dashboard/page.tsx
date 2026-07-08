@@ -42,7 +42,7 @@ export default function DashboardOverview() {
     if (cachedFee) setPendingFee(Number(cachedFee));
 
     // Fetch CGPA & Credits in background
-    fetch('/api/fetch-cgpa')
+    fetch('/api/erp-proxy/cgpa')
       .then(res => res.json())
       .then(resData => {
         if (resData.success && resData.data && resData.data.length > 0) {
@@ -84,7 +84,7 @@ export default function DashboardOverview() {
              setActiveSemId(semId);
              
              const csrf = sessionStorage.getItem('kl_erp_csrf_token');
-             fetch('/api/fetch-attendance', {
+             fetch('/api/erp-proxy/attendance', {
                method: 'POST',
                headers: { 'Content-Type': 'application/json' },
                body: JSON.stringify({ academicYear: yearId, semesterId: semId, csrfToken: csrf })
@@ -123,7 +123,7 @@ export default function DashboardOverview() {
       })
       .catch(console.error);
 
-    fetch('/api/fetch-fee')
+    fetch('/api/erp-proxy/fee')
       .then(res => res.json())
       .then(resData => {
         if (resData.success && resData.data && resData.data.length > 0) {
@@ -234,7 +234,7 @@ function TodayScheduleWidget({ activeYearId, activeSemId }: { activeYearId: stri
     setLoading(true);
     try {
       const csrf = sessionStorage.getItem('kl_erp_csrf_token');
-      fetch('/api/fetch-timetable', {
+      fetch('/api/erp-proxy/timetable', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ academicYear: activeYearId, semesterId: activeSemId, csrfToken: csrf })
@@ -331,7 +331,7 @@ function CurrentCoursesWidget({ activeYearId, activeSemId }: { activeYearId: str
     setLoading(true);
     try {
       const csrf = sessionStorage.getItem('kl_erp_csrf_token');
-      fetch('/api/fetch-marks', {
+      fetch('/api/erp-proxy/marks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ academicYear: activeYearId, semesterId: activeSemId, csrfToken: csrf })

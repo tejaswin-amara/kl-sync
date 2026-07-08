@@ -6,17 +6,18 @@ const ATTENDANCE_URL = `${ERP_URL}/index.php?r=studentattendance%2Fstudentdailya
 const COURSE_LIST_URL = `${ERP_URL}/index.php?r=studentattendance%2Fstudentdailyattendance%2Fcourselist`;
 
 // --- Real ERP endpoints ---
-const MARKS_URL = `${ERP_URL}/index.php?r=studentinfo%2Fstudentendexamresult%2Fgetstudentinternalmarks`;
-const TIMETABLE_URL = `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Findexstudentindisearch`;
-const FEE_URL = `${ERP_URL}/index.php?r=feepayments%2Fstudentfeeorderdetailsinfo%2Fmy_fee_orders`;
-const PROFILE_URL = `${ERP_URL}/index.php?r=studentinfo%2Fstudentprofileinfo%2Fviewprofileindi`;
-const CGPA_URL = `${ERP_URL}/index.php?r=studentinfo%2Fstudentendexamresult%2Fsearchgetmycgpa`;
-const END_EXAM_URL = `${ERP_URL}/index.php?r=studentinfo%2Fstudentendexamresult%2Fsemendresult`;
-const EXAM_SEATING_URL = `${ERP_URL}/index.php?r=examsection%2Fexam-invigilator-student-room-allotment-info%2Fstud_my_seating_plan`;
-const CIRCULARS_URL = `${ERP_URL}/index.php?r=registraroffice%2Fregistrarofficecircularsvisibilitylistinfo%2Ftab_index_personal`;
-const HOSTEL_INFO_URL = `${ERP_URL}/index.php?r=hostel%2Fhosteloccupancyinfo%2Fhostel-room-info`;
-const LIBRARY_URL = `${ERP_URL}/index.php?r=library%2Fborrowers%2Fmy_circulation_history`;
-
+export const ERP_ENDPOINTS: Record<string, string> = {
+  marks: `${ERP_URL}/index.php?r=studentinfo%2Fstudentendexamresult%2Fgetstudentinternalmarks`,
+  timetable: `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Findexstudentindisearch`,
+  fee: `${ERP_URL}/index.php?r=feepayments%2Fstudentfeeorderdetailsinfo%2Fmy_fee_orders`,
+  profile: `${ERP_URL}/index.php?r=studentinfo%2Fstudentprofileinfo%2Fviewprofileindi`,
+  cgpa: `${ERP_URL}/index.php?r=studentinfo%2Fstudentendexamresult%2Fsearchgetmycgpa`,
+  'end-exam': `${ERP_URL}/index.php?r=studentinfo%2Fstudentendexamresult%2Fsemendresult`,
+  'exam-seating': `${ERP_URL}/index.php?r=examsection%2Fexam-invigilator-student-room-allotment-info%2Fstud_my_seating_plan`,
+  circulars: `${ERP_URL}/index.php?r=registraroffice%2Fregistrarofficecircularsvisibilitylistinfo%2Ftab_index_personal`,
+  hostel: `${ERP_URL}/index.php?r=hostel%2Fhosteloccupancyinfo%2Fhostel-room-info`,
+  library: `${ERP_URL}/index.php?r=library%2Fborrowers%2Fmy_circulation_history`,
+};
 
 const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
@@ -486,14 +487,14 @@ export async function fetchTimetableData(
   params.append('UniversityMasterAcademicTimetableView[academicyear]', academicYear);
   params.append('UniversityMasterAcademicTimetableView[semesterid]', semesterId);
 
-  const res = await fetchWithJar(TIMETABLE_URL, jar, {
+  const res = await fetchWithJar(ERP_ENDPOINTS['timetable'], jar, {
     method: 'POST',
     body: params,
     extraHeaders: {
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
       'X-Requested-With': 'XMLHttpRequest',
       'Origin': ERP_URL,
-      'Referer': TIMETABLE_URL,
+      'Referer': ERP_ENDPOINTS['timetable'],
     },
   });
   const html = await res.text();
@@ -514,14 +515,14 @@ export async function fetchMarksData(
   // ponytail: ERP uses 'semester' (not 'semesterid') for marks endpoint
   params.append('DynamicModel[semester]', semesterId);
 
-  const res = await fetchWithJar(MARKS_URL, jar, {
+  const res = await fetchWithJar(ERP_ENDPOINTS['marks'], jar, {
     method: 'POST',
     body: params,
     extraHeaders: {
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
       'X-Requested-With': 'XMLHttpRequest',
       'Origin': ERP_URL,
-      'Referer': MARKS_URL,
+      'Referer': ERP_ENDPOINTS['marks'],
     },
   });
   const html = await res.text();
@@ -541,14 +542,14 @@ export async function fetchEndExamResults(
   params.append('DynamicModel[academicyear]', academicYear);
   params.append('DynamicModel[semester]', semesterId);
 
-  const res = await fetchWithJar(END_EXAM_URL, jar, {
+  const res = await fetchWithJar(ERP_ENDPOINTS['end-exam'], jar, {
     method: 'POST',
     body: params,
     extraHeaders: {
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
       'X-Requested-With': 'XMLHttpRequest',
       'Origin': ERP_URL,
-      'Referer': END_EXAM_URL,
+      'Referer': ERP_ENDPOINTS['end-exam'],
     },
   });
   const html = await res.text();
@@ -559,7 +560,7 @@ export async function fetchEndExamResults(
 // --- Profile fetcher (custom parser, not a table) ---
 export async function fetchProfileData(session: ScraperSession) {
   const jar = arrayToJar(session.cookies);
-  const res = await fetchWithJar(PROFILE_URL, jar, {
+  const res = await fetchWithJar(ERP_ENDPOINTS['profile'], jar, {
     method: 'GET',
     extraHeaders: { Origin: ERP_URL, Referer: ERP_URL },
   });
@@ -608,7 +609,7 @@ export async function fetchProfileData(session: ScraperSession) {
       try {
           const tabRes = await fetchWithJar(`https://newerp.kluniversity.in${url}`, jar, {
               method: 'GET',
-              extraHeaders: { Origin: ERP_URL, Referer: PROFILE_URL, 'X-Requested-With': 'XMLHttpRequest' },
+              extraHeaders: { Origin: ERP_URL, Referer: ERP_ENDPOINTS['profile'], 'X-Requested-With': 'XMLHttpRequest' },
           });
           return { name, html: await tabRes.text() };
       } catch (e) {
@@ -789,12 +790,7 @@ function parseProfileData(pages: { name: string, html: string }[]) {
   return data;
 }
 // --- Simple GET fetchers ---
-export const fetchFeeData = (s: ScraperSession) => fetchGenericModuleData(s, FEE_URL);
-export const fetchCGPAData = (s: ScraperSession) => fetchGenericModuleData(s, CGPA_URL);
-export const fetchExamSeatingData = (s: ScraperSession) => fetchGenericModuleData(s, EXAM_SEATING_URL);
-export const fetchCircularsData = (s: ScraperSession) => fetchGenericModuleData(s, CIRCULARS_URL);
-export const fetchHostelData = (s: ScraperSession) => fetchGenericModuleData(s, HOSTEL_INFO_URL);
-export const fetchLibraryData = (s: ScraperSession) => fetchGenericModuleData(s, LIBRARY_URL);
+
 
 
 

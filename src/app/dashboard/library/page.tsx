@@ -10,7 +10,7 @@ export default function LibraryPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/fetch-library')
+    fetch('/api/erp-proxy/library')
       .then(res => {
         const ct = res.headers.get('content-type') || '';
         if (!ct.includes('application/json')) {

@@ -20,7 +20,7 @@ export default function ProfilePage() {
       } catch (e) {}
     }
 
-    fetch(`/api/fetch-profile?t=${Date.now()}`, { cache: 'no-store' })
+    fetch(`/api/erp-proxy/profile?t=${Date.now()}`, { cache: 'no-store' })
       .then(res => {
         const ct = res.headers.get('content-type') || '';
         if (!ct.includes('application/json')) {
