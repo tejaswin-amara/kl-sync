@@ -1,20 +1,20 @@
-import type { Metadata } from "next";
-import { Inter, Outfit } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Inter, Outfit } from 'next/font/google';
+import './globals.css';
 
 const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
+  variable: '--font-inter',
+  subsets: ['latin'],
 });
 
 const outfit = Outfit({
-  variable: "--font-outfit",
-  subsets: ["latin"],
+  variable: '--font-outfit',
+  subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
-  title: "KL Sync",
-  description: "Modern KL Sync Overlay",
+  title: 'KL Sync',
+  description: 'Modern KL Sync Overlay',
 };
 
 export default function RootLayout({
@@ -36,7 +36,9 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
         />
       </head>
-      <body className="min-h-full flex flex-col font-sans text-zinc-50 bg-zinc-950">{children}</body>
+      <body className="min-h-full flex flex-col font-sans text-zinc-50 bg-zinc-950">
+        {children}
+      </body>
     </html>
   );
 }

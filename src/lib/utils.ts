@@ -1,8 +1,8 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 export function exportTableToCSV(data: any[], filename: string) {
   if (!data || data.length === 0) return;
@@ -10,9 +10,9 @@ export function exportTableToCSV(data: any[], filename: string) {
   const csvRows = [headers.join(',')];
 
   for (const row of data) {
-    const values = headers.map(header => {
-      const escaped = ('' + row[header]).replace(/"/g, '\\"');
-      return "";
+    const values = headers.map((header) => {
+      const val = String(row[header] ?? '');
+      return '"' + val.replace(/"/g, '""') + '"';
     });
     csvRows.push(values.join(','));
   }
