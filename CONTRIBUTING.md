@@ -94,7 +94,7 @@ If you're updating the parser because KL University changed their ERP HTML:
 If you discover a security vulnerability:
 
 - **Do not open a public issue**
-- Email `tejaswinamara@klh.edu.in` with details
+- Email `tejaswinamara@gmail.com` with details
 - Include steps to reproduce, the severity, and any potential workarounds
 - Allow a few days for a response before disclosing publicly
 
