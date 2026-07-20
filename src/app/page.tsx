@@ -14,7 +14,7 @@ import { motion } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { RetroGrid } from '@/components/ui/retro-grid';
-import Cookies from 'js-cookie';
+
 
 export default function LoginPage() {
   const router = useRouter();
@@ -262,7 +262,7 @@ export default function LoginPage() {
       setCsrfToken(data.csrfToken || '');
 
       try {
-        Cookies.set('kl_erp_session', data.sessionId || '', { expires: 1 });
+        document.cookie = `kl_erp_session=${data.sessionId || ''}; max-age=86400; path=/;`;
         sessionStorage.setItem('kl_erp_session_id', data.sessionId || '');
         sessionStorage.setItem('kl_erp_csrf_token', data.csrfToken || '');
         sessionStorage.setItem(

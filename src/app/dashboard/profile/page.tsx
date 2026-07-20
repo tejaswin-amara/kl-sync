@@ -18,7 +18,7 @@ import {
   CheckCircle,
   Clock,
 } from 'lucide-react';
-import Cookies from 'js-cookie';
+
 
 export default function ProfilePage() {
   const [data, setData] = useState<any>(null);
@@ -62,7 +62,7 @@ export default function ProfilePage() {
         ) {
           localStorage.removeItem('kl_student_profile');
           // Dispatch a custom event to force sign out, or redirect directly
-          Cookies.remove('kl_erp_session');
+          document.cookie = 'kl_erp_session=; Max-Age=-99999999; path=/;';
           window.location.href = '/';
         } else if (!cached) {
           setError(err.message);

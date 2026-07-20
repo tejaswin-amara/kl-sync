@@ -613,7 +613,7 @@ export async function fetchProfileData(session: ScraperSession) {
 
   // Extract all profile tab URLs from the HTML
   const tabUrls = new Map<string, string>();
-  const cheerio = require('cheerio');
+
   const $ = cheerio.load(html);
 
   // 1. Extract from <a> tags inside nav/tabs
@@ -684,7 +684,7 @@ export async function fetchProfileData(session: ScraperSession) {
 }
 
 function parseProfileData(pages: { name: string; html: string }[]) {
-  const cheerio = require('cheerio');
+
   const mainHtml = pages[0].html;
   const $main = cheerio.load(mainHtml);
   const data: Record<string, any> = {};
@@ -853,7 +853,7 @@ function parseProfileData(pages: { name: string; html: string }[]) {
                 const $el = $(el);
                 const link = $el.find('a').first();
                 if (link.length > 0 && link.attr('href')) {
-                  let href = link.attr('href');
+                  let href = link.attr('href') || '';
                   if (href.startsWith('/'))
                     href = `https://newerp.kluniversity.in${href}`;
                   return {
