@@ -6,7 +6,7 @@ If you discover a security vulnerability in KL Sync, **please report it responsi
 
 ### How to report
 
-Email `tejaswinamara@klh.edu.in` with:
+Email `tejaswinamara@gmail.com` with:
 
 1. **What the vulnerability is** — a clear description of the issue
 2. **Where it is** — which file, function, or feature is affected
