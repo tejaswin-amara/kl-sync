@@ -1,4 +1,5 @@
 <div align="center">
+<img src="assets/header.svg" width="100%" alt="KL Sync Header" />
   <img src="public/logo.png" alt="KL Sync Logo" width="220" />
   <h1>KL Sync</h1>
   <p><strong>An unofficial, minimalist ERP client for KL University.</strong></p>
@@ -112,3 +113,7 @@ Your ERP username and password are used exactly **once** to authenticate against
 <p align="center">
   Built with ❤️ by <a href="https://github.com/tejaswin-amara">Tejaswin</a> for KLU students.
 </p>
+
+<div align="center">
+<img src="assets/footer.svg" width="100%" alt="Footer" />
+</div>
