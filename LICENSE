@@ -1,31 +1,34 @@
 # License
 
-This project is **copyright © 2026–present Tejaswin Amara**. All rights reserved.
-
-You are **not** permitted to:
-- Copy, modify, or distribute this code without explicit written permission
-- Use this code commercially or in a production environment (except for personal, non-public use at KL University)
-- Rebrand or republish this work under your own name or organization
-- Claim credit for the original work
-
-**You are permitted to:**
-- Use this code to learn how web scraping and PWAs work
-- Run it locally for personal use
-- Reference or link to this repository in discussions or documentation
-
-**If you want to:**
-- Fork and modify this code for your own use, ask first
-- Include parts of this code in another project, ask first
-- Use KL Sync as a foundation for a similar tool, ask first
-
-**To request permission:** Email `tejaswinamara@gmail.com` with details of your use case.
+This project is **Copyright © 2026–present Tejaswin Amara**. All rights reserved.
 
 ---
 
-## Why this license?
+### ❌ You are NOT permitted to:
+- Copy, modify, or distribute this code without explicit written permission.
+- Use this code commercially or in a production environment (except for personal, non-public use at KL University).
+- Rebrand or republish this work under your own name or organization.
+- Claim credit for the original work.
 
-KL Sync scrapes KL University's ERP without official permission. This creates legal gray area — the university could shut it down at any time. A permissive license (MIT, Apache, etc.) would let anyone fork, rebrand, and host it elsewhere, which could escalate the legal risk to the original author.
+### ✅ You ARE permitted to:
+- Use this code to learn how web scraping, Next.js App Router, and PWAs work.
+- Run it locally for your own personal use.
+- Reference or link to this repository in discussions, documentation, or tutorials.
 
-This restrictive license keeps the project under control and lets me be transparent about the risks.
+### 💬 If you want to:
+- Fork and modify this code for your own use
+- Include parts of this code in another project
+- Use KL Sync as a foundation for a similar tool
 
-If the university formally endorses this project or provides API access, we'll relicense it under something more open.
+**You must ask first.**  
+To request permission, email **`tejaswinamara@gmail.com`** with details of your use case.
+
+---
+
+## Why this restrictive license?
+
+KL Sync scrapes KL University's ERP system without official API access or permission. This creates a legal gray area — the university could request it be shut down at any time. 
+
+A permissive license (like MIT or Apache) would allow anyone to freely fork, rebrand, and host it elsewhere on the public internet, which could easily escalate the legal risk and footprint back to the original author.
+
+This restrictive license keeps the project under control and lets me remain transparent about the risks. If the university formally endorses this project or provides official API access in the future, we will eagerly relicense it under something more open.

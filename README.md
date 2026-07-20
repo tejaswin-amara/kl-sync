@@ -1,70 +1,58 @@
-<p align="center">
-  <img src="public/logo.png" alt="KL Sync" width="440">
-</p>
+<div align="center">
+  <img src="public/logo.png" alt="KL Sync Logo" width="220" />
+  <h1>KL Sync</h1>
+  <p><strong>An unofficial, minimalist ERP client for KL University.</strong></p>
 
-<h1 align="center">KL Sync</h1>
-<p align="center">An unofficial ERP client for KL University.</p>
-
-<p align="center">
-  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-black?logo=next.js&logoColor=white">
-  <img alt="React" src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black">
-  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white">
-  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?logo=tailwindcss&logoColor=white">
-  <img alt="PWA" src="https://img.shields.io/badge/PWA-installable-6366F1">
-</p>
+  <p>
+    <a href="https://nextjs.org/"><img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js" /></a>
+    <a href="https://react.dev/"><img alt="React" src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" /></a>
+    <a href="https://www.typescriptlang.org/"><img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white" /></a>
+    <a href="https://tailwindcss.com/"><img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind-v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" /></a>
+  </p>
+</div>
 
 ---
 
-## What it is
+## ✨ Overview
 
-KL University's ERP handles attendance, marks, fees, and the rest of student records, but logging in means solving a captcha by hand every time, and the interface wasn't built for a phone.
+KL University's ERP handles attendance, marks, fees, and student records, but the interface isn't optimized for modern mobile devices. **KL Sync** sits in front of it. Log in with your normal ERP credentials, and it turns your data into a fast, beautiful, dark-themed dashboard.
 
-KL Sync sits in front of it. Log in once with your normal ERP credentials, and it solves the captcha for you, holds onto your session, and turns the same data into a fast, installable, dark-themed dashboard.
+> **Note**: This is an independent project built by a student, and is **not** endorsed by KL University. See the [Disclaimer](#-disclaimer).
 
-It's an independent project built by a student, not something run or endorsed by KL University — see [Disclaimer](#disclaimer).
+## 🚀 Features
 
-## Features
+### 📊 Dashboard
+Everything you need, available at a glance:
+- **Attendance**: Detailed per-subject breakdown.
+- **Academics**: Internal marks, end-semester results, and CGPA.
+- **Logistics**: Timetable, fee orders, exam seating, circulars, hostel info, and library circulation history.
+- **Profile**: Complete student profile including your ID photo.
 
-**Dashboard**
+### 🛠️ Tools
+- **Attendance Calculator**: Find out exactly how many classes you can afford to miss, or how many you need to attend to hit the 75% or 85% thresholds.
+- **CGPA Goal Predictor**: Calculate the exact GPA you need this semester to reach your target CGPA.
+- **OCR Scan Tool**: A standalone scan-to-text tool running entirely in your browser.
 
-Attendance (per-subject breakdown), internal marks, end-semester results, CGPA, timetable, fee orders, exam seating allotment, circulars, hostel info, library circulation history, and profile with your ID photo.
-
-**Tools**
-
-- An attendance calculator: how many classes you can miss and still hold 75%, or how many you need to attend to reach 75% or 85%.
-- A CGPA goal predictor: the GPA you'd need this semester to hit a target CGPA.
-- A standalone scan-to-text tool that runs OCR on any uploaded image, entirely in the browser.
-
-**Login and session**
-
-- The login captcha is solved automatically — nothing to type by hand.
-- Your session is held in a single cookie so you're not logging in on every visit.
-- Installable as a PWA: add it to your home screen and it opens full-screen, like a native app.
-
-## How it works
+## ⚙️ How it Works
 
 ```mermaid
 flowchart TD
-    A["Login form"] -->|"username + password"| B["POST /api/login"]
-    B --> C["Fetch ERP captcha image"]
-    C -->|"sharp preprocessing + OCR.space"| D["Captcha solved"]
-    D -->|"submit to ERP"| E["newerp.kluniversity.in"]
-    E -->|"session cookies + CSRF token"| F["Encrypted kl_erp_session cookie"]
-    F --> G["/api/erp-proxy/[module]"]
-    G -->|"replays request"| E
-    E -->|"raw ERP HTML"| H["Cheerio parser"]
-    H -->|"clean JSON"| I["Dashboard"]
+    A["Login Form"] -->|"username + password + captcha"| B["POST /api/login"]
+    B -->|"submit to ERP"| C["newerp.kluniversity.in"]
+    C -->|"session cookies + CSRF token"| D["Encrypted kl_erp_session cookie"]
+    D --> E["/api/erp-proxy/[module]"]
+    E -->|"replays request"| C
+    C -->|"raw ERP HTML"| F["Cheerio parser"]
+    F -->|"clean JSON"| G["Dashboard UI"]
 ```
 
-1. You submit your ERP username and password on the login page.
-2. The app fetches the live captcha image from the ERP and solves it via the OCR.space API. KLU's captcha is solid-colour glyphs on a transparent background, so the image is preprocessed with `sharp` to isolate the alpha channel before OCR — that step is most of what makes the auto-solve reliable.
-3. On a successful login, the ERP's session cookies and CSRF token are packed into one `kl_erp_session` cookie. If `SESSION_SECRET` is set, that cookie is encrypted with AES-256-GCM; otherwise it falls back to base64, which is fine for local development but not for a public deployment.
-4. `middleware.ts` checks for that cookie on every `/dashboard/*` request and redirects to the login page if it's missing.
-5. Every dashboard page reads from one route, `/api/erp-proxy/[module]`. It decrypts the session, replays the request against the real ERP, and parses the HTML that comes back with Cheerio into JSON.
+1. You manually submit your ERP credentials and the required captcha on the login page.
+2. Upon successful login, the ERP's session cookies and CSRF token are packed into a single `kl_erp_session` cookie. If `SESSION_SECRET` is set, this is encrypted with **AES-256-GCM**.
+3. All subsequent dashboard requests flow through `/api/erp-proxy/[module]`. It decrypts the session, replays the request against the real ERP, and parses the returned HTML into clean JSON using Cheerio.
 
-## Getting started
+## 💻 Getting Started
 
-Requires Node.js 20+.
+Requires **Node.js 20+**.
 
 ```bash
 git clone https://github.com/tejaswin-amara/kl-sync.git
@@ -73,77 +61,54 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### Environment variables
+### Environment Variables
 
-Neither is required to run the app locally, but both matter for anything beyond your own machine. Create a `.env.local` in the project root:
+While not strictly required for local development, you should configure these for any deployment. Create a `.env.local` in the project root:
 
 ```bash
-SESSION_SECRET=some-long-random-string
-OCR_SPACE_API_KEY=your-ocr-space-key
+SESSION_SECRET=your_super_long_random_string_here
 ```
 
-| Variable | Purpose |
+| Variable | Description |
 |---|---|
-| `SESSION_SECRET` | Encrypts the session cookie with AES-256-GCM instead of plain base64. Set this for any deployment beyond your own machine. |
-| `OCR_SPACE_API_KEY` | A free key from [ocr.space/ocrapi](https://ocr.space/ocrapi). Without it, the app falls back to shared public demo keys, which run out of quota often and make captcha auto-fill fail silently. |
+| `SESSION_SECRET` | Encrypts the session cookie with AES-256-GCM. **Always** set this for public deployments to keep sessions secure. |
 
-## Tech stack
+## 🏗️ Project Structure
 
-| | |
-|---|---|
-| Framework | Next.js 16 (App Router, Turbopack) |
-| UI | React 19, Tailwind CSS v4, Framer Motion |
-| Language | TypeScript |
-| ERP scraping | Cheerio |
-| OCR | OCR.space API for the login captcha, Tesseract.js for the in-app scan tool |
-| PWA | next-pwa |
-| Icons | Lucide |
-
-## Project structure
-
-```
+```text
 src/
 ├── app/
 │   ├── api/
-│   │   ├── login/                # ERP login
-│   │   ├── captcha/               # fetch the captcha image
-│   │   ├── solve-captcha/         # OCR the captcha
-│   │   ├── erp-proxy/[module]/    # attendance, marks, fee, timetable, and the rest
-│   │   └── fetch-photo/           # student ID photo
-│   ├── dashboard/                 # attendance, marks, fee, timetable, hostels, library...
-│   └── page.tsx                   # login screen
-├── components/                    # navigation, glass-card, OCR tool, calculators
+│   │   ├── login/                # ERP authentication
+│   │   ├── captcha/              # Fetch captcha image
+│   │   ├── erp-proxy/[module]/   # Route for attendance, marks, fees, etc.
+│   │   └── fetch-photo/          # Student ID photo retrieval
+│   ├── dashboard/                # UI routes for features
+│   └── page.tsx                  # Login screen
+├── components/                   # Reusable UI components & layouts
 ├── lib/
-│   ├── scraper.ts                 # ERP HTML parsing (Cheerio)
-│   ├── ocr.ts                     # captcha preprocessing + OCR.space
-│   └── session.ts                 # session encode/decode
-└── middleware.ts                  # guards /dashboard routes
+│   ├── scraper.ts                # Cheerio HTML parsing logic
+│   └── session.ts                # Session encode/decode logic
+└── middleware.ts                 # Guards /dashboard routes
 ```
 
-## Disclaimer
+## ⚖️ Disclaimer
 
 KL Sync is an independent project built by a student, for KLU students. It has no affiliation with, endorsement from, or support from KL University.
 
-Your ERP username and password are used once, to authenticate against the real ERP, and are never written to disk. After that, the app keeps only the resulting session — encrypted if `SESSION_SECRET` is set. If you're using an instance someone else deployed rather than running your own, your session still passes through their server, so self-hosting is the safer option if that matters to you.
+Your ERP username and password are used exactly **once** to authenticate against the real ERP, and are **never** written to disk. The app only retains the resulting session, which is encrypted if `SESSION_SECRET` is configured. If you are using an instance deployed by someone else, your session passes through their server. For maximum privacy, self-hosting is highly recommended.
 
-## Contributing
+## 🤝 Community
 
-Issues and pull requests are welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md) for guidelines.
-
-## License
-
-This project is under copyright. See [`LICENSE`](LICENSE) for details.
-
-## Security
-
-To report a vulnerability securely, see [`SECURITY.md`](SECURITY.md).
-
-## Code of Conduct
-
-We're committed to a welcoming community. See [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
+- **[Contributing](CONTRIBUTING.md)**: PRs and issues are welcome! Please read the guidelines first.
+- **[Code of Conduct](CODE_OF_CONDUCT.md)**: We maintain a welcoming, respectful community.
+- **[Security](SECURITY.md)**: Guidelines on how to responsibly report vulnerabilities.
+- **[License](LICENSE)**: This project is strictly copyrighted. See the license file for detailed terms.
 
 ---
 
-<p align="center">Built by <a href="https://github.com/tejaswin-amara">Tejaswin</a> for KLU students stuck retyping captchas.</p>
+<p align="center">
+  Built with ❤️ by <a href="https://github.com/tejaswin-amara">Tejaswin</a> for KLU students.
+</p>

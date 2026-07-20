@@ -1,110 +1,84 @@
-# Contributing to KL Sync
+# 🤝 Contributing to KL Sync
 
-Thanks for your interest in improving KL Sync! This document outlines how to contribute effectively.
+First of all, thank you for your interest in contributing to **KL Sync**! Whether you're fixing a small bug, updating the scraper logic, or adding a new feature to the dashboard, your help is incredibly valuable.
 
-## Before you start
+This project is built by students, for students. We want to keep it lightweight, fast, and easy to maintain.
 
-KL Sync is an independent student project with no affiliation to KL University. Contributions are welcome, but keep in mind:
+---
 
-- This is a best-effort project maintained in spare time
-- Breaking changes to the ERP scraper happen when the university updates their system
-- We prioritize stability and privacy over feature velocity
+## 🛠️ How to Contribute
 
-## How to contribute
+### 1. Find an Issue
+- Check the [Issues tracker](https://github.com/tejaswin-amara/kl-sync/issues) for open tasks.
+- If you want to build a new feature, please **open a new issue** to discuss it first before writing code. This ensures your work aligns with the project's minimalist goals (the "Ponytail" philosophy).
 
-### Reporting bugs
-
-If you find a bug, [open an issue](https://github.com/tejaswin-amara/kl-sync/issues) with:
-
-1. **What you expected** — the behavior you were trying to achieve
-2. **What actually happened** — what went wrong, including error messages or screenshots
-3. **How to reproduce it** — step-by-step instructions so we can see it ourselves
-4. **Your environment** — browser, OS, whether you're using the PWA or web version
-
-If it's a security issue (e.g., credentials being logged or sent over plaintext), please email instead of opening a public issue. See [Security](#security) below.
-
-### Suggesting features
-
-New features are welcome, but understand the scope:
-
-- **In scope:** improving the UI/UX, fixing parser bugs, adding new ERP modules, optimizing performance
-- **Out of scope:** features that require storing student data on our server, changing how the ERP itself works
-
-Before investing time, [open an issue](https://github.com/tejaswin-amara/kl-sync/issues) to discuss the feature first. That way you won't spend hours on something we can't merge.
-
-### Writing code
-
-1. **Fork** the repo and clone your fork locally.
-
-2. **Install dependencies:**
+### 2. Set Up Locally
+1. **Fork** the repository to your own GitHub account.
+2. **Clone** it locally:
+   ```bash
+   git clone https://github.com/YOUR-USERNAME/kl-sync.git
+   cd kl-sync
+   ```
+3. **Install dependencies**:
    ```bash
    npm install
    ```
 
-3. **Create a branch** with a clear name:
+### 3. Make Your Changes
+1. **Create a branch** with a descriptive name:
    ```bash
-   git checkout -b fix/captcha-ocr-timeout
+   git checkout -b fix/layout-overflow
+   # or
    git checkout -b feat/exam-seating-alerts
    ```
+2. **Write clean code.** Keep it minimal and avoid over-engineering.
+3. If you are modifying the ERP scraper (`src/lib/scraper.ts`):
+   - Test against a real ERP login locally.
+   - Comment on any complex DOM traversal logic.
+   - Document any new JSON structures you are extracting.
 
-4. **Make your changes.** If you're touching the ERP scraper:
-   - Test against a real ERP login (use your own credentials, don't commit them)
-   - Document any new modules or fields you extract
-   - Update `src/lib/scraper.ts` comments if the HTML structure changes
+### 4. Test Your Work
+Before committing, ensure everything builds cleanly without errors.
+```bash
+npm run dev       # Verify it looks right
+npm run build     # Verify the production build succeeds
+npx tsc --noEmit  # Check for TypeScript errors
+```
 
-5. **Keep commits clean:**
-   - One logical change per commit
-   - Write clear commit messages: `fix: captcha solver timeout on slow networks`
-   - Don't mix formatting fixes with feature changes
+### 5. Commit & Push
+- Write clear, concise commit messages (e.g., `fix: dashboard attendance calculation bug`).
+- Keep commits logical and focused on a single issue.
+- Push to your fork:
+  ```bash
+  git push -u origin your-branch-name
+  ```
 
-6. **Test your work:**
-   ```bash
-   npm run dev       # start dev server
-   npm run build     # check production build
-   npx tsc --noEmit # type-check
-   ```
+### 6. Open a Pull Request (PR)
+- Open a PR from your fork's branch to the `master` branch of `tejaswin-amara/kl-sync`.
+- **Link the issue**: If your PR fixes an open issue, mention it (e.g., `Closes #42`).
+- **Explain your changes**: Briefly describe *why* the change is needed and *what* it does.
+- Maintainers will review your PR as soon as possible!
 
-7. **Push to your fork** and [open a pull request](https://github.com/tejaswin-amara/kl-sync/pulls).
+---
 
-### Pull request guidelines
+## 🎨 Code Style & Philosophy
 
-- **Link the issue:** if your PR fixes or addresses an open issue, reference it in the description (`Closes #42`)
-- **Keep it focused:** one feature or fix per PR. If you're touching multiple unrelated things, split them
-- **Write a clear description:** explain *why* the change is needed, not just *what* changed
-- **Be patient:** maintainer availability is limited; it may take a few days to review
+> **The Ponytail Philosophy**: "The best code is the code never written." Keep it simple. Avoid bloated dependencies. 
 
-## Code style
+- **TypeScript**: Use strict mode. Avoid `any` types wherever possible.
+- **React/Next.js**: Use functional components, hooks, and App Router paradigms (`server` vs `client` components).
+- **Styling**: We use **Tailwind CSS v4**. Stick to utility classes and avoid custom CSS unless absolutely necessary.
+- **Secrets**: NEVER commit API keys, `.env` files, or session tokens.
 
-- **TypeScript:** use strict mode. Run `npx tsc --noEmit` to check for errors.
-- **React:** use functional components and hooks. Follow the patterns in existing components.
-- **Formatting:** we don't enforce a formatter, but keep code readable — use clear variable names and comment non-obvious logic.
-- **Secrets:** never commit API keys, passwords, or session tokens. Use environment variables.
+---
 
-## ERP scraper changes
+## 🔒 Security
 
-If you're updating the parser because KL University changed their ERP HTML:
+If you discover a security vulnerability in KL Sync, please **do not open a public issue**. Follow the guidelines in our [Security Policy](SECURITY.md) and report it privately.
 
-1. Document what changed (in the commit message or a comment)
-2. Update the parsing logic in `src/lib/scraper.ts`
-3. Test it with a real login
-4. Note the change in the PR description so users know why they should update
+## 📄 License Agreement
 
-## Security
-
-If you discover a security vulnerability:
-
-- **Do not open a public issue**
-- Email `tejaswinamara@gmail.com` with details
-- Include steps to reproduce, the severity, and any potential workarounds
-- Allow a few days for a response before disclosing publicly
-
-## License
-
-By contributing, you agree that your code will be released under the same terms as the project (see [`LICENSE`](LICENSE)).
-
-## Questions?
-
-Open an issue or ask in the PR discussion. We're here to help.
+By contributing to KL Sync, you agree that your code will be released under the same terms as the project. See the [`LICENSE`](LICENSE) for details.
 
 ---
 
