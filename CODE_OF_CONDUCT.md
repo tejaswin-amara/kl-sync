@@ -27,7 +27,7 @@ This project is a community space. We're here to build something useful for KL U
 ## If something goes wrong
 
 - **In public:** flag it respectfully in the issue or PR. "This comment crosses a line" is better than escalating.
-- **In private:** email `tejaswinamara@klh.edu.in` with details. Be specific about what happened and why it's a problem.
+- **In private:** email `tejaswinamara@gmail.com` with details. Be specific about what happened and why it's a problem.
 - **Expect action:** maintainers will investigate and take appropriate steps (warning, comment deletion, account suspension).
 
 ## Scope
