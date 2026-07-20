@@ -7,7 +7,6 @@ import {
   AlertCircle,
   Loader2,
   ChevronDown,
-  Wand2,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -64,8 +63,6 @@ export default function LoginPage() {
     ));
   }, [semesters]);
 
-  const [autoSolving, setAutoSolving] = useState(false);
-
   const fetchCaptcha = async (preserveError = false): Promise<string> => {
     setCaptchaLoading(true);
     if (!preserveError) setError(null);
@@ -88,77 +85,6 @@ export default function LoginPage() {
       return '';
     } finally {
       setCaptchaLoading(false);
-    }
-  };
-
-  const handleAutoSolve = async () => {
-    if (!captchaImage) return;
-    setAutoSolving(true);
-    setError(null);
-    try {
-      // 1. Process image entirely on the client using HTML5 Canvas
-      // to bypass Vercel serverless image processing limitations
-      const processedBase64 = await new Promise<string>((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = 'Anonymous';
-        img.onload = () => {
-          const scale = 3;
-          const canvas = document.createElement('canvas');
-          canvas.width = img.width * scale + 40; // add padding
-          canvas.height = img.height * scale + 40;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) return reject('No canvas context');
-
-          // Fill white background
-          ctx.fillStyle = '#FFFFFF';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-          // Draw scaled image in center
-          ctx.imageSmoothingEnabled = true;
-          ctx.drawImage(img, 20, 20, img.width * scale, img.height * scale);
-
-          // Binarize: if pixel is non-white (the pink text), make it black
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const data = imageData.data;
-          for (let i = 0; i < data.length; i += 4) {
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
-            // If not pure white (which is our background), make it pitch black
-            if (r < 250 || g < 250 || b < 250) {
-              data[i] = 0;
-              data[i + 1] = 0;
-              data[i + 2] = 0;
-            }
-          }
-          ctx.putImageData(imageData, 0, 0);
-          resolve(canvas.toDataURL('image/png'));
-        };
-        img.onerror = () => reject('Failed to load image for processing');
-        img.src = captchaImage;
-      });
-
-      // 2. Send clean black-on-white image to API
-      // Strip data URL prefix if present
-      const rawBase64 = processedBase64.includes(',')
-        ? processedBase64.split(',')[1]
-        : processedBase64;
-      const res = await fetch('/api/solve-captcha', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: rawBase64 }),
-      });
-      const data = await res.json();
-      if (data.success && data.text) {
-        setCaptcha(data.text);
-      } else {
-        setError('Auto-solve failed. Please enter manually.');
-      }
-    } catch (e) {
-      console.error(e);
-      setError('Auto-solve failed. Please enter manually.');
-    } finally {
-      setAutoSolving(false);
     }
   };
 
@@ -328,7 +254,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-zinc-950 text-zinc-50 relative overflow-hidden font-sans">
+    <div className="min-h-[100dvh] flex bg-zinc-950 text-zinc-50 relative overflow-y-auto font-sans">
       {/* LEFT: BRANDING PANEL (Taste-Skill asymmetric split) */}
       <div className="hidden lg:flex w-[45%] relative border-r border-zinc-900 overflow-hidden bg-zinc-900 flex-col">
         {/* Magic UI Retro Grid Background */}
@@ -480,19 +406,7 @@ export default function LoginPage() {
                   className="flex-1 rounded-xl px-4 py-3.5 bg-zinc-900 border border-zinc-800 text-sm font-mono text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
                 />
                 <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={handleAutoSolve}
-                    disabled={autoSolving || !captchaImage}
-                    title="Auto-solve with OCR"
-                    className="h-[52px] w-[52px] rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-emerald-500 hover:text-emerald-400 hover:bg-zinc-800 transition-all disabled:opacity-50"
-                  >
-                    {autoSolving ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Wand2 className="w-4 h-4" />
-                    )}
-                  </button>
+
                   <div className="h-[52px] w-[120px] rounded-xl overflow-hidden flex items-center justify-center bg-white shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
                     {captchaLoading ? (
                       <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />
