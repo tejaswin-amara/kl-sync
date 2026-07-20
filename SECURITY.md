@@ -74,7 +74,7 @@ These are risks you should address separately.
 
 If you're unsure whether something is a security issue, ask. It's better to report something that turns out to be fine than to miss an actual vulnerability.
 
-Email: `tejaswinamara@klh.edu.in`
+Email: `tejaswinamara@gmail.com`
 
 ---
 
