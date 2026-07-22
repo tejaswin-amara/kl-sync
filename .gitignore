@@ -49,3 +49,4 @@ generate_full_docs.js
 
 
 .vercel
+.env*
