@@ -46,7 +46,10 @@ export default function TimetablePage() {
   const displayError = error || sessionError;
 
   const fetchData = useCallback(async () => {
-    if (!selectedYear || !selectedSem) return;
+    if (!selectedYear || !selectedSem) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -75,8 +78,16 @@ export default function TimetablePage() {
   }, [selectedYear, selectedSem]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (sessionError) {
+      setLoading(false);
+      return;
+    }
+    if (selectedYear && selectedSem) {
+      fetchData();
+    } else {
+      setLoading(false);
+    }
+  }, [fetchData, selectedYear, selectedSem, sessionError]);
 
   return (
     <div className="flex flex-col gap-6 w-full">
@@ -140,7 +151,7 @@ export default function TimetablePage() {
               ))}
             </div>
           </div>
-        ) : error ? (
+        ) : displayError ? (
           <div className="flex flex-col items-center justify-center h-[400px] p-8 text-center">
             <div className="w-16 h-16 rounded bg-red-500/10 flex items-center justify-center text-red-400 mb-4">
               <AlertCircle className="w-10 h-10" />
@@ -149,7 +160,7 @@ export default function TimetablePage() {
               Failed to sync with ERP
             </p>
             <p className="text-sm text-zinc-500 text-gray-400 max-w-md">
-              {error}
+              {displayError}
             </p>
           </div>
         ) : filteredData.length === 0 ? (

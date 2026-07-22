@@ -391,11 +391,10 @@ function parseGenericTable(html: string) {
 
   const data: any[] = [];
 
-  // Extract headers: find the row with the most 'th' or 'td' in thead
-  let headerRow = table.find('thead tr').last();
-  if (headerRow.length === 0) {
-    headerRow = table.find('tr').first();
-  }
+  const hasThead = table.find('thead tr').length > 0;
+  let headerRow = hasThead
+    ? table.find('thead tr').last()
+    : table.find('tr').first();
 
   const headers: string[] = [];
   headerRow.find('th, td').each((i, el) => {
@@ -413,11 +412,18 @@ function parseGenericTable(html: string) {
 
   const rows = table.find('tr');
   const bodyRows = table.find('tbody tr');
-  const rowsToIterate = bodyRows.length > 0 ? bodyRows : rows.slice(1);
+  
+  let rowsToIterate: any;
+  if (hasThead) {
+    rowsToIterate = bodyRows.length > 0 ? bodyRows : rows.slice(1);
+  } else {
+    const allRows = bodyRows.length > 0 ? bodyRows : rows;
+    rowsToIterate = allRows.slice(1);
+  }
 
-  rowsToIterate.each((i, row) => {
+  rowsToIterate.each((i: number, row: any) => {
     const rowData: any = {};
-    const cells = $(row).find('td');
+    const cells = $(row).find('td, th');
 
     if (
       cells.length === 1 &&
@@ -425,14 +431,17 @@ function parseGenericTable(html: string) {
     ) {
       return;
     }
-    // skip if it's just a header row in tbody
     if (cells.length === 0) return;
 
-    cells.each((j, cell) => {
+    cells.each((j: number, cell: any) => {
+      const clone = $(cell).clone();
+      clone.find('br, div, p').before(' ');
+      const cellText = clone.text().replace(/\s+/g, ' ').trim();
+
       if (headers[j]) {
-        rowData[headers[j]] = $(cell).text().trim();
+        rowData[headers[j]] = cellText;
       } else {
-        rowData[`Column_${j}`] = $(cell).text().trim();
+        rowData[`Column_${j}`] = cellText;
       }
     });
 
@@ -493,7 +502,6 @@ export async function fetchGenericModuleData(
 
   const html = await res.text();
 
-  // If the page redirected to login, it means session expired or route is wrong
   if (html.includes('id="login-form"')) {
     throw new Error('Session expired or invalid ERP route.');
   }
@@ -526,6 +534,13 @@ export async function fetchTimetableData(
     'UniversityMasterAcademicTimetableView[semesterid]',
     semesterId
   );
+  params.append(
+    'UniversityMasterAcademicTimetableView[semester]',
+    semesterId
+  );
+  params.append('DynamicModel[academicyear]', academicYear);
+  params.append('DynamicModel[semesterid]', semesterId);
+  params.append('DynamicModel[semester]', semesterId);
 
   const res = await fetchWithJar(ERP_ENDPOINTS['timetable'], jar, {
     method: 'POST',
@@ -540,7 +555,28 @@ export async function fetchTimetableData(
   const html = await res.text();
   if (html.includes('id="login-form"'))
     throw new Error('Session expired or invalid ERP route.');
-  return { success: true, data: parseGenericTable(html) };
+  
+  let data = parseGenericTable(html);
+
+  if (!data || data.length === 0) {
+    const getUrl = `${ERP_ENDPOINTS['timetable']}&UniversityMasterAcademicTimetableView[academicyear]=${academicYear}&UniversityMasterAcademicTimetableView[semesterid]=${semesterId}&DynamicModel[academicyear]=${academicYear}&DynamicModel[semesterid]=${semesterId}`;
+    const getRes = await fetchWithJar(getUrl, jar, {
+      method: 'GET',
+      extraHeaders: {
+        Origin: ERP_URL,
+        Referer: ERP_ENDPOINTS['timetable'],
+      },
+    });
+    const getHtml = await getRes.text();
+    if (!getHtml.includes('id="login-form"')) {
+      const parsedGet = parseGenericTable(getHtml);
+      if (parsedGet && parsedGet.length > 0) {
+        data = parsedGet;
+      }
+    }
+  }
+
+  return { success: true, data };
 }
 
 export async function fetchMarksData(

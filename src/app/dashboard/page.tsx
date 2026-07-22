@@ -346,7 +346,10 @@ function TodayScheduleWidget({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!activeYearId || !activeSemId) return;
+    if (!activeYearId || !activeSemId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const csrf = sessionStorage.getItem('kl_erp_csrf_token');
@@ -371,15 +374,48 @@ function TodayScheduleWidget({
               'Friday',
               'Saturday',
             ];
-            const todayName = days[new Date().getDay()].toLowerCase();
+            const fullDay = days[new Date().getDay()].toLowerCase();
+            const shortDay = fullDay.slice(0, 3);
 
-            const todayClasses = resData.data.filter((row: any) => {
-              return Object.values(row).some(
-                (val) =>
-                  typeof val === 'string' &&
-                  val.toLowerCase().includes(todayName)
-              );
+            // Check if column header matches today (Matrix layout)
+            const dayKey = Object.keys(resData.data[0] || {}).find((key) => {
+              const k = key.toLowerCase().trim();
+              return k.includes(fullDay) || k.includes(shortDay);
             });
+
+            let todayClasses: any[] = [];
+            if (dayKey) {
+              const timeKey =
+                Object.keys(resData.data[0]).find(
+                  (k) =>
+                    k.toLowerCase().includes('time') ||
+                    k.toLowerCase().includes('period') ||
+                    k.toLowerCase().includes('slot')
+                ) || Object.keys(resData.data[0])[0];
+
+              todayClasses = resData.data
+                .filter(
+                  (row: any) =>
+                    row[dayKey] &&
+                    String(row[dayKey]).trim() !== '' &&
+                    String(row[dayKey]).trim() !== '-'
+                )
+                .map((row: any) => ({
+                  Time: row[timeKey] || '',
+                  Subject: row[dayKey],
+                  Day: dayKey,
+                }));
+            } else {
+              // Row-based layout
+              todayClasses = resData.data.filter((row: any) => {
+                return Object.values(row).some(
+                  (val) =>
+                    typeof val === 'string' &&
+                    (val.toLowerCase().includes(fullDay) ||
+                      val.toLowerCase().includes(shortDay))
+                );
+              });
+            }
             setClasses(todayClasses);
           }
         })
