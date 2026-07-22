@@ -542,37 +542,73 @@ export async function fetchTimetableData(
   params.append('DynamicModel[semesterid]', semesterId);
   params.append('DynamicModel[semester]', semesterId);
 
-  const res = await fetchWithJar(ERP_ENDPOINTS['timetable'], jar, {
-    method: 'POST',
-    body: params,
-    extraHeaders: {
-      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-      'X-Requested-With': 'XMLHttpRequest',
-      Origin: ERP_URL,
-      Referer: ERP_ENDPOINTS['timetable'],
-    },
-  });
-  const html = await res.text();
-  if (html.includes('id="login-form"'))
-    throw new Error('Session expired or invalid ERP route.');
-  
-  let data = parseGenericTable(html);
+  const candidateUrls = [
+    ERP_ENDPOINTS['timetable'],
+    `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Fstudenttimetable`,
+    `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Findex`,
+    `${ERP_URL}/index.php?r=studentattendance%2Fstudentdailyattendance%2Fstudenttimetable`,
+  ];
 
-  if (!data || data.length === 0) {
-    const getUrl = `${ERP_ENDPOINTS['timetable']}&UniversityMasterAcademicTimetableView[academicyear]=${academicYear}&UniversityMasterAcademicTimetableView[semesterid]=${semesterId}&DynamicModel[academicyear]=${academicYear}&DynamicModel[semesterid]=${semesterId}`;
-    const getRes = await fetchWithJar(getUrl, jar, {
-      method: 'GET',
-      extraHeaders: {
-        Origin: ERP_URL,
-        Referer: ERP_ENDPOINTS['timetable'],
-      },
-    });
-    const getHtml = await getRes.text();
-    if (!getHtml.includes('id="login-form"')) {
-      const parsedGet = parseGenericTable(getHtml);
-      if (parsedGet && parsedGet.length > 0) {
-        data = parsedGet;
+  let data: any[] = [];
+
+  for (const url of candidateUrls) {
+    try {
+      // 1. Try POST with form params
+      const res = await fetchWithJar(url, jar, {
+        method: 'POST',
+        body: params,
+        extraHeaders: {
+          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+          'X-Requested-With': 'XMLHttpRequest',
+          Origin: ERP_URL,
+          Referer: url,
+        },
+      });
+      const html = await res.text();
+      if (!html.includes('id="login-form"')) {
+        const parsed = parseGenericTable(html);
+        if (parsed && parsed.length > 0) {
+          data = parsed;
+          break;
+        }
       }
+
+      // 2. Try GET with query parameters
+      const getUrl = `${url}&UniversityMasterAcademicTimetableView[academicyear]=${academicYear}&UniversityMasterAcademicTimetableView[semesterid]=${semesterId}&DynamicModel[academicyear]=${academicYear}&DynamicModel[semesterid]=${semesterId}`;
+      const getRes = await fetchWithJar(getUrl, jar, {
+        method: 'GET',
+        extraHeaders: {
+          Origin: ERP_URL,
+          Referer: url,
+        },
+      });
+      const getHtml = await getRes.text();
+      if (!getHtml.includes('id="login-form"')) {
+        const parsedGet = parseGenericTable(getHtml);
+        if (parsedGet && parsedGet.length > 0) {
+          data = parsedGet;
+          break;
+        }
+      }
+
+      // 3. Try plain GET (default session view)
+      const plainGetRes = await fetchWithJar(url, jar, {
+        method: 'GET',
+        extraHeaders: {
+          Origin: ERP_URL,
+          Referer: ERP_URL,
+        },
+      });
+      const plainGetHtml = await plainGetRes.text();
+      if (!plainGetHtml.includes('id="login-form"')) {
+        const parsedPlain = parseGenericTable(plainGetHtml);
+        if (parsedPlain && parsedPlain.length > 0) {
+          data = parsedPlain;
+          break;
+        }
+      }
+    } catch (err) {
+      console.error(`Failed timetable fetch for ${url}:`, err);
     }
   }
 
