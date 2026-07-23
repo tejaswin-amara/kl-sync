@@ -47,19 +47,81 @@ export default function DashboardOverview() {
       .then((resData) => {
         if (resData.success && resData.data && resData.data.length > 0) {
           const rows = resData.data;
+
+          // 1. First try to find official direct CGPA value from summary column
+          let directCgpa: number | null = null;
+          let directCredits: number | null = null;
+
+          for (const row of rows) {
+            const cgpaKey = Object.keys(row).find(
+              (k) =>
+                k.toLowerCase().includes('cgpa') ||
+                k.toLowerCase() === 'gpa' ||
+                k.toLowerCase().includes('cumulative')
+            );
+            if (cgpaKey && row[cgpaKey]) {
+              const parsed = parseFloat(String(row[cgpaKey]).trim());
+              if (!isNaN(parsed) && parsed > 0 && parsed <= 10) {
+                directCgpa = parsed;
+              }
+            }
+
+            const credKey = Object.keys(row).find(
+              (k) =>
+                k.toLowerCase().includes('total credit') ||
+                k.toLowerCase().includes('earned credit') ||
+                k.toLowerCase().includes('credits earned')
+            );
+            if (credKey && row[credKey]) {
+              const parsedCred = parseFloat(String(row[credKey]).trim());
+              if (!isNaN(parsedCred) && parsedCred > 0) {
+                directCredits = parsedCred;
+              }
+            }
+          }
+
           let totalCredits = 0;
           let totalPoints = 0;
+
           rows.forEach((row: any) => {
-            const grade = row['Grade']?.trim().toUpperCase();
-            const credits = parseFloat(row['Credits']) || 0;
-            const gradePoint = parseFloat(row['Grade Point']) || 0;
-            if (grade && grade !== 'F') {
+            const gradeKey = Object.keys(row).find((k) =>
+              k.toLowerCase().includes('grade')
+            );
+            const credKey = Object.keys(row).find(
+              (k) =>
+                k.toLowerCase().includes('credit') ||
+                k.toLowerCase().includes('cred')
+            );
+            const pointKey = Object.keys(row).find(
+              (k) =>
+                k.toLowerCase().includes('point') ||
+                k.toLowerCase().includes('gp')
+            );
+
+            const grade = gradeKey
+              ? String(row[gradeKey] || '').trim().toUpperCase()
+              : '';
+            const credits = credKey ? parseFloat(String(row[credKey])) || 0 : 0;
+            const gradePoint = pointKey
+              ? parseFloat(String(row[pointKey])) || 0
+              : 0;
+
+            if (grade !== 'F' && credits > 0) {
               totalCredits += credits;
               totalPoints += gradePoint * credits;
             }
           });
-          setCompletedCredits(totalCredits);
-          if (totalCredits > 0) {
+
+          const finalCredits = directCredits || totalCredits;
+          setCompletedCredits(finalCredits);
+          if (finalCredits > 0) {
+            localStorage.setItem('kl_dashboard_credits', finalCredits.toString());
+          }
+
+          if (directCgpa !== null) {
+            setCgpa(directCgpa);
+            localStorage.setItem('kl_dashboard_cgpa', directCgpa.toString());
+          } else if (totalCredits > 0) {
             const calculatedCgpa = Number(
               (totalPoints / totalCredits).toFixed(2)
             );
@@ -68,143 +130,167 @@ export default function DashboardOverview() {
               'kl_dashboard_cgpa',
               calculatedCgpa.toString()
             );
-            localStorage.setItem(
-              'kl_dashboard_credits',
-              totalCredits.toString()
-            );
-          }
-
-          let yearId = localStorage.getItem('kl_erp_year') || '';
-          let semId = localStorage.getItem('kl_erp_sem') || '';
-          const yStr = sessionStorage.getItem('kl_erp_academic_years');
-          const sStr = sessionStorage.getItem('kl_erp_semesters');
-          if (!yearId && yStr) {
-            const years = JSON.parse(yStr);
-            if (years.length > 0) yearId = years[0].value;
-          }
-          if (!semId && sStr) {
-            const semesters = JSON.parse(sStr);
-            if (semesters.length > 0) semId = semesters[0].value;
-          }
-
-          if (yearId && semId) {
-            setActiveYearId(yearId);
-            setActiveSemId(semId);
-
-            const csrf = sessionStorage.getItem('kl_erp_csrf_token');
-            fetch('/api/erp-proxy/attendance', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                academicYear: yearId,
-                semesterId: semId,
-                csrfToken: csrf,
-              }),
-            })
-              .then((res) => res.json())
-              .then((resData) => {
-                if (
-                  resData.success &&
-                  resData.attendanceData &&
-                  resData.attendanceData.length > 0
-                ) {
-                  let totalAttended = 0;
-                  let totalConducted = 0;
-                  resData.attendanceData = resData.attendanceData.filter(
-                    (row: any) => {
-                      const yrKey = Object.keys(row).find((k) =>
-                        k.toLowerCase().includes('year')
-                      );
-                      const semKey = Object.keys(row).find((k) =>
-                        k.toLowerCase().includes('sem')
-                      );
-
-                      let matchYear = true;
-                      let matchSem = true;
-
-                      if (yrKey && row[yrKey]) {
-                        // Check strict equality to prevent substring matches
-                        matchYear =
-                          String(row[yrKey]).trim() === String(yearId).trim();
-                      }
-
-                      if (semKey && row[semKey]) {
-                        matchSem =
-                          String(row[semKey]).trim() === String(semId).trim();
-                      }
-
-                      return matchYear && matchSem;
-                    }
-                  );
-
-                  resData.attendanceData.forEach((row: any) => {
-                    const condKey = Object.keys(row).find((k) =>
-                      k.toLowerCase().includes('conducted')
-                    );
-                    const attKey = Object.keys(row).find((k) =>
-                      k.toLowerCase().includes('attended')
-                    );
-                    if (condKey && attKey) {
-                      totalConducted += parseFloat(row[condKey]) || 0;
-                      totalAttended += parseFloat(row[attKey]) || 0;
-                    }
-                  });
-                  if (totalConducted > 0) {
-                    const calculatedAttendance = Math.round(
-                      (totalAttended / totalConducted) * 100
-                    );
-                    setAttendance(calculatedAttendance);
-                    localStorage.setItem(
-                      'kl_dashboard_attendance',
-                      calculatedAttendance.toString()
-                    );
-                  } else {
-                    const pctKey = Object.keys(resData.attendanceData[0]).find(
-                      (k) =>
-                        k.toLowerCase().includes('%') ||
-                        k.toLowerCase().includes('percent') ||
-                        k.toLowerCase().includes('attendance')
-                    );
-                    if (pctKey) {
-                      const sum = resData.attendanceData.reduce(
-                        (s: number, r: any) => s + (parseFloat(r[pctKey]) || 0),
-                        0
-                      );
-                      const calculatedAttendance = Math.round(
-                        sum / resData.attendanceData.length
-                      );
-                      setAttendance(calculatedAttendance);
-                      localStorage.setItem(
-                        'kl_dashboard_attendance',
-                        calculatedAttendance.toString()
-                      );
-                    }
-                  }
-                }
-              })
-              .catch(console.error);
           }
         }
       })
       .catch(console.error);
 
+    // Fetch Academic Session & Attendance independently
+    let yearId = localStorage.getItem('kl_erp_year') || '';
+    let semId = localStorage.getItem('kl_erp_sem') || '';
+    const yStr = sessionStorage.getItem('kl_erp_academic_years');
+    const sStr = sessionStorage.getItem('kl_erp_semesters');
+    if (!yearId && yStr) {
+      try {
+        const years = JSON.parse(yStr);
+        if (years.length > 0) yearId = years[0].value;
+      } catch (e) {}
+    }
+    if (!semId && sStr) {
+      try {
+        const semesters = JSON.parse(sStr);
+        if (semesters.length > 0) semId = semesters[0].value;
+      } catch (e) {}
+    }
+
+    if (yearId && semId) {
+      setActiveYearId(yearId);
+      setActiveSemId(semId);
+
+      const csrf = sessionStorage.getItem('kl_erp_csrf_token');
+      fetch('/api/erp-proxy/attendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          academicYear: yearId,
+          semesterId: semId,
+          csrfToken: csrf,
+        }),
+      })
+        .then((res) => res.json())
+        .then((resData) => {
+          if (
+            resData.success &&
+            resData.attendanceData &&
+            resData.attendanceData.length > 0
+          ) {
+            let totalAttended = 0;
+            let totalConducted = 0;
+            const filteredAttendance = resData.attendanceData.filter(
+              (row: any) => {
+                const yrKey = Object.keys(row).find((k) =>
+                  k.toLowerCase().includes('year')
+                );
+                const semKey = Object.keys(row).find((k) =>
+                  k.toLowerCase().includes('sem')
+                );
+
+                let matchYear = true;
+                let matchSem = true;
+
+                if (yrKey && row[yrKey]) {
+                  matchYear =
+                    String(row[yrKey]).trim() === String(yearId).trim();
+                }
+
+                if (semKey && row[semKey]) {
+                  matchSem =
+                    String(row[semKey]).trim() === String(semId).trim();
+                }
+
+                return matchYear && matchSem;
+              }
+            );
+
+            filteredAttendance.forEach((row: any) => {
+              const condKey = Object.keys(row).find((k) =>
+                k.toLowerCase().includes('conducted')
+              );
+              const attKey = Object.keys(row).find((k) =>
+                k.toLowerCase().includes('attended')
+              );
+              if (condKey && attKey) {
+                totalConducted += parseFloat(row[condKey]) || 0;
+                totalAttended += parseFloat(row[attKey]) || 0;
+              }
+            });
+            if (totalConducted > 0) {
+              const calculatedAttendance = Math.round(
+                (totalAttended / totalConducted) * 100
+              );
+              setAttendance(calculatedAttendance);
+              localStorage.setItem(
+                'kl_dashboard_attendance',
+                calculatedAttendance.toString()
+              );
+            } else if (filteredAttendance.length > 0) {
+              const pctKey = Object.keys(filteredAttendance[0]).find(
+                (k) =>
+                  k.toLowerCase().includes('%') ||
+                  k.toLowerCase().includes('percent') ||
+                  k.toLowerCase().includes('attendance')
+              );
+              if (pctKey) {
+                const sum = filteredAttendance.reduce(
+                  (s: number, r: any) => s + (parseFloat(r[pctKey]) || 0),
+                  0
+                );
+                const calculatedAttendance = Math.round(
+                  sum / filteredAttendance.length
+                );
+                setAttendance(calculatedAttendance);
+                localStorage.setItem(
+                  'kl_dashboard_attendance',
+                  calculatedAttendance.toString()
+                );
+              }
+            }
+          }
+        })
+        .catch(console.error);
+    }
+
+    // Fetch Fee Data independently with flexible column key matching
     fetch('/api/erp-proxy/fee')
       .then((res) => res.json())
       .then((resData) => {
         if (resData.success && resData.data && resData.data.length > 0) {
           const pending = resData.data
             .filter((row: any) => {
-              const status = row['Pay Status']?.toLowerCase() || '';
-              return (
+              const statusKey = Object.keys(row).find(
+                (k) =>
+                  k.toLowerCase().includes('status') ||
+                  k.toLowerCase().includes('pay')
+              );
+              const status = statusKey
+                ? String(row[statusKey]).toLowerCase()
+                : '';
+              const isUnpaid =
                 status.includes('not paid') ||
                 status.includes('waiting') ||
-                status.includes('pending')
-              );
+                status.includes('pending') ||
+                status.includes('due') ||
+                status.includes('unpaid');
+              return isUnpaid || (!statusKey && true);
             })
-            .reduce(
-              (sum: number, row: any) => sum + (parseFloat(row['Amount']) || 0),
-              0
-            );
+            .reduce((sum: number, row: any) => {
+              const dueKey = Object.keys(row).find(
+                (k) =>
+                  k.toLowerCase().includes('due') ||
+                  k.toLowerCase().includes('balance') ||
+                  k.toLowerCase().includes('pending')
+              );
+              const amountKey =
+                dueKey ||
+                Object.keys(row).find(
+                  (k) =>
+                    k.toLowerCase().includes('amount') ||
+                    k.toLowerCase().includes('fee') ||
+                    k.toLowerCase().includes('total')
+                );
+              const amt = amountKey ? parseFloat(String(row[amountKey])) || 0 : 0;
+              return sum + amt;
+            }, 0);
           setPendingFee(pending);
           localStorage.setItem('kl_dashboard_fee', pending.toString());
         }

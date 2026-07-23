@@ -21,21 +21,78 @@ export default function ToolsPage() {
       setLoading(true);
       const cgpaRes = await fetch('/api/erp-proxy/cgpa');
       const cgpaData = await cgpaRes.json();
-      if (cgpaData.success && cgpaData.data) {
+      if (cgpaData.success && cgpaData.data && cgpaData.data.length > 0) {
+        const rows = cgpaData.data;
+
+        let directCgpa: number | null = null;
+        let directCredits: number | null = null;
+
+        for (const row of rows) {
+          const cgpaKey = Object.keys(row).find(
+            (k) =>
+              k.toLowerCase().includes('cgpa') ||
+              k.toLowerCase() === 'gpa' ||
+              k.toLowerCase().includes('cumulative')
+          );
+          if (cgpaKey && row[cgpaKey]) {
+            const parsed = parseFloat(String(row[cgpaKey]).trim());
+            if (!isNaN(parsed) && parsed > 0 && parsed <= 10) {
+              directCgpa = parsed;
+            }
+          }
+
+          const credKey = Object.keys(row).find(
+            (k) =>
+              k.toLowerCase().includes('total credit') ||
+              k.toLowerCase().includes('earned credit') ||
+              k.toLowerCase().includes('credits earned')
+          );
+          if (credKey && row[credKey]) {
+            const parsedCred = parseFloat(String(row[credKey]).trim());
+            if (!isNaN(parsedCred) && parsedCred > 0) {
+              directCredits = parsedCred;
+            }
+          }
+        }
+
         let totalCreds = 0;
         let totalPoints = 0;
-        cgpaData.data.forEach((row: any) => {
-          const grade = row['Grade']?.trim().toUpperCase();
-          const creds = parseFloat(row['Credits']) || 0;
-          const point = parseFloat(row['Grade Point']) || 0;
-          if (grade && grade !== 'F') {
+
+        rows.forEach((row: any) => {
+          const gradeKey = Object.keys(row).find((k) =>
+            k.toLowerCase().includes('grade')
+          );
+          const credKey = Object.keys(row).find(
+            (k) =>
+              k.toLowerCase().includes('credit') ||
+              k.toLowerCase().includes('cred')
+          );
+          const pointKey = Object.keys(row).find(
+            (k) =>
+              k.toLowerCase().includes('point') ||
+              k.toLowerCase().includes('gp')
+          );
+
+          const grade = gradeKey
+            ? String(row[gradeKey] || '').trim().toUpperCase()
+            : '';
+          const creds = credKey ? parseFloat(String(row[credKey])) || 0 : 0;
+          const point = pointKey ? parseFloat(String(row[pointKey])) || 0 : 0;
+
+          if (grade !== 'F' && creds > 0) {
             totalCreds += creds;
             totalPoints += point * creds;
           }
         });
-        setCompletedCredits(totalCreds);
-        if (totalCreds > 0)
+
+        const finalCredits = directCredits || totalCreds;
+        setCompletedCredits(finalCredits);
+
+        if (directCgpa !== null) {
+          setCgpa(directCgpa);
+        } else if (totalCreds > 0) {
           setCgpa(Number((totalPoints / totalCreds).toFixed(2)));
+        }
       }
 
       const yearStr = sessionStorage.getItem('kl_erp_academic_years');

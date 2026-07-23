@@ -106,8 +106,10 @@ export default function FeePage() {
                 {data.map((row, idx) => {
                   // Determine status for styling
                   let status = 'Unknown';
-                  const statusKey = Object.keys(row).find((k) =>
-                    k.toLowerCase().includes('status')
+                  const statusKey = Object.keys(row).find(
+                    (k) =>
+                      k.toLowerCase().includes('status') ||
+                      k.toLowerCase().includes('pay')
                   );
                   if (statusKey) status = String(row[statusKey]).toLowerCase();
 
