@@ -120,7 +120,12 @@ async function handleProxy(
 
     return NextResponse.json(result);
   } catch (error: any) {
-    console.error(`[erp-proxy/${(await params).module}] Error:`, error);
+    let modName = 'unknown';
+    try {
+      const resolved = await params;
+      modName = resolved?.module || 'unknown';
+    } catch {}
+    console.error(`[erp-proxy/${modName}] Error:`, error);
     const status = error.message?.includes('Session expired') ? 401 : 500;
     return NextResponse.json(
       { success: false, error: error.message || 'Failed to fetch data' },

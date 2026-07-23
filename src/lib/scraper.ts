@@ -98,6 +98,7 @@ async function fetchWithJar(
       headers,
       body: method === 'GET' || method === 'HEAD' ? undefined : body,
       redirect: 'manual',
+      signal: init.signal || AbortSignal.timeout(12000),
     });
 
     mergeSetCookies(jar, res);
@@ -376,81 +377,356 @@ export async function loginAndFetchSemesters(
 }
 
 // --- GENERIC TABLE PARSER ----------------------------------------------------
-function parseGenericTable(html: string) {
-  const $ = cheerio.load(html);
 
-  let table = $('table').first();
-  let maxRows = 0;
-  $('table').each((_i, el) => {
-    const rowCount = $(el).find('tr').length;
-    if (rowCount > maxRows) {
-      maxRows = rowCount;
-      table = $(el);
-    }
-  });
+export interface ParseTableOptions {
+  extractLinks?: boolean;
+}
 
-  const data: any[] = [];
-
-  const hasThead = table.find('thead tr').length > 0;
-  let headerRow = hasThead
-    ? table.find('thead tr').last()
-    : table.find('tr').first();
-
-  const headers: string[] = [];
-  headerRow.find('th, td').each((i, el) => {
-    let text = $(el).text().trim();
-    if (!text) text = `Column_${i}`;
-    // deduplicate headers
-    let suffix = 0;
-    let finalStr = text;
-    while (headers.includes(finalStr)) {
-      suffix++;
-      finalStr = `${text}_${suffix}`;
-    }
-    headers.push(finalStr);
-  });
-
-  const rows = table.find('tr');
-  const bodyRows = table.find('tbody tr');
-  
-  let rowsToIterate: any;
-  if (hasThead) {
-    rowsToIterate = bodyRows.length > 0 ? bodyRows : rows.slice(1);
-  } else {
-    const allRows = bodyRows.length > 0 ? bodyRows : rows;
-    rowsToIterate = allRows.slice(1);
+export function parseGenericTable(
+  html: string | null | undefined,
+  options?: ParseTableOptions
+): Record<string, any>[] {
+  if (!html || typeof html !== 'string' || html.trim() === '') {
+    return [];
   }
 
-  rowsToIterate.each((i: number, row: any) => {
-    const rowData: any = {};
-    const cells = $(row).find('td, th');
+  // Pre-cleaning: Strip <script>, <style>, <noscript>, and HTML comments
+  const cleanHtml = html
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, '')
+    .replace(/<!--[\s\S]*?-->/g, '');
 
-    if (
-      cells.length === 1 &&
-      $(cells[0]).text().trim().includes('No results found')
-    ) {
-      return;
+  if (cleanHtml.trim() === '') {
+    return [];
+  }
+
+  const $ = cheerio.load(cleanHtml);
+  const tables = $('table');
+
+  if (tables.length === 0) {
+    return [];
+  }
+
+  function getDirectRows($table: any): any[] {
+    const rows: any[] = [];
+    $table.children().each((_i: number, child: any) => {
+      const tag = child.tagName?.toLowerCase();
+      if (tag === 'tr') {
+        rows.push(child);
+      } else if (tag === 'tbody' || tag === 'thead' || tag === 'tfoot') {
+        $(child).children().each((_j: number, subChild: any) => {
+          if (subChild.tagName?.toLowerCase() === 'tr') {
+            rows.push(subChild);
+          }
+        });
+      }
+    });
+    return rows;
+  }
+
+  function getDirectCells(rowEl: any): any[] {
+    const cells: any[] = [];
+    $(rowEl).children().each((_i: number, child: any) => {
+      const tag = child.tagName?.toLowerCase();
+      if (tag === 'th' || tag === 'td') {
+        cells.push(child);
+      }
+    });
+    return cells;
+  }
+
+  function getNodeText($cell: any): string {
+    const $clone = $cell.clone();
+    $clone.find('br, div, p, span, li').before(' ').after(' ');
+    let text = $clone.text();
+    text = text.replace(/\u00a0/g, ' ');
+    return text.replace(/\s+/g, ' ').trim();
+  }
+
+  function getNodeHref($cell: any): string | null {
+    const aTag = $cell.find('a[href]').first();
+    if (aTag.length > 0) {
+      const href = aTag.attr('href')?.trim();
+      if (href && !href.toLowerCase().startsWith('javascript:')) {
+        return href;
+      }
     }
-    if (cells.length === 0) return;
+    return null;
+  }
 
-    cells.each((j: number, cell: any) => {
-      const clone = $(cell).clone();
-      clone.find('br, div, p').before(' ');
-      const cellText = clone.text().replace(/\s+/g, ' ').trim();
+  let bestTableEl: any = null;
+  let maxScore = -Infinity;
+  let bestDirectRows: any[] = [];
 
-      if (headers[j]) {
-        rowData[headers[j]] = cellText;
-      } else {
-        rowData[`Column_${j}`] = cellText;
+  tables.each((_idx, tableEl) => {
+    const $t = $(tableEl);
+    const directRows = getDirectRows($t);
+    if (directRows.length === 0) return;
+
+    let thCount = 0;
+    let tdCount = 0;
+    let dataRowCount = 0;
+
+    directRows.forEach((rEl) => {
+      const cells = getDirectCells(rEl);
+      let rowTh = 0;
+      let rowTd = 0;
+      cells.forEach((cEl) => {
+        const tag = cEl.tagName?.toLowerCase();
+        if (tag === 'th') rowTh++;
+        if (tag === 'td') rowTd++;
+      });
+      thCount += rowTh;
+      tdCount += rowTd;
+      if (rowTh + rowTd >= 2) {
+        dataRowCount++;
       }
     });
 
-    if (Object.keys(rowData).length > 0) {
-      data.push(rowData);
+    let score = thCount * 5 + dataRowCount * 10 + tdCount * 0.5;
+
+    const parentTableCount = $t.parents('table').length;
+    if (parentTableCount > 0) {
+      score -= 15 * parentTableCount;
+    }
+
+    const idOrClass = (($t.attr('id') || '') + ' ' + ($t.attr('class') || '')).toLowerCase();
+    if (/nav|menu|header|footer|sidebar|breadcrumb|pagination/i.test(idOrClass)) {
+      score -= 50;
+    }
+
+    if ($t.find('input, select, textarea, button').length > 0 && dataRowCount <= 2) {
+      score -= 30;
+    }
+
+    if (score > maxScore) {
+      maxScore = score;
+      bestTableEl = tableEl;
+      bestDirectRows = directRows;
     }
   });
 
-  return data;
+  if (!bestTableEl || bestDirectRows.length === 0 || maxScore <= 0) {
+    return [];
+  }
+
+  const grid: string[][] = [];
+  const linkGrid: (string | null)[][] = [];
+
+  for (let rIdx = 0; rIdx < bestDirectRows.length; rIdx++) {
+    const rowEl = bestDirectRows[rIdx];
+    const cells = getDirectCells(rowEl);
+
+    if (!grid[rIdx]) {
+      grid[rIdx] = [];
+      linkGrid[rIdx] = [];
+    }
+
+    let colIdx = 0;
+
+    for (const cellEl of cells) {
+      while (grid[rIdx][colIdx] !== undefined) {
+        colIdx++;
+      }
+
+      const $c = $(cellEl);
+      const text = getNodeText($c);
+      const href = getNodeHref($c);
+
+      const colspan = Math.max(1, parseInt($c.attr('colspan') || '1', 10) || 1);
+      const rowspan = Math.max(1, parseInt($c.attr('rowspan') || '1', 10) || 1);
+
+      for (let r = 0; r < rowspan; r++) {
+        const targetRow = rIdx + r;
+        if (!grid[targetRow]) {
+          grid[targetRow] = [];
+          linkGrid[targetRow] = [];
+        }
+        for (let c = 0; c < colspan; c++) {
+          const targetCol = colIdx + c;
+          grid[targetRow][targetCol] = text;
+          linkGrid[targetRow][targetCol] = href;
+        }
+      }
+
+      colIdx += colspan;
+    }
+  }
+
+  if (grid.length === 0) return [];
+
+  let totalCols = 0;
+  for (const row of grid) {
+    if (row && row.length > totalCols) {
+      totalCols = row.length;
+    }
+  }
+
+  if (totalCols === 0) return [];
+
+  function isTitleBannerRow(row: string[]): boolean {
+    if (!row || row.length === 0) return true;
+    const nonEmpty = row.filter((c) => c && c.trim() !== '');
+    if (nonEmpty.length === 0) return true;
+
+    const uniqueTexts = Array.from(new Set(nonEmpty));
+    if (uniqueTexts.length === 1) {
+      const text = uniqueTexts[0].toLowerCase();
+      if (
+        row.length === 1 ||
+        nonEmpty.length >= Math.max(2, Math.ceil(totalCols * 0.6)) ||
+        /timetable|attendance|report|results|schedule|details|info|list|university|academic/i.test(text)
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  let headerRowIdx = -1;
+
+  for (let rIdx = 0; rIdx < bestDirectRows.length; rIdx++) {
+    const rowEl = bestDirectRows[rIdx];
+    const cells = getDirectCells(rowEl);
+    const hasTh = cells.some((c) => c.tagName?.toLowerCase() === 'th');
+    const rowGrid = grid[rIdx] || [];
+
+    if (hasTh && !isTitleBannerRow(rowGrid)) {
+      headerRowIdx = rIdx;
+      break;
+    }
+  }
+
+  if (headerRowIdx === -1) {
+    for (let rIdx = 0; rIdx < grid.length; rIdx++) {
+      const rowGrid = grid[rIdx] || [];
+      if (!isTitleBannerRow(rowGrid)) {
+        headerRowIdx = rIdx;
+        break;
+      }
+    }
+  }
+
+  if (headerRowIdx === -1) {
+    return [];
+  }
+
+  const headers: string[] = [];
+  const headerCountMap = new Map<string, number>();
+
+  let startDataRowIdx = headerRowIdx + 1;
+  const headerCells = getDirectCells(bestDirectRows[headerRowIdx]);
+  const headerHasTh = headerCells.some((c) => c.tagName?.toLowerCase() === 'th');
+
+  if (grid.length === 1 && !headerHasTh) {
+    for (let c = 0; c < totalCols; c++) {
+      headers.push(`Column_${c}`);
+    }
+    startDataRowIdx = 0;
+  } else {
+    for (let c = 0; c < totalCols; c++) {
+      let rawText = grid[headerRowIdx]?.[c]?.trim() || `Column_${c}`;
+      if (!rawText) rawText = `Column_${c}`;
+
+      if (headerCountMap.has(rawText)) {
+        const count = headerCountMap.get(rawText)! + 1;
+        headerCountMap.set(rawText, count);
+        rawText = `${rawText}_${count}`;
+      } else {
+        headerCountMap.set(rawText, 0);
+      }
+      headers.push(rawText);
+    }
+  }
+
+  const resultData: Record<string, any>[] = [];
+
+  for (let rIdx = startDataRowIdx; rIdx < grid.length; rIdx++) {
+    const rowGrid = grid[rIdx] || [];
+
+    if (isTitleBannerRow(rowGrid)) continue;
+
+    const nonEmptyCells = rowGrid.filter((c) => c && c.trim() !== '');
+    if (nonEmptyCells.length === 0) continue;
+
+    const fullRowText = rowGrid.join(' ').toLowerCase().trim();
+
+    if (
+      fullRowText.includes('no results found') ||
+      fullRowText.includes('no records found') ||
+      fullRowText.includes('no data available') ||
+      fullRowText.includes('record(s) not found') ||
+      fullRowText.includes('no details found') ||
+      fullRowText === 'nil'
+    ) {
+      continue;
+    }
+
+    if (
+      /page\s+\d+\s+of\s+\d+/i.test(fullRowText) ||
+      /displaying\s+\d+-\d+\s+of\s+\d+/i.test(fullRowText) ||
+      /total\s+records?:?/i.test(fullRowText) ||
+      /showing\s+\d+\s+to\s+\d+/i.test(fullRowText)
+    ) {
+      continue;
+    }
+
+    const rowObj: Record<string, any> = {};
+    let hasData = false;
+
+    for (let c = 0; c < totalCols; c++) {
+      const headerName = headers[c];
+      const cellVal = grid[rIdx]?.[c] || '';
+      rowObj[headerName] = cellVal;
+      if (cellVal !== '') {
+        hasData = true;
+      }
+
+      if (options?.extractLinks) {
+        const href = linkGrid[rIdx]?.[c];
+        if (href) {
+          rowObj[`${headerName}_href`] = href;
+        }
+      }
+    }
+
+    if (hasData) {
+      resultData.push(rowObj);
+    }
+  }
+
+  return resultData;
+}
+
+export function isLikelyTimetableData(data: any[]): boolean {
+  if (!Array.isArray(data) || data.length === 0) return false;
+
+  const timetableKeywords = [
+    'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
+    'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun',
+    'time', 'slot', 'period', 'course', 'subject', 'room', 'faculty', 'building',
+    'ltp', 'component', 'section', 'code', 'hour', 'timetable', 'academic'
+  ];
+
+  const timeRegex = /\b(\d{1,2}:\d{2}|am|pm)\b/i;
+
+  let matchCount = 0;
+  for (const row of data) {
+    if (typeof row !== 'object' || row === null) continue;
+    for (const key of Object.keys(row)) {
+      const lowerKey = key.toLowerCase();
+      if (timetableKeywords.some((kw) => lowerKey.includes(kw))) {
+        matchCount++;
+      }
+      const val = String(row[key] || '').toLowerCase();
+      if (timetableKeywords.some((kw) => val.includes(kw)) || timeRegex.test(val)) {
+        matchCount++;
+      }
+    }
+  }
+
+  return matchCount >= 2;
 }
 
 export async function fetchAttendanceData(
@@ -468,6 +744,7 @@ export async function fetchAttendanceData(
   const courseListRes = await fetchWithJar(COURSE_LIST_URL, jar, {
     method: 'POST',
     body: ajaxParams,
+    signal: AbortSignal.timeout(12000),
     extraHeaders: {
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
       'X-Requested-With': 'XMLHttpRequest',
@@ -476,7 +753,15 @@ export async function fetchAttendanceData(
     },
   });
 
+  if (!courseListRes.ok) {
+    throw new Error(`ERP returned HTTP ${courseListRes.status}`);
+  }
+
   const courseListHtml = await courseListRes.text();
+  if (courseListHtml.includes('id="login-form"')) {
+    throw new Error('Session expired or invalid ERP route.');
+  }
+
   const attendanceData = parseGenericTable(courseListHtml);
 
   return {
@@ -494,11 +779,16 @@ export async function fetchGenericModuleData(
 
   const res = await fetchWithJar(targetUrl, jar, {
     method: 'GET',
+    signal: AbortSignal.timeout(12000),
     extraHeaders: {
       Origin: ERP_URL,
       Referer: ERP_URL,
     },
   });
+
+  if (!res.ok) {
+    throw new Error(`ERP returned HTTP ${res.status}`);
+  }
 
   const html = await res.text();
 
@@ -547,16 +837,24 @@ export async function fetchTimetableData(
     `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Fstudenttimetable`,
     `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Findex`,
     `${ERP_URL}/index.php?r=studentattendance%2Fstudentdailyattendance%2Fstudenttimetable`,
+    `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Fviewstudenttimetable`,
+    `${ERP_URL}/index.php?r=timetables%2Fdefault%2Findex`,
+    `${ERP_URL}/index.php?r=timetables%2Fstudenttimetable%2Findex`,
+    `${ERP_URL}/index.php?r=studentattendance%2Fstudentdailyattendance%2Ftimetable`,
   ];
 
   let data: any[] = [];
+  let detectedSessionExpired = false;
 
   for (const url of candidateUrls) {
+    if (detectedSessionExpired) break;
+
+    // Strategy 1: POST with form params
     try {
-      // 1. Try POST with form params
       const res = await fetchWithJar(url, jar, {
         method: 'POST',
         body: params,
+        signal: AbortSignal.timeout(12000),
         extraHeaders: {
           'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
           'X-Requested-With': 'XMLHttpRequest',
@@ -564,52 +862,94 @@ export async function fetchTimetableData(
           Referer: url,
         },
       });
-      const html = await res.text();
-      if (!html.includes('id="login-form"')) {
+
+      if (res.ok) {
+        const html = await res.text();
+        if (html.includes('id="login-form"')) {
+          detectedSessionExpired = true;
+          throw new Error('Session expired or invalid ERP route.');
+        }
         const parsed = parseGenericTable(html);
-        if (parsed && parsed.length > 0) {
+        if (parsed && parsed.length > 0 && isLikelyTimetableData(parsed)) {
           data = parsed;
           break;
         }
       }
+    } catch (err: any) {
+      if (err.message?.includes('Session expired')) {
+        throw err;
+      }
+      console.error(`POST strategy failed for timetable ${url}:`, err);
+    }
 
-      // 2. Try GET with query parameters
+    if (detectedSessionExpired) break;
+
+    // Strategy 2: GET with query parameters
+    try {
       const getUrl = `${url}&UniversityMasterAcademicTimetableView[academicyear]=${academicYear}&UniversityMasterAcademicTimetableView[semesterid]=${semesterId}&DynamicModel[academicyear]=${academicYear}&DynamicModel[semesterid]=${semesterId}`;
       const getRes = await fetchWithJar(getUrl, jar, {
         method: 'GET',
+        signal: AbortSignal.timeout(12000),
         extraHeaders: {
           Origin: ERP_URL,
           Referer: url,
         },
       });
-      const getHtml = await getRes.text();
-      if (!getHtml.includes('id="login-form"')) {
+
+      if (getRes.ok) {
+        const getHtml = await getRes.text();
+        if (getHtml.includes('id="login-form"')) {
+          detectedSessionExpired = true;
+          throw new Error('Session expired or invalid ERP route.');
+        }
         const parsedGet = parseGenericTable(getHtml);
-        if (parsedGet && parsedGet.length > 0) {
+        if (parsedGet && parsedGet.length > 0 && isLikelyTimetableData(parsedGet)) {
           data = parsedGet;
           break;
         }
       }
+    } catch (err: any) {
+      if (err.message?.includes('Session expired')) {
+        throw err;
+      }
+      console.error(`GET params strategy failed for timetable ${url}:`, err);
+    }
 
-      // 3. Try plain GET (default session view)
+    if (detectedSessionExpired) break;
+
+    // Strategy 3: Plain GET (default session view)
+    try {
       const plainGetRes = await fetchWithJar(url, jar, {
         method: 'GET',
+        signal: AbortSignal.timeout(12000),
         extraHeaders: {
           Origin: ERP_URL,
           Referer: ERP_URL,
         },
       });
-      const plainGetHtml = await plainGetRes.text();
-      if (!plainGetHtml.includes('id="login-form"')) {
+
+      if (plainGetRes.ok) {
+        const plainGetHtml = await plainGetRes.text();
+        if (plainGetHtml.includes('id="login-form"')) {
+          detectedSessionExpired = true;
+          throw new Error('Session expired or invalid ERP route.');
+        }
         const parsedPlain = parseGenericTable(plainGetHtml);
-        if (parsedPlain && parsedPlain.length > 0) {
+        if (parsedPlain && parsedPlain.length > 0 && isLikelyTimetableData(parsedPlain)) {
           data = parsedPlain;
           break;
         }
       }
-    } catch (err) {
-      console.error(`Failed timetable fetch for ${url}:`, err);
+    } catch (err: any) {
+      if (err.message?.includes('Session expired')) {
+        throw err;
+      }
+      console.error(`Plain GET strategy failed for timetable ${url}:`, err);
     }
+  }
+
+  if (detectedSessionExpired) {
+    throw new Error('Session expired or invalid ERP route.');
   }
 
   return { success: true, data };
@@ -631,6 +971,7 @@ export async function fetchMarksData(
   const res = await fetchWithJar(ERP_ENDPOINTS['marks'], jar, {
     method: 'POST',
     body: params,
+    signal: AbortSignal.timeout(12000),
     extraHeaders: {
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
       'X-Requested-With': 'XMLHttpRequest',
@@ -638,9 +979,15 @@ export async function fetchMarksData(
       Referer: ERP_ENDPOINTS['marks'],
     },
   });
+
+  if (!res.ok) {
+    throw new Error(`ERP returned HTTP ${res.status}`);
+  }
+
   const html = await res.text();
-  if (html.includes('id="login-form"'))
+  if (html.includes('id="login-form"')) {
     throw new Error('Session expired or invalid ERP route.');
+  }
   return { success: true, data: parseGenericTable(html) };
 }
 
@@ -659,6 +1006,7 @@ export async function fetchEndExamResults(
   const res = await fetchWithJar(ERP_ENDPOINTS['end-exam'], jar, {
     method: 'POST',
     body: params,
+    signal: AbortSignal.timeout(12000),
     extraHeaders: {
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
       'X-Requested-With': 'XMLHttpRequest',
@@ -666,9 +1014,15 @@ export async function fetchEndExamResults(
       Referer: ERP_ENDPOINTS['end-exam'],
     },
   });
+
+  if (!res.ok) {
+    throw new Error(`ERP returned HTTP ${res.status}`);
+  }
+
   const html = await res.text();
-  if (html.includes('id="login-form"'))
+  if (html.includes('id="login-form"')) {
     throw new Error('Session expired or invalid ERP route.');
+  }
   return { success: true, data: parseGenericTable(html) };
 }
 

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { NumberTicker } from '@/components/ui/number-ticker';
 import { GlassCard } from '@/components/ui/glass-card';
+import { calculatePendingFee } from '@/lib/fee-utils';
 
 export default function DashboardOverview() {
   const [studentName, setStudentName] = useState('Student');

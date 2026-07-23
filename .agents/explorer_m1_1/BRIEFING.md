@@ -1,4 +1,4 @@
-# BRIEFING — 2026-07-24T00:46:22Z
+# BRIEFING — 2026-07-24T00:47:15Z
 
 ## Mission
 Analyze parseGenericTable and fetchTimetableData failure modes in scraper.ts and propose a comprehensive resilience strategy.
@@ -17,16 +17,18 @@ Analyze parseGenericTable and fetchTimetableData failure modes in scraper.ts and
 
 ## Current Parent
 - Conversation ID: c877f3ab-7cf2-4e66-83ce-2783c400be36
-- Updated: 2026-07-24T00:46:22Z
+- Updated: 2026-07-24T00:47:15Z
 
 ## Investigation State
-- **Explored paths**: None yet
-- **Key findings**: None yet
-- **Unexplored areas**: src/lib/scraper.ts, src/lib/constants.ts, app/api/erp-proxy/
+- **Explored paths**: src/lib/scraper.ts, src/app/api/erp-proxy/[module]/route.ts, src/app/dashboard/timetable/page.tsx
+- **Key findings**: Identified 7 failure modes in parseGenericTable (nested tables, missing headers, colspans/rowspans, inline spans, missing thead, title row 0, garbage rows) and 4 failure modes in fetchTimetableData (session expiry silent swallow, 12-combo loop, 500 error page HTML parsing, JSON body parsing).
+- **Unexplored areas**: None for M1 scope.
 
 ## Key Decisions Made
-- Initialized briefing and original request records.
+- Formulated comprehensive fix strategy for parseGenericTable and fetchTimetableData.
+- Documented findings, logic chain, caveats, conclusion, and verification method in handoff.md.
 
 ## Artifact Index
 - ORIGINAL_REQUEST.md — Initial user prompt
 - BRIEFING.md — Memory and briefing index
+- handoff.md — Completed 5-component handoff report
