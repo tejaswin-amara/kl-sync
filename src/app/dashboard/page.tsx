@@ -256,42 +256,7 @@ export default function DashboardOverview() {
       .then((res) => res.json())
       .then((resData) => {
         if (resData.success && resData.data && resData.data.length > 0) {
-          const pending = resData.data
-            .filter((row: any) => {
-              const statusKey = Object.keys(row).find(
-                (k) =>
-                  k.toLowerCase().includes('status') ||
-                  k.toLowerCase().includes('pay')
-              );
-              const status = statusKey
-                ? String(row[statusKey]).toLowerCase()
-                : '';
-              const isUnpaid =
-                status.includes('not paid') ||
-                status.includes('waiting') ||
-                status.includes('pending') ||
-                status.includes('due') ||
-                status.includes('unpaid');
-              return isUnpaid || (!statusKey && true);
-            })
-            .reduce((sum: number, row: any) => {
-              const dueKey = Object.keys(row).find(
-                (k) =>
-                  k.toLowerCase().includes('due') ||
-                  k.toLowerCase().includes('balance') ||
-                  k.toLowerCase().includes('pending')
-              );
-              const amountKey =
-                dueKey ||
-                Object.keys(row).find(
-                  (k) =>
-                    k.toLowerCase().includes('amount') ||
-                    k.toLowerCase().includes('fee') ||
-                    k.toLowerCase().includes('total')
-                );
-              const amt = amountKey ? parseFloat(String(row[amountKey])) || 0 : 0;
-              return sum + amt;
-            }, 0);
+          const pending = calculatePendingFee(resData.data);
           setPendingFee(pending);
           localStorage.setItem('kl_dashboard_fee', pending.toString());
         }
