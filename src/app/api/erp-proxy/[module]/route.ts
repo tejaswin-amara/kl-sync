@@ -6,6 +6,8 @@ import {
   fetchMarksData,
   fetchEndExamResults,
   fetchProfileData,
+  fetchCGPAData,
+  fetchFeeData,
   fetchGenericModuleData,
   ERP_ENDPOINTS,
   ScraperSession,
@@ -104,6 +106,17 @@ async function handleProxy(
         break;
       case 'profile':
         result = await fetchProfileData(session);
+        break;
+      case 'cgpa':
+        result = await fetchCGPAData(
+          session,
+          resolvedCsrf,
+          academicYear,
+          semesterId
+        );
+        break;
+      case 'fee':
+        result = await fetchFeeData(session);
         break;
       default:
         // Handle generic GET requests using the ERP_ENDPOINTS map

@@ -844,6 +844,7 @@ export async function fetchTimetableData(
   ];
 
   let data: any[] = [];
+  let fallbackData: any[] = [];
   let detectedSessionExpired = false;
 
   for (const url of candidateUrls) {
@@ -870,9 +871,12 @@ export async function fetchTimetableData(
           throw new Error('Session expired or invalid ERP route.');
         }
         const parsed = parseGenericTable(html);
-        if (parsed && parsed.length > 0 && isLikelyTimetableData(parsed)) {
-          data = parsed;
-          break;
+        if (parsed && parsed.length > 0) {
+          if (fallbackData.length === 0) fallbackData = parsed;
+          if (isLikelyTimetableData(parsed)) {
+            data = parsed;
+            break;
+          }
         }
       }
     } catch (err: any) {
@@ -903,9 +907,12 @@ export async function fetchTimetableData(
           throw new Error('Session expired or invalid ERP route.');
         }
         const parsedGet = parseGenericTable(getHtml);
-        if (parsedGet && parsedGet.length > 0 && isLikelyTimetableData(parsedGet)) {
-          data = parsedGet;
-          break;
+        if (parsedGet && parsedGet.length > 0) {
+          if (fallbackData.length === 0) fallbackData = parsedGet;
+          if (isLikelyTimetableData(parsedGet)) {
+            data = parsedGet;
+            break;
+          }
         }
       }
     } catch (err: any) {
@@ -935,9 +942,12 @@ export async function fetchTimetableData(
           throw new Error('Session expired or invalid ERP route.');
         }
         const parsedPlain = parseGenericTable(plainGetHtml);
-        if (parsedPlain && parsedPlain.length > 0 && isLikelyTimetableData(parsedPlain)) {
-          data = parsedPlain;
-          break;
+        if (parsedPlain && parsedPlain.length > 0) {
+          if (fallbackData.length === 0) fallbackData = parsedPlain;
+          if (isLikelyTimetableData(parsedPlain)) {
+            data = parsedPlain;
+            break;
+          }
         }
       }
     } catch (err: any) {
@@ -952,7 +962,72 @@ export async function fetchTimetableData(
     throw new Error('Session expired or invalid ERP route.');
   }
 
-  return { success: true, data };
+  const finalData = data.length > 0 ? data : fallbackData;
+  return { success: true, data: finalData };
+}
+
+export async function fetchCGPAData(
+  session: ScraperSession,
+  csrfToken?: string,
+  academicYear?: string,
+  semesterId?: string
+) {
+  const jar = arrayToJar(session.cookies);
+  const params = new URLSearchParams();
+  if (csrfToken) params.append('_csrf', csrfToken);
+  if (academicYear) params.append('DynamicModel[academicyear]', academicYear);
+  if (semesterId) params.append('DynamicModel[semester]', semesterId);
+
+  // Strategy 1: POST
+  try {
+    const res = await fetchWithJar(ERP_ENDPOINTS['cgpa'], jar, {
+      method: 'POST',
+      body: params,
+      signal: AbortSignal.timeout(12000),
+      extraHeaders: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'X-Requested-With': 'XMLHttpRequest',
+        Origin: ERP_URL,
+        Referer: ERP_ENDPOINTS['cgpa'],
+      },
+    });
+
+    if (res.ok) {
+      const html = await res.text();
+      if (!html.includes('id="login-form"')) {
+        const parsed = parseGenericTable(html);
+        if (parsed && parsed.length > 0) {
+          return { success: true, data: parsed };
+        }
+      }
+    }
+  } catch (err) {}
+
+  // Strategy 2: GET
+  const getRes = await fetchWithJar(ERP_ENDPOINTS['cgpa'], jar, {
+    method: 'GET',
+    signal: AbortSignal.timeout(12000),
+    extraHeaders: { Origin: ERP_URL, Referer: ERP_URL },
+  });
+  const html = await getRes.text();
+  if (html.includes('id="login-form"')) {
+    throw new Error('Session expired or invalid ERP route.');
+  }
+  return { success: true, data: parseGenericTable(html) };
+}
+
+export async function fetchFeeData(session: ScraperSession) {
+  const jar = arrayToJar(session.cookies);
+  const res = await fetchWithJar(ERP_ENDPOINTS['fee'], jar, {
+    method: 'GET',
+    signal: AbortSignal.timeout(12000),
+    extraHeaders: { Origin: ERP_URL, Referer: ERP_URL },
+  });
+  const html = await res.text();
+  if (html.includes('id="login-form"')) {
+    throw new Error('Session expired or invalid ERP route.');
+  }
+  return { success: true, data: parseGenericTable(html) };
 }
 
 export async function fetchMarksData(
