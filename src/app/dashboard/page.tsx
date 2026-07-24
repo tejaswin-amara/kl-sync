@@ -177,8 +177,9 @@ export default function DashboardOverview() {
           ) {
             let totalAttended = 0;
             let totalConducted = 0;
-            const filteredAttendance = resData.attendanceData.filter(
-              (row: any) => {
+            let filteredAttendance = resData.attendanceData;
+            if (yearId && semId) {
+              const strictMatches = resData.attendanceData.filter((row: any) => {
                 const yrKey = Object.keys(row).find((k) =>
                   k.toLowerCase().includes('year')
                 );
@@ -191,25 +192,40 @@ export default function DashboardOverview() {
 
                 if (yrKey && row[yrKey]) {
                   matchYear =
-                    String(row[yrKey]).trim() === String(yearId).trim();
+                    String(row[yrKey]).trim().includes(String(yearId).trim()) ||
+                    String(yearId).trim().includes(String(row[yrKey]).trim());
                 }
 
                 if (semKey && row[semKey]) {
                   matchSem =
-                    String(row[semKey]).trim() === String(semId).trim();
+                    String(row[semKey]).trim().includes(String(semId).trim()) ||
+                    String(semId).trim().includes(String(row[semKey]).trim());
                 }
 
                 return matchYear && matchSem;
+              });
+
+              if (strictMatches.length > 0) {
+                filteredAttendance = strictMatches;
               }
-            );
+            }
 
             filteredAttendance.forEach((row: any) => {
-              const condKey = Object.keys(row).find((k) =>
-                k.toLowerCase().includes('conducted')
-              );
-              const attKey = Object.keys(row).find((k) =>
-                k.toLowerCase().includes('attended')
-              );
+              const condKey = Object.keys(row).find((k) => {
+                const kl = k.toLowerCase();
+                return (
+                  kl.includes('conducted') ||
+                  kl.includes('held') ||
+                  (kl.includes('total') && !kl.includes('%'))
+                );
+              });
+              const attKey = Object.keys(row).find((k) => {
+                const kl = k.toLowerCase();
+                return (
+                  kl.includes('attended') ||
+                  kl.includes('present')
+                );
+              });
               if (condKey && attKey) {
                 totalConducted += parseFloat(row[condKey]) || 0;
                 totalAttended += parseFloat(row[attKey]) || 0;
@@ -395,6 +411,7 @@ function TodayScheduleWidget({
   activeSemId: string;
 }) {
   const [classes, setClasses] = useState<any[]>([]);
+  const [courseMap, setCourseMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -405,6 +422,41 @@ function TodayScheduleWidget({
     setLoading(true);
     try {
       const csrf = sessionStorage.getItem('kl_erp_csrf_token');
+
+      // Fetch marks/courses in parallel to map section/course IDs (e.g. 6100664) to course names
+      fetch('/api/erp-proxy/marks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          academicYear: activeYearId,
+          semesterId: activeSemId,
+          csrfToken: csrf,
+        }),
+      })
+        .then((res) => res.json())
+        .then((mRes) => {
+          if (mRes.success && mRes.data) {
+            const map: Record<string, string> = {};
+            mRes.data.forEach((row: any) => {
+              const keys = Object.keys(row);
+              const codeKey = keys.find((k) => k.toLowerCase().includes('code')) || '';
+              const nameKey = keys.find((k) => k.toLowerCase().includes('name') || k.toLowerCase().includes('title')) || '';
+              const secKey = keys.find((k) => k.toLowerCase().includes('sec') || k.toLowerCase().includes('reg')) || '';
+
+              const code = codeKey ? String(row[codeKey]).trim() : '';
+              const name = nameKey ? String(row[nameKey]).trim() : '';
+              const sec = secKey ? String(row[secKey]).trim() : '';
+
+              if (name) {
+                if (code) map[code.toLowerCase()] = `${code} - ${name}`;
+                if (sec) map[sec.toLowerCase()] = name;
+              }
+            });
+            setCourseMap(map);
+          }
+        })
+        .catch(() => {});
+
       fetch('/api/erp-proxy/timetable', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -508,9 +560,9 @@ function TodayScheduleWidget({
         ) : (
           <div className="flex flex-col gap-4">
             {classes.map((c, idx) => {
-              const values = Object.values(c);
-              const title = String(values[1] || 'Class');
-              const room = String(values[values.length - 1] || 'N/A');
+              const rawSub = String(c.Subject || c.Title || c.Course || Object.values(c)[1] || 'Class').trim();
+              const resolvedTitle = courseMap[rawSub.toLowerCase()] || rawSub;
+              const timeStr = String(c.Time || `P${idx + 1}`).trim();
               return (
                 <div key={idx} className="flex gap-4 group cursor-default">
                   <div className="w-12 pt-1 flex flex-col items-center gap-2">
@@ -523,15 +575,15 @@ function TodayScheduleWidget({
                     <div className="flex justify-between items-start gap-4">
                       <div>
                         <h4 className="text-sm font-medium text-zinc-100 leading-snug">
-                          {title}
+                          {resolvedTitle}
                         </h4>
                         <div className="flex items-center gap-1.5 mt-2 text-xs text-zinc-500">
-                          <Clock className="w-3.5 h-3.5" />
-                          <span>Scheduled</span>
+                          <Clock className="w-3.5 h-3.5 text-indigo-400" />
+                          <span>{timeStr || 'Scheduled'}</span>
                         </div>
                       </div>
-                      <span className="text-[10px] font-mono font-bold bg-white/5 border border-white/10 text-zinc-300 px-2.5 py-1 rounded-md shrink-0">
-                        {room}
+                      <span className="text-[10px] font-mono font-bold bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-md shrink-0">
+                        {timeStr}
                       </span>
                     </div>
                   </div>

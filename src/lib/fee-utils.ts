@@ -265,8 +265,6 @@ export function isRowUnpaid(row: Record<string, any>): boolean {
   if (!row || typeof row !== 'object') return false;
 
   const statusKey = findStatusKey(row);
-  const dueKey = findDueAmountKey(row);
-  const dueAmount = dueKey ? parseCurrency(row[dueKey]) : 0;
 
   const unpaidStatusKeywords = [
     'unpaid',
@@ -294,6 +292,13 @@ export function isRowUnpaid(row: Record<string, any>): boolean {
     'fully paid',
   ];
 
+  const keys = Object.keys(row);
+  const explicitDueKey = keys.find((k) => {
+    const norm = normalizeKey(k);
+    if (['paid', 'received', 'concession', 'scholarship', 'discount', 'waived', 'refund', 'date', 'id', 'type', 'name', 'receipt', 'ref', 'txn'].some((ex) => norm.includes(ex))) return false;
+    return norm.includes('due') || norm.includes('balance') || norm.includes('pending') || norm.includes('unpaid') || norm.includes('payable');
+  });
+
   if (statusKey && row[statusKey] !== undefined && row[statusKey] !== null) {
     const statusVal = String(row[statusKey]).toLowerCase().trim();
 
@@ -310,11 +315,17 @@ export function isRowUnpaid(row: Record<string, any>): boolean {
       !statusVal.includes('un');
 
     if (matchesPaid) {
-      return dueAmount > 0;
+      if (explicitDueKey) {
+        const amt = parseCurrency(row[explicitDueKey]);
+        return amt > 0;
+      }
+      return false; // Explicitly paid with no positive explicit balance/due = 0 pending
     }
   }
 
-  // If status key is absent/blank, check if balance due > 0
+  // If status key is absent/blank, check if explicit balance due > 0 or fallback due amount > 0
+  const dueKey = explicitDueKey || findDueAmountKey(row);
+  const dueAmount = dueKey ? parseCurrency(row[dueKey]) : 0;
   return dueAmount > 0;
 }
 
@@ -331,7 +342,13 @@ export function calculatePendingFee(data: Record<string, any>[]): number {
 
   return rowsToProcess.reduce((sum, row) => {
     if (isRowUnpaid(row)) {
-      const dueKey = findDueAmountKey(row);
+      const keys = Object.keys(row);
+      const explicitDueKey = keys.find((k) => {
+        const norm = normalizeKey(k);
+        if (['paid', 'received', 'concession', 'scholarship', 'discount', 'waived', 'refund', 'date', 'id', 'type', 'name', 'receipt', 'ref', 'txn'].some((ex) => norm.includes(ex))) return false;
+        return norm.includes('due') || norm.includes('balance') || norm.includes('pending') || norm.includes('unpaid') || norm.includes('payable');
+      });
+      const dueKey = explicitDueKey || findDueAmountKey(row);
       if (dueKey) {
         const amt = parseCurrency(row[dueKey]);
         return sum + (amt > 0 ? amt : 0);
