@@ -342,7 +342,7 @@ function TodayScheduleWidget({
 }) {
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const todayDayName = days[new Date().getDay()];
-  const defaultDay = ['Saturday', 'Sunday'].includes(todayDayName) ? 'Monday' : todayDayName;
+  const defaultDay = todayDayName;
 
   const [allSessions, setAllSessions] = useState<NormalizedClassSession[]>([]);
   const [selectedDay, setSelectedDay] = useState<string>(defaultDay);

@@ -609,9 +609,12 @@ export function parseGenericTable(
     const uniqueTexts = Array.from(new Set(nonEmpty));
     if (uniqueTexts.length === 1) {
       const text = uniqueTexts[0].toLowerCase();
+      // If the cell text contains course codes, section numbers, or room numbers, it is NOT a title banner!
+      if (/[a-z0-9]{5,10}/i.test(text) || /room|hall|lab|venue|s-\d+/i.test(text)) {
+        return false;
+      }
       if (
         row.length === 1 ||
-        nonEmpty.length >= Math.max(2, Math.ceil(totalCols * 0.6)) ||
         /timetable|attendance|report|results|schedule|details|info|list|university|academic|student|marks|cgpa|seating/i.test(text)
       ) {
         return true;
