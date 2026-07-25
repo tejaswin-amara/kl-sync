@@ -433,43 +433,55 @@ export default function TimetablePage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
-                      {Array.from({ length: 17 }, (_, i) => String(i + 1)).map((periodNum) => {
-                        const periodInt = parseInt(periodNum, 10);
-                        const daysToRender = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].filter(day => selectedDayFilter === 'All' || day === selectedDayFilter || (parsedTT.daysPresent.includes(day)));
-                        
-                        // Check if this period has ANY classes across all days to hide empty rows
-                        const hasAnyClass = daysToRender.some(day => {
-                          const daySessions = parsedTT.sessions.filter(s => isSameDay(s.day, day));
-                          return daySessions.some(s => {
-                            const rawSlot = String(s.timeSlot || '').trim();
-                            const sNum = parseInt(rawSlot.replace(/\D/g, ''), 10);
-                            return sNum === periodInt || rawSlot === periodNum || rawSlot === `P${periodNum}` || rawSlot.startsWith(`${periodNum}-`);
-                          });
+                      {(() => {
+                        // Sort time slots logically (numeric first, then alphabetical)
+                        const sortedTimeSlots = [...parsedTT.timeSlotsPresent].sort((a, b) => {
+                          const numA = parseInt(a.replace(/\\D/g, ''), 10);
+                          const numB = parseInt(b.replace(/\\D/g, ''), 10);
+                          if (!isNaN(numA) && !isNaN(numB) && numA !== numB) {
+                            // If both are numbers but one is huge (like 0930), be careful. 
+                            // But usually they are either 1,2,3 or times.
+                            return numA - numB;
+                          }
+                          return a.localeCompare(b);
                         });
                         
-                        // Skip rendering empty period rows if we want a clean look, but let's show all for strict grid matching or hide completely empty ones?
-                        // Hiding completely empty period rows across all days makes the timetable much more compact!
-                        if (!hasAnyClass) return null;
+                        // If no time slots found, fallback to 1-10
+                        const slotsToRender = sortedTimeSlots.length > 0 ? sortedTimeSlots : Array.from({ length: 10 }, (_, i) => String(i + 1));
 
-                        return (
-                          <tr key={periodNum} className="hover:bg-white/[0.02] transition-colors">
-                            {/* Sticky Period Column */}
-                            <td className="p-4 sticky left-0 z-10 bg-zinc-950/90 backdrop-blur-md font-bold text-xs text-zinc-400 border-r border-white/10 text-center">
-                              P{periodNum}
-                            </td>
+                        return slotsToRender.map((periodNum) => {
+                          const periodInt = parseInt(periodNum.replace(/\\D/g, ''), 10);
+                          const daysToRender = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].filter(day => selectedDayFilter === 'All' || day === selectedDayFilter || (parsedTT.daysPresent.includes(day)));
+                          
+                          // Check if this period has ANY classes across all days to hide empty rows
+                          const hasAnyClass = daysToRender.some(day => {
+                            const daySessions = parsedTT.sessions.filter(s => isSameDay(s.day, day));
+                            return daySessions.some(s => {
+                              const rawSlot = String(s.timeSlot || '').trim();
+                              return rawSlot === periodNum;
+                            });
+                          });
+                          
+                          if (!hasAnyClass && sortedTimeSlots.length > 0) return null; // Only hide if we actually have data
 
-                            {/* Day Columns for this Period */}
-                            {daysToRender.map((day) => {
-                              const daySessions = parsedTT.sessions.filter((s) => isSameDay(s.day, day));
-                              const session = daySessions.find((s) => {
-                                const rawSlot = String(s.timeSlot || '').trim();
-                                const sNum = parseInt(rawSlot.replace(/\D/g, ''), 10);
-                                return sNum === periodInt || rawSlot === periodNum || rawSlot === `P${periodNum}` || rawSlot.startsWith(`${periodNum}-`);
-                              });
+                          return (
+                            <tr key={periodNum} className="hover:bg-white/[0.02] transition-colors">
+                              {/* Sticky Period Column */}
+                              <td className="p-4 sticky left-0 z-10 bg-zinc-950/90 backdrop-blur-md font-bold text-xs text-zinc-400 border-r border-white/10 text-center whitespace-nowrap">
+                                {periodNum.length < 3 && !periodNum.toLowerCase().includes('p') ? `P${periodNum}` : periodNum}
+                              </td>
 
-                              return (
+                              {/* Day Columns for this Period */}
+                              {daysToRender.map((day) => {
+                                const daySessions = parsedTT.sessions.filter((s) => isSameDay(s.day, day));
+                                const session = daySessions.find((s) => {
+                                  const rawSlot = String(s.timeSlot || '').trim();
+                                  return rawSlot === periodNum;
+                                });
+
+                                return (
                                   <td
-                                    key={periodNum}
+                                    key={day}
                                     className="p-2.5 vertical-top border-r border-white/5 last:border-r-0 h-32 align-top"
                                   >
                                     {session ? (
@@ -525,7 +537,8 @@ export default function TimetablePage() {
                               })}
                             </tr>
                           );
-                        })}
+                        });
+                      })()}
                     </tbody>
                   </table>
                 </div>

@@ -27,6 +27,12 @@ export interface ParsedTimetable {
 
 function expandTimeSlots(raw: string): string[] {
   const str = String(raw).trim().toUpperCase();
+  
+  // If it looks like a time string (e.g., 09:30-10:20), do not mangle it
+  if (str.includes(':')) {
+    return [str];
+  }
+  
   const periods = new Set<string>();
   
   const rangeRegex = /(\d+)\s*-\s*(\d+)/g;
