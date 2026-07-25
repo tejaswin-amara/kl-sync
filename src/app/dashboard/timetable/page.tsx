@@ -454,9 +454,12 @@ export default function TimetablePage() {
 
                               {/* 17 Period Matrix Columns */}
                               {Array.from({ length: 17 }, (_, i) => String(i + 1)).map((periodNum) => {
-                                const session = daySessions.find(
-                                  (s) => s.timeSlot === periodNum || s.timeSlot === `P${periodNum}` || s.timeSlot.startsWith(`${periodNum}-`)
-                                );
+                                const periodInt = parseInt(periodNum, 10);
+                                const session = daySessions.find((s) => {
+                                  const rawSlot = String(s.timeSlot || '').trim();
+                                  const sNum = parseInt(rawSlot.replace(/\D/g, ''), 10);
+                                  return sNum === periodInt || rawSlot === periodNum || rawSlot === `P${periodNum}` || rawSlot.startsWith(`${periodNum}-`);
+                                });
 
                                 return (
                                   <td
@@ -571,7 +574,7 @@ export default function TimetablePage() {
                       </td>
                       <td className="px-4 py-3.5 text-xs font-mono text-zinc-300 border-y border-transparent">
                         <span className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded">
-                          Period {session.timeSlot}
+                          Period {String(session.timeSlot || '').replace(/^Period\s*/i, '').trim()}
                         </span>
                       </td>
                       <td className="px-4 py-3.5 text-xs font-mono text-zinc-300 border-y border-transparent">

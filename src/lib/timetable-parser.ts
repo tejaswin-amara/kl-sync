@@ -238,7 +238,10 @@ export function parseTimetable(rawRows: Array<Record<string, string>>): ParsedTi
     const timeColKey = headers.find(h => normalizeDay(h) === null) || headers[0];
 
     rawRows.forEach((row, rIdx) => {
-      const timeSlot = String(row[timeColKey] || `Period ${rIdx + 1}`).trim();
+      const rawSlot = String(row[timeColKey] || `Period ${rIdx + 1}`).trim();
+      // Extract numeric period index if available (e.g. "Period 1" -> "1")
+      const numMatch = rawSlot.match(/\d+/);
+      const timeSlot = numMatch ? numMatch[0] : rawSlot;
       timeSlotsSet.add(timeSlot);
 
       dayHeaders.forEach(dayHeader => {
@@ -247,7 +250,7 @@ export function parseTimetable(rawRows: Array<Record<string, string>>): ParsedTi
         daysSet.add(normDay.full);
 
         const cellVal = String(row[dayHeader] || '').trim();
-        if (cellVal && cellVal !== '-' && cellVal.toLowerCase() !== 'free' && cellVal.toLowerCase() !== 'n/a') {
+        if (cellVal && cellVal !== '-' && cellVal !== '- - -' && cellVal.toLowerCase() !== 'free' && cellVal.toLowerCase() !== 'n/a') {
           const parsedCell = parseCellContent(cellVal);
           const session: NormalizedClassSession = {
             id: `matrix-col-${normDay.full}-${timeSlot}-${rIdx}`,
@@ -267,7 +270,10 @@ export function parseTimetable(rawRows: Array<Record<string, string>>): ParsedTi
   } else if (layout === 'matrix_days_rows') {
     const dayColKey = headers[0];
     const timeSlotHeaders = headers.slice(1);
-    timeSlotHeaders.forEach(ts => timeSlotsSet.add(ts));
+    timeSlotHeaders.forEach(ts => {
+      const numMatch = ts.match(/\d+/);
+      timeSlotsSet.add(numMatch ? numMatch[0] : ts);
+    });
 
     rawRows.forEach((row, rIdx) => {
       const dayVal = String(row[dayColKey] || '').trim();
@@ -276,21 +282,23 @@ export function parseTimetable(rawRows: Array<Record<string, string>>): ParsedTi
       daysSet.add(normDay.full);
 
       timeSlotHeaders.forEach(tsHeader => {
+        const numMatch = tsHeader.match(/\d+/);
+        const timeSlot = numMatch ? numMatch[0] : tsHeader;
         const cellVal = String(row[tsHeader] || '').trim();
-        if (cellVal && cellVal !== '-' && cellVal.toLowerCase() !== 'free' && cellVal.toLowerCase() !== 'n/a') {
+        if (cellVal && cellVal !== '-' && cellVal !== '- - -' && cellVal.toLowerCase() !== 'free' && cellVal.toLowerCase() !== 'n/a') {
           const parsedCell = parseCellContent(cellVal);
           const session: NormalizedClassSession = {
-            id: `matrix-row-${normDay.full}-${tsHeader}-${rIdx}`,
+            id: `matrix-row-${normDay.full}-${timeSlot}-${rIdx}`,
             day: normDay.full,
             dayShort: normDay.short,
             dayIndex: normDay.index,
-            timeSlot: tsHeader,
+            timeSlot,
             ...parsedCell,
             rawText: cellVal,
           };
           sessions.push(session);
           if (!matrixGrid[normDay.full]) matrixGrid[normDay.full] = {};
-          matrixGrid[normDay.full][tsHeader] = session;
+          matrixGrid[normDay.full][timeSlot] = session;
         }
       });
     });
