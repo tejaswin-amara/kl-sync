@@ -129,13 +129,14 @@ export function parseCellContent(text: string): {
 
   const raw = text.trim();
 
-  // Explicit KL ERP Format Matcher: e.g. "25CS1302E-L - S-10 - RoomNo-H-005" or "25EC2206E-S - S-11 - RoomNo-H301A"
-  const klMatrixMatch = raw.match(/^([A-Z0-9]+)-([LTPSS])\s*-\s*(S-\d+|\w+)\s*-\s*RoomNo-(.+)$/i);
-  if (klMatrixMatch) {
-    const rawCode = klMatrixMatch[1].toUpperCase();
-    const compLetter = klMatrixMatch[2].toUpperCase();
-    const secStr = klMatrixMatch[3].toUpperCase();
-    const roomStr = klMatrixMatch[4].trim();
+  // Flexible KL ERP Format Matcher: e.g. "25CS1302E-L - S-10 - RoomNo-H-005" or "25SC2107E-S - S-10 -RoomNo-H-005"
+  const klRegex = /([A-Z0-9]{5,10})[-_]([LTPSS])\b.*?\b(S-\d+|\w+)\b.*?\b(?:RoomNo|Room|Hall|Lab|Venue)?[-:\s]*([A-Z0-9-]+)/i;
+  const match = raw.match(klRegex);
+  if (match) {
+    const rawCode = match[1].toUpperCase();
+    const compLetter = match[2].toUpperCase();
+    const secStr = match[3].toUpperCase();
+    const roomStr = match[4].replace(/^RoomNo-/i, '').trim();
 
     const compMap: Record<string, string> = {
       L: 'Lecture',
@@ -146,7 +147,7 @@ export function parseCellContent(text: string): {
 
     return {
       courseCode: rawCode,
-      courseTitle: rawCode, // Will be mapped to full title by profile/marks lookup
+      courseTitle: rawCode, // Will be mapped to full human-readable title by profile lookup
       component: compMap[compLetter] || compLetter,
       section: secStr,
       room: roomStr,
@@ -154,80 +155,22 @@ export function parseCellContent(text: string): {
     };
   }
 
-  // Generic Pattern Matchers
-  const codeRegex = /^([0-9]{2}[-.]?[A-Z]{2,5}[-.]?[0-9]{3,4}[A-Z]?|[A-Z]{2,5}[-.]?[0-9]{3,4}[A-Z]?)$/i;
-  const roomRegex = /^((?:room|venue|hall|lab|c|r|b|l|m|tp|fed|lbr)?\s*[-]?\s*[0-9]{3,4}[a-z]?)$/i;
-  const roomKeywordRegex = /\b(room|lab|hall|venue|building|block|c-\d|fed-\d|lbr-\d|roomno)\b/i;
-  const facultyRegex = /^(dr\.|prof\.|mr\.|mrs\.|ms\.|er\.)|\b(dr\.|prof\.)/i;
+  // Fallback extraction
+  const codeMatch = raw.match(/([0-9]{2}[A-Z]{2,5}[0-9]{3,4}[A-Z]?|[A-Z]{2,5}[0-9]{3,4}[A-Z]?)/i);
+  const courseCode = codeMatch ? codeMatch[1].toUpperCase() : raw;
 
-  let parts: string[] = [];
-  if (/[\n|/;]|(?:\s+[-–—]+\s+)/.test(raw)) {
-    parts = raw.split(/[\n|/;]|(?:\s+[-–—]+\s+)/).map(p => p.trim()).filter(Boolean);
-  } else if (raw.includes('-')) {
-    if (codeRegex.test(raw) || roomRegex.test(raw)) {
-      parts = [raw];
-    } else {
-      const rawParts = raw.split('-').map(p => p.trim()).filter(Boolean);
-      parts = [];
-      for (let i = 0; i < rawParts.length; i++) {
-        if (i < rawParts.length - 2 && /^\d{2}$/.test(rawParts[i]) && /^[A-Za-z]{2,5}$/.test(rawParts[i+1]) && /^\d{3,4}[A-Za-z]?$/.test(rawParts[i+2])) {
-          parts.push(`${rawParts[i]}-${rawParts[i+1]}-${rawParts[i+2]}`);
-          i += 2;
-        } else if (i < rawParts.length - 1 && /^[A-Za-z]{1,4}$/.test(rawParts[i]) && /^\d{3,4}[A-Za-z]?$/.test(rawParts[i+1])) {
-          parts.push(`${rawParts[i]}-${rawParts[i+1]}`);
-          i += 1;
-        } else {
-          parts.push(rawParts[i]);
-        }
-      }
-    }
-  } else {
-    parts = [raw];
-  }
+  const compMatch = raw.match(/[-_]([LTPSS])\b/i);
+  const compLetter = compMatch ? compMatch[1].toUpperCase() : '';
+  const compMap: Record<string, string> = { L: 'Lecture', P: 'Practical', S: 'Skill', T: 'Tutorial' };
+  const component = compLetter ? (compMap[compLetter] || compLetter) : undefined;
 
-  let courseCode = '';
-  let courseTitle = '';
-  let room = '';
-  let faculty = '';
-  let component: string | undefined = undefined;
-  let section: string | undefined = undefined;
-  const unmapped: string[] = [];
+  const secMatch = raw.match(/\b(S-\d+)\b/i);
+  const section = secMatch ? secMatch[1].toUpperCase() : undefined;
 
-  for (const part of parts) {
-    if (!courseCode && codeRegex.test(part)) {
-      courseCode = part;
-    } else if (!faculty && (facultyRegex.test(part) || part.toLowerCase().includes('dr.') || part.toLowerCase().includes('prof.'))) {
-      faculty = part;
-    } else if (!room && (roomRegex.test(part) || roomKeywordRegex.test(part))) {
-      room = part.replace(/^roomno\s*[-:]?\s*/i, '').trim();
-    } else if (!section && /^s-\d+$/i.test(part)) {
-      section = part.toUpperCase();
-    } else {
-      unmapped.push(part);
-    }
-  }
+  const roomMatch = raw.match(/(?:RoomNo|Room|Venue|Hall|Lab)[-:\s]*([A-Z0-9-]+)/i);
+  const room = roomMatch ? roomMatch[1].replace(/^RoomNo-/i, '').trim() : '';
 
-  if (unmapped.length > 0) {
-    courseTitle = unmapped[0];
-    if (unmapped.length > 1 && !faculty) {
-      faculty = unmapped[1];
-    }
-    if (unmapped.length > 2 && !room) {
-      room = unmapped[unmapped.length - 1];
-    }
-  }
-
-  if (!courseCode && parts.length > 0 && /^[A-Z0-9-]{4,12}$/i.test(parts[0])) {
-    courseCode = parts[0];
-  }
-  if (!room && parts.length > 1 && !facultyRegex.test(parts[parts.length - 1]) && parts[parts.length - 1] !== courseTitle) {
-    room = parts[parts.length - 1].replace(/^roomno\s*[-:]?\s*/i, '').trim();
-  }
-  if (!courseTitle) {
-    courseTitle = courseCode || raw;
-  }
-
-  return { courseCode, courseTitle, component, section, room, faculty };
+  return { courseCode, courseTitle: courseCode, component, section, room, faculty: '' };
 }
 
 /**

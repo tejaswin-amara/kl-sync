@@ -406,88 +406,120 @@ export default function TimetablePage() {
             </p>
           </div>
         ) : viewMode === 'grid' ? (
-          /* Grid View Mode */
+          /* Horizontal Academic Matrix Grid View Mode */
           <div className="p-6 overflow-x-auto custom-scrollbar flex-1">
             {parsedTT.daysPresent.length === 0 ? (
               <div className="text-center py-12 text-zinc-400 text-sm">
                 No matching sessions for the selected day filter.
               </div>
             ) : (
-              <div className="min-w-[800px] flex flex-col gap-6">
-                {parsedTT.daysPresent
-                  .filter(
-                    (day) =>
-                      selectedDayFilter === 'All' || isSameDay(day, selectedDayFilter)
-                  )
-                  .map((day) => {
-                    const daySessions = parsedTT.sessions.filter((s) =>
-                      isSameDay(s.day, day)
-                    );
+              <div className="min-w-[1100px] flex flex-col gap-6">
+                <div className="bg-zinc-950/40 border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-zinc-900/80 border-b border-white/10 text-[11px] font-bold uppercase tracking-wider text-zinc-300">
+                        <th className="p-4 sticky left-0 z-20 bg-zinc-900/95 backdrop-blur-md min-w-[120px] border-r border-white/10 text-indigo-400">
+                          Day \ Period
+                        </th>
+                        {Array.from({ length: 17 }, (_, i) => `P${i + 1}`).map((period) => (
+                          <th key={period} className="p-3 text-center min-w-[170px] border-r border-white/5 last:border-r-0">
+                            {period}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {parsedTT.daysPresent
+                        .filter(
+                          (day) =>
+                            selectedDayFilter === 'All' || isSameDay(day, selectedDayFilter)
+                        )
+                        .map((day) => {
+                          const daySessions = parsedTT.sessions.filter((s) =>
+                            isSameDay(s.day, day)
+                          );
 
-                    if (daySessions.length === 0) return null;
-
-                    return (
-                      <div
-                        key={day}
-                        className="bg-zinc-950/40 border border-white/5 rounded-2xl p-5 flex flex-col gap-4"
-                      >
-                        <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                          <div className="flex items-center gap-3">
-                            <span className="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
-                            <h3 className="text-base font-semibold text-zinc-100">
-                              {day}
-                            </h3>
-                            <span className="text-xs text-zinc-500 font-mono">
-                              ({daySessions.length} session{daySessions.length > 1 ? 's' : ''})
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                          {daySessions.map((session, idx) => (
-                            <motion.div
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: idx * 0.04 }}
-                              key={session.id || idx}
-                              className="bg-zinc-900/60 border border-white/10 hover:border-indigo-500/40 p-4 rounded-xl flex flex-col gap-2 group transition-all"
-                            >
-                              <div className="flex justify-between items-start gap-2">
-                                <span className="text-[10px] font-mono font-bold bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded">
-                                  {session.timeSlot}
+                          return (
+                            <tr key={day} className="hover:bg-white/[0.02] transition-colors">
+                              {/* Sticky Day Column */}
+                              <td className="p-4 sticky left-0 z-10 bg-zinc-950/90 backdrop-blur-md font-bold text-xs text-zinc-100 border-r border-white/10">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                  {day}
+                                </div>
+                                <span className="text-[10px] font-normal text-zinc-500 block mt-0.5">
+                                  {daySessions.length} session{daySessions.length !== 1 ? 's' : ''}
                                 </span>
-                                {session.room && (
-                                  <span className="text-[10px] font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1">
-                                    <MapPin className="w-3 h-3" />
-                                    {session.room}
-                                  </span>
-                                )}
-                              </div>
+                              </td>
 
-                              <h4 className="text-sm font-semibold text-zinc-100 group-hover:text-indigo-300 transition-colors leading-snug line-clamp-2 mt-1">
-                                {session.courseTitle || session.courseCode || 'Class Session'}
-                              </h4>
+                              {/* 17 Period Matrix Columns */}
+                              {Array.from({ length: 17 }, (_, i) => String(i + 1)).map((periodNum) => {
+                                const session = daySessions.find(
+                                  (s) => s.timeSlot === periodNum || s.timeSlot === `P${periodNum}` || s.timeSlot.startsWith(`${periodNum}-`)
+                                );
 
-                              <div className="flex flex-col gap-1 mt-auto pt-2 border-t border-white/5 text-xs text-zinc-400">
-                                {session.courseCode && session.courseCode !== session.courseTitle && (
-                                  <div className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-400">
-                                    <BookOpen className="w-3 h-3 text-indigo-400 shrink-0" />
-                                    <span className="truncate">{session.courseCode}</span>
-                                  </div>
-                                )}
-                                {session.faculty && (
-                                  <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
-                                    <User className="w-3 h-3 text-purple-400 shrink-0" />
-                                    <span className="truncate">{session.faculty}</span>
-                                  </div>
-                                )}
-                              </div>
-                            </motion.div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
+                                return (
+                                  <td
+                                    key={periodNum}
+                                    className="p-2.5 vertical-top border-r border-white/5 last:border-r-0 h-32 align-top"
+                                  >
+                                    {session ? (
+                                      <motion.div
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="h-full bg-zinc-900/80 border border-white/10 hover:border-indigo-500/50 p-3 rounded-xl flex flex-col justify-between gap-1.5 shadow-md group transition-all"
+                                      >
+                                        <div className="flex items-center justify-between gap-1">
+                                          {session.component && (
+                                            <span
+                                              className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider ${
+                                                session.component === 'Lecture'
+                                                  ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                                                  : session.component === 'Practical'
+                                                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                                  : session.component === 'Skill'
+                                                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                                                  : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                              }`}
+                                            >
+                                              {session.component}
+                                            </span>
+                                          )}
+                                          {session.section && (
+                                            <span className="text-[9px] font-mono bg-white/10 text-zinc-300 px-1 py-0.5 rounded">
+                                              {session.section}
+                                            </span>
+                                          )}
+                                        </div>
+
+                                        <h5 className="text-xs font-semibold text-zinc-100 group-hover:text-indigo-300 transition-colors leading-snug line-clamp-2">
+                                          {session.courseTitle || session.courseCode}
+                                        </h5>
+
+                                        <div className="flex items-center justify-between gap-1 text-[10px] text-zinc-400 pt-1 border-t border-white/5 mt-auto">
+                                          <span className="font-mono text-zinc-400 truncate">{session.courseCode}</span>
+                                          {session.room && (
+                                            <span className="text-emerald-400 font-medium flex items-center gap-0.5 shrink-0">
+                                              <MapPin className="w-2.5 h-2.5" />
+                                              {session.room}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </motion.div>
+                                    ) : (
+                                      <div className="h-full rounded-xl border border-dashed border-white/5 flex items-center justify-center text-zinc-700 text-xs">
+                                        -
+                                      </div>
+                                    )}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>
@@ -506,13 +538,16 @@ export default function TimetablePage() {
                       Day
                     </th>
                     <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-white/5">
-                      Time Slot
+                      Period / Slot
                     </th>
                     <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-white/5">
                       Course Code
                     </th>
                     <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-white/5">
                       Course Title
+                    </th>
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-white/5">
+                      Component & Section
                     </th>
                     <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-white/5">
                       Venue / Room
@@ -536,7 +571,7 @@ export default function TimetablePage() {
                       </td>
                       <td className="px-4 py-3.5 text-xs font-mono text-zinc-300 border-y border-transparent">
                         <span className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded">
-                          {session.timeSlot}
+                          Period {session.timeSlot}
                         </span>
                       </td>
                       <td className="px-4 py-3.5 text-xs font-mono text-zinc-300 border-y border-transparent">
@@ -544,6 +579,20 @@ export default function TimetablePage() {
                       </td>
                       <td className="px-4 py-3.5 text-sm font-medium text-zinc-100 border-y border-transparent max-w-xs truncate">
                         {session.courseTitle || session.courseCode || 'Class Session'}
+                      </td>
+                      <td className="px-4 py-3.5 text-xs border-y border-transparent">
+                        <div className="flex items-center gap-1.5">
+                          {session.component && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300">
+                              {session.component}
+                            </span>
+                          )}
+                          {session.section && (
+                            <span className="text-[10px] font-mono bg-white/10 text-zinc-300 px-1.5 py-0.5 rounded">
+                              {session.section}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3.5 text-xs font-medium text-emerald-400 border-y border-transparent">
                         {session.room ? (

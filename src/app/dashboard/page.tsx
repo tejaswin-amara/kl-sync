@@ -340,12 +340,16 @@ function TodayScheduleWidget({
   activeYearId: string;
   activeSemId: string;
 }) {
-  const [sessions, setSessions] = useState<NormalizedClassSession[]>([]);
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const todayDayName = days[new Date().getDay()];
+  const defaultDay = ['Saturday', 'Sunday'].includes(todayDayName) ? 'Monday' : todayDayName;
+
+  const [allSessions, setAllSessions] = useState<NormalizedClassSession[]>([]);
+  const [selectedDay, setSelectedDay] = useState<string>(defaultDay);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const currentDayName = days[new Date().getDay()];
+  const availableDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   const loadSchedule = useCallback(async () => {
     if (!activeYearId || !activeSemId) {
@@ -358,6 +362,63 @@ function TodayScheduleWidget({
     const cacheKey = `kl_timetable_${activeYearId}_${activeSemId}`;
     let loadedFromCache = false;
 
+    // Fetch course titles & faculty mapping from profile/marks
+    const courseLookup: Record<string, { title?: string; faculty?: string }> = {};
+    try {
+      const [profRes, marksRes] = await Promise.all([
+        fetch('/api/erp-proxy/profile').catch(() => null),
+        fetch('/api/erp-proxy/marks').catch(() => null),
+      ]);
+      if (profRes && profRes.ok) {
+        const profData = await profRes.json();
+        const courses = profData.data?.courses || [];
+        if (Array.isArray(courses)) {
+          courses.forEach((c: any) => {
+            const code = String(c.Coursecode || c.courseCode || '').toUpperCase().trim();
+            const desc = String(c.Coursedesc || c.courseDesc || '').trim();
+            const fac = String(c.FacultyName || c.facultyName || '').trim();
+            if (code) {
+              courseLookup[code] = { title: desc || undefined, faculty: fac || undefined };
+            }
+          });
+        }
+      }
+      if (marksRes && marksRes.ok) {
+        const marksData = await marksRes.json();
+        const rows = marksData.data || [];
+        if (Array.isArray(rows)) {
+          rows.forEach((r: any) => {
+            const codeKey = Object.keys(r).find((k) => k.toLowerCase().includes('code'));
+            const descKey = Object.keys(r).find((k) => k.toLowerCase().includes('name') || k.toLowerCase().includes('title') || k.toLowerCase().includes('desc'));
+            if (codeKey && r[codeKey]) {
+              const code = String(r[codeKey]).toUpperCase().trim();
+              const desc = descKey ? String(r[descKey]).trim() : '';
+              if (code && !courseLookup[code]?.title) {
+                courseLookup[code] = { ...(courseLookup[code] || {}), title: desc || undefined };
+              }
+            }
+          });
+        }
+      }
+    } catch (e) {
+      // ignore non-fatal lookup error
+    }
+
+    const applyEnrichment = (sessionsList: NormalizedClassSession[]) => {
+      sessionsList.forEach((s) => {
+        const info = courseLookup[s.courseCode.toUpperCase()];
+        if (info) {
+          if (info.title && (s.courseTitle === s.courseCode || !s.courseTitle)) {
+            s.courseTitle = info.title;
+          }
+          if (info.faculty && !s.faculty) {
+            s.faculty = info.faculty;
+          }
+        }
+      });
+      return sessionsList;
+    };
+
     // 1. Try loading from sessionStorage first
     try {
       const cached = sessionStorage.getItem(cacheKey);
@@ -365,8 +426,8 @@ function TodayScheduleWidget({
         const rawData = JSON.parse(cached);
         if (Array.isArray(rawData) && rawData.length > 0) {
           const parsed = parseTimetable(rawData);
-          const today = parsed.sessions.filter((s) => isSameDay(s.day, currentDayName));
-          setSessions(today);
+          const enriched = applyEnrichment(parsed.sessions);
+          setAllSessions(enriched);
           loadedFromCache = true;
           setLoading(false);
         }
@@ -392,8 +453,8 @@ function TodayScheduleWidget({
       if (resData.success && Array.isArray(resData.data)) {
         sessionStorage.setItem(cacheKey, JSON.stringify(resData.data));
         const parsed = parseTimetable(resData.data);
-        const today = parsed.sessions.filter((s) => isSameDay(s.day, currentDayName));
-        setSessions(today);
+        const enriched = applyEnrichment(parsed.sessions);
+        setAllSessions(enriched);
         setError(null);
       } else {
         if (!loadedFromCache) {
@@ -407,41 +468,71 @@ function TodayScheduleWidget({
     } finally {
       setLoading(false);
     }
-  }, [activeYearId, activeSemId, currentDayName]);
+  }, [activeYearId, activeSemId]);
 
   useEffect(() => {
     loadSchedule();
   }, [loadSchedule]);
 
+  const activeDaySessions = allSessions.filter((s) => isSameDay(s.day, selectedDay));
+
   return (
     <GlassCard className="flex flex-col h-full !p-0" glowIntensity="low">
-      <div className="p-5 border-b border-white/5 flex justify-between items-center bg-zinc-950/30">
-        <div className="flex items-center gap-3">
-          <CalendarDays className="w-5 h-5 text-indigo-400" />
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-100">
-              Today's Schedule
-            </h3>
-            <p className="text-[10px] text-zinc-500 font-mono">{currentDayName}</p>
+      <div className="p-4 sm:p-5 border-b border-white/5 flex flex-col gap-3 bg-zinc-950/30">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <CalendarDays className="w-5 h-5 text-indigo-400" />
+            <div>
+              <h3 className="text-sm font-semibold text-zinc-100">
+                Daily Schedule
+              </h3>
+              <p className="text-[10px] text-zinc-400 font-mono">
+                Today is {todayDayName} • Viewing {selectedDay}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {error && (
+              <button
+                onClick={() => loadSchedule()}
+                className="p-1 text-zinc-400 hover:text-zinc-100 transition-colors"
+                title="Retry"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+              </button>
+            )}
+            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full">
+              Live
+            </span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {error && (
-            <button
-              onClick={() => loadSchedule()}
-              className="p-1 text-zinc-400 hover:text-zinc-100 transition-colors"
-              title="Retry"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-            </button>
-          )}
-          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full">
-            Live
-          </span>
+
+        {/* Day Selector Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1">
+          {availableDays.map((d) => {
+            const isSelected = isSameDay(d, selectedDay);
+            const isToday = isSameDay(d, todayDayName);
+            return (
+              <button
+                key={d}
+                onClick={() => setSelectedDay(d)}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all shrink-0 flex items-center gap-1 ${
+                  isSelected
+                    ? 'bg-indigo-600 text-white shadow-md font-semibold'
+                    : 'bg-white/5 text-zinc-400 hover:text-zinc-200 hover:bg-white/10'
+                }`}
+              >
+                {d.slice(0, 3)}
+                {isToday && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      <div className="flex-1 p-6 flex flex-col gap-4">
+      <div className="flex-1 p-5 flex flex-col gap-3 overflow-y-auto max-h-[420px] custom-scrollbar">
         {loading ? (
           <div className="flex flex-col gap-3">
             {[...Array(3)].map((_, i) => (
@@ -462,49 +553,72 @@ function TodayScheduleWidget({
               <RefreshCw className="w-3 h-3" /> Retry
             </button>
           </div>
-        ) : sessions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center text-center h-40 gap-3 opacity-60">
+        ) : activeDaySessions.length === 0 ? (
+          <div className="flex flex-col items-center justify-center text-center h-44 gap-3 opacity-80">
             <CalendarIcon className="w-10 h-10 text-zinc-500" />
             <p className="text-sm font-medium text-zinc-300">
-              No classes scheduled for today ({currentDayName}).
+              No classes scheduled for {selectedDay}.
             </p>
-            <p className="text-xs text-zinc-500">Enjoy your day!</p>
+            {['Saturday', 'Sunday'].includes(selectedDay) && (
+              <button
+                onClick={() => setSelectedDay('Monday')}
+                className="text-xs text-indigo-400 hover:underline font-medium"
+              >
+                View Monday's Schedule →
+              </button>
+            )}
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {sessions.map((s, idx) => (
+            {activeDaySessions.map((s, idx) => (
               <div
                 key={s.id || idx}
-                className="flex gap-4 group cursor-default bg-zinc-950/40 p-4 rounded-xl border border-white/5 hover:border-white/10 transition-colors"
+                className="flex flex-col gap-2 bg-zinc-950/40 p-3.5 rounded-xl border border-white/5 hover:border-indigo-500/30 transition-all group"
               >
-                <div className="flex flex-col justify-center shrink-0">
-                  <span className="text-[10px] font-mono font-bold bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-md">
-                    {s.timeSlot}
-                  </span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-medium text-zinc-100 leading-snug truncate">
-                    {s.courseTitle || s.courseCode || 'Class Session'}
-                  </h4>
-                  <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-zinc-400">
-                    {s.courseCode && s.courseCode !== s.courseTitle && (
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono font-bold bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-md">
+                      P{s.timeSlot}
+                    </span>
+                    {s.component && (
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${
+                        s.component === 'Lecture' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' :
+                        s.component === 'Practical' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                        s.component === 'Skill' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' :
+                        'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      }`}>
+                        {s.component}
+                      </span>
+                    )}
+                    {s.section && (
                       <span className="text-[10px] font-mono bg-white/10 px-1.5 py-0.5 rounded text-zinc-300">
-                        {s.courseCode}
-                      </span>
-                    )}
-                    {s.room && (
-                      <span className="flex items-center gap-1 text-emerald-400">
-                        <MapPin className="w-3 h-3" />
-                        {s.room}
-                      </span>
-                    )}
-                    {s.faculty && (
-                      <span className="flex items-center gap-1 text-zinc-400 truncate">
-                        <User className="w-3 h-3 text-purple-400" />
-                        {s.faculty}
+                        {s.section}
                       </span>
                     )}
                   </div>
+
+                  {s.room && (
+                    <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
+                      <MapPin className="w-3 h-3" />
+                      {s.room}
+                    </span>
+                  )}
+                </div>
+
+                <h4 className="text-sm font-semibold text-zinc-100 group-hover:text-indigo-300 transition-colors leading-snug line-clamp-2">
+                  {s.courseTitle || s.courseCode || 'Class Session'}
+                </h4>
+
+                <div className="flex items-center justify-between text-xs text-zinc-400 pt-1 border-t border-white/5">
+                  <span className="text-[11px] font-mono text-zinc-400">
+                    {s.courseCode}
+                  </span>
+                  {s.faculty && (
+                    <span className="flex items-center gap-1 text-[11px] text-zinc-400 truncate max-w-[180px]">
+                      <User className="w-3 h-3 text-purple-400 shrink-0" />
+                      {s.faculty}
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
