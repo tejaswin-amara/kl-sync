@@ -73,6 +73,88 @@ export default function TimetablePage() {
 
     try {
       const csrf = sessionStorage.getItem('kl_erp_csrf_token');
+
+      // Fetch profile & marks in parallel to build course title & faculty lookup
+      const courseLookup: Record<string, { title: string; faculty: string }> = {};
+      try {
+        const [profRes, marksRes] = await Promise.allSettled([
+          fetch('/api/erp-proxy/profile'),
+          fetch('/api/erp-proxy/marks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              academicYear: selectedYear,
+              semesterId: selectedSem,
+              csrfToken: csrf,
+            }),
+          }),
+        ]);
+
+        if (profRes.status === 'fulfilled') {
+          const pData = await profRes.value.json();
+          if (pData.success && Array.isArray(pData.data)) {
+            pData.data.forEach((row: any) => {
+              const keys = Object.keys(row);
+              const codeK = keys.find((k) => k.toLowerCase().includes('code')) || '';
+              const descK =
+                keys.find(
+                  (k) =>
+                    k.toLowerCase().includes('desc') ||
+                    k.toLowerCase().includes('name') ||
+                    k.toLowerCase().includes('title')
+                ) || '';
+              const facK =
+                keys.find(
+                  (k) =>
+                    k.toLowerCase().includes('faculty') ||
+                    k.toLowerCase().includes('instructor')
+                ) || '';
+              const code = codeK ? String(row[codeK]).trim().toUpperCase() : '';
+              const desc = descK ? String(row[descK]).trim() : '';
+              const fac = facK ? String(row[facK]).trim() : '';
+              if (code && desc) {
+                courseLookup[code] = { title: desc, faculty: fac };
+              }
+            });
+          }
+        }
+
+        if (marksRes.status === 'fulfilled') {
+          const mData = await marksRes.value.json();
+          if (mData.success && Array.isArray(mData.data)) {
+            mData.data.forEach((row: any) => {
+              const keys = Object.keys(row);
+              const codeK = keys.find((k) => k.toLowerCase().includes('code')) || '';
+              const nameK =
+                keys.find(
+                  (k) =>
+                    k.toLowerCase().includes('name') ||
+                    k.toLowerCase().includes('title') ||
+                    k.toLowerCase().includes('desc')
+                ) || '';
+              const facK =
+                keys.find(
+                  (k) =>
+                    k.toLowerCase().includes('faculty') ||
+                    k.toLowerCase().includes('instructor')
+                ) || '';
+              const code = codeK ? String(row[codeK]).trim().toUpperCase() : '';
+              const name = nameK ? String(row[nameK]).trim() : '';
+              const fac = facK ? String(row[facK]).trim() : '';
+              if (code && name) {
+                if (!courseLookup[code]) {
+                  courseLookup[code] = { title: name, faculty: fac };
+                } else if (fac && !courseLookup[code].faculty) {
+                  courseLookup[code].faculty = fac;
+                }
+              }
+            });
+          }
+        }
+      } catch (e) {
+        // Non-fatal lookup failure
+      }
+
       const res = await fetch('/api/erp-proxy/timetable', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -95,7 +177,19 @@ export default function TimetablePage() {
 
       const rawRows = resData.data || [];
       sessionStorage.setItem(cacheKey, JSON.stringify(rawRows));
-      setParsedTT(parseTimetable(rawRows));
+      const parsed = parseTimetable(rawRows);
+      parsed.sessions.forEach((s) => {
+        const info = courseLookup[s.courseCode.toUpperCase()];
+        if (info) {
+          if (info.title && (s.courseTitle === s.courseCode || !s.courseTitle)) {
+            s.courseTitle = info.title;
+          }
+          if (info.faculty && !s.faculty) {
+            s.faculty = info.faculty;
+          }
+        }
+      });
+      setParsedTT(parsed);
       setError(null);
     } catch (err: any) {
       if (!loadedFromCache) {

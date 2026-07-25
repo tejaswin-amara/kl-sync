@@ -8,7 +8,7 @@ const COURSE_LIST_URL = `${ERP_URL}/index.php?r=studentattendance%2Fstudentdaily
 // --- Real ERP endpoints ---
 export const ERP_ENDPOINTS: Record<string, string> = {
   marks: `${ERP_URL}/index.php?r=studentinfo%2Fstudentendexamresult%2Fgetstudentinternalmarks`,
-  timetable: `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Findexstudentindisearch`,
+  timetable: `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Findividualstudenttimetableget`,
   fee: `${ERP_URL}/index.php?r=feepayments%2Fstudentfeeorderdetailsinfo%2Fmy_fee_orders`,
   profile: `${ERP_URL}/index.php?r=studentinfo%2Fstudentprofileinfo%2Fviewprofileindi`,
   cgpa: `${ERP_URL}/index.php?r=studentinfo%2Fstudentendexamresult%2Fsearchgetmycgpa`,
@@ -882,6 +882,7 @@ export async function fetchTimetableData(
 
   const candidateUrls = [
     ERP_ENDPOINTS['timetable'],
+    `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Findexstudentindisearch`,
     `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Fstudenttimetable`,
     `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Findex`,
     `${ERP_URL}/index.php?r=studentattendance%2Fstudentdailyattendance%2Fstudenttimetable`,

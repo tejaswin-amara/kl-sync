@@ -378,10 +378,10 @@ export function isRowUnpaid(row: Record<string, any>): boolean {
     return parseCurrency(row[explicitDueKey]) > 0;
   }
 
-  // If only fallback gross fee key exists, check if paid column exists and equals total fee
+  // If fallback gross fee key exists, check if paid column exists and compare
   const paidKey = Object.keys(row).find((k) => {
     const norm = normalizeKey(k);
-    return norm.includes('paid') && !norm.includes('unpaid') && !norm.includes('status');
+    return norm.includes('paid') && !norm.includes('unpaid') && !norm.includes('status') && !norm.includes('date');
   });
 
   if (fallbackDueKey && paidKey) {
@@ -393,10 +393,12 @@ export function isRowUnpaid(row: Record<string, any>): boolean {
     if (total > 0 && total - paid > 0) {
       return true;
     }
+    return false;
   }
 
-  const dueAmount = fallbackDueKey ? parseCurrency(row[fallbackDueKey]) : 0;
-  return dueAmount > 0;
+  // Without an explicit due/balance column, explicit unpaid status, or paid vs total mismatch,
+  // historical fee orders/receipts are NOT unpaid items.
+  return false;
 }
 
 /**

@@ -4,10 +4,12 @@ export interface NormalizedClassSession {
   dayShort: string;       // Normalized short day e.g. 'Mon'
   dayIndex: number;       // 0=Sun, 1=Mon, ..., 6=Sat (-1 if Day Order/Unknown)
   timeSlot: string;       // e.g. '09:00 AM - 10:00 AM' or 'Period 1'
-  courseCode: string;     // e.g. '22CS1101'
-  courseTitle: string;    // e.g. 'Data Structures'
-  room: string;           // e.g. 'C101'
-  faculty: string;        // e.g. 'Dr. Smith'
+  courseCode: string;     // e.g. '25CS1302E'
+  courseTitle: string;    // e.g. 'DATABASE SYSTEMS ENGINEERING AND DISTRIBUTED BACKEND DEVELOPMENT'
+  component?: string;     // e.g. 'Lecture', 'Practical', 'Skill', 'Tutorial'
+  section?: string;       // e.g. 'S-10'
+  room: string;           // e.g. 'H-005'
+  faculty: string;        // e.g. 'khaja shareef sk'
   rawText: string;        // Original cell string
 }
 
@@ -113,30 +115,58 @@ export function isSameDay(dayA: string, dayB: string): boolean {
  * Smart Cell Parser: Robustly parses course code, course title, room/venue, and faculty from cell strings.
  * Handles multi-hyphen strings ("22-CS-1101", "C-101 - Lab", "22-CS-1101 - Data Structures - C-101 - Dr. Smith").
  */
-export function parseCellContent(text: string): { courseCode: string; courseTitle: string; room: string; faculty: string } {
+export function parseCellContent(text: string): {
+  courseCode: string;
+  courseTitle: string;
+  component?: string;
+  section?: string;
+  room: string;
+  faculty: string;
+} {
   if (!text || text.trim() === '' || text.trim() === '-' || text.toLowerCase().trim() === 'free' || text.toLowerCase().trim() === 'n/a') {
     return { courseCode: '', courseTitle: '', room: '', faculty: '' };
   }
 
   const raw = text.trim();
 
-  // Pattern matchers
+  // Explicit KL ERP Format Matcher: e.g. "25CS1302E-L - S-10 - RoomNo-H-005" or "25EC2206E-S - S-11 - RoomNo-H301A"
+  const klMatrixMatch = raw.match(/^([A-Z0-9]+)-([LTPSS])\s*-\s*(S-\d+|\w+)\s*-\s*RoomNo-(.+)$/i);
+  if (klMatrixMatch) {
+    const rawCode = klMatrixMatch[1].toUpperCase();
+    const compLetter = klMatrixMatch[2].toUpperCase();
+    const secStr = klMatrixMatch[3].toUpperCase();
+    const roomStr = klMatrixMatch[4].trim();
+
+    const compMap: Record<string, string> = {
+      L: 'Lecture',
+      P: 'Practical',
+      S: 'Skill',
+      T: 'Tutorial',
+    };
+
+    return {
+      courseCode: rawCode,
+      courseTitle: rawCode, // Will be mapped to full title by profile/marks lookup
+      component: compMap[compLetter] || compLetter,
+      section: secStr,
+      room: roomStr,
+      faculty: '',
+    };
+  }
+
+  // Generic Pattern Matchers
   const codeRegex = /^([0-9]{2}[-.]?[A-Z]{2,5}[-.]?[0-9]{3,4}[A-Z]?|[A-Z]{2,5}[-.]?[0-9]{3,4}[A-Z]?)$/i;
   const roomRegex = /^((?:room|venue|hall|lab|c|r|b|l|m|tp|fed|lbr)?\s*[-]?\s*[0-9]{3,4}[a-z]?)$/i;
-  const roomKeywordRegex = /\b(room|lab|hall|venue|building|block|c-\d|fed-\d|lbr-\d)\b/i;
+  const roomKeywordRegex = /\b(room|lab|hall|venue|building|block|c-\d|fed-\d|lbr-\d|roomno)\b/i;
   const facultyRegex = /^(dr\.|prof\.|mr\.|mrs\.|ms\.|er\.)|\b(dr\.|prof\.)/i;
 
   let parts: string[] = [];
-
-  // Split by major section breaks: newline \n, pipe |, slash /, semicolon ;, or spaced hyphens ' - ' / ' -- '
   if (/[\n|/;]|(?:\s+[-–—]+\s+)/.test(raw)) {
     parts = raw.split(/[\n|/;]|(?:\s+[-–—]+\s+)/).map(p => p.trim()).filter(Boolean);
   } else if (raw.includes('-')) {
-    // If raw itself is a single course code or room (e.g. "22-CS-1101", "C-101"), keep as single part
     if (codeRegex.test(raw) || roomRegex.test(raw)) {
       parts = [raw];
     } else {
-      // Split by hyphen, then reassemble multi-hyphen tokens (like "22"-"CS"-"1101")
       const rawParts = raw.split('-').map(p => p.trim()).filter(Boolean);
       parts = [];
       for (let i = 0; i < rawParts.length; i++) {
@@ -159,6 +189,8 @@ export function parseCellContent(text: string): { courseCode: string; courseTitl
   let courseTitle = '';
   let room = '';
   let faculty = '';
+  let component: string | undefined = undefined;
+  let section: string | undefined = undefined;
   const unmapped: string[] = [];
 
   for (const part of parts) {
@@ -167,7 +199,9 @@ export function parseCellContent(text: string): { courseCode: string; courseTitl
     } else if (!faculty && (facultyRegex.test(part) || part.toLowerCase().includes('dr.') || part.toLowerCase().includes('prof.'))) {
       faculty = part;
     } else if (!room && (roomRegex.test(part) || roomKeywordRegex.test(part))) {
-      room = part;
+      room = part.replace(/^roomno\s*[-:]?\s*/i, '').trim();
+    } else if (!section && /^s-\d+$/i.test(part)) {
+      section = part.toUpperCase();
     } else {
       unmapped.push(part);
     }
@@ -183,18 +217,17 @@ export function parseCellContent(text: string): { courseCode: string; courseTitl
     }
   }
 
-  // Fallbacks if regex didn't catch discrete items
   if (!courseCode && parts.length > 0 && /^[A-Z0-9-]{4,12}$/i.test(parts[0])) {
     courseCode = parts[0];
   }
   if (!room && parts.length > 1 && !facultyRegex.test(parts[parts.length - 1]) && parts[parts.length - 1] !== courseTitle) {
-    room = parts[parts.length - 1];
+    room = parts[parts.length - 1].replace(/^roomno\s*[-:]?\s*/i, '').trim();
   }
   if (!courseTitle) {
     courseTitle = courseCode || raw;
   }
 
-  return { courseCode, courseTitle, room, faculty };
+  return { courseCode, courseTitle, component, section, room, faculty };
 }
 
 /**
