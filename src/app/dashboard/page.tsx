@@ -374,11 +374,14 @@ function TodayScheduleWidget({
         const courses = profData.data?.courses || [];
         if (Array.isArray(courses)) {
           courses.forEach((c: any) => {
-            const code = String(c.Coursecode || c.courseCode || '').toUpperCase().trim();
-            const desc = String(c.Coursedesc || c.courseDesc || '').trim();
-            const fac = String(c.FacultyName || c.facultyName || '').trim();
-            if (code) {
-              courseLookup[code] = { title: desc || undefined, faculty: fac || undefined };
+            const rawCode = String(c.Coursecode || c.courseCode || c.code || '').toUpperCase().trim();
+            const desc = String(c.Coursedesc || c.courseDesc || c.title || c.name || '').trim();
+            const fac = String(c.FacultyName || c.facultyName || c.faculty || '').trim();
+            if (rawCode) {
+              const strippedCode = rawCode.replace(/[-_][LTPSS]$/i, '').trim();
+              const info = { title: desc || undefined, faculty: fac || undefined };
+              courseLookup[rawCode] = info;
+              if (strippedCode) courseLookup[strippedCode] = info;
             }
           });
         }
@@ -391,10 +394,16 @@ function TodayScheduleWidget({
             const codeKey = Object.keys(r).find((k) => k.toLowerCase().includes('code'));
             const descKey = Object.keys(r).find((k) => k.toLowerCase().includes('name') || k.toLowerCase().includes('title') || k.toLowerCase().includes('desc'));
             if (codeKey && r[codeKey]) {
-              const code = String(r[codeKey]).toUpperCase().trim();
+              const rawCode = String(r[codeKey]).toUpperCase().trim();
+              const strippedCode = rawCode.replace(/[-_][LTPSS]$/i, '').trim();
               const desc = descKey ? String(r[descKey]).trim() : '';
-              if (code && !courseLookup[code]?.title) {
-                courseLookup[code] = { ...(courseLookup[code] || {}), title: desc || undefined };
+              if (rawCode) {
+                if (!courseLookup[rawCode]?.title) {
+                  courseLookup[rawCode] = { ...(courseLookup[rawCode] || {}), title: desc || undefined };
+                }
+                if (strippedCode && !courseLookup[strippedCode]?.title) {
+                  courseLookup[strippedCode] = { ...(courseLookup[strippedCode] || {}), title: desc || undefined };
+                }
               }
             }
           });
@@ -406,9 +415,11 @@ function TodayScheduleWidget({
 
     const applyEnrichment = (sessionsList: NormalizedClassSession[]) => {
       sessionsList.forEach((s) => {
-        const info = courseLookup[s.courseCode.toUpperCase()];
+        const rawCode = s.courseCode.toUpperCase().trim();
+        const strippedCode = rawCode.replace(/[-_][LTPSS]$/i, '').trim();
+        const info = courseLookup[rawCode] || courseLookup[strippedCode];
         if (info) {
-          if (info.title && (s.courseTitle === s.courseCode || !s.courseTitle)) {
+          if (info.title && (s.courseTitle === s.courseCode || !s.courseTitle || s.courseTitle === rawCode)) {
             s.courseTitle = info.title;
           }
           if (info.faculty && !s.faculty) {
@@ -578,7 +589,7 @@ function TodayScheduleWidget({
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-mono font-bold bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-md">
-                      P{s.timeSlot}
+                      P{String(s.timeSlot || '').replace(/^Period\s*/i, '').trim()}
                     </span>
                     {s.component && (
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${
@@ -650,29 +661,57 @@ function CurrentCoursesWidget({
   useEffect(() => {
     if (!activeYearId || !activeSemId) return;
     setLoading(true);
-    try {
-      const csrf = sessionStorage.getItem('kl_erp_csrf_token');
-      fetch('/api/erp-proxy/marks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          academicYear: activeYearId,
-          semesterId: activeSemId,
-          csrfToken: csrf,
-        }),
-      })
-        .then((res) => res.json())
-        .then((resData) => {
-          if (resData.success && resData.data && resData.data.length > 0) {
-            setCourses(resData.data.slice(0, 4));
+    let mounted = true;
+
+    async function loadCourses() {
+      try {
+        const csrf = sessionStorage.getItem('kl_erp_csrf_token');
+
+        // 1. Try profile courses
+        const profRes = await fetch('/api/erp-proxy/profile').catch(() => null);
+        if (profRes && profRes.ok) {
+          const profData = await profRes.json();
+          const profCourses = profData.data?.courses;
+          if (Array.isArray(profCourses) && profCourses.length > 0) {
+            const mapped = profCourses.slice(0, 6).map((c: any) => ({
+              'Course Code': String(c.Coursecode || c.courseCode || c.code || 'N/A').toUpperCase().trim(),
+              'Course Name': String(c.Coursedesc || c.courseDesc || c.title || c.name || 'Course').trim(),
+              'Evaluation Components': String(c.FacultyName || c.facultyName || c.faculty || 'Active Course').trim(),
+            }));
+            if (mounted) {
+              setCourses(mapped);
+              setLoading(false);
+              return;
+            }
           }
-        })
-        .catch(console.error)
-        .finally(() => setLoading(false));
-    } catch (e) {
-      console.error(e);
-      setLoading(false);
+        }
+
+        // 2. Fallback to marks courses
+        const marksRes = await fetch('/api/erp-proxy/marks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            academicYear: activeYearId,
+            semesterId: activeSemId,
+            csrfToken: csrf,
+          }),
+        }).catch(() => null);
+
+        if (marksRes && marksRes.ok) {
+          const marksData = await marksRes.json();
+          if (marksData.success && Array.isArray(marksData.data) && marksData.data.length > 0) {
+            if (mounted) setCourses(marksData.data.slice(0, 6));
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load current courses:', e);
+      } finally {
+        if (mounted) setLoading(false);
+      }
     }
+
+    loadCourses();
+    return () => { mounted = false; };
   }, [activeYearId, activeSemId]);
 
   return (
