@@ -474,7 +474,7 @@ export default function TimetablePage() {
                               {/* Day Columns for this Period */}
                               {daysToRender.map((day) => {
                                 const daySessions = parsedTT.sessions.filter((s) => isSameDay(s.day, day));
-                                const session = daySessions.find((s) => {
+                                const matchingSessions = daySessions.filter((s) => {
                                   const rawSlot = String(s.timeSlot || '').trim();
                                   return rawSlot === periodNum;
                                 });
@@ -484,49 +484,54 @@ export default function TimetablePage() {
                                     key={day}
                                     className="p-2.5 vertical-top border-r border-white/5 last:border-r-0 h-32 align-top"
                                   >
-                                    {session ? (
-                                      <motion.div
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        className="h-full bg-zinc-900/80 border border-white/10 hover:border-indigo-500/50 p-3 rounded-xl flex flex-col justify-between gap-1.5 shadow-md group transition-all"
-                                      >
-                                        <div className="flex items-center justify-between gap-1">
-                                          {session.component && (
-                                            <span
-                                              className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider ${
-                                                session.component === 'Lecture'
-                                                  ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-                                                  : session.component === 'Practical'
-                                                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                                                  : session.component === 'Skill'
-                                                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                                                  : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                                              }`}
-                                            >
-                                              {session.component}
-                                            </span>
-                                          )}
-                                          {session.section && (
-                                            <span className="text-[9px] font-mono bg-white/10 text-zinc-300 px-1 py-0.5 rounded">
-                                              {session.section}
-                                            </span>
-                                          )}
-                                        </div>
+                                    {matchingSessions.length > 0 ? (
+                                      <div className="flex flex-col gap-2 h-full">
+                                        {matchingSessions.map((session, sIdx) => (
+                                          <motion.div
+                                            key={session.id || sIdx}
+                                            initial={{ opacity: 0, scale: 0.95 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            className="bg-zinc-900/80 border border-white/10 hover:border-indigo-500/50 p-3 rounded-xl flex flex-col justify-between gap-1.5 shadow-md group transition-all shrink-0"
+                                          >
+                                            <div className="flex items-center justify-between gap-1">
+                                              {session.component && (
+                                                <span
+                                                  className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider ${
+                                                    session.component === 'Lecture'
+                                                      ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                                                      : session.component === 'Practical'
+                                                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                                      : session.component === 'Skill'
+                                                      ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                                                      : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                                  }`}
+                                                >
+                                                  {session.component}
+                                                </span>
+                                              )}
+                                              {session.section && (
+                                                <span className="text-[9px] font-mono bg-white/10 text-zinc-300 px-1 py-0.5 rounded">
+                                                  {session.section}
+                                                </span>
+                                              )}
+                                            </div>
 
-                                        <h5 className="text-xs font-semibold text-zinc-100 group-hover:text-indigo-300 transition-colors leading-snug line-clamp-2">
-                                          {session.courseTitle || session.courseCode}
-                                        </h5>
+                                            <h5 className="text-xs font-semibold text-zinc-100 group-hover:text-indigo-300 transition-colors leading-snug line-clamp-2">
+                                              {session.courseTitle || session.courseCode}
+                                            </h5>
 
-                                        <div className="flex items-center justify-between gap-1 text-[10px] text-zinc-400 pt-1 border-t border-white/5 mt-auto">
-                                          <span className="font-mono text-zinc-400 truncate">{session.courseCode}</span>
-                                          {session.room && (
-                                            <span className="text-emerald-400 font-medium flex items-center gap-0.5 shrink-0">
-                                              <MapPin className="w-2.5 h-2.5" />
-                                              {session.room}
-                                            </span>
-                                          )}
-                                        </div>
-                                      </motion.div>
+                                            <div className="flex items-center justify-between gap-1 text-[10px] text-zinc-400 pt-1 border-t border-white/5 mt-auto">
+                                              <span className="font-mono text-zinc-400 truncate">{session.courseCode}</span>
+                                              {session.room && (
+                                                <span className="text-emerald-400 font-medium flex items-center gap-0.5 shrink-0">
+                                                  <MapPin className="w-2.5 h-2.5" />
+                                                  {session.room}
+                                                </span>
+                                              )}
+                                            </div>
+                                          </motion.div>
+                                        ))}
+                                      </div>
                                     ) : (
                                       <div className="h-full rounded-xl border border-dashed border-white/5 flex items-center justify-center text-zinc-700 text-xs">
                                         -
