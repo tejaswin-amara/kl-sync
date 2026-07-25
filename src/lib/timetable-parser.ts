@@ -28,20 +28,17 @@ export interface ParsedTimetable {
 const DAY_MAP: Record<string, { full: string; short: string; index: number }> = {
   monday: { full: 'Monday', short: 'Mon', index: 1 },
   mon: { full: 'Monday', short: 'Mon', index: 1 },
-  '1': { full: 'Monday', short: 'Mon', index: 1 },
   'day 1': { full: 'Monday', short: 'Mon', index: 1 },
   'day1': { full: 'Monday', short: 'Mon', index: 1 },
 
   tuesday: { full: 'Tuesday', short: 'Tue', index: 2 },
   tue: { full: 'Tuesday', short: 'Tue', index: 2 },
   tues: { full: 'Tuesday', short: 'Tue', index: 2 },
-  '2': { full: 'Tuesday', short: 'Tue', index: 2 },
   'day 2': { full: 'Tuesday', short: 'Tue', index: 2 },
   'day2': { full: 'Tuesday', short: 'Tue', index: 2 },
 
   wednesday: { full: 'Wednesday', short: 'Wed', index: 3 },
   wed: { full: 'Wednesday', short: 'Wed', index: 3 },
-  '3': { full: 'Wednesday', short: 'Wed', index: 3 },
   'day 3': { full: 'Wednesday', short: 'Wed', index: 3 },
   'day3': { full: 'Wednesday', short: 'Wed', index: 3 },
 
@@ -49,37 +46,33 @@ const DAY_MAP: Record<string, { full: string; short: string; index: number }> = 
   thu: { full: 'Thursday', short: 'Thu', index: 4 },
   thur: { full: 'Thursday', short: 'Thu', index: 4 },
   thurs: { full: 'Thursday', short: 'Thu', index: 4 },
-  '4': { full: 'Thursday', short: 'Thu', index: 4 },
   'day 4': { full: 'Thursday', short: 'Thu', index: 4 },
   'day4': { full: 'Thursday', short: 'Thu', index: 4 },
 
   friday: { full: 'Friday', short: 'Fri', index: 5 },
   fri: { full: 'Friday', short: 'Fri', index: 5 },
-  '5': { full: 'Friday', short: 'Fri', index: 5 },
   'day 5': { full: 'Friday', short: 'Fri', index: 5 },
   'day5': { full: 'Friday', short: 'Fri', index: 5 },
 
   saturday: { full: 'Saturday', short: 'Sat', index: 6 },
   sat: { full: 'Saturday', short: 'Sat', index: 6 },
-  '6': { full: 'Saturday', short: 'Sat', index: 6 },
   'day 6': { full: 'Saturday', short: 'Sat', index: 6 },
   'day6': { full: 'Saturday', short: 'Sat', index: 6 },
 
   sunday: { full: 'Sunday', short: 'Sun', index: 0 },
   sun: { full: 'Sunday', short: 'Sun', index: 0 },
-  '7': { full: 'Sunday', short: 'Sun', index: 0 },
   'day 7': { full: 'Sunday', short: 'Sun', index: 0 },
   'day7': { full: 'Sunday', short: 'Sun', index: 0 },
 };
 
 /**
- * Normalizes day string representation (e.g. 'Mon', 'Monday', '1', 'Day 1') into a structured object.
- * Prevents false-positive matches for strings containing day substrings like "Common Electronics".
+ * Normalizes day string representation (e.g. 'Mon', 'Monday', 'Day 1') into a structured object.
+ * Rejects pure numbers (e.g. '1', '2', '3') to prevent period numbers from being misclassified as days.
  */
 export function normalizeDay(dayStr: string): { full: string; short: string; index: number } | null {
   if (!dayStr) return null;
   const clean = dayStr.toLowerCase().trim().replace(/[^a-z0-9\s]/g, '').trim();
-  if (!clean) return null;
+  if (!clean || /^\d+$/.test(clean)) return null;
 
   // Direct lookup
   if (DAY_MAP[clean]) return DAY_MAP[clean];
