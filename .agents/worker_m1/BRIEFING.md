@@ -1,4 +1,4 @@
-# BRIEFING — 2026-07-24T00:47:35Z
+# BRIEFING — 2026-07-24T09:56:55Z
 
 ## Mission
 Improve parseGenericTable and fetchTimetableData (and related module fetchers) in src/lib/scraper.ts and src/app/api/erp-proxy/[module]/route.ts for robust table parsing and candidate endpoint resilience.
@@ -7,7 +7,7 @@ Improve parseGenericTable and fetchTimetableData (and related module fetchers) i
 - Archetype: worker_m1
 - Roles: implementer, qa, specialist
 - Working directory: C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m1
-- Original parent: c877f3ab-7cf2-4e66-83ce-2783c400be36
+- Original parent: cfa49052-43a6-4cd5-9629-a723e1246ccb
 - Milestone: M1 (R1. Robust Scraper Table Parsing & Candidate Endpoint Resilience)
 
 ## 🔒 Key Constraints
@@ -17,8 +17,8 @@ Improve parseGenericTable and fetchTimetableData (and related module fetchers) i
 - Verify with `npm run build`.
 
 ## Current Parent
-- Conversation ID: c877f3ab-7cf2-4e66-83ce-2783c400be36
-- Updated: 2026-07-24T00:47:35Z
+- Conversation ID: cfa49052-43a6-4cd5-9629-a723e1246ccb
+- Updated: 2026-07-24T09:56:55Z
 
 ## Task Summary
 - **What to build**: Robust Scraper Table Parsing & Candidate Endpoint Resilience.
@@ -26,7 +26,13 @@ Improve parseGenericTable and fetchTimetableData (and related module fetchers) i
 - **Interface contracts**: `parseGenericTable`, `fetchTimetableData`, `isLikelyTimetableData`, `erp-proxy` route handling session expiry.
 
 ## Key Decisions Made
-- Initializing briefing and workspace.
+- Implemented JSON detection and recursive/direct payload parsing in `parseGenericTable`.
+- Added tag space insertion across all block and inline elements (`br, div, p, span, a, b, i, strong, em, small, font, li, td, th, h1-h6`) in `getNodeText` to prevent word merging.
+- Upgraded table selection & scoring with direct row evaluation (`getDirectRows`) and layout/sidebar penalties.
+- Added comprehensive garbage row filtering (notice rows, empty rows, pagination controls).
+- Enhanced `isLikelyTimetableData` with sidebar rejection logic (`my profile`, `change password`, `logout`).
+- Enhanced `fetchTimetableData` candidate loop with `isSessionExpiredHtml` checking, individual strategy try-catches, HTTP status code validation, and early loop termination on valid data.
+- Upgraded `src/app/api/erp-proxy/[module]/route.ts` to extract parameters seamlessly from both POST body and query parameters.
 
 ## Artifact Index
 - ORIGINAL_REQUEST.md — Original task prompt.
@@ -35,14 +41,16 @@ Improve parseGenericTable and fetchTimetableData (and related module fetchers) i
 - handoff.md — Final handoff report.
 
 ## Change Tracker
-- **Files modified**: None yet
-- **Build status**: Pending
+- **Files modified**:
+  - `src/lib/scraper.ts`: Enhanced `parseGenericTable`, `getNodeText`, `isLikelyTimetableData`, `fetchTimetableData` with 2D matrix, tag spacing, JSON detection, session expiry checks, and candidate loop resilience.
+  - `src/app/api/erp-proxy/[module]/route.ts`: Enhanced request parameter extraction (POST body + query searchParams fallback) and HTTP 401 error propagation.
+- **Build status**: PASS (Next.js build succeeded in 7.1s, 0 errors)
 - **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: Pending
-- **Lint status**: Pending
-- **Tests added/modified**: Pending
+- **Build/test result**: PASS (`npm run build`)
+- **Lint status**: Clean
+- **Tests added/modified**: Verified via Next.js compilation & static page generation.
 
 ## Loaded Skills
 - None

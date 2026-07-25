@@ -72,17 +72,27 @@ const DAY_MAP: Record<string, { full: string; short: string; index: number }> = 
 
 /**
  * Normalizes day string representation (e.g. 'Mon', 'Monday', '1', 'Day 1') into a structured object.
+ * Prevents false-positive matches for strings containing day substrings like "Common Electronics".
  */
 export function normalizeDay(dayStr: string): { full: string; short: string; index: number } | null {
   if (!dayStr) return null;
   const clean = dayStr.toLowerCase().trim().replace(/[^a-z0-9\s]/g, '').trim();
+  if (!clean) return null;
+
+  // Direct lookup
   if (DAY_MAP[clean]) return DAY_MAP[clean];
 
-  for (const [key, val] of Object.entries(DAY_MAP)) {
-    if (key.length > 2 && (clean === key || clean.startsWith(key + ' ') || clean.endsWith(' ' + key))) {
-      return val;
+  // Token / word matching
+  const words = clean.split(/\s+/);
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    if (DAY_MAP[word]) return DAY_MAP[word];
+    if (i < words.length - 1) {
+      const phrase = `${words[i]} ${words[i + 1]}`;
+      if (DAY_MAP[phrase]) return DAY_MAP[phrase];
     }
   }
+
   return null;
 }
 
@@ -100,7 +110,8 @@ export function isSameDay(dayA: string, dayB: string): boolean {
 }
 
 /**
- * Parses raw cell content from a timetable cell to extract course code, course title, room/venue, and faculty.
+ * Smart Cell Parser: Robustly parses course code, course title, room/venue, and faculty from cell strings.
+ * Handles multi-hyphen strings ("22-CS-1101", "C-101 - Lab", "22-CS-1101 - Data Structures - C-101 - Dr. Smith").
  */
 export function parseCellContent(text: string): { courseCode: string; courseTitle: string; room: string; faculty: string } {
   if (!text || text.trim() === '' || text.trim() === '-' || text.toLowerCase().trim() === 'free' || text.toLowerCase().trim() === 'n/a') {
@@ -109,11 +120,37 @@ export function parseCellContent(text: string): { courseCode: string; courseTitl
 
   const raw = text.trim();
 
+  // Pattern matchers
+  const codeRegex = /^([0-9]{2}[-.]?[A-Z]{2,5}[-.]?[0-9]{3,4}[A-Z]?|[A-Z]{2,5}[-.]?[0-9]{3,4}[A-Z]?)$/i;
+  const roomRegex = /^((?:room|venue|hall|lab|c|r|b|l|m|tp|fed|lbr)?\s*[-]?\s*[0-9]{3,4}[a-z]?)$/i;
+  const roomKeywordRegex = /\b(room|lab|hall|venue|building|block|c-\d|fed-\d|lbr-\d)\b/i;
+  const facultyRegex = /^(dr\.|prof\.|mr\.|mrs\.|ms\.|er\.)|\b(dr\.|prof\.)/i;
+
   let parts: string[] = [];
-  if (raw.includes('\n') || raw.includes('|') || raw.includes('/') || raw.includes(' - ')) {
-    parts = raw.split(/[\n|/]|(?:\s+-\s+)/).map(p => p.trim()).filter(Boolean);
+
+  // Split by major section breaks: newline \n, pipe |, slash /, semicolon ;, or spaced hyphens ' - ' / ' -- '
+  if (/[\n|/;]|(?:\s+[-–—]+\s+)/.test(raw)) {
+    parts = raw.split(/[\n|/;]|(?:\s+[-–—]+\s+)/).map(p => p.trim()).filter(Boolean);
   } else if (raw.includes('-')) {
-    parts = raw.split('-').map(p => p.trim()).filter(Boolean);
+    // If raw itself is a single course code or room (e.g. "22-CS-1101", "C-101"), keep as single part
+    if (codeRegex.test(raw) || roomRegex.test(raw)) {
+      parts = [raw];
+    } else {
+      // Split by hyphen, then reassemble multi-hyphen tokens (like "22"-"CS"-"1101")
+      const rawParts = raw.split('-').map(p => p.trim()).filter(Boolean);
+      parts = [];
+      for (let i = 0; i < rawParts.length; i++) {
+        if (i < rawParts.length - 2 && /^\d{2}$/.test(rawParts[i]) && /^[A-Za-z]{2,5}$/.test(rawParts[i+1]) && /^\d{3,4}[A-Za-z]?$/.test(rawParts[i+2])) {
+          parts.push(`${rawParts[i]}-${rawParts[i+1]}-${rawParts[i+2]}`);
+          i += 2;
+        } else if (i < rawParts.length - 1 && /^[A-Za-z]{1,4}$/.test(rawParts[i]) && /^\d{3,4}[A-Za-z]?$/.test(rawParts[i+1])) {
+          parts.push(`${rawParts[i]}-${rawParts[i+1]}`);
+          i += 1;
+        } else {
+          parts.push(rawParts[i]);
+        }
+      }
+    }
   } else {
     parts = [raw];
   }
@@ -122,11 +159,6 @@ export function parseCellContent(text: string): { courseCode: string; courseTitl
   let courseTitle = '';
   let room = '';
   let faculty = '';
-
-  const codeRegex = /^([0-9]{2}[-.]?[A-Z]{2,4}[-.]?[0-9]{3,4}[A-Z]?|[A-Z]{2,4}[-.]?[0-9]{3,4}[A-Z]?)$/i;
-  const facultyRegex = /^(dr\.|prof\.|mr\.|mrs\.|ms\.)/i;
-  const roomRegex = /^(room|venue|hall|lab|c|r|b|l|m|tp|fed|lbr)?\s*[-]?\s*[0-9]{3,4}[a-z]?$/i;
-
   const unmapped: string[] = [];
 
   for (const part of parts) {
@@ -134,7 +166,7 @@ export function parseCellContent(text: string): { courseCode: string; courseTitl
       courseCode = part;
     } else if (!faculty && (facultyRegex.test(part) || part.toLowerCase().includes('dr.') || part.toLowerCase().includes('prof.'))) {
       faculty = part;
-    } else if (!room && (roomRegex.test(part) || part.toLowerCase().includes('room') || part.toLowerCase().includes('lab') || part.toLowerCase().includes('hall') || part.toLowerCase().includes('venue'))) {
+    } else if (!room && (roomRegex.test(part) || roomKeywordRegex.test(part))) {
       room = part;
     } else {
       unmapped.push(part);
@@ -145,23 +177,31 @@ export function parseCellContent(text: string): { courseCode: string; courseTitl
     courseTitle = unmapped[0];
     if (unmapped.length > 1 && !faculty) {
       faculty = unmapped[1];
-    } else if (unmapped.length > 1 && !room) {
+    }
+    if (unmapped.length > 2 && !room) {
       room = unmapped[unmapped.length - 1];
     }
   }
 
+  // Fallbacks if regex didn't catch discrete items
   if (!courseCode && parts.length > 0 && /^[A-Z0-9-]{4,12}$/i.test(parts[0])) {
     courseCode = parts[0];
   }
-  if (!room && parts.length > 1 && !facultyRegex.test(parts[parts.length - 1])) {
+  if (!room && parts.length > 1 && !facultyRegex.test(parts[parts.length - 1]) && parts[parts.length - 1] !== courseTitle) {
     room = parts[parts.length - 1];
+  }
+  if (!courseTitle) {
+    courseTitle = courseCode || raw;
   }
 
   return { courseCode, courseTitle, room, faculty };
 }
 
 /**
- * Universal timetable parser that classifies layout and normalizes raw ERP rows into ParsedTimetable.
+ * Universal timetable parser that auto-detects layout format:
+ * - Matrix Days-as-Columns (`headers` have day names)
+ * - Matrix Days-as-Rows (Row 0 has day names in col 0)
+ * - List Timetables (Rows have Day, Time, Course, Room, Faculty)
  */
 export function parseTimetable(rawRows: Array<Record<string, string>>): ParsedTimetable {
   if (!rawRows || !Array.isArray(rawRows) || rawRows.length === 0) {

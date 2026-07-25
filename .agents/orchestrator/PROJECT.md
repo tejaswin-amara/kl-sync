@@ -12,11 +12,11 @@ Primary files involved:
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| 1 | M1: Scraper Table Parsing & Endpoint Resilience | R1: `src/lib/scraper.ts` robust table parsing, nested elements, candidate endpoints fallback | none | PLANNED |
-| 2 | M2: Accurate & Flexible CGPA Calculation | R2: `src/app/dashboard/page.tsx` & `src/app/dashboard/tools/page.tsx` dynamic CGPA extraction & fallback weighted GPA | M1 | PLANNED |
-| 3 | M3: Accurate & Flexible Fee Due Calculation | R3: `src/app/dashboard/page.tsx` & `src/app/dashboard/fee/page.tsx` flexible status & balance column parsing | M1 | PLANNED |
-| 4 | M4: Timetable Robustness & Dashboard Widget | R4: `src/app/dashboard/timetable/page.tsx` & `src/app/dashboard/page.tsx` matrix/list layouts, day variants, empty/error handling | M1 | PLANNED |
-| 5 | M5: E2E Build & Quality Verification | Full build (`npm run build`), zero TS/Next errors, verification across all features | M1, M2, M3, M4 | PLANNED |
+| 1 | M1: Scraper Table Parsing & Endpoint Resilience | R1: `src/lib/scraper.ts` robust table parsing, nested elements, candidate endpoints fallback | none | DONE |
+| 2 | M2: Accurate & Flexible CGPA Calculation | R2: `src/app/dashboard/page.tsx` & `src/app/dashboard/tools/page.tsx` dynamic CGPA extraction & fallback weighted GPA | M1 | DONE |
+| 3 | M3: Accurate & Flexible Fee Due Calculation | R3: `src/app/dashboard/page.tsx` & `src/app/dashboard/fee/page.tsx` flexible status & balance column parsing | M1 | DONE |
+| 4 | M4: Timetable Robustness & Dashboard Widget | R4: `src/app/dashboard/timetable/page.tsx` & `src/app/dashboard/page.tsx` matrix/list layouts, day variants, empty/error handling | M1 | DONE |
+| 5 | M5: E2E Build & Quality Verification | Full build (`npm run build`), zero TS/Next errors, verification across all features | M1, M2, M3, M4 | DONE |
 
 ## Code Layout
 - App Router: `src/app/`

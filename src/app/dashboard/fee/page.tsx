@@ -6,18 +6,15 @@ import {
   Loader2,
   AlertCircle,
   Inbox,
-  ChevronDown,
-  TrendingUp,
-  TrendingDown,
-  AlertTriangle,
-  CalendarOff,
-  Armchair,
-  Megaphone,
-  Bed,
-  Book,
   CheckCircle,
   Clock,
 } from 'lucide-react';
+import {
+  findStatusKey,
+  isRowUnpaid,
+  isSummaryRow,
+  parseCurrency,
+} from '@/lib/fee-utils';
 
 export default function FeePage() {
   const [data, setData] = useState<any[]>([]);
@@ -104,21 +101,12 @@ export default function FeePage() {
               </thead>
               <tbody>
                 {data.map((row, idx) => {
-                  // Determine status for styling
-                  let status = 'Unknown';
-                  const statusKey = Object.keys(row).find(
-                    (k) =>
-                      k.toLowerCase().includes('status') ||
-                      k.toLowerCase().includes('pay')
-                  );
-                  if (statusKey) status = String(row[statusKey]).toLowerCase();
-
-                  const isPaid =
-                    status.includes('paid') && !status.includes('not');
-                  const isPending =
-                    status.includes('pending') ||
-                    status.includes('not paid') ||
-                    status.includes('waiting');
+                  // Determine status for styling using fee-utils
+                  const statusKey = findStatusKey(row);
+                  const statusVal = statusKey && row[statusKey] ? String(row[statusKey]).toLowerCase() : '';
+                  const isPending = isRowUnpaid(row);
+                  const summaryRow = isSummaryRow(row);
+                  const isPaid = !isPending && !summaryRow && (statusVal.includes('paid') || !statusKey);
 
                   return (
                     <motion.tr
@@ -126,27 +114,33 @@ export default function FeePage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.03 }}
                       key={idx}
-                      className="group transition-all"
+                      className={`group transition-all ${summaryRow ? 'font-bold bg-white/[0.04]' : ''}`}
                     >
                       {Object.values(row).map((val: any, j) => {
                         const colName = Object.keys(row)[j].toLowerCase();
                         let displayVal = val;
 
-                        // Add ₹ symbol if it's amount
+                        // Add ₹ symbol or format currency amounts safely
                         if (
-                          typeof val === 'string' &&
-                          /^-?\d+(\.\d+)?$/.test(val.trim()) &&
+                          (typeof val === 'string' || typeof val === 'number') &&
                           (colName.includes('amount') ||
                             colName.includes('fee') ||
                             colName.includes('scholarship') ||
                             colName.includes('concession') ||
-                            colName.includes('balance'))
+                            colName.includes('balance') ||
+                            colName.includes('due') ||
+                            colName.includes('paid') ||
+                            colName.includes('payable'))
                         ) {
-                          const numVal = parseFloat(val.trim());
-                          displayVal =
-                            numVal < 0
-                              ? `-₹${Math.abs(numVal)}`
-                              : `₹${val.trim()}`;
+                          const valStr = String(val).trim();
+                          const numVal = parseCurrency(val);
+                          if (numVal !== 0 || /^-?0(\.0+)?$/.test(valStr)) {
+                            if (valStr.includes('₹') || valStr.includes('$') || valStr.includes('€')) {
+                              displayVal = valStr;
+                            } else {
+                              displayVal = numVal < 0 ? `-₹${Math.abs(numVal)}` : `₹${valStr}`;
+                            }
+                          }
                         }
 
                         // Status styling
@@ -181,7 +175,7 @@ export default function FeePage() {
                         return (
                           <td
                             key={j}
-                            className={`px-4 py-4 text-sm text-zinc-500 text-zinc-100 bg-white/[0.02] group-hover:bg-white/[0.05] transition-colors first:rounded-l last:rounded-r border-y border-transparent`}
+                            className="px-4 py-4 text-sm text-zinc-100 bg-white/[0.02] group-hover:bg-white/[0.05] transition-colors first:rounded-l last:rounded-r border-y border-transparent"
                           >
                             {displayVal}
                           </td>

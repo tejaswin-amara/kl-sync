@@ -1,30 +1,31 @@
-## 2026-07-24T00:50:09Z
+## 2026-07-24T09:54:02Z
 
-You are Implementation Worker M4 for Milestone M4 (R4. Timetable Page & Dashboard Widget Robustness).
-Your working directory is C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m4.
-Project root is C:\Users\speed\Documents\antigravity\optimistic-pascal.
+You are Worker M4 (teamwork_preview_worker).
+Your task is to implement Milestone M4 (R4. Timetable Page & Dashboard Widget Robustness) in kl-sync.
+Working directory: C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m4
 
+Key input files:
+- Read analysis report in:
+  - C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\explorer_m4\handoff.md
+- Code target files:
+  - C:\Users\speed\Documents\antigravity\optimistic-pascal\src\lib\timetable-parser.ts
+  - C:\Users\speed\Documents\antigravity\optimistic-pascal\src\app\dashboard\timetable\page.tsx
+  - C:\Users\speed\Documents\antigravity\optimistic-pascal\src\app\dashboard\page.tsx
+
+Requirements for Timetable Parser & Components:
+1. Update `src/lib/timetable-parser.ts` to implement `parseTimetable`, `normalizeDay`, `isSameDay`, `parseCellContent`.
+2. Auto-detect timetable layout format:
+   - Matrix Days-as-Columns (`headers` have day names)
+   - Matrix Days-as-Rows (Row 0 has day names in col 0)
+   - List Timetables (Rows have Day, Time, Course, Room, Faculty)
+3. Support Day Name Variants: `Monday`, `Mon`, `1`, `Day 1`, `TUE`, `Tue`, `Wednesday`, etc. Prevent false-positive substring matches (e.g. "Common Electronics" on Monday).
+4. Smart Cell Parsing: Robustly parse course code, course title, room/venue, and faculty from cell strings. Handle multi-hyphen strings ("22-CS-1101", "C-101 - Lab").
+5. Refactor `TodayScheduleWidget` in `src/app/dashboard/page.tsx` to parse timetable data via `parseTimetable`, match current day cleanly, use client-side caching (`sessionStorage`), and render clear loading, empty, and error UI states without spinner freezes.
+6. Refactor `src/app/dashboard/timetable/page.tsx` to support interactive Grid and List views, client-side caching, day filters, and clean fallback UI.
+
+Run `npm run build` after making changes to verify TypeScript and Next.js build compilation.
+
+MANDATORY INTEGRITY WARNING:
 DO NOT CHEAT. All implementations must be genuine. DO NOT hardcode test results, create dummy/facade implementations, or circumvent the intended task. A Forensic Auditor will independently verify your work. Integrity violations WILL be detected and your work WILL be rejected.
 
-Task Scope (Requirement R4):
-Ensure `src/app/dashboard/timetable/page.tsx` and `src/app/dashboard/page.tsx` ("Today's Schedule") handle matrix timetables, list timetables, day name variants (e.g. Mon vs Monday), and empty/error states without loading freezes.
-
-Specific Instructions:
-1. Read the design and specifications in `C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\explorer_m4\handoff.md`.
-2. Create `src/lib/timetable-parser.ts`:
-   - Layout classification engine (`matrix_days_columns`, `matrix_days_rows`, `list_rows`).
-   - Day name normalizer (`normalizeDay`, `isSameDay`) mapping 'Mon', 'Monday', '1', 'Day 1', etc.
-   - Smart cell content parser (`parseCellContent`) extracting course code, course title, room/venue, and faculty cleanly.
-   - `parseTimetable(rawRows)` producing structured `ParsedTimetable` and `NormalizedClassSession[]`.
-3. Refactor `TodayScheduleWidget` in `src/app/dashboard/page.tsx`:
-   - Use `parseTimetable` to normalize timetable rows regardless of matrix or list layout.
-   - Filter today's classes using `isSameDay`.
-   - Add client-side `sessionStorage` caching (`kl_timetable_${year}_${sem}`).
-   - Provide clean UI states for loading skeletons, weekend/empty classes ("No classes scheduled for today"), and error state with retry.
-4. Refactor `src/app/dashboard/timetable/page.tsx`:
-   - Use `parseTimetable` and `sessionStorage` caching.
-   - Provide Dual View Modes: Grid View (interactive weekly matrix grid with active day tabs) and List View (class cards with search filter, day filter, CSV export).
-   - Provide robust fallback states for loading, empty results, and fetch errors.
-5. Run `npm run build` and ensure 0 TypeScript and Next.js build errors.
-6. Document all changes and build output in `C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m4\handoff.md`.
-7. Send a completion message back to parent orchestrator.
+When finished, write C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m4\handoff.md detailing your changes, build results, and send a message back to parent.

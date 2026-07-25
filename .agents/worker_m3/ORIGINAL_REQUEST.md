@@ -1,23 +1,30 @@
-## 2026-07-23T19:20:09Z
-You are Implementation Worker M3 for Milestone M3 (R3. Accurate & Flexible Fee Due Calculation).
-Your working directory is C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m3.
-Project root is C:\Users\speed\Documents\antigravity\optimistic-pascal.
+## 2026-07-24T04:24:01Z
+<USER_REQUEST>
+You are Worker M3 (teamwork_preview_worker).
+Your task is to implement Milestone M3 (R3. Accurate & Flexible Fee Due Calculation) in kl-sync.
+Working directory: C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m3
 
+Key input files:
+- Read analysis report in:
+  - C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\explorer_m3\handoff.md
+- Code target files:
+  - C:\Users\speed\Documents\antigravity\optimistic-pascal\src\lib\fee-utils.ts
+  - C:\Users\speed\Documents\antigravity\optimistic-pascal\src\app\dashboard\page.tsx
+  - C:\Users\speed\Documents\antigravity\optimistic-pascal\src\app\dashboard\fee\page.tsx
+
+Requirements for Fee Due calculation:
+1. Update `src/lib/fee-utils.ts` to implement `parseCurrency`, `findStatusKey`, `findDueAmountKey`, `isSummaryRow`, `isRowUnpaid`, and `calculatePendingFee`.
+2. Safe Currency Parsing: Handle currency symbols (₹, $, €), commas ("12,500.00"), text prefixes ("INR", "Rs."), and accounting parentheses.
+3. Status Column Matching: Dynamically detect status columns (`payment status`, `pay status`, `fee status`, `status`, `state`). Exclude non-status columns like `Payment Date` or `Payment Mode`.
+4. Due Amount Key Priority: Prioritize due/balance columns (`amount due`, `due amount`, `balance due`, `balance`, `due`, `pending`, `unpaid`) over gross fee columns (`total fee`, `gross fee`).
+5. Exclude Paid Fees: Ensure paid rows (`status.includes('paid')`) with zero balance due are NOT counted as pending due.
+6. Summary Row Filtering: Detect and exclude summary/footer total rows ("Total", "Grand Total") to avoid double-counting.
+7. Refactor `src/app/dashboard/page.tsx` and `src/app/dashboard/fee/page.tsx` to consume `src/lib/fee-utils.ts`.
+
+Run `npm run build` after making changes to verify TypeScript and Next.js build compilation.
+
+MANDATORY INTEGRITY WARNING:
 DO NOT CHEAT. All implementations must be genuine. DO NOT hardcode test results, create dummy/facade implementations, or circumvent the intended task. A Forensic Auditor will independently verify your work. Integrity violations WILL be detected and your work WILL be rejected.
 
-Task Scope (Requirement R3):
-Update Fee Due calculation in `src/app/dashboard/page.tsx` and `src/app/dashboard/fee/page.tsx` to dynamically detect status columns (status, pay status, payment status) and due/balance amount columns (balance, due, pending, amount) instead of hardcoding exact string keys.
-
-Specific Instructions:
-1. Read the design and specifications in `C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\explorer_m3\handoff.md`.
-2. Create `src/lib/fee-utils.ts`:
-   - `parseCurrency(val)`: handles currency symbols (₹, $, €, £), text ('INR', 'Rs'), commas, spaces, and accounting parentheses.
-   - `findStatusKey(row)`: priority fuzzy matching for status/state columns while excluding payment date/method/mode/ref columns.
-   - `findDueAmountKey(row)`: priority fuzzy matching for due/balance/pending/payable headers while excluding paid/concession/scholarship columns.
-   - `isSummaryRow(row)`: detects and filters out total/grand total summary footer rows to prevent double counting.
-   - `isRowUnpaid(row)`: evaluates status keywords ('unpaid', 'pending', 'due', 'partial', 'overdue', 'not paid') and non-zero balance due.
-   - `calculatePendingFee(data)`: sums unpaid fee due amounts across detail rows.
-3. Refactor `src/app/dashboard/page.tsx` and `src/app/dashboard/fee/page.tsx` to consume `src/lib/fee-utils.ts` for Fee Due calculations and formatting.
-4. Run `npm run build` and ensure 0 TypeScript and Next.js build errors.
-5. Document all changes and build output in `C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m3\handoff.md`.
-6. Send a completion message back to parent orchestrator.
+When finished, write C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m3\handoff.md detailing your changes, build results, and send a message back to parent.
+</USER_REQUEST>

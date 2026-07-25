@@ -39,7 +39,7 @@ async function handleProxy(
     const resolvedParams = await params;
     const module = resolvedParams.module;
 
-    // Some modules require POST bodies (academicYear, semesterId)
+    // Extract parameter payload from POST body or query parameters
     let body: any = {};
     if (request.method === 'POST') {
       try {
@@ -47,9 +47,24 @@ async function handleProxy(
       } catch (e) {}
     }
 
-    let result;
-    const { academicYear, semesterId, csrfToken } = body;
+    const searchParams = request.nextUrl.searchParams;
+    const academicYear =
+      body.academicYear ||
+      searchParams.get('academicYear') ||
+      searchParams.get('academicyear') ||
+      searchParams.get('academic_year');
+    const semesterId =
+      body.semesterId ||
+      searchParams.get('semesterId') ||
+      searchParams.get('semester') ||
+      searchParams.get('semester_id');
+    const csrfToken =
+      body.csrfToken ||
+      searchParams.get('csrfToken') ||
+      searchParams.get('_csrf');
     const resolvedCsrf = csrfToken || session.csrfToken;
+
+    let result;
 
     switch (module) {
       case 'attendance':

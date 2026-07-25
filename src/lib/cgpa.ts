@@ -18,7 +18,7 @@ export interface CGPAResult {
  * P / PASS / SATISFACTORY / NC -> null (excluded from GPA calculation)
  */
 export function mapGradeToPoints(gradeStr: string): number | null {
-  if (!gradeStr) return null;
+  if (gradeStr === null || gradeStr === undefined) return null;
   const g = String(gradeStr).trim().toUpperCase();
   if (!g) return null;
 
@@ -79,7 +79,7 @@ export function mapGradeToPoints(gradeStr: string): number | null {
       return null;
     default: {
       const num = parseFloat(g);
-      return !isNaN(num) && num >= 0 && num <= 10 ? num : null;
+      return !isNaN(num) && isFinite(num) && num >= 0 && num <= 10 ? num : null;
     }
   }
 }
@@ -89,13 +89,14 @@ export function mapGradeToPoints(gradeStr: string): number | null {
  */
 export function parseNumericValue(val: any): number | null {
   if (val === null || val === undefined) return null;
-  if (typeof val === 'number') return isNaN(val) ? null : val;
+  if (typeof val === 'number') return isNaN(val) || !isFinite(val) ? null : val;
+  if (typeof val === 'boolean') return null;
   const str = String(val).trim();
   if (!str) return null;
   const match = str.match(/[-+]?\d*\.?\d+/);
   if (!match) return null;
   const parsed = parseFloat(match[0]);
-  return isNaN(parsed) ? null : parsed;
+  return !isNaN(parsed) && isFinite(parsed) ? parsed : null;
 }
 
 /**
@@ -123,7 +124,8 @@ function extractOfficialSummary(dataObj: any): {
       lk.includes('cumulativegpa') ||
       lk.includes('overallgpa') ||
       lk.includes('totalcgpa') ||
-      lk.includes('academicgpa')
+      lk.includes('academicgpa') ||
+      lk.includes('cumulative')
     );
   });
   if (cgpaKey && dataObj[cgpaKey] !== undefined && dataObj[cgpaKey] !== null) {
@@ -135,7 +137,12 @@ function extractOfficialSummary(dataObj: any): {
 
   const sgpaKey = keys.find((k) => {
     const lk = k.toLowerCase().replace(/[^a-z0-9]/g, '');
-    return lk.includes('sgpa') || lk.includes('semgpa') || lk.includes('termgpa');
+    return (
+      lk.includes('sgpa') ||
+      lk.includes('semgpa') ||
+      lk.includes('semestergpa') ||
+      lk.includes('termgpa')
+    );
   });
   if (sgpaKey && dataObj[sgpaKey] !== undefined && dataObj[sgpaKey] !== null) {
     const val = parseNumericValue(dataObj[sgpaKey]);
@@ -210,10 +217,73 @@ export function processERPDataForCGPA(
     }
   }
 
+  // --- Phase 2: Dynamic Fallback Calculation ---
+  let totalPoints = 0;
+  let totalCredits = 0;
+
+  if (hasRows) {
+    for (const row of rawRows) {
+      if (!row || typeof row !== 'object') continue;
+      const keys = Object.keys(row);
+
+      // 1. Flexible Column Identification
+      const gradeKey =
+        keys.find((k) => {
+          const lk = k.toLowerCase().trim();
+          const cleaned = lk.replace(/[^a-z0-9]/g, '');
+          return (
+            (lk.includes('grade') && !lk.includes('point') && !lk.includes('gp')) ||
+            cleaned === 'grd' ||
+            lk.includes('letter')
+          );
+        }) || keys.find((k) => k.toLowerCase().includes('grade'));
+
+      const credKey = keys.find((k) => {
+        const lk = k.toLowerCase().trim();
+        const cleaned = lk.replace(/[^a-z0-9]/g, '');
+        return (
+          lk.includes('credit') ||
+          lk.includes('cred') ||
+          cleaned === 'cr' ||
+          cleaned === 'creds'
+        );
+      });
+
+      const pointKey = keys.find((k) => {
+        const lk = k.toLowerCase().trim();
+        const cleaned = lk.replace(/[^a-z0-9]/g, '');
+        return (
+          lk.includes('point') ||
+          lk.includes('gp') ||
+          cleaned === 'pts' ||
+          cleaned === 'gradepoint'
+        );
+      });
+
+      // 2. Value Extraction
+      const credits = credKey ? parseNumericValue(row[credKey]) || 0 : 0;
+      if (credits <= 0) continue; // Exclude 0-credit non-academic courses
+
+      const gradeStr = gradeKey ? String(row[gradeKey] || '') : '';
+      let gradePoint: number | null = pointKey ? parseNumericValue(row[pointKey]) : null;
+
+      // Fallback to letter grade mapping if grade points column is absent or invalid
+      if (gradePoint === null || isNaN(gradePoint)) {
+        gradePoint = mapGradeToPoints(gradeStr);
+      }
+
+      if (gradePoint !== null) {
+        totalCredits += credits;
+        totalPoints += gradePoint * credits;
+      }
+    }
+  }
+
+  // If Phase 1 detected official CGPA, return official result immediately
   if (officialCgpa !== null) {
     return {
       cgpa: Number(officialCgpa.toFixed(2)),
-      credits: officialCredits || 0,
+      credits: officialCredits !== null ? officialCredits : totalCredits,
       isOfficial: true,
       sgpa: officialSgpa,
     };
@@ -223,59 +293,7 @@ export function processERPDataForCGPA(
     return { cgpa: 0, credits: 0, isOfficial: false, sgpa: null };
   }
 
-  // --- Phase 2: Dynamic Fallback Calculation ---
-  let totalPoints = 0;
-  let totalCredits = 0;
-
-  for (const row of rawRows) {
-    if (!row || typeof row !== 'object') continue;
-    const keys = Object.keys(row);
-
-    // 1. Flexible Column Identification
-    const gradeKey = keys.find((k) => {
-      const lk = k.toLowerCase();
-      return lk.includes('grade') || lk === 'grd' || lk.includes('letter');
-    });
-
-    const credKey = keys.find((k) => {
-      const lk = k.toLowerCase();
-      return (
-        lk.includes('credit') ||
-        lk.includes('cred') ||
-        lk === 'cr' ||
-        lk === 'creds'
-      );
-    });
-
-    const pointKey = keys.find((k) => {
-      const lk = k.toLowerCase();
-      return (
-        lk.includes('point') ||
-        lk.includes('gp') ||
-        lk === 'pts' ||
-        lk === 'grade_point'
-      );
-    });
-
-    // 2. Value Extraction
-    const credits = credKey ? parseNumericValue(row[credKey]) || 0 : 0;
-    if (credits <= 0) continue; // Skip zero-credit or non-academic rows
-
-    const gradeStr = gradeKey ? String(row[gradeKey] || '') : '';
-    let gradePoint: number | null = pointKey ? parseNumericValue(row[pointKey]) : null;
-
-    // Fallback to letter grade mapping if grade points column is absent or invalid
-    if (gradePoint === null || isNaN(gradePoint)) {
-      gradePoint = mapGradeToPoints(gradeStr);
-    }
-
-    if (gradePoint !== null) {
-      totalCredits += credits;
-      totalPoints += gradePoint * credits;
-    }
-  }
-
-  const finalCredits = officialCredits || totalCredits;
+  const finalCredits = officialCredits !== null ? officialCredits : totalCredits;
   const calculatedCgpa =
     totalCredits > 0 ? Number((totalPoints / totalCredits).toFixed(2)) : 0;
 

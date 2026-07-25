@@ -1,56 +1,49 @@
-# BRIEFING — 2026-07-24T00:50:09Z
+# BRIEFING — 2026-07-24T09:56:00Z
 
 ## Mission
-Implementation Worker M4 for Milestone M4: Robust Timetable Parsing, Today's Schedule Widget Refactoring, and Interactive Dual-View Timetable Page.
+Implement Milestone M4 (R4. Timetable Page & Dashboard Widget Robustness) in kl-sync.
 
 ## 🔒 My Identity
-- Archetype: implementer
+- Archetype: worker_m4
 - Roles: implementer, qa, specialist
 - Working directory: C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m4
-- Original parent: c877f3ab-7cf2-4e66-83ce-2783c400be36
-- Milestone: M4 (R4. Timetable Page & Dashboard Widget Robustness)
+- Original parent: cfa49052-43a6-4cd5-9629-a723e1246ccb
+- Milestone: M4
 
 ## 🔒 Key Constraints
-- Genuine implementation with no hardcoding or dummy facade logic.
-- Handle layout classification (`matrix_days_columns`, `matrix_days_rows`, `list_rows`).
-- Handle day name variants ('Mon', 'Monday', '1', 'Day 1', etc.).
-- Smart cell content parsing for course code, course title, room/venue, faculty.
-- Implement client-side `sessionStorage` caching (`kl_timetable_${year}_${sem}`).
-- Zero TypeScript and Next.js build errors.
+- Update `src/lib/timetable-parser.ts` to export `parseTimetable`, `normalizeDay`, `isSameDay`, `parseCellContent`.
+- Support Matrix Days-as-Columns, Matrix Days-as-Rows, and List Timetables.
+- Support Day Name Variants (`Monday`, `Mon`, `1`, `Day 1`, `TUE`, `Tue`, `Wednesday`, etc.) without false-positives (e.g. "Common Electronics" matching "Mon").
+- Smart Cell Parsing handling multi-hyphen strings ("22-CS-1101", "C-101 - Lab").
+- Refactor `TodayScheduleWidget` in `src/app/dashboard/page.tsx` with client-side caching (`sessionStorage`), robust day matching, loading/empty/error states.
+- Refactor `src/app/dashboard/timetable/page.tsx` with Grid and List views, client-side caching, day filters, fallback UI.
+- Run `npm run build` to verify compilation. No cheating or hardcoding.
 
 ## Current Parent
-- Conversation ID: c877f3ab-7cf2-4e66-83ce-2783c400be36
-- Updated: 2026-07-24T00:50:09Z
+- Conversation ID: cfa49052-43a6-4cd5-9629-a723e1246ccb
+- Updated: 2026-07-24T09:56:00Z
 
 ## Task Summary
-- **What to build**:
-  1. `src/lib/timetable-parser.ts`
-  2. Refactored `TodayScheduleWidget` in `src/app/dashboard/page.tsx`
-  3. Refactored `src/app/dashboard/timetable/page.tsx` with Dual View Modes (Grid View & List View), search/day filtering, CSV export, caching, and robust fallback states.
-- **Success criteria**:
-  - `npm run build` passes with 0 errors.
-  - Correct parsing of matrix and list timetables.
-  - Proper handling of empty, loading, error, and weekend states.
-
-## Key Decisions Made
-- Use `parseTimetable` as centralized parser for all timetable data rendering.
+- **What to build**: Robust timetable parser & rendering in `src/lib/timetable-parser.ts`, `src/app/dashboard/timetable/page.tsx`, `src/app/dashboard/page.tsx`.
+- **Success criteria**: Auto-detection of matrix days-as-cols, matrix days-as-rows, list layouts; robust day normalization; smart cell parsing; client caching; interactive Grid/List views; error/empty states; clean `npm run build` compilation.
 
 ## Change Tracker
 - **Files modified**:
-  - `src/lib/timetable-parser.ts` (new file)
-  - `src/app/dashboard/page.tsx` (TodayScheduleWidget refactor)
-  - `src/app/dashboard/timetable/page.tsx` (Timetable page refactor)
-- **Build status**: Pending
+  - `src/lib/timetable-parser.ts`: Enhanced layout auto-detection, day normalization, smart cell parsing for multi-hyphen strings.
+  - `src/app/dashboard/page.tsx`: Refactored TodayScheduleWidget to use `parseTimetable`, `isSameDay`, `sessionStorage` caching, loading/empty/error states with retry.
+  - `src/app/dashboard/timetable/page.tsx`: Refactored Timetable Page to support interactive Grid and List views, day filters, searchQuery, `sessionStorage` caching, and CSV export.
+- **Build status**: PASS (`npm run build` completed cleanly)
 - **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: TBD
-- **Lint status**: TBD
-- **Tests added/modified**: TBD
+- **Build/test result**: PASS
+- **Lint status**: 0 errors
+- **Tests added/modified**: Verified via Next.js compilation build
 
 ## Loaded Skills
 - None
 
 ## Artifact Index
-- `.agents/worker_m4/handoff.md` — Final implementation handoff report
-- `.agents/worker_m4/progress.md` — Heartbeat progress tracker
+- `.agents/worker_m4/ORIGINAL_REQUEST.md` — Original prompt
+- `.agents/worker_m4/BRIEFING.md` — Agent working state
+- `.agents/worker_m4/handoff.md` — Handoff report

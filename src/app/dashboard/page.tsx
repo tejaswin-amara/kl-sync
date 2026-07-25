@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import {
   GraduationCap,
@@ -13,10 +13,16 @@ import {
   Award,
   ChevronRight,
   Clock,
+  MapPin,
+  User,
+  RefreshCw,
+  AlertCircle,
 } from 'lucide-react';
 import { NumberTicker } from '@/components/ui/number-ticker';
 import { GlassCard } from '@/components/ui/glass-card';
 import { calculatePendingFee } from '@/lib/fee-utils';
+import { processERPDataForCGPA } from '@/lib/cgpa';
+import { parseTimetable, isSameDay, NormalizedClassSession } from '@/lib/timetable-parser';
 
 export default function DashboardOverview() {
   const [studentName, setStudentName] = useState('Student');
@@ -47,90 +53,14 @@ export default function DashboardOverview() {
       .then((res) => res.json())
       .then((resData) => {
         if (resData.success && resData.data && resData.data.length > 0) {
-          const rows = resData.data;
-
-          // 1. First try to find official direct CGPA value from summary column
-          let directCgpa: number | null = null;
-          let directCredits: number | null = null;
-
-          for (const row of rows) {
-            const cgpaKey = Object.keys(row).find(
-              (k) =>
-                k.toLowerCase().includes('cgpa') ||
-                k.toLowerCase() === 'gpa' ||
-                k.toLowerCase().includes('cumulative')
-            );
-            if (cgpaKey && row[cgpaKey]) {
-              const parsed = parseFloat(String(row[cgpaKey]).trim());
-              if (!isNaN(parsed) && parsed > 0 && parsed <= 10) {
-                directCgpa = parsed;
-              }
-            }
-
-            const credKey = Object.keys(row).find(
-              (k) =>
-                k.toLowerCase().includes('total credit') ||
-                k.toLowerCase().includes('earned credit') ||
-                k.toLowerCase().includes('credits earned')
-            );
-            if (credKey && row[credKey]) {
-              const parsedCred = parseFloat(String(row[credKey]).trim());
-              if (!isNaN(parsedCred) && parsedCred > 0) {
-                directCredits = parsedCred;
-              }
-            }
+          const result = processERPDataForCGPA(resData.data);
+          setCompletedCredits(result.credits);
+          if (result.credits > 0) {
+            localStorage.setItem('kl_dashboard_credits', result.credits.toString());
           }
-
-          let totalCredits = 0;
-          let totalPoints = 0;
-
-          rows.forEach((row: any) => {
-            const gradeKey = Object.keys(row).find((k) =>
-              k.toLowerCase().includes('grade')
-            );
-            const credKey = Object.keys(row).find(
-              (k) =>
-                k.toLowerCase().includes('credit') ||
-                k.toLowerCase().includes('cred')
-            );
-            const pointKey = Object.keys(row).find(
-              (k) =>
-                k.toLowerCase().includes('point') ||
-                k.toLowerCase().includes('gp')
-            );
-
-            const grade = gradeKey
-              ? String(row[gradeKey] || '').trim().toUpperCase()
-              : '';
-            const credits = credKey ? parseFloat(String(row[credKey])) || 0 : 0;
-            const gradePoint = pointKey
-              ? parseFloat(String(row[pointKey])) || 0
-              : 0;
-
-            if (grade !== 'F' && credits > 0) {
-              totalCredits += credits;
-              totalPoints += gradePoint * credits;
-            }
-          });
-
-          const finalCredits = directCredits || totalCredits;
-          setCompletedCredits(finalCredits);
-          if (finalCredits > 0) {
-            localStorage.setItem('kl_dashboard_credits', finalCredits.toString());
-          }
-
-          if (directCgpa !== null) {
-            setCgpa(directCgpa);
-            localStorage.setItem('kl_dashboard_cgpa', directCgpa.toString());
-          } else if (totalCredits > 0) {
-            const calculatedCgpa = Number(
-              (totalPoints / totalCredits).toFixed(2)
-            );
-            setCgpa(calculatedCgpa);
-            localStorage.setItem(
-              'kl_dashboard_cgpa',
-              calculatedCgpa.toString()
-            );
+          if (result.cgpa > 0) {
+            setCgpa(result.cgpa);
+            localStorage.setItem('kl_dashboard_cgpa', result.cgpa.toString());
           }
         }
       })
@@ -410,21 +340,45 @@ function TodayScheduleWidget({
   activeYearId: string;
   activeSemId: string;
 }) {
-  const [classes, setClasses] = useState<any[]>([]);
-  const [courseMap, setCourseMap] = useState<Record<string, string>>({});
+  const [sessions, setSessions] = useState<NormalizedClassSession[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const currentDayName = days[new Date().getDay()];
+
+  const loadSchedule = useCallback(async () => {
     if (!activeYearId || !activeSemId) {
       setLoading(false);
       return;
     }
     setLoading(true);
+    setError(null);
+
+    const cacheKey = `kl_timetable_${activeYearId}_${activeSemId}`;
+    let loadedFromCache = false;
+
+    // 1. Try loading from sessionStorage first
+    try {
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        const rawData = JSON.parse(cached);
+        if (Array.isArray(rawData) && rawData.length > 0) {
+          const parsed = parseTimetable(rawData);
+          const today = parsed.sessions.filter((s) => isSameDay(s.day, currentDayName));
+          setSessions(today);
+          loadedFromCache = true;
+          setLoading(false);
+        }
+      }
+    } catch (e) {
+      // cache parse error ignored
+    }
+
+    // 2. Fetch fresh timetable data from ERP proxy
     try {
       const csrf = sessionStorage.getItem('kl_erp_csrf_token');
-
-      // Fetch marks/courses in parallel to map section/course IDs (e.g. 6100664) to course names
-      fetch('/api/erp-proxy/marks', {
+      const res = await fetch('/api/erp-proxy/timetable', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -432,164 +386,128 @@ function TodayScheduleWidget({
           semesterId: activeSemId,
           csrfToken: csrf,
         }),
-      })
-        .then((res) => res.json())
-        .then((mRes) => {
-          if (mRes.success && mRes.data) {
-            const map: Record<string, string> = {};
-            mRes.data.forEach((row: any) => {
-              const keys = Object.keys(row);
-              const codeKey = keys.find((k) => k.toLowerCase().includes('code')) || '';
-              const nameKey = keys.find((k) => k.toLowerCase().includes('name') || k.toLowerCase().includes('title')) || '';
-              const secKey = keys.find((k) => k.toLowerCase().includes('sec') || k.toLowerCase().includes('reg')) || '';
+      });
 
-              const code = codeKey ? String(row[codeKey]).trim() : '';
-              const name = nameKey ? String(row[nameKey]).trim() : '';
-              const sec = secKey ? String(row[secKey]).trim() : '';
-
-              if (name) {
-                if (code) map[code.toLowerCase()] = `${code} - ${name}`;
-                if (sec) map[sec.toLowerCase()] = name;
-              }
-            });
-            setCourseMap(map);
-          }
-        })
-        .catch(() => {});
-
-      fetch('/api/erp-proxy/timetable', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          academicYear: activeYearId,
-          semesterId: activeSemId,
-          csrfToken: csrf,
-        }),
-      })
-        .then((res) => res.json())
-        .then((resData) => {
-          if (resData.success && resData.data && resData.data.length > 0) {
-            const days = [
-              'Sunday',
-              'Monday',
-              'Tuesday',
-              'Wednesday',
-              'Thursday',
-              'Friday',
-              'Saturday',
-            ];
-            const fullDay = days[new Date().getDay()].toLowerCase();
-            const shortDay = fullDay.slice(0, 3);
-
-            // Check if column header matches today (Matrix layout)
-            const dayKey = Object.keys(resData.data[0] || {}).find((key) => {
-              const k = key.toLowerCase().trim();
-              return k.includes(fullDay) || k.includes(shortDay);
-            });
-
-            let todayClasses: any[] = [];
-            if (dayKey) {
-              const timeKey =
-                Object.keys(resData.data[0]).find(
-                  (k) =>
-                    k.toLowerCase().includes('time') ||
-                    k.toLowerCase().includes('period') ||
-                    k.toLowerCase().includes('slot')
-                ) || Object.keys(resData.data[0])[0];
-
-              todayClasses = resData.data
-                .filter(
-                  (row: any) =>
-                    row[dayKey] &&
-                    String(row[dayKey]).trim() !== '' &&
-                    String(row[dayKey]).trim() !== '-'
-                )
-                .map((row: any) => ({
-                  Time: row[timeKey] || '',
-                  Subject: row[dayKey],
-                  Day: dayKey,
-                }));
-            } else {
-              // Row-based layout
-              todayClasses = resData.data.filter((row: any) => {
-                return Object.values(row).some(
-                  (val) =>
-                    typeof val === 'string' &&
-                    (val.toLowerCase().includes(fullDay) ||
-                      val.toLowerCase().includes(shortDay))
-                );
-              });
-            }
-            setClasses(todayClasses);
-          }
-        })
-        .catch(console.error)
-        .finally(() => setLoading(false));
-    } catch (e) {
-      console.error(e);
+      const resData = await res.json();
+      if (resData.success && Array.isArray(resData.data)) {
+        sessionStorage.setItem(cacheKey, JSON.stringify(resData.data));
+        const parsed = parseTimetable(resData.data);
+        const today = parsed.sessions.filter((s) => isSameDay(s.day, currentDayName));
+        setSessions(today);
+        setError(null);
+      } else {
+        if (!loadedFromCache) {
+          setError(resData.error || 'Failed to sync timetable with ERP');
+        }
+      }
+    } catch (err: any) {
+      if (!loadedFromCache) {
+        setError(err.message || 'Error connecting to timetable service');
+      }
+    } finally {
       setLoading(false);
     }
-  }, [activeYearId, activeSemId]);
+  }, [activeYearId, activeSemId, currentDayName]);
+
+  useEffect(() => {
+    loadSchedule();
+  }, [loadSchedule]);
 
   return (
     <GlassCard className="flex flex-col h-full !p-0" glowIntensity="low">
       <div className="p-5 border-b border-white/5 flex justify-between items-center bg-zinc-950/30">
         <div className="flex items-center gap-3">
           <CalendarDays className="w-5 h-5 text-indigo-400" />
-          <h3 className="text-sm font-semibold text-zinc-100">
-            Today's Schedule
-          </h3>
+          <div>
+            <h3 className="text-sm font-semibold text-zinc-100">
+              Today's Schedule
+            </h3>
+            <p className="text-[10px] text-zinc-500 font-mono">{currentDayName}</p>
+          </div>
         </div>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full">
-          Live
-        </span>
+        <div className="flex items-center gap-2">
+          {error && (
+            <button
+              onClick={() => loadSchedule()}
+              className="p-1 text-zinc-400 hover:text-zinc-100 transition-colors"
+              title="Retry"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+            </button>
+          )}
+          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full">
+            Live
+          </span>
+        </div>
       </div>
 
       <div className="flex-1 p-6 flex flex-col gap-4">
         {loading ? (
-          <div className="flex justify-center items-center h-40">
-            <div className="w-6 h-6 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+          <div className="flex flex-col gap-3">
+            {[...Array(3)].map((_, i) => (
+              <div
+                key={i}
+                className="h-16 w-full bg-zinc-800/30 rounded-xl animate-pulse"
+              ></div>
+            ))}
           </div>
-        ) : classes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center text-center h-40 gap-3 opacity-50">
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center text-center h-40 gap-3">
+            <AlertCircle className="w-8 h-8 text-red-400 opacity-80" />
+            <p className="text-xs text-red-400 font-medium max-w-xs">{error}</p>
+            <button
+              onClick={() => loadSchedule()}
+              className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-200 rounded-lg border border-white/10 transition-colors flex items-center gap-1.5"
+            >
+              <RefreshCw className="w-3 h-3" /> Retry
+            </button>
+          </div>
+        ) : sessions.length === 0 ? (
+          <div className="flex flex-col items-center justify-center text-center h-40 gap-3 opacity-60">
             <CalendarIcon className="w-10 h-10 text-zinc-500" />
-            <p className="text-sm text-zinc-400">
-              No classes scheduled for today.
+            <p className="text-sm font-medium text-zinc-300">
+              No classes scheduled for today ({currentDayName}).
             </p>
+            <p className="text-xs text-zinc-500">Enjoy your day!</p>
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
-            {classes.map((c, idx) => {
-              const rawSub = String(c.Subject || c.Title || c.Course || Object.values(c)[1] || 'Class').trim();
-              const resolvedTitle = courseMap[rawSub.toLowerCase()] || rawSub;
-              const timeStr = String(c.Time || `P${idx + 1}`).trim();
-              return (
-                <div key={idx} className="flex gap-4 group cursor-default">
-                  <div className="w-12 pt-1 flex flex-col items-center gap-2">
-                    <span className="text-[10px] font-bold text-zinc-500 tracking-wider">
-                      P{idx + 1}
-                    </span>
-                    <div className="w-px h-full bg-white/5 group-last:hidden"></div>
-                  </div>
-                  <div className="flex-1 bg-zinc-950/40 p-4 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
-                    <div className="flex justify-between items-start gap-4">
-                      <div>
-                        <h4 className="text-sm font-medium text-zinc-100 leading-snug">
-                          {resolvedTitle}
-                        </h4>
-                        <div className="flex items-center gap-1.5 mt-2 text-xs text-zinc-500">
-                          <Clock className="w-3.5 h-3.5 text-indigo-400" />
-                          <span>{timeStr || 'Scheduled'}</span>
-                        </div>
-                      </div>
-                      <span className="text-[10px] font-mono font-bold bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-md shrink-0">
-                        {timeStr}
+          <div className="flex flex-col gap-3">
+            {sessions.map((s, idx) => (
+              <div
+                key={s.id || idx}
+                className="flex gap-4 group cursor-default bg-zinc-950/40 p-4 rounded-xl border border-white/5 hover:border-white/10 transition-colors"
+              >
+                <div className="flex flex-col justify-center shrink-0">
+                  <span className="text-[10px] font-mono font-bold bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-md">
+                    {s.timeSlot}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-medium text-zinc-100 leading-snug truncate">
+                    {s.courseTitle || s.courseCode || 'Class Session'}
+                  </h4>
+                  <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-zinc-400">
+                    {s.courseCode && s.courseCode !== s.courseTitle && (
+                      <span className="text-[10px] font-mono bg-white/10 px-1.5 py-0.5 rounded text-zinc-300">
+                        {s.courseCode}
                       </span>
-                    </div>
+                    )}
+                    {s.room && (
+                      <span className="flex items-center gap-1 text-emerald-400">
+                        <MapPin className="w-3 h-3" />
+                        {s.room}
+                      </span>
+                    )}
+                    {s.faculty && (
+                      <span className="flex items-center gap-1 text-zinc-400 truncate">
+                        <User className="w-3 h-3 text-purple-400" />
+                        {s.faculty}
+                      </span>
+                    )}
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         )}
       </div>

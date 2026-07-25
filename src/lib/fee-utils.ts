@@ -21,7 +21,9 @@ export function parseCurrency(val: any): number {
     str === '-' ||
     str.toLowerCase() === 'n/a' ||
     str.toLowerCase() === 'nil' ||
-    str.toLowerCase() === 'none'
+    str.toLowerCase() === 'none' ||
+    str.toLowerCase() === 'null' ||
+    str.toLowerCase() === 'undefined'
   ) {
     return 0;
   }
@@ -101,18 +103,26 @@ export function findStatusKey(row: Record<string, any>): string | undefined {
     'cheque',
     'dd',
     'upi',
+    'utr',
+    'portal',
+    'payer',
+    'payee',
   ];
 
   // Priority 1: Explicit status/state columns
   const p1 = keys.find((k) => {
     const norm = normalizeKey(k);
     return (
+      norm === 'payment status' ||
+      norm === 'pay status' ||
+      norm === 'fee status' ||
+      norm === 'due status' ||
+      norm === 'payment state' ||
+      norm === 'fee state' ||
       norm.includes('payment status') ||
       norm.includes('pay status') ||
       norm.includes('fee status') ||
-      norm.includes('due status') ||
-      norm.includes('payment state') ||
-      norm.includes('fee state')
+      norm.includes('due status')
     );
   });
   if (p1) return p1;
@@ -143,10 +153,9 @@ export function findStatusKey(row: Record<string, any>): string | undefined {
 }
 
 /**
- * Dynamically finds the due/balance amount column key using priority fuzzy matching
- * while excluding paid/concession/scholarship/date/id columns.
+ * Finds explicit due / balance column key (Tier 1).
  */
-export function findDueAmountKey(row: Record<string, any>): string | undefined {
+export function findExplicitDueKey(row: Record<string, any>): string | undefined {
   if (!row || typeof row !== 'object') return undefined;
 
   const keys = Object.keys(row);
@@ -181,7 +190,6 @@ export function findDueAmountKey(row: Record<string, any>): string | undefined {
     'txn',
   ];
 
-  // Priority Tier 1: Explicit Due / Balance / Pending / Payable Amount headers
   const tier1Patterns = [
     'amount due',
     'due amount',
@@ -201,10 +209,55 @@ export function findDueAmountKey(row: Record<string, any>): string | undefined {
     const match = keys.find((k) => {
       const norm = normalizeKey(k);
       if (exclusionKeywords.some((ex) => norm.includes(ex))) return false;
-      return norm.includes(pattern);
+      return norm === pattern || norm.includes(pattern);
     });
     if (match) return match;
   }
+
+  return undefined;
+}
+
+/**
+ * Dynamically finds the due/balance amount column key using priority fuzzy matching
+ * while excluding paid/concession/scholarship/date/id columns.
+ * Prioritizes explicit due/balance columns (Tier 1) over gross fee/total columns (Tier 2).
+ */
+export function findDueAmountKey(row: Record<string, any>): string | undefined {
+  if (!row || typeof row !== 'object') return undefined;
+
+  const explicit = findExplicitDueKey(row);
+  if (explicit) return explicit;
+
+  const keys = Object.keys(row);
+  const exclusionKeywords = [
+    'paid',
+    'received',
+    'concession',
+    'scholarship',
+    'discount',
+    'waived',
+    'waiver',
+    'refund',
+    'date',
+    'id',
+    'type',
+    'name',
+    'head',
+    'desc',
+    'description',
+    'sl',
+    'no',
+    'code',
+    's.no',
+    'sn',
+    'remarks',
+    'status',
+    'mode',
+    'method',
+    'receipt',
+    'ref',
+    'txn',
+  ];
 
   // Priority Tier 2: Fallback to generic amount / fee / total (only if Tier 1 is absent)
   const tier2Patterns = [
@@ -214,6 +267,8 @@ export function findDueAmountKey(row: Record<string, any>): string | undefined {
     'amount',
     'fee amount',
     'total amount',
+    'gross fee',
+    'total fee',
     'fee',
   ];
 
@@ -221,7 +276,7 @@ export function findDueAmountKey(row: Record<string, any>): string | undefined {
     const match = keys.find((k) => {
       const norm = normalizeKey(k);
       if (exclusionKeywords.some((ex) => norm.includes(ex))) return false;
-      return norm.includes(pattern);
+      return norm === pattern || norm.includes(pattern);
     });
     if (match) return match;
   }
@@ -263,8 +318,11 @@ export function isSummaryRow(row: Record<string, any>): boolean {
  */
 export function isRowUnpaid(row: Record<string, any>): boolean {
   if (!row || typeof row !== 'object') return false;
+  if (isSummaryRow(row)) return false;
 
   const statusKey = findStatusKey(row);
+  const explicitDueKey = findExplicitDueKey(row);
+  const fallbackDueKey = findDueAmountKey(row);
 
   const unpaidStatusKeywords = [
     'unpaid',
@@ -292,13 +350,6 @@ export function isRowUnpaid(row: Record<string, any>): boolean {
     'fully paid',
   ];
 
-  const keys = Object.keys(row);
-  const explicitDueKey = keys.find((k) => {
-    const norm = normalizeKey(k);
-    if (['paid', 'received', 'concession', 'scholarship', 'discount', 'waived', 'refund', 'date', 'id', 'type', 'name', 'receipt', 'ref', 'txn'].some((ex) => norm.includes(ex))) return false;
-    return norm.includes('due') || norm.includes('balance') || norm.includes('pending') || norm.includes('unpaid') || norm.includes('payable');
-  });
-
   if (statusKey && row[statusKey] !== undefined && row[statusKey] !== null) {
     const statusVal = String(row[statusKey]).toLowerCase().trim();
 
@@ -316,17 +367,66 @@ export function isRowUnpaid(row: Record<string, any>): boolean {
 
     if (matchesPaid) {
       if (explicitDueKey) {
-        const amt = parseCurrency(row[explicitDueKey]);
-        return amt > 0;
+        return parseCurrency(row[explicitDueKey]) > 0;
       }
-      return false; // Explicitly paid with no positive explicit balance/due = 0 pending
+      return false; // Explicitly paid with no explicit balance/due > 0 = not unpaid
     }
   }
 
-  // If status key is absent/blank, check if explicit balance due > 0 or fallback due amount > 0
-  const dueKey = explicitDueKey || findDueAmountKey(row);
-  const dueAmount = dueKey ? parseCurrency(row[dueKey]) : 0;
+  // If status key is absent/blank
+  if (explicitDueKey) {
+    return parseCurrency(row[explicitDueKey]) > 0;
+  }
+
+  // If only fallback gross fee key exists, check if paid column exists and equals total fee
+  const paidKey = Object.keys(row).find((k) => {
+    const norm = normalizeKey(k);
+    return norm.includes('paid') && !norm.includes('unpaid') && !norm.includes('status');
+  });
+
+  if (fallbackDueKey && paidKey) {
+    const total = parseCurrency(row[fallbackDueKey]);
+    const paid = parseCurrency(row[paidKey]);
+    if (total > 0 && paid >= total) {
+      return false;
+    }
+    if (total > 0 && total - paid > 0) {
+      return true;
+    }
+  }
+
+  const dueAmount = fallbackDueKey ? parseCurrency(row[fallbackDueKey]) : 0;
   return dueAmount > 0;
+}
+
+/**
+ * Calculates pending fee amount for a single row.
+ */
+export function getPendingAmountForRow(row: Record<string, any>): number {
+  const explicitDueKey = findExplicitDueKey(row);
+  if (explicitDueKey) {
+    const amt = parseCurrency(row[explicitDueKey]);
+    return amt > 0 ? amt : 0;
+  }
+
+  const fallbackDueKey = findDueAmountKey(row);
+  if (!fallbackDueKey) return 0;
+
+  const total = parseCurrency(row[fallbackDueKey]);
+  if (total <= 0) return 0;
+
+  const paidKey = Object.keys(row).find((k) => {
+    const norm = normalizeKey(k);
+    return norm.includes('paid') && !norm.includes('unpaid') && !norm.includes('status') && !norm.includes('date');
+  });
+
+  if (paidKey) {
+    const paid = parseCurrency(row[paidKey]);
+    const rem = total - paid;
+    return rem > 0 ? rem : 0;
+  }
+
+  return total;
 }
 
 /**
@@ -342,18 +442,10 @@ export function calculatePendingFee(data: Record<string, any>[]): number {
 
   return rowsToProcess.reduce((sum, row) => {
     if (isRowUnpaid(row)) {
-      const keys = Object.keys(row);
-      const explicitDueKey = keys.find((k) => {
-        const norm = normalizeKey(k);
-        if (['paid', 'received', 'concession', 'scholarship', 'discount', 'waived', 'refund', 'date', 'id', 'type', 'name', 'receipt', 'ref', 'txn'].some((ex) => norm.includes(ex))) return false;
-        return norm.includes('due') || norm.includes('balance') || norm.includes('pending') || norm.includes('unpaid') || norm.includes('payable');
-      });
-      const dueKey = explicitDueKey || findDueAmountKey(row);
-      if (dueKey) {
-        const amt = parseCurrency(row[dueKey]);
-        return sum + (amt > 0 ? amt : 0);
-      }
+      const amt = getPendingAmountForRow(row);
+      return sum + amt;
     }
     return sum;
   }, 0);
 }
+

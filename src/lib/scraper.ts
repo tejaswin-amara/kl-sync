@@ -390,6 +390,38 @@ export function parseGenericTable(
     return [];
   }
 
+  // Detect JSON responses and parse them if present
+  const trimmedInput = html.trim();
+  if (
+    (trimmedInput.startsWith('{') && trimmedInput.endsWith('}')) ||
+    (trimmedInput.startsWith('[') && trimmedInput.endsWith(']'))
+  ) {
+    try {
+      const parsedJson = JSON.parse(trimmedInput);
+      if (Array.isArray(parsedJson)) {
+        if (parsedJson.every((item) => typeof item === 'object' && item !== null)) {
+          return parsedJson;
+        }
+      } else if (typeof parsedJson === 'object' && parsedJson !== null) {
+        for (const key of ['html', 'data', 'content', 'body', 'table', 'response']) {
+          if (typeof parsedJson[key] === 'string' && parsedJson[key].includes('<table')) {
+            return parseGenericTable(parsedJson[key], options);
+          }
+        }
+        for (const key of ['data', 'rows', 'result', 'items']) {
+          if (
+            Array.isArray(parsedJson[key]) &&
+            parsedJson[key].every((item: any) => typeof item === 'object' && item !== null)
+          ) {
+            return parsedJson[key];
+          }
+        }
+      }
+    } catch (e) {
+      // Not JSON, continue with HTML table parsing
+    }
+  }
+
   // Pre-cleaning: Strip <script>, <style>, <noscript>, and HTML comments
   const cleanHtml = html
     .replace(/<script[\s\S]*?<\/script>/gi, '')
@@ -438,7 +470,11 @@ export function parseGenericTable(
 
   function getNodeText($cell: any): string {
     const $clone = $cell.clone();
-    $clone.find('br, div, p, span, li').before(' ').after(' ');
+    $clone.find('script, style, noscript, template, input[type="hidden"]').remove();
+    $clone
+      .find('br, div, p, span, a, b, i, strong, em, small, font, li, td, th, h1, h2, h3, h4, h5, h6')
+      .before(' ')
+      .after(' ');
     let text = $clone.text();
     text = text.replace(/\u00a0/g, ' ');
     return text.replace(/\s+/g, ' ').trim();
@@ -492,7 +528,7 @@ export function parseGenericTable(
     }
 
     const idOrClass = (($t.attr('id') || '') + ' ' + ($t.attr('class') || '')).toLowerCase();
-    if (/nav|menu|header|footer|sidebar|breadcrumb|pagination/i.test(idOrClass)) {
+    if (/nav|menu|header|footer|sidebar|breadcrumb|pagination|layout/i.test(idOrClass)) {
       score -= 50;
     }
 
@@ -576,7 +612,7 @@ export function parseGenericTable(
       if (
         row.length === 1 ||
         nonEmpty.length >= Math.max(2, Math.ceil(totalCols * 0.6)) ||
-        /timetable|attendance|report|results|schedule|details|info|list|university|academic/i.test(text)
+        /timetable|attendance|report|results|schedule|details|info|list|university|academic|student|marks|cgpa|seating/i.test(text)
       ) {
         return true;
       }
@@ -656,9 +692,12 @@ export function parseGenericTable(
       fullRowText.includes('no results found') ||
       fullRowText.includes('no records found') ||
       fullRowText.includes('no data available') ||
+      fullRowText.includes('data not available') ||
       fullRowText.includes('record(s) not found') ||
       fullRowText.includes('no details found') ||
-      fullRowText === 'nil'
+      fullRowText.includes('search result empty') ||
+      fullRowText === 'nil' ||
+      fullRowText === 'n/a'
     ) {
       continue;
     }
@@ -667,7 +706,8 @@ export function parseGenericTable(
       /page\s+\d+\s+of\s+\d+/i.test(fullRowText) ||
       /displaying\s+\d+-\d+\s+of\s+\d+/i.test(fullRowText) ||
       /total\s+records?:?/i.test(fullRowText) ||
-      /showing\s+\d+\s+to\s+\d+/i.test(fullRowText)
+      /showing\s+\d+\s+to\s+\d+/i.test(fullRowText) ||
+      /first\s+prev\s+next\s+last/i.test(fullRowText)
     ) {
       continue;
     }
@@ -725,6 +765,14 @@ export function isLikelyTimetableData(data: any[]): boolean {
       }
     }
   }
+
+  const sampleJson = JSON.stringify(data).toLowerCase();
+  const isSidebar =
+    sampleJson.includes('my profile') ||
+    sampleJson.includes('change password') ||
+    sampleJson.includes('logout');
+
+  if (isSidebar && matchCount < 4) return false;
 
   return matchCount >= 2;
 }
@@ -847,8 +895,18 @@ export async function fetchTimetableData(
   let fallbackData: any[] = [];
   let detectedSessionExpired = false;
 
+  function isSessionExpiredHtml(htmlText: string): boolean {
+    if (!htmlText || typeof htmlText !== 'string') return false;
+    return (
+      htmlText.includes('id="login-form"') ||
+      htmlText.includes('action="https://newerp.kluniversity.in/index.php?r=site%2Flogin"') ||
+      htmlText.includes('action="/index.php?r=site%2Flogin"') ||
+      (/name="LoginForm\[/.test(htmlText) && !htmlText.includes('UniversityMasterAcademicTimetableView'))
+    );
+  }
+
   for (const url of candidateUrls) {
-    if (detectedSessionExpired) break;
+    if (detectedSessionExpired || data.length > 0) break;
 
     // Strategy 1: POST with form params
     try {
@@ -866,7 +924,7 @@ export async function fetchTimetableData(
 
       if (res.ok) {
         const html = await res.text();
-        if (html.includes('id="login-form"')) {
+        if (isSessionExpiredHtml(html)) {
           detectedSessionExpired = true;
           throw new Error('Session expired or invalid ERP route.');
         }
@@ -886,7 +944,7 @@ export async function fetchTimetableData(
       console.error(`POST strategy failed for timetable ${url}:`, err);
     }
 
-    if (detectedSessionExpired) break;
+    if (detectedSessionExpired || data.length > 0) break;
 
     // Strategy 2: GET with query parameters
     try {
@@ -902,7 +960,7 @@ export async function fetchTimetableData(
 
       if (getRes.ok) {
         const getHtml = await getRes.text();
-        if (getHtml.includes('id="login-form"')) {
+        if (isSessionExpiredHtml(getHtml)) {
           detectedSessionExpired = true;
           throw new Error('Session expired or invalid ERP route.');
         }
@@ -922,7 +980,7 @@ export async function fetchTimetableData(
       console.error(`GET params strategy failed for timetable ${url}:`, err);
     }
 
-    if (detectedSessionExpired) break;
+    if (detectedSessionExpired || data.length > 0) break;
 
     // Strategy 3: Plain GET (default session view)
     try {
@@ -937,7 +995,7 @@ export async function fetchTimetableData(
 
       if (plainGetRes.ok) {
         const plainGetHtml = await plainGetRes.text();
-        if (plainGetHtml.includes('id="login-form"')) {
+        if (isSessionExpiredHtml(plainGetHtml)) {
           detectedSessionExpired = true;
           throw new Error('Session expired or invalid ERP route.');
         }
