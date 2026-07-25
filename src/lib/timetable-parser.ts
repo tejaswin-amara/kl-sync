@@ -25,6 +25,37 @@ export interface ParsedTimetable {
   matrixGrid: Record<string, Record<string, NormalizedClassSession | null>>; // day -> timeSlot -> session
 }
 
+function expandTimeSlots(raw: string): string[] {
+  const str = String(raw).trim().toUpperCase();
+  const periods = new Set<string>();
+  
+  const rangeRegex = /(\d+)\s*-\s*(\d+)/g;
+  let match;
+  let hasRange = false;
+  while ((match = rangeRegex.exec(str)) !== null) {
+    hasRange = true;
+    const start = parseInt(match[1], 10);
+    const end = parseInt(match[2], 10);
+    if (start <= end && end - start < 15) {
+      for (let i = start; i <= end; i++) {
+        periods.add(String(i));
+      }
+    }
+  }
+  
+  if (!hasRange) {
+    const numRegex = /\d+/g;
+    while ((match = numRegex.exec(str)) !== null) {
+      periods.add(match[0]);
+    }
+  }
+  
+  if (periods.size === 0) {
+    return [str];
+  }
+  return Array.from(periods);
+}
+
 const DAY_MAP: Record<string, { full: string; short: string; index: number }> = {
   monday: { full: 'Monday', short: 'Mon', index: 1 },
   mon: { full: 'Monday', short: 'Mon', index: 1 },
@@ -239,42 +270,42 @@ export function parseTimetable(rawRows: Array<Record<string, string>>): ParsedTi
 
     rawRows.forEach((row, rIdx) => {
       const rawSlot = String(row[timeColKey] || `Period ${rIdx + 1}`).trim();
-      // Extract numeric period index if available (e.g. "Period 1" -> "1")
-      const numMatch = rawSlot.match(/\d+/);
-      const timeSlot = numMatch ? numMatch[0] : rawSlot;
-      timeSlotsSet.add(timeSlot);
+      const expandedPeriods = expandTimeSlots(rawSlot);
+      expandedPeriods.forEach(timeSlot => {
+        timeSlotsSet.add(timeSlot);
+      });
 
       dayHeaders.forEach(dayHeader => {
         const normDay = normalizeDay(dayHeader);
         if (!normDay) return;
         daysSet.add(normDay.full);
 
-        const cellVal = String(row[dayHeader] || '').trim();
-        if (cellVal && cellVal !== '-' && cellVal !== '- - -' && cellVal.toLowerCase() !== 'free' && cellVal.toLowerCase() !== 'n/a') {
-          const parsedCell = parseCellContent(cellVal);
-          const session: NormalizedClassSession = {
-            id: `matrix-col-${normDay.full}-${timeSlot}-${rIdx}`,
-            day: normDay.full,
-            dayShort: normDay.short,
-            dayIndex: normDay.index,
-            timeSlot,
-            ...parsedCell,
-            rawText: cellVal,
-          };
-          sessions.push(session);
-          if (!matrixGrid[normDay.full]) matrixGrid[normDay.full] = {};
-          matrixGrid[normDay.full][timeSlot] = session;
+        const rawText = String(row[dayHeader] || '').trim();
+        if (rawText && rawText !== '-' && rawText !== '- - -' && rawText.toLowerCase() !== 'free') {
+          const parsedCell = parseCellContent(rawText);
+          
+          expandedPeriods.forEach(timeSlot => {
+            const session: NormalizedClassSession = {
+              id: `matrix-col-${normDay.full}-${timeSlot}-${rIdx}`,
+              day: normDay.full,
+              dayShort: normDay.short,
+              dayIndex: normDay.index,
+              timeSlot,
+              ...parsedCell,
+              rawText,
+            };
+            sessions.push(session);
+            timeSlotsSet.add(timeSlot);
+            if (!matrixGrid[normDay.full]) matrixGrid[normDay.full] = {};
+            matrixGrid[normDay.full][timeSlot] = session;
+          });
         }
       });
     });
   } else if (layout === 'matrix_days_rows') {
     const dayColKey = headers[0];
     const timeSlotHeaders = headers.slice(1);
-    timeSlotHeaders.forEach(ts => {
-      const numMatch = ts.match(/\d+/);
-      timeSlotsSet.add(numMatch ? numMatch[0] : ts);
-    });
-
+    
     rawRows.forEach((row, rIdx) => {
       const dayVal = String(row[dayColKey] || '').trim();
       const normDay = normalizeDay(dayVal);
@@ -282,23 +313,26 @@ export function parseTimetable(rawRows: Array<Record<string, string>>): ParsedTi
       daysSet.add(normDay.full);
 
       timeSlotHeaders.forEach(tsHeader => {
-        const numMatch = tsHeader.match(/\d+/);
-        const timeSlot = numMatch ? numMatch[0] : tsHeader;
+        const expandedPeriods = expandTimeSlots(tsHeader);
         const cellVal = String(row[tsHeader] || '').trim();
         if (cellVal && cellVal !== '-' && cellVal !== '- - -' && cellVal.toLowerCase() !== 'free' && cellVal.toLowerCase() !== 'n/a') {
           const parsedCell = parseCellContent(cellVal);
-          const session: NormalizedClassSession = {
-            id: `matrix-row-${normDay.full}-${timeSlot}-${rIdx}`,
-            day: normDay.full,
-            dayShort: normDay.short,
-            dayIndex: normDay.index,
-            timeSlot,
-            ...parsedCell,
-            rawText: cellVal,
-          };
-          sessions.push(session);
-          if (!matrixGrid[normDay.full]) matrixGrid[normDay.full] = {};
-          matrixGrid[normDay.full][timeSlot] = session;
+          
+          expandedPeriods.forEach(timeSlot => {
+            timeSlotsSet.add(timeSlot);
+            const session: NormalizedClassSession = {
+              id: `matrix-row-${normDay.full}-${timeSlot}-${rIdx}`,
+              day: normDay.full,
+              dayShort: normDay.short,
+              dayIndex: normDay.index,
+              timeSlot,
+              ...parsedCell,
+              rawText: cellVal,
+            };
+            sessions.push(session);
+            if (!matrixGrid[normDay.full]) matrixGrid[normDay.full] = {};
+            matrixGrid[normDay.full][timeSlot] = session;
+          });
         }
       });
     });
