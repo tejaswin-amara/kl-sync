@@ -884,8 +884,9 @@ export async function fetchTimetableData(
   params.append('DynamicModel[semester]', semesterId);
 
   const candidateUrls = [
-    ERP_ENDPOINTS['timetable'],
+    `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Findividualstudenttimetableget`,
     `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Findexstudentindisearch`,
+    ERP_ENDPOINTS['timetable'],
     `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Fstudenttimetable`,
     `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Findex`,
     `${ERP_URL}/index.php?r=studentattendance%2Fstudentdailyattendance%2Fstudenttimetable`,
