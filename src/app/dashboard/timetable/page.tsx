@@ -30,7 +30,11 @@ export default function TimetablePage() {
   const [error, setError] = useState<string | null>(null);
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [selectedDayFilter, setSelectedDayFilter] = useState<string>('All');
+  const [selectedDayFilter, setSelectedDayFilter] = useState<string>(() => {
+    const dayIndex = new Date().getDay();
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return dayIndex === 0 ? 'Monday' : days[dayIndex]; // Default to Monday if Sunday
+  });
   const [searchQuery, setSearchQuery] = useState('');
 
   const {
@@ -418,50 +422,52 @@ export default function TimetablePage() {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-zinc-900/80 border-b border-white/10 text-[11px] font-bold uppercase tracking-wider text-zinc-300">
-                        <th className="p-4 sticky left-0 z-20 bg-zinc-900/95 backdrop-blur-md min-w-[120px] border-r border-white/10 text-indigo-400">
-                          Day \ Period
+                        <th className="p-4 sticky left-0 z-20 bg-zinc-900/95 backdrop-blur-md min-w-[80px] border-r border-white/10 text-indigo-400 text-center">
+                          Period
                         </th>
-                        {Array.from({ length: 17 }, (_, i) => `P${i + 1}`).map((period) => (
-                          <th key={period} className="p-3 text-center min-w-[170px] border-r border-white/5 last:border-r-0">
-                            {period}
+                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].filter(day => selectedDayFilter === 'All' || day === selectedDayFilter || (parsedTT.daysPresent.includes(day))).map((day) => (
+                          <th key={day} className="p-4 text-center min-w-[180px] border-r border-white/5 last:border-r-0 text-zinc-200">
+                            {day}
                           </th>
                         ))}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
-                      {parsedTT.daysPresent
-                        .filter(
-                          (day) =>
-                            selectedDayFilter === 'All' || isSameDay(day, selectedDayFilter)
-                        )
-                        .map((day) => {
-                          const daySessions = parsedTT.sessions.filter((s) =>
-                            isSameDay(s.day, day)
-                          );
+                      {Array.from({ length: 17 }, (_, i) => String(i + 1)).map((periodNum) => {
+                        const periodInt = parseInt(periodNum, 10);
+                        const daysToRender = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].filter(day => selectedDayFilter === 'All' || day === selectedDayFilter || (parsedTT.daysPresent.includes(day)));
+                        
+                        // Check if this period has ANY classes across all days to hide empty rows
+                        const hasAnyClass = daysToRender.some(day => {
+                          const daySessions = parsedTT.sessions.filter(s => isSameDay(s.day, day));
+                          return daySessions.some(s => {
+                            const rawSlot = String(s.timeSlot || '').trim();
+                            const sNum = parseInt(rawSlot.replace(/\D/g, ''), 10);
+                            return sNum === periodInt || rawSlot === periodNum || rawSlot === `P${periodNum}` || rawSlot.startsWith(`${periodNum}-`);
+                          });
+                        });
+                        
+                        // Skip rendering empty period rows if we want a clean look, but let's show all for strict grid matching or hide completely empty ones?
+                        // Hiding completely empty period rows across all days makes the timetable much more compact!
+                        if (!hasAnyClass) return null;
 
-                          return (
-                            <tr key={day} className="hover:bg-white/[0.02] transition-colors">
-                              {/* Sticky Day Column */}
-                              <td className="p-4 sticky left-0 z-10 bg-zinc-950/90 backdrop-blur-md font-bold text-xs text-zinc-100 border-r border-white/10">
-                                <div className="flex items-center gap-2">
-                                  <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
-                                  {day}
-                                </div>
-                                <span className="text-[10px] font-normal text-zinc-500 block mt-0.5">
-                                  {daySessions.length} session{daySessions.length !== 1 ? 's' : ''}
-                                </span>
-                              </td>
+                        return (
+                          <tr key={periodNum} className="hover:bg-white/[0.02] transition-colors">
+                            {/* Sticky Period Column */}
+                            <td className="p-4 sticky left-0 z-10 bg-zinc-950/90 backdrop-blur-md font-bold text-xs text-zinc-400 border-r border-white/10 text-center">
+                              P{periodNum}
+                            </td>
 
-                              {/* 17 Period Matrix Columns */}
-                              {Array.from({ length: 17 }, (_, i) => String(i + 1)).map((periodNum) => {
-                                const periodInt = parseInt(periodNum, 10);
-                                const session = daySessions.find((s) => {
-                                  const rawSlot = String(s.timeSlot || '').trim();
-                                  const sNum = parseInt(rawSlot.replace(/\D/g, ''), 10);
-                                  return sNum === periodInt || rawSlot === periodNum || rawSlot === `P${periodNum}` || rawSlot.startsWith(`${periodNum}-`);
-                                });
+                            {/* Day Columns for this Period */}
+                            {daysToRender.map((day) => {
+                              const daySessions = parsedTT.sessions.filter((s) => isSameDay(s.day, day));
+                              const session = daySessions.find((s) => {
+                                const rawSlot = String(s.timeSlot || '').trim();
+                                const sNum = parseInt(rawSlot.replace(/\D/g, ''), 10);
+                                return sNum === periodInt || rawSlot === periodNum || rawSlot === `P${periodNum}` || rawSlot.startsWith(`${periodNum}-`);
+                              });
 
-                                return (
+                              return (
                                   <td
                                     key={periodNum}
                                     className="p-2.5 vertical-top border-r border-white/5 last:border-r-0 h-32 align-top"
