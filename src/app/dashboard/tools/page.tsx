@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { Loader2, Wrench, AlertCircle, Percent, Target } from 'lucide-react';
 import { SimpleCalculator } from '@/components/attendance-calculator';
 import { GlassCard } from '@/components/ui/glass-card';
-import { OcrTool } from '@/components/ocr-tool';
 import { processERPDataForCGPA } from '@/lib/cgpa';
 
 export default function ToolsPage() {
@@ -248,7 +247,6 @@ export default function ToolsPage() {
             </div>
           </GlassCard>
 
-          <OcrTool />
         </div>
       )}
     </div>

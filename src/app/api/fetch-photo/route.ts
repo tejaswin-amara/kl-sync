@@ -27,30 +27,29 @@ export async function GET(request: Request) {
   const session = decodeSession(sessionCookie.value);
 
   try {
-    let targetUrl = `https://newerp.kluniversity.in/uploads/studentphotos/${id}.jpg`;
-    if (path) {
-      if (
-        path.startsWith('http') &&
-        !path.startsWith('https://newerp.kluniversity.in')
-      ) {
-        return new NextResponse('Invalid photo URL', { status: 400 });
-      }
-      targetUrl = path.startsWith('http')
-        ? path
-        : `https://newerp.kluniversity.in${path.startsWith('/') ? path : '/' + path}`;
-    }
-    const res = await fetch(targetUrl, {
-      headers: {
-        Cookie: session.cookies
-          .map((c: any) => `${c.name}=${c.value}`)
-          .join('; '),
-        Referer: 'https://newerp.kluniversity.in/',
-        'User-Agent': 'Mozilla/5.0',
-      },
-    });
+    const base = 'https://newerp.kluniversity.in';
+    const urls = path 
+      ? [path.startsWith('http') ? path : `${base}${path.startsWith('/') ? path : '/' + path}`] 
+      : [`${base}/uploads/studentphotos/${id}.jpg`, `${base}/uploads/StudentPhotos/${id}.jpg`];
 
-    if (!res.ok) {
-      return new NextResponse('Photo not found', { status: res.status });
+    if (path && urls[0].startsWith('http') && !urls[0].startsWith(base)) {
+      return new NextResponse('Invalid photo URL', { status: 400 });
+    }
+
+    const headers = {
+      Cookie: session.cookies.map((c: any) => `${c.name}=${c.value}`).join('; '),
+      Referer: `${base}/`,
+      'User-Agent': 'Mozilla/5.0',
+    };
+
+    let res;
+    for (const u of urls) {
+      res = await fetch(u, { headers });
+      if (res.ok) break;
+    }
+
+    if (!res || !res.ok) {
+      return new NextResponse('Photo not found', { status: res?.status || 404 });
     }
 
     const buffer = await res.arrayBuffer();

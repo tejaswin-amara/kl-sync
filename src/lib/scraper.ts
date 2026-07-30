@@ -98,7 +98,7 @@ async function fetchWithJar(
       headers,
       body: method === 'GET' || method === 'HEAD' ? undefined : body,
       redirect: 'manual',
-      signal: init.signal || AbortSignal.timeout(12000),
+      signal: init.signal || AbortSignal.timeout(25000),
     });
 
     mergeSetCookies(jar, res);
@@ -536,6 +536,28 @@ export function parseGenericTable(
       score -= 30;
     }
 
+    // Timetable-aware scoring: bonus for tables that look like a timetable matrix
+    try {
+      const sampleRows = directRows.slice(1, Math.min(directRows.length, 8));
+      const dayPattern = /^\s*(mon|tue|wed|thu|fri|sat|sun)/i;
+      const dayMatchCount = sampleRows.filter((rEl) => {
+        const firstCell = getDirectCells(rEl)[0];
+        return firstCell && dayPattern.test(getNodeText($(firstCell)));
+      }).length;
+      if (dayMatchCount >= 3) score += 100;
+
+      if (directRows.length > 0) {
+        const headerCells = getDirectCells(directRows[0]);
+        const periodHeaderCount = headerCells.filter((cEl) => {
+          const txt = getNodeText($(cEl)).trim();
+          return /^\d{1,2}$/.test(txt) || /period/i.test(txt);
+        }).length;
+        if (periodHeaderCount >= 5) score += 80;
+      }
+    } catch {
+      // Non-fatal scoring bonus
+    }
+
     if (score > maxScore) {
       maxScore = score;
       bestTableEl = tableEl;
@@ -710,6 +732,7 @@ export function parseGenericTable(
       /displaying\s+\d+-\d+\s+of\s+\d+/i.test(fullRowText) ||
       /total\s+records?:?/i.test(fullRowText) ||
       /showing\s+\d+\s+to\s+\d+/i.test(fullRowText) ||
+      /showing\s+\d+-\d+\s+of\s+\d+/i.test(fullRowText) ||
       /first\s+prev\s+next\s+last/i.test(fullRowText)
     ) {
       continue;
@@ -745,14 +768,29 @@ export function parseGenericTable(
 export function isLikelyTimetableData(data: any[]): boolean {
   if (!Array.isArray(data) || data.length === 0) return false;
 
+  // Strong structural signal: day names in values + period-like column headers
+  const dayPattern = /^\s*(mon|tue|wed|thu|fri|sat|sun)/i;
+  const keys = Object.keys(data[0] || {});
+  const hasPeriodHeaders = keys.filter(k => /^\d{1,2}$/.test(k.trim())).length >= 5;
+  const hasDayValues = data.some(row =>
+    Object.values(row).some(v => dayPattern.test(String(v || '').trim()))
+  );
+  if (hasDayValues && hasPeriodHeaders) return true;
+
+  // Day names in column headers (days-as-columns layout)
+  const dayHeaders = keys.filter(k => dayPattern.test(k.trim())).length;
+  if (dayHeaders >= 3) return true;
+
   const timetableKeywords = [
     'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
     'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun',
     'time', 'slot', 'period', 'course', 'subject', 'room', 'faculty', 'building',
-    'ltp', 'component', 'section', 'code', 'hour', 'timetable', 'academic'
+    'ltp', 'component', 'section', 'code', 'hour', 'timetable'
   ];
 
   const timeRegex = /\b(\d{1,2}:\d{2}|am|pm)\b/i;
+  const courseCodeRegex = /\d{2}[A-Z]{2,5}\d{3,4}/i;
+  const roomNoRegex = /roomno/i;
 
   let matchCount = 0;
   for (const row of data) {
@@ -766,6 +804,10 @@ export function isLikelyTimetableData(data: any[]): boolean {
       if (timetableKeywords.some((kw) => val.includes(kw)) || timeRegex.test(val)) {
         matchCount++;
       }
+      // Strong signal: course codes or RoomNo patterns in cell values
+      if (courseCodeRegex.test(val) || roomNoRegex.test(val)) {
+        matchCount += 2;
+      }
     }
   }
 
@@ -773,11 +815,14 @@ export function isLikelyTimetableData(data: any[]): boolean {
   const isSidebar =
     sampleJson.includes('my profile') ||
     sampleJson.includes('change password') ||
-    sampleJson.includes('logout');
+    sampleJson.includes('logout') ||
+    sampleJson.includes('academic registration') ||
+    sampleJson.includes('fee payments') ||
+    sampleJson.includes('hostel management');
 
-  if (isSidebar && matchCount < 4) return false;
+  if (isSidebar && matchCount < 8) return false;
 
-  return matchCount >= 2;
+  return matchCount >= 4;
 }
 
 export async function fetchAttendanceData(
@@ -795,7 +840,7 @@ export async function fetchAttendanceData(
   const courseListRes = await fetchWithJar(COURSE_LIST_URL, jar, {
     method: 'POST',
     body: ajaxParams,
-    signal: AbortSignal.timeout(12000),
+    signal: AbortSignal.timeout(25000),
     extraHeaders: {
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
       'X-Requested-With': 'XMLHttpRequest',
@@ -830,7 +875,7 @@ export async function fetchGenericModuleData(
 
   const res = await fetchWithJar(targetUrl, jar, {
     method: 'GET',
-    signal: AbortSignal.timeout(12000),
+    signal: AbortSignal.timeout(25000),
     extraHeaders: {
       Origin: ERP_URL,
       Referer: ERP_URL,
@@ -918,7 +963,7 @@ export async function fetchTimetableData(
       const res = await fetchWithJar(url, jar, {
         method: 'POST',
         body: params,
-        signal: AbortSignal.timeout(12000),
+        signal: AbortSignal.timeout(25000),
         extraHeaders: {
           'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
           'X-Requested-With': 'XMLHttpRequest',
@@ -956,7 +1001,7 @@ export async function fetchTimetableData(
       const getUrl = `${url}&UniversityMasterAcademicTimetableView[academicyear]=${academicYear}&UniversityMasterAcademicTimetableView[semesterid]=${semesterId}&DynamicModel[academicyear]=${academicYear}&DynamicModel[semesterid]=${semesterId}`;
       const getRes = await fetchWithJar(getUrl, jar, {
         method: 'GET',
-        signal: AbortSignal.timeout(12000),
+        signal: AbortSignal.timeout(25000),
         extraHeaders: {
           Origin: ERP_URL,
           Referer: url,
@@ -991,7 +1036,7 @@ export async function fetchTimetableData(
     try {
       const plainGetRes = await fetchWithJar(url, jar, {
         method: 'GET',
-        signal: AbortSignal.timeout(12000),
+        signal: AbortSignal.timeout(25000),
         extraHeaders: {
           Origin: ERP_URL,
           Referer: ERP_URL,
@@ -1046,7 +1091,7 @@ export async function fetchCGPAData(
     const res = await fetchWithJar(ERP_ENDPOINTS['cgpa'], jar, {
       method: 'POST',
       body: params,
-      signal: AbortSignal.timeout(12000),
+      signal: AbortSignal.timeout(25000),
       extraHeaders: {
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
         'X-Requested-With': 'XMLHttpRequest',
@@ -1069,7 +1114,7 @@ export async function fetchCGPAData(
   // Strategy 2: GET
   const getRes = await fetchWithJar(ERP_ENDPOINTS['cgpa'], jar, {
     method: 'GET',
-    signal: AbortSignal.timeout(12000),
+    signal: AbortSignal.timeout(25000),
     extraHeaders: { Origin: ERP_URL, Referer: ERP_URL },
   });
   const html = await getRes.text();
@@ -1083,7 +1128,7 @@ export async function fetchFeeData(session: ScraperSession) {
   const jar = arrayToJar(session.cookies);
   const res = await fetchWithJar(ERP_ENDPOINTS['fee'], jar, {
     method: 'GET',
-    signal: AbortSignal.timeout(12000),
+    signal: AbortSignal.timeout(25000),
     extraHeaders: { Origin: ERP_URL, Referer: ERP_URL },
   });
   const html = await res.text();
@@ -1109,7 +1154,7 @@ export async function fetchMarksData(
   const res = await fetchWithJar(ERP_ENDPOINTS['marks'], jar, {
     method: 'POST',
     body: params,
-    signal: AbortSignal.timeout(12000),
+    signal: AbortSignal.timeout(25000),
     extraHeaders: {
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
       'X-Requested-With': 'XMLHttpRequest',
@@ -1144,7 +1189,7 @@ export async function fetchEndExamResults(
   const res = await fetchWithJar(ERP_ENDPOINTS['end-exam'], jar, {
     method: 'POST',
     body: params,
-    signal: AbortSignal.timeout(12000),
+    signal: AbortSignal.timeout(25000),
     extraHeaders: {
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
       'X-Requested-With': 'XMLHttpRequest',
@@ -1220,28 +1265,35 @@ export async function fetchProfileData(session: ScraperSession) {
     }
   }
 
-  // Fetch all tab URLs concurrently
-  const tabPromises = Array.from(tabUrls.entries()).map(async ([url, name]) => {
-    try {
-      const tabRes = await fetchWithJar(
-        `https://newerp.kluniversity.in${url}`,
-        jar,
-        {
-          method: 'GET',
-          extraHeaders: {
-            Origin: ERP_URL,
-            Referer: ERP_ENDPOINTS['profile'],
-            'X-Requested-With': 'XMLHttpRequest',
-          },
+  // Fetch tab URLs in small chunks to avoid overwhelming the ERP
+  const tabHtmls = [];
+  const entries = Array.from(tabUrls.entries());
+  for (let i = 0; i < entries.length; i += 2) {
+    const chunk = entries.slice(i, i + 2);
+    const chunkRes = await Promise.all(
+      chunk.map(async ([url, name]) => {
+        try {
+          const tabRes = await fetchWithJar(
+            `https://newerp.kluniversity.in${url}`,
+            jar,
+            {
+              method: 'GET',
+              extraHeaders: {
+                Origin: ERP_URL,
+                Referer: ERP_ENDPOINTS['profile'],
+                'X-Requested-With': 'XMLHttpRequest',
+              },
+            }
+          );
+          return { name, html: await tabRes.text() };
+        } catch (e) {
+          return { name, html: '' };
         }
-      );
-      return { name, html: await tabRes.text() };
-    } catch (e) {
-      return { name, html: '' };
-    }
-  });
+      })
+    );
+    tabHtmls.push(...chunkRes);
+  }
 
-  const tabHtmls = await Promise.all(tabPromises);
   const allPages = [{ name: 'Personal Information', html }, ...tabHtmls];
 
   return { success: true, data: parseProfileData(allPages) };
@@ -1451,7 +1503,7 @@ function parseProfileData(pages: { name: string; html: string }[]) {
           for (let i = 0; i < cells.length; i += 2) {
             if (i + 1 < cells.length) {
               let label = $(cells[i]).text().trim();
-              let value = $(cells[i + 1])
+              const value = $(cells[i + 1])
                 .text()
                 .trim()
                 .replace(/^:\s*/, '')

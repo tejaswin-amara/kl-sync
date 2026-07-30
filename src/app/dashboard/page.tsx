@@ -365,10 +365,7 @@ function TodayScheduleWidget({
     // Fetch course titles & faculty mapping from profile/marks
     const courseLookup: Record<string, { title?: string; faculty?: string }> = {};
     try {
-      const [profRes, marksRes] = await Promise.all([
-        fetch('/api/erp-proxy/profile').catch(() => null),
-        fetch('/api/erp-proxy/marks').catch(() => null),
-      ]);
+      const profRes = await fetch('/api/erp-proxy/profile').catch(() => null);
       if (profRes && profRes.ok) {
         const profData = await profRes.json();
         const courses = profData.data?.courses || [];
@@ -382,29 +379,6 @@ function TodayScheduleWidget({
               const info = { title: desc || undefined, faculty: fac || undefined };
               courseLookup[rawCode] = info;
               if (strippedCode) courseLookup[strippedCode] = info;
-            }
-          });
-        }
-      }
-      if (marksRes && marksRes.ok) {
-        const marksData = await marksRes.json();
-        const rows = marksData.data || [];
-        if (Array.isArray(rows)) {
-          rows.forEach((r: any) => {
-            const codeKey = Object.keys(r).find((k) => k.toLowerCase().includes('code'));
-            const descKey = Object.keys(r).find((k) => k.toLowerCase().includes('name') || k.toLowerCase().includes('title') || k.toLowerCase().includes('desc'));
-            if (codeKey && r[codeKey]) {
-              const rawCode = String(r[codeKey]).toUpperCase().trim();
-              const strippedCode = rawCode.replace(/[-_][LTPSS]$/i, '').trim();
-              const desc = descKey ? String(r[descKey]).trim() : '';
-              if (rawCode) {
-                if (!courseLookup[rawCode]?.title) {
-                  courseLookup[rawCode] = { ...(courseLookup[rawCode] || {}), title: desc || undefined };
-                }
-                if (strippedCode && !courseLookup[strippedCode]?.title) {
-                  courseLookup[strippedCode] = { ...(courseLookup[strippedCode] || {}), title: desc || undefined };
-                }
-              }
             }
           });
         }

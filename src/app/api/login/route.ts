@@ -1,33 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loginAndFetchSemesters, ScraperSession } from '@/lib/scraper';
 import { decodeSession, encodeSession } from '@/lib/session';
-import { authRateLimiter } from '@/lib/rate-limit';
 
-function getIP(request: NextRequest) {
-  return (
-    request.headers.get('x-forwarded-for') ||
-    request.headers.get('x-real-ip') ||
-    'unknown'
-  );
-}
 
 export async function POST(request: NextRequest) {
-  const ip = getIP(request);
-  const rateLimit = authRateLimiter.check(ip);
-  if (!rateLimit.success) {
-    return NextResponse.json(
-      { success: false, message: 'Too many requests. Please try again later.' },
-      {
-        status: 429,
-        headers: {
-          'Retry-After': String(
-            Math.ceil((rateLimit.reset - Date.now()) / 1000)
-          ),
-        },
-      }
-    );
-  }
-
   try {
     const body = await request.json();
     const { username, password, captcha, deviceId } = body;

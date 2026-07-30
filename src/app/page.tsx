@@ -102,7 +102,7 @@ export default function LoginPage() {
         );
         router.push('/dashboard');
       } else {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+         
         fetchCaptcha();
       }
       const savedDevice = localStorage.getItem('kl_erp_device_id');

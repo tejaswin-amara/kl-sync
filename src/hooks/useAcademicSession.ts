@@ -31,6 +31,7 @@ export function useAcademicSession() {
       if (yStr) {
         try {
           parsedYears = JSON.parse(yStr);
+           
           setYears(parsedYears);
         } catch (e) {
           console.error('Failed to parse academic years', e);
@@ -40,6 +41,7 @@ export function useAcademicSession() {
       if (sStr) {
         try {
           parsedSems = JSON.parse(sStr);
+           
           setSemesters(parsedSems);
         } catch (e) {
           console.error('Failed to parse semesters', e);

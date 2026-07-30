@@ -20,7 +20,7 @@ import {
   X,
   Bell,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+
 
 export default function Navigation({
   children,
@@ -114,43 +114,9 @@ export default function Navigation({
     <div className="min-h-screen bg-zinc-950 text-zinc-50 flex overflow-hidden">
       {/* Ambient background matching kl-attendance-v2 */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <motion.div
-          animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.3, 0.5, 0.3],
-            rotate: [0, 90, 0],
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute rounded-full blur-[100px] bg-indigo-500 top-[10%] left-[20%] w-[30vw] h-[30vw]"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.2, 0.4, 0.2],
-            translate: ['0%', '-10%', '0%'],
-          }}
-          transition={{
-            duration: 25,
-            repeat: Infinity,
-            ease: 'easeInOut',
-            delay: 2,
-          }}
-          className="absolute rounded-full blur-[120px] bg-purple-500 top-[40%] right-[10%] w-[25vw] h-[25vw]"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.15, 1],
-            opacity: [0.3, 0.5, 0.3],
-            rotate: [0, -90, 0],
-          }}
-          transition={{
-            duration: 22,
-            repeat: Infinity,
-            ease: 'easeInOut',
-            delay: 5,
-          }}
-          className="absolute rounded-full blur-[100px] bg-emerald-500 bottom-[10%] left-[30%] w-[35vw] h-[35vw]"
-        />
+        <div className="absolute rounded-full blur-[100px] bg-indigo-500/30 top-[10%] left-[20%] w-[30vw] h-[30vw] animate-pulse" style={{ animationDuration: '8s' }} />
+        <div className="absolute rounded-full blur-[120px] bg-purple-500/20 top-[40%] right-[10%] w-[25vw] h-[25vw] animate-pulse" style={{ animationDuration: '12s' }} />
+        <div className="absolute rounded-full blur-[100px] bg-emerald-500/30 bottom-[10%] left-[30%] w-[35vw] h-[35vw] animate-pulse" style={{ animationDuration: '10s' }} />
       </div>
 
       {/* Mobile Header */}
@@ -196,107 +162,93 @@ export default function Navigation({
       </header>
 
       {/* Sidebar (Desktop + Mobile Drawer) */}
-      <AnimatePresence>
-        {(drawerOpen ||
-          (typeof window !== 'undefined' && window.innerWidth >= 1024)) && (
-          <>
-            {/* Backdrop for mobile */}
-            {drawerOpen && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setDrawerOpen(false)}
-                className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+      {/* Backdrop for mobile */}
+      {drawerOpen && (
+        <div
+          onClick={() => setDrawerOpen(false)}
+          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
+        />
+      )}
+
+      <aside
+        className={`fixed lg:static top-0 left-0 h-full w-[280px] shrink-0 flex flex-col border-r z-50 transition-transform duration-300 ease-in-out ${
+          drawerOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'
+        }`}
+        style={{
+          borderColor: 'rgba(255,255,255,.06)',
+          background: 'rgba(9,9,11,0.95)',
+          backdropFilter: 'blur(20px)',
+        }}
+      >
+        <div
+          className="p-6 border-b"
+          style={{ borderColor: 'rgba(255,255,255,.06)' }}
+        >
+          <div className="flex items-center justify-between">
+            <Link href="/dashboard" className="flex items-center gap-2">
+              <img
+                src="/logo.png"
+                alt="KL"
+                className="h-8 w-auto object-contain"
               />
-            )}
-
-            <motion.aside
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className={`fixed lg:static top-0 left-0 h-full w-[280px] shrink-0 flex flex-col border-r z-50 ${
-                drawerOpen ? 'shadow-2xl' : ''
-              }`}
-              style={{
-                borderColor: 'rgba(255,255,255,.06)',
-                background: 'rgba(9,9,11,0.95)',
-                backdropFilter: 'blur(20px)',
-              }}
+              <span className="font-bold text-lg text-zinc-100 tracking-tight">
+                KL Sync
+              </span>
+            </Link>
+            <button
+              className="lg:hidden p-2 -mr-2 rounded-lg hover:bg-white/10 text-zinc-400"
+              onClick={() => setDrawerOpen(false)}
             >
-              <div
-                className="p-6 border-b"
-                style={{ borderColor: 'rgba(255,255,255,.06)' }}
-              >
-                <div className="flex items-center justify-between">
-                  <Link href="/dashboard" className="flex items-center gap-2">
-                    <img
-                      src="/logo.png"
-                      alt="KL"
-                      className="h-8 w-auto object-contain"
-                    />
-                    <span className="font-bold text-lg text-zinc-100 tracking-tight">
-                      KL Sync
-                    </span>
-                  </Link>
-                  <button
-                    className="lg:hidden p-2 -mr-2 rounded-lg hover:bg-white/10 text-zinc-400"
-                    onClick={() => setDrawerOpen(false)}
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
 
-              <div className="flex-1 py-2 px-3 flex flex-col overflow-y-auto custom-scrollbar">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 px-3 shrink-0 mb-2">
-                  Menu
-                </div>
-                <div className="flex-1 flex flex-col justify-evenly min-h-[450px]">
-                  {navItems.map((item) => {
-                    const isActive =
-                      pathname === item.href ||
-                      (item.href !== '/dashboard' &&
-                        pathname.startsWith(item.href));
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setDrawerOpen(false)}
-                        className={`w-full text-left px-3 py-3 flex items-center gap-3 transition-all cursor-pointer rounded-xl text-[14px] font-medium ${
-                          isActive
-                            ? 'bg-indigo-500/10 text-indigo-400 shadow-[inset_0_0_0_1px_rgba(99,102,241,0.2)]'
-                            : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/5'
-                        }`}
-                      >
-                        <Icon
-                          className={`w-[18px] h-[18px] ${isActive ? 'text-indigo-400' : 'text-zinc-500'} shrink-0`}
-                        />
-                        <span className="truncate">{item.label}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div
-                className="p-4 border-t"
-                style={{ borderColor: 'rgba(255,255,255,.06)' }}
-              >
-                <button
-                  onClick={handleSignOut}
-                  className="w-full text-left px-3 py-1 flex items-center gap-2.5 transition-all cursor-pointer rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10"
+        <div className="flex-1 py-2 px-3 flex flex-col overflow-y-auto custom-scrollbar">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 px-3 shrink-0 mb-2">
+            Menu
+          </div>
+          <div className="flex-1 flex flex-col justify-evenly min-h-[450px]">
+            {navItems.map((item) => {
+              const isActive =
+                pathname === item.href ||
+                (item.href !== '/dashboard' &&
+                  pathname.startsWith(item.href));
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setDrawerOpen(false)}
+                  className={`w-full text-left px-3 py-3 flex items-center gap-3 transition-all cursor-pointer rounded-xl text-[14px] font-medium ${
+                    isActive
+                      ? 'bg-indigo-500/10 text-indigo-400 shadow-[inset_0_0_0_1px_rgba(99,102,241,0.2)]'
+                      : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/5'
+                  }`}
                 >
-                  <LogOut className="w-4 h-4" />
-                  Sign Out
-                </button>
-              </div>
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
+                  <Icon
+                    className={`w-[18px] h-[18px] ${isActive ? 'text-indigo-400' : 'text-zinc-500'} shrink-0`}
+                  />
+                  <span className="truncate">{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        <div
+          className="p-4 border-t"
+          style={{ borderColor: 'rgba(255,255,255,.06)' }}
+        >
+          <button
+            onClick={handleSignOut}
+            className="w-full text-left px-3 py-1 flex items-center gap-2.5 transition-all cursor-pointer rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10"
+          >
+            <LogOut className="w-4 h-4" />
+            Sign Out
+          </button>
+        </div>
+      </aside>
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative z-10 w-full pt-[60px] lg:pt-0">

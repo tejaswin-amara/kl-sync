@@ -1,23 +1,9 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getCaptcha } from '@/lib/scraper';
 import { encodeSession } from '@/lib/session';
-import { authRateLimiter } from '@/lib/rate-limit';
 
-function getIP(request: NextRequest) {
-  return (
-    request.headers.get('x-forwarded-for') ||
-    request.headers.get('x-real-ip') ||
-    'unknown'
-  );
-}
 
 export async function GET(request: NextRequest) {
-  const ip = getIP(request);
-  const rateLimit = authRateLimiter.check(ip);
-  if (!rateLimit.success) {
-    return new NextResponse('Too many requests', { status: 429 });
-  }
-
   try {
     const { captchaImage, session } = await getCaptcha();
 

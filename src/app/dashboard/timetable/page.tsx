@@ -30,11 +30,7 @@ export default function TimetablePage() {
   const [error, setError] = useState<string | null>(null);
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [selectedDayFilter, setSelectedDayFilter] = useState<string>(() => {
-    const dayIndex = new Date().getDay();
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    return dayIndex === 0 ? 'Monday' : days[dayIndex]; // Default to Monday if Sunday
-  });
+  const [selectedDayFilter, setSelectedDayFilter] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
 
   const {
@@ -425,7 +421,7 @@ export default function TimetablePage() {
                         <th className="p-4 sticky left-0 z-20 bg-zinc-900/95 backdrop-blur-md min-w-[80px] border-r border-white/10 text-indigo-400 text-center">
                           Period
                         </th>
-                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].filter(day => selectedDayFilter === 'All' || day === selectedDayFilter || (parsedTT.daysPresent.includes(day))).map((day) => (
+                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].filter(day => selectedDayFilter === 'All' || day === selectedDayFilter).map((day) => (
                           <th key={day} className="p-4 text-center min-w-[180px] border-r border-white/5 last:border-r-0 text-zinc-200">
                             {day}
                           </th>
@@ -436,8 +432,8 @@ export default function TimetablePage() {
                       {(() => {
                         // Sort time slots logically (numeric first, then alphabetical)
                         const sortedTimeSlots = [...parsedTT.timeSlotsPresent].sort((a, b) => {
-                          const numA = parseInt(a.replace(/\\D/g, ''), 10);
-                          const numB = parseInt(b.replace(/\\D/g, ''), 10);
+                          const numA = parseInt(a.replace(/\D/g, ''), 10);
+                          const numB = parseInt(b.replace(/\D/g, ''), 10);
                           if (!isNaN(numA) && !isNaN(numB) && numA !== numB) {
                             // If both are numbers but one is huge (like 0930), be careful. 
                             // But usually they are either 1,2,3 or times.
@@ -450,8 +446,7 @@ export default function TimetablePage() {
                         const slotsToRender = sortedTimeSlots.length > 0 ? sortedTimeSlots : Array.from({ length: 10 }, (_, i) => String(i + 1));
 
                         return slotsToRender.map((periodNum) => {
-                          const periodInt = parseInt(periodNum.replace(/\\D/g, ''), 10);
-                          const daysToRender = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].filter(day => selectedDayFilter === 'All' || day === selectedDayFilter || (parsedTT.daysPresent.includes(day)));
+                          const daysToRender = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].filter(day => selectedDayFilter === 'All' || day === selectedDayFilter);
                           
                           // Check if this period has ANY classes across all days to hide empty rows
                           const hasAnyClass = daysToRender.some(day => {
