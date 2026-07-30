@@ -67,17 +67,26 @@ const DAY_MAP: Record<string, { full: string; short: string; index: number }> = 
   mon: { full: 'Monday', short: 'Mon', index: 1 },
   'day 1': { full: 'Monday', short: 'Mon', index: 1 },
   'day1': { full: 'Monday', short: 'Mon', index: 1 },
+  'd1': { full: 'Monday', short: 'Mon', index: 1 },
+  'do1': { full: 'Monday', short: 'Mon', index: 1 },
+  'day order 1': { full: 'Monday', short: 'Mon', index: 1 },
 
   tuesday: { full: 'Tuesday', short: 'Tue', index: 2 },
   tue: { full: 'Tuesday', short: 'Tue', index: 2 },
   tues: { full: 'Tuesday', short: 'Tue', index: 2 },
   'day 2': { full: 'Tuesday', short: 'Tue', index: 2 },
   'day2': { full: 'Tuesday', short: 'Tue', index: 2 },
+  'd2': { full: 'Tuesday', short: 'Tue', index: 2 },
+  'do2': { full: 'Tuesday', short: 'Tue', index: 2 },
+  'day order 2': { full: 'Tuesday', short: 'Tue', index: 2 },
 
   wednesday: { full: 'Wednesday', short: 'Wed', index: 3 },
   wed: { full: 'Wednesday', short: 'Wed', index: 3 },
   'day 3': { full: 'Wednesday', short: 'Wed', index: 3 },
   'day3': { full: 'Wednesday', short: 'Wed', index: 3 },
+  'd3': { full: 'Wednesday', short: 'Wed', index: 3 },
+  'do3': { full: 'Wednesday', short: 'Wed', index: 3 },
+  'day order 3': { full: 'Wednesday', short: 'Wed', index: 3 },
 
   thursday: { full: 'Thursday', short: 'Thu', index: 4 },
   thu: { full: 'Thursday', short: 'Thu', index: 4 },
@@ -85,22 +94,47 @@ const DAY_MAP: Record<string, { full: string; short: string; index: number }> = 
   thurs: { full: 'Thursday', short: 'Thu', index: 4 },
   'day 4': { full: 'Thursday', short: 'Thu', index: 4 },
   'day4': { full: 'Thursday', short: 'Thu', index: 4 },
+  'd4': { full: 'Thursday', short: 'Thu', index: 4 },
+  'do4': { full: 'Thursday', short: 'Thu', index: 4 },
+  'day order 4': { full: 'Thursday', short: 'Thu', index: 4 },
 
   friday: { full: 'Friday', short: 'Fri', index: 5 },
   fri: { full: 'Friday', short: 'Fri', index: 5 },
   'day 5': { full: 'Friday', short: 'Fri', index: 5 },
   'day5': { full: 'Friday', short: 'Fri', index: 5 },
+  'd5': { full: 'Friday', short: 'Fri', index: 5 },
+  'do5': { full: 'Friday', short: 'Fri', index: 5 },
+  'day order 5': { full: 'Friday', short: 'Fri', index: 5 },
 
   saturday: { full: 'Saturday', short: 'Sat', index: 6 },
   sat: { full: 'Saturday', short: 'Sat', index: 6 },
   'day 6': { full: 'Saturday', short: 'Sat', index: 6 },
   'day6': { full: 'Saturday', short: 'Sat', index: 6 },
+  'd6': { full: 'Saturday', short: 'Sat', index: 6 },
+  'do6': { full: 'Saturday', short: 'Sat', index: 6 },
+  'day order 6': { full: 'Saturday', short: 'Sat', index: 6 },
 
   sunday: { full: 'Sunday', short: 'Sun', index: 0 },
   sun: { full: 'Sunday', short: 'Sun', index: 0 },
   'day 7': { full: 'Sunday', short: 'Sun', index: 0 },
   'day7': { full: 'Sunday', short: 'Sun', index: 0 },
+  'd7': { full: 'Sunday', short: 'Sun', index: 0 },
+  'do7': { full: 'Sunday', short: 'Sun', index: 0 },
+  'day order 7': { full: 'Sunday', short: 'Sun', index: 0 },
 };
+
+/**
+ * Normalizes a time slot or period string (e.g. '1', 'P1', 'Period 1') into a clean canonical key (e.g. '1').
+ */
+export function normalizeSlotKey(slotStr: string): string {
+  if (!slotStr) return '';
+  const str = String(slotStr).trim().toUpperCase();
+  const match = str.match(/^(?:PERIOD\s*|P\s*)?(\d+)$/i);
+  if (match) {
+    return match[1];
+  }
+  return str;
+}
 
 /**
  * Normalizes day string representation (e.g. 'Mon', 'Monday', 'Day 1') into a structured object.

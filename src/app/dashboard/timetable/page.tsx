@@ -7,6 +7,7 @@ import { exportTableToCSV } from '@/lib/utils';
 import {
   parseTimetable,
   isSameDay,
+  normalizeSlotKey,
   ParsedTimetable,
 } from '@/lib/timetable-parser';
 import {
@@ -421,22 +422,47 @@ export default function TimetablePage() {
                         <th className="p-4 sticky left-0 z-20 bg-zinc-900/95 backdrop-blur-md min-w-[80px] border-r border-white/10 text-indigo-400 text-center">
                           Period
                         </th>
-                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].filter(day => selectedDayFilter === 'All' || day === selectedDayFilter).map((day) => (
-                          <th key={day} className="p-4 text-center min-w-[180px] border-r border-white/5 last:border-r-0 text-zinc-200">
-                            {day}
-                          </th>
-                        ))}
+                        {(() => {
+                          const allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                          const daysToRender = allDays.filter((day) => {
+                            if (selectedDayFilter !== 'All') {
+                              return day === selectedDayFilter;
+                            }
+                            // In 'All' view, show Mon-Sat plus Sunday if Sunday sessions exist
+                            if (day === 'Sunday') {
+                              return parsedTT.daysPresent.some((d) => isSameDay(d, 'Sunday'));
+                            }
+                            return true;
+                          });
+
+                          return daysToRender.map((day) => (
+                            <th key={day} className="p-4 text-center min-w-[180px] border-r border-white/5 last:border-r-0 text-zinc-200">
+                              {day}
+                            </th>
+                          ));
+                        })()}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
                       {(() => {
-                        // Sort time slots logically (numeric first, then alphabetical)
+                        const allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                        const daysToRender = allDays.filter((day) => {
+                          if (selectedDayFilter !== 'All') {
+                            return day === selectedDayFilter;
+                          }
+                          if (day === 'Sunday') {
+                            return parsedTT.daysPresent.some((d) => isSameDay(d, 'Sunday'));
+                          }
+                          return true;
+                        });
+
+                        // Sort time slots logically (numeric period first, then clock times/alphabetic)
                         const sortedTimeSlots = [...parsedTT.timeSlotsPresent].sort((a, b) => {
-                          const numA = parseInt(a.replace(/\D/g, ''), 10);
-                          const numB = parseInt(b.replace(/\D/g, ''), 10);
+                          const keyA = normalizeSlotKey(a);
+                          const keyB = normalizeSlotKey(b);
+                          const numA = Number(keyA);
+                          const numB = Number(keyB);
                           if (!isNaN(numA) && !isNaN(numB) && numA !== numB) {
-                            // If both are numbers but one is huge (like 0930), be careful. 
-                            // But usually they are either 1,2,3 or times.
                             return numA - numB;
                           }
                           return a.localeCompare(b);
@@ -446,18 +472,16 @@ export default function TimetablePage() {
                         const slotsToRender = sortedTimeSlots.length > 0 ? sortedTimeSlots : Array.from({ length: 10 }, (_, i) => String(i + 1));
 
                         return slotsToRender.map((periodNum) => {
-                          const daysToRender = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].filter(day => selectedDayFilter === 'All' || day === selectedDayFilter);
-                          
-                          // Check if this period has ANY classes across all days to hide empty rows
+                          // Check if this period has ANY classes across active days to hide empty rows
                           const hasAnyClass = daysToRender.some(day => {
                             const daySessions = parsedTT.sessions.filter(s => isSameDay(s.day, day));
                             return daySessions.some(s => {
                               const rawSlot = String(s.timeSlot || '').trim();
-                              return rawSlot === periodNum;
+                              return rawSlot === periodNum || normalizeSlotKey(rawSlot) === normalizeSlotKey(periodNum);
                             });
                           });
                           
-                          if (!hasAnyClass && sortedTimeSlots.length > 0) return null; // Only hide if we actually have data
+                          if (!hasAnyClass && sortedTimeSlots.length > 0) return null;
 
                           return (
                             <tr key={periodNum} className="hover:bg-white/[0.02] transition-colors">
@@ -471,7 +495,7 @@ export default function TimetablePage() {
                                 const daySessions = parsedTT.sessions.filter((s) => isSameDay(s.day, day));
                                 const matchingSessions = daySessions.filter((s) => {
                                   const rawSlot = String(s.timeSlot || '').trim();
-                                  return rawSlot === periodNum;
+                                  return rawSlot === periodNum || normalizeSlotKey(rawSlot) === normalizeSlotKey(periodNum);
                                 });
 
                                 return (
