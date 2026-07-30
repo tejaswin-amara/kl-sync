@@ -1,85 +1,117 @@
 # 🤝 Contributing to KL Sync
 
-First of all, thank you for your interest in contributing to **KL Sync**! Whether you're fixing a small bug, updating the scraper logic, or adding a new feature to the dashboard, your help is incredibly valuable.
+First of all, thank you for your interest in contributing to **KL Sync**! Whether you are fixing a minor styling bug, updating the Cheerio scraper logic to match a new ERP HTML layout, or adding a new logistical feature to the dashboard, your help is incredibly valuable to the student community.
 
-This project is built by students, for students. We want to keep it lightweight, fast, and easy to maintain.
+This project is built by students, for students. To ensure the codebase remains maintainable, lightweight, and fast, we adhere strictly to the **Ponytail Philosophy** (detailed below). 
+
+Please read this exhaustive guide before writing any code or submitting a Pull Request.
 
 ---
 
-## 🛠️ How to Contribute
+## 🎨 The Ponytail Philosophy (Code Style & Architecture)
 
-### 1. Find an Issue
+KL Sync is built on the principle that **the best code is the code never written.** We prioritize extreme minimalism and actively reject over-engineering.
+
+Before opening a PR, ensure your contribution adheres to these core tenets:
+1. **YAGNI (You Aren't Gonna Need It)**: Do not add speculative features or abstractions that *might* be useful later. 
+2. **Standard Library & Native Platform Over Dependencies**: Do not introduce new heavy npm packages if the browser or Next.js can do it natively. (For example, we use standard CSS `@keyframes` instead of `framer-motion`, and standard `fetch` instead of `axios`).
+3. **Flat UI Components**: Avoid deeply nested React component wrappers (e.g., nesting `<Card>` inside `<CardWrapper>`). Use semantic HTML elements (`<div>`, `<section>`) combined with Tailwind CSS v4 utility classes.
+4. **TypeScript**: Use strict TypeScript. Avoid `any` types for new features, but do not waste time overly typing legacy scraper DOM parsing if it works predictably.
+5. **Security**: NEVER commit `.env` files, API keys, or raw `PHPSESSID` / `kl_erp_session` strings to the repository.
+
+---
+
+## 🛠️ Step-by-Step Contribution Workflow
+
+### 1. Discuss Before You Build
+To avoid wasting your time on a feature that might be rejected for adding bloat:
 - Check the [Issues tracker](https://github.com/tejaswin-amara/kl-sync/issues) for open tasks.
-- If you want to build a new feature, please **open a new issue** to discuss it first before writing code. This ensures your work aligns with the project's minimalist goals (the "Ponytail" philosophy).
+- If you want to build a new feature or perform a large refactor, **open a new issue** to discuss the architectural approach first. Wait for a maintainer to approve the concept.
 
-### 2. Set Up Locally
-1. **Fork** the repository to your own GitHub account.
-2. **Clone** it locally:
+### 2. Local Environment Setup
+1. **Fork** the repository to your own personal GitHub account.
+2. **Clone** your fork locally:
    ```bash
    git clone https://github.com/YOUR-USERNAME/kl-sync.git
    cd kl-sync
    ```
-3. **Install dependencies**:
+3. **Install Dependencies**:
+   Ensure you are using **Node.js 20+**.
    ```bash
    npm install
    ```
+4. **Configure Environment Variables**:
+   ```bash
+   cp .env.example .env.local
+   ```
+   Open `.env.local` and set a 32+ character `SESSION_SECRET` for testing local session encryption.
 
 ### 3. Make Your Changes
-1. **Create a branch** with a descriptive name:
+1. **Create a Dedicated Branch**:
+   Use descriptive, hyphenated names.
    ```bash
-   git checkout -b fix/layout-overflow
+   git checkout -b fix/attendance-layout-overflow
    # or
    git checkout -b feat/exam-seating-alerts
    ```
-2. **Write clean code.** Keep it minimal and avoid over-engineering.
-3. If you are modifying the ERP scraper (`src/lib/scraper.ts`):
-   - Test against a real ERP login locally.
-   - Comment on any complex DOM traversal logic.
-   - Document any new JSON structures you are extracting.
+2. **Write the Code**: 
+   - Keep it minimal.
+   - If modifying `src/lib/scraper.ts`, thoroughly test the Cheerio DOM selectors against a live ERP HTML response.
+   - Document any new JSON structures you are extracting from the ERP.
+3. **Respect the Stack**: Stick exclusively to Next.js App Router paradigms (Client vs. Server components) and Tailwind CSS v4.
 
-### 4. Test Your Work
-Before committing, ensure everything builds cleanly without errors.
-```bash
-npm run dev       # Verify it looks right
-npm run build     # Verify the production build succeeds
-npx tsc --noEmit  # Check for TypeScript errors
-```
+### 4. Exhaustive Local Verification
+Before committing, you **must** verify that your changes do not break the build or introduce regressions.
+
+1. **Test the UI**:
+   ```bash
+   npm run dev
+   ```
+   Open http://localhost:3000 and verify your feature visually on both desktop and mobile viewports.
+2. **Run the Linter**:
+   Ensure your code matches our ESLint standards.
+   ```bash
+   npm run lint
+   ```
+   To automatically fix simple formatting issues:
+   ```bash
+   npm run lint -- --fix
+   ```
+3. **Verify the Production Build**:
+   Next.js static typing and page compilation MUST pass.
+   ```bash
+   npm run build
+   ```
+   If this command fails, your PR will be automatically rejected by the CI pipeline.
 
 ### 5. Commit & Push
-- Write clear, concise commit messages (e.g., `fix: dashboard attendance calculation bug`).
-- Keep commits logical and focused on a single issue.
-- Push to your fork:
+- Write clear, imperative commit messages (e.g., `fix: correct attendance calculation edge case` or `feat: add hostel fee parser`).
+- Push the branch to your fork:
   ```bash
   git push -u origin your-branch-name
   ```
 
 ### 6. Open a Pull Request (PR)
-- Open a PR from your fork's branch to the `master` branch of `tejaswin-amara/kl-sync`.
-- **Link the issue**: If your PR fixes an open issue, mention it (e.g., `Closes #42`).
-- **Explain your changes**: Briefly describe *why* the change is needed and *what* it does.
-- Maintainers will review your PR as soon as possible!
+- Navigate to the original `tejaswin-amara/kl-sync` repository on GitHub.
+- Click **"Compare & pull request"**.
+- **Link the Issue**: Mention the issue number your PR resolves (e.g., `Closes #42`).
+- **Explain Your Changes**: Detail exactly *what* you changed, *why* it was necessary, and *how* you tested it.
+- **Review**: A maintainer will review your code. You may be asked to simplify logic or remove abstractions to align with the Ponytail philosophy.
 
 ---
 
-## 🎨 Code Style & Philosophy
+## 🔒 Security Vulnerabilities
 
-> **The Ponytail Philosophy**: "The best code is the code never written." Keep it simple. Avoid bloated dependencies. 
+If you discover a vulnerability while reading the codebase (e.g., a CSRF flaw or an encryption bypass), **do not open a public issue or PR**. 
 
-- **TypeScript**: Use strict mode. Avoid `any` types wherever possible.
-- **React/Next.js**: Use functional components, hooks, and App Router paradigms (`server` vs `client` components).
-- **Styling**: We use **Tailwind CSS v4**. Stick to utility classes and avoid custom CSS unless absolutely necessary.
-- **Secrets**: NEVER commit API keys, `.env` files, or session tokens.
+Please follow our strict disclosure guidelines detailed in [SECURITY.md](SECURITY.md) and report it privately via email.
 
 ---
-
-## 🔒 Security
-
-If you discover a security vulnerability in KL Sync, please **do not open a public issue**. Follow the guidelines in our [Security Policy](SECURITY.md) and report it privately.
 
 ## 📄 License Agreement
 
-By contributing to KL Sync, you agree that your code will be released under the same terms as the project. See the [`LICENSE`](LICENSE) for details.
+By contributing to KL Sync, you agree that your contributions will be licensed under the project's existing open-source terms. See the [`LICENSE`](LICENSE) file for complete legal details.
 
 ---
 
-**Thank you for contributing!** Even small fixes and improvements make KL Sync better for everyone.
+**Thank you for contributing!** KL Sync thrives because of students like you taking the time to improve the ecosystem.
