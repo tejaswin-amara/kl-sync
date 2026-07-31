@@ -5,12 +5,21 @@
   <p><strong>An exhaustive, unofficial, minimalist ERP client for KL University.</strong></p>
 
   <p>
+    <a href="https://klhb.vercel.app"><img alt="Live Demo" src="https://img.shields.io/badge/Live-klhb.vercel.app-10B981?style=flat-square&logo=vercel&logoColor=white" /></a>
     <a href="https://nextjs.org/"><img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js" /></a>
     <a href="https://react.dev/"><img alt="React" src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" /></a>
     <a href="https://www.typescriptlang.org/"><img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white" /></a>
     <a href="https://tailwindcss.com/"><img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind-v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" /></a>
+    <a href="DESIGN.md"><img alt="WCAG 2.2 AAA" src="https://img.shields.io/badge/Accessibility-WCAG%202.2%20AAA-818CF8?style=flat-square" /></a>
   </p>
 </div>
+
+---
+
+## 🌐 Live Production Deployment
+
+Access the live production instance deployed on Vercel:
+👉 **[https://klhb.vercel.app](https://klhb.vercel.app)**
 
 ---
 
@@ -20,7 +29,7 @@ KL University's official ERP system serves as the central hub for student data, 
 
 **KL Sync** acts as an intermediary layer—a modern frontend that proxies requests to the actual ERP backend. By authenticating with your normal ERP credentials, KL Sync intercepts the standard HTML responses from the ERP, parses the data intelligently via Cheerio, and renders it onto a fast, dark-themed, highly responsive dashboard built natively with Next.js 16 and Tailwind CSS v4.
 
-This architecture ensures you see real-time data securely, without suffering through archaic UI structures or cumbersome page loads.
+This architecture ensures you see real-time data securely, without suffering through archaic UI structures or cumbersome page loads. Detailed architectural blueprints can be found in **[ARCHITECTURE.md](ARCHITECTURE.md)**, and the human-crafted dark design system specification is documented in **[DESIGN.md](DESIGN.md)**.
 
 > **Note**: This is an independent open-source project built by students. It is **not** endorsed by or affiliated with KL University. See the [Disclaimer](#-disclaimer).
 
