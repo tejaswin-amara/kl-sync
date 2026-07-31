@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Loader2, Wrench, AlertCircle, Percent, Target } from 'lucide-react';
 import { SimpleCalculator } from '@/components/attendance-calculator';
-import { GlassCard } from '@/components/ui/glass-card';
+
 import { processERPDataForCGPA } from '@/lib/cgpa';
 
 export default function ToolsPage() {
@@ -112,7 +112,7 @@ export default function ToolsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <GlassCard className="flex flex-col h-full" glowIntensity="medium">
+          <div className="rounded-xl border border-white/10 bg-zinc-950/50 p-6 shadow-sm relative overflow-hidden transition-all duration-300 flex flex-col h-full"   >
             <div className="p-5 border-b border-white/5 flex items-center gap-3 bg-zinc-950/30">
               <Percent className="w-5 h-5 text-emerald-400" />
               <h3 className="text-lg font-semibold text-zinc-100">
@@ -159,9 +159,9 @@ export default function ToolsPage() {
                 />
               </div>
             </div>
-          </GlassCard>
+          </div>
 
-          <GlassCard className="flex flex-col h-full" glowIntensity="medium">
+          <div className="rounded-xl border border-white/10 bg-zinc-950/50 p-6 shadow-sm relative overflow-hidden transition-all duration-300 flex flex-col h-full"   >
             <div className="p-5 border-b border-white/5 flex items-center gap-3 bg-zinc-950/30">
               <Target className="w-5 h-5 text-purple-400" />
               <h3 className="text-lg font-semibold text-zinc-100">
@@ -246,7 +246,7 @@ export default function ToolsPage() {
                 )}
               </div>
             </div>
-          </GlassCard>
+          </div>
 
         </div>
       )}

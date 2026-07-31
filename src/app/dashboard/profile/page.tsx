@@ -1,7 +1,8 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+
 import {
   Loader2,
   AlertCircle,
@@ -252,9 +253,7 @@ export default function ProfilePage() {
                           if (rows.length === 0) return null;
 
                           return (
-                            <motion.div
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
+                            <div
                               key={k}
                               className="overflow-x-auto rounded-xl border border-white/10"
                             >
@@ -304,7 +303,7 @@ export default function ProfilePage() {
                                   ))}
                                 </tbody>
                               </table>
-                            </motion.div>
+                            </div>
                           );
                         })}
                       </div>

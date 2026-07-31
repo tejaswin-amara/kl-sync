@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useAcademicSession } from '@/hooks/useAcademicSession';
-import { motion } from 'framer-motion';
+
 import { exportTableToCSV } from '@/lib/utils';
 import {
   parseTimetable,
@@ -511,10 +511,8 @@ export default function TimetablePage() {
                                     {matchingSessions.length > 0 ? (
                                       <div className="flex flex-col gap-2 h-full">
                                         {matchingSessions.map((session, sIdx) => (
-                                          <motion.div
+                                          <div
                                             key={session.id || sIdx}
-                                            initial={{ opacity: 0, scale: 0.95 }}
-                                            animate={{ opacity: 1, scale: 1 }}
                                             className="bg-zinc-900/80 border border-white/10 hover:border-indigo-500/50 p-3 rounded-xl flex flex-col justify-between gap-1.5 shadow-md group transition-all shrink-0"
                                           >
                                             <div className="flex items-center justify-between gap-1">
@@ -553,7 +551,7 @@ export default function TimetablePage() {
                                                 </span>
                                               )}
                                             </div>
-                                          </motion.div>
+                                          </div>
                                         ))}
                                       </div>
                                     ) : (
@@ -610,10 +608,7 @@ export default function TimetablePage() {
                 </thead>
                 <tbody>
                   {filteredSessions.map((session, idx) => (
-                    <motion.tr
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.02 }}
+                    <tr
                       key={session.id || idx}
                       className="group bg-zinc-950/40 hover:bg-zinc-900/60 transition-colors"
                     >
@@ -658,7 +653,7 @@ export default function TimetablePage() {
                       <td className="px-4 py-3.5 text-xs text-zinc-400 border-y border-transparent last:rounded-r-xl">
                         {session.faculty || 'N/A'}
                       </td>
-                    </motion.tr>
+                    </tr>
                   ))}
                 </tbody>
               </table>

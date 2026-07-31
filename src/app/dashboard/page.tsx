@@ -17,8 +17,8 @@ import {
   RefreshCw,
   AlertCircle,
 } from 'lucide-react';
-import { NumberTicker } from '@/components/ui/number-ticker';
-import { GlassCard } from '@/components/ui/glass-card';
+
+
 import { calculatePendingFee } from '@/lib/fee-utils';
 import { processERPDataForCGPA } from '@/lib/cgpa';
 import { parseTimetable, isSameDay, NormalizedClassSession } from '@/lib/timetable-parser';
@@ -217,9 +217,9 @@ export default function DashboardOverview() {
     <div className="flex flex-col gap-6 w-full animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
       {/* Welcome Banner */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <GlassCard
-          className="lg:col-span-2 p-8 flex flex-col justify-center relative overflow-hidden group"
-          glowIntensity="medium"
+        <div className="rounded-xl border border-white/10 bg-zinc-950/50 shadow-sm relative overflow-hidden transition-all duration-300 lg:col-span-2 p-8 flex flex-col justify-center relative overflow-hidden group" 
+          
+          
         >
           <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none transition-transform duration-700 group-hover:scale-110">
             <GraduationCap className="w-48 h-48 text-indigo-500" />
@@ -242,9 +242,9 @@ export default function DashboardOverview() {
               has been synchronized successfully.
             </p>
           </div>
-        </GlassCard>
+        </div>
 
-        <GlassCard className="p-8 flex flex-col items-center justify-center text-center relative overflow-hidden group">
+        <div className="rounded-xl border border-white/10 bg-zinc-950/50 shadow-sm relative overflow-hidden transition-all duration-300 p-8 flex flex-col items-center justify-center text-center relative overflow-hidden group"  >
           <Award className="w-12 h-12 text-indigo-400 mb-4 opacity-80" />
           <div className="z-10">
             <p className="text-xs font-semibold tracking-widest text-zinc-400 uppercase mb-2">
@@ -253,14 +253,14 @@ export default function DashboardOverview() {
             <div className="flex items-baseline justify-center gap-1">
               <span className="text-6xl font-black tracking-tighter text-zinc-100">
                 {cgpa > 0 ? (
-                  <NumberTicker value={cgpa} decimalPlaces={2} />
+                  cgpa.toFixed(2)
                 ) : (
                   '0.00'
                 )}
               </span>
             </div>
           </div>
-        </GlassCard>
+        </div>
       </section>
 
       {/* Quick Stats Grid */}
@@ -277,7 +277,7 @@ export default function DashboardOverview() {
               Attendance
             </p>
             <p className="text-3xl font-bold text-zinc-100 flex items-baseline gap-1">
-              {attendance > 0 ? <NumberTicker value={attendance} /> : '0'}%
+              {attendance > 0 ? attendance.toFixed(0) : '0'}%
             </p>
           </div>
         </Link>
@@ -294,7 +294,7 @@ export default function DashboardOverview() {
               Pending Fees
             </p>
             <p className="text-3xl font-bold text-zinc-100">
-              ₹{pendingFee > 0 ? <NumberTicker value={pendingFee} /> : '0'}
+              ₹{pendingFee > 0 ? pendingFee : '0'}
             </p>
           </div>
         </Link>
@@ -312,7 +312,7 @@ export default function DashboardOverview() {
             </p>
             <p className="text-3xl font-bold text-zinc-100">
               {completedCredits > 0 ? (
-                <NumberTicker value={completedCredits} />
+                completedCredits
               ) : (
                 '0'
               )}
@@ -468,7 +468,7 @@ function TodayScheduleWidget({
   const activeDaySessions = allSessions.filter((s) => isSameDay(s.day, selectedDay));
 
   return (
-    <GlassCard className="flex flex-col h-full !p-0" glowIntensity="low">
+    <div className="rounded-xl border border-white/10 bg-zinc-950/50 shadow-sm relative overflow-hidden transition-all duration-300 flex flex-col h-full !p-0"   >
       <div className="p-4 sm:p-5 border-b border-white/5 flex flex-col gap-3 bg-zinc-950/30">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
@@ -624,7 +624,7 @@ function TodayScheduleWidget({
         View Full Timetable
         <ChevronRight className="w-4 h-4" />
       </Link>
-    </GlassCard>
+    </div>
   );
 }
 
@@ -697,7 +697,7 @@ function CurrentCoursesWidget({
   }, [activeYearId, activeSemId]);
 
   return (
-    <GlassCard className="flex flex-col h-full !p-0" glowIntensity="low">
+    <div className="rounded-xl border border-white/10 bg-zinc-950/50 shadow-sm relative overflow-hidden transition-all duration-300 flex flex-col h-full !p-0"   >
       <div className="p-5 border-b border-white/5 flex justify-between items-center bg-zinc-950/30">
         <div className="flex items-center gap-3">
           <BookOpen className="w-5 h-5 text-purple-400" />
@@ -779,6 +779,6 @@ function CurrentCoursesWidget({
         View All Courses
         <ChevronRight className="w-4 h-4" />
       </Link>
-    </GlassCard>
+    </div>
   );
 }

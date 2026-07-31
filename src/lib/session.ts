@@ -7,13 +7,7 @@ import { ScraperSession } from './scraper';
 // token (AES-256-GCM) so the client can neither read nor tamper with it.
 //
 // If no secret is set we fall back to plain base64 (the original behaviour) so
-// the app keeps working in local/dev setups — set SESSION_SECRET in production.
 
-if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
-  console.error(
-    '[SECURITY] SESSION_SECRET is not set in production! Sessions will use plain base64 encoding. Set SESSION_SECRET for encryption.'
-  );
-}
 
 const ALGO = 'aes-256-gcm';
 const ENC_PREFIX = 'enc.';
@@ -21,7 +15,14 @@ const B64_PREFIX = 'b64.';
 
 function getKey(): Buffer | null {
   const secret = process.env.SESSION_SECRET;
-  if (!secret) return null;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(
+        '[SECURITY] SESSION_SECRET is not set in production! Sessions will use plain base64 encoding. Set SESSION_SECRET for encryption.'
+      );
+    }
+    return null;
+  }
   // Derive a fixed 32-byte key from the secret of any length.
   return crypto.createHash('sha256').update(secret).digest();
 }

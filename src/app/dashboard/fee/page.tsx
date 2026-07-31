@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+
 import {
   Loader2,
   AlertCircle,
@@ -108,10 +108,7 @@ export default function FeePage() {
                   const isPaid = !isPending && !summaryRow && (statusVal.includes('paid') || !statusKey);
 
                   return (
-                    <motion.tr
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.03 }}
+                    <tr
                       key={idx}
                       className={`group transition-all ${summaryRow ? 'font-bold bg-white/[0.04]' : ''}`}
                     >
@@ -180,7 +177,7 @@ export default function FeePage() {
                           </td>
                         );
                       })}
-                    </motion.tr>
+                    </tr>
                   );
                 })}
               </tbody>

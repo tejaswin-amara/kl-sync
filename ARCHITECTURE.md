@@ -11,7 +11,7 @@
                                   [ CLIENT LAYER ]
                      +---------------------------------------+
                      |  Next.js 16 / React 19 Frontend UI    |
-                     |  (Tailwind v4, Framer Motion, Lucide) |
+                     |  (Tailwind v4, Native CSS, Lucide)    |
                      +---------------------------------------+
                                          |
                                          | HTTPS (REST API)

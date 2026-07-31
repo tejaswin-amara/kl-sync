@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+
 import {
   Loader2,
   AlertCircle,
@@ -90,10 +90,7 @@ export default function ExamSeatingPage() {
               </thead>
               <tbody>
                 {data.map((row, idx) => (
-                  <motion.tr
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.03 }}
+                  <tr
                     key={idx}
                     className="group transition-all"
                   >
@@ -119,7 +116,7 @@ export default function ExamSeatingPage() {
                         </td>
                       );
                     })}
-                  </motion.tr>
+                  </tr>
                 ))}
               </tbody>
             </table>

@@ -2,8 +2,8 @@
 
 ## 1. Brand Identity & Aesthetic Style
 * **Industry Context**: EdTech / University Student Portal / Productivity Dashboard.
-* **Aesthetic Style**: **Dark Cyber Minimalist / Soft Glassmorphism** (`Soft UI Evolution`).
-* **Design Philosophy**: High density, zero clutter, instant legibility, sub-millisecond perceived latency.
+* **Aesthetic Style**: **Dark Cyber Minimalist** (Human-engineered, native CSS, zero AI-bloat).
+* **Design Philosophy**: High density, zero clutter, instant legibility, sub-millisecond perceived latency. Follows the "Ponytail" strictness: native standard solutions over bloated third-party dependencies.
 
 ---
 
@@ -49,4 +49,4 @@
 1. ❌ **Generic Light Mode Grays**: Avoid dull `#f0f0f0` backgrounds that feel like legacy enterprise software.
 2. ❌ **Data Density Overload**: Avoid displaying raw HTML tables without visual hierarchy, color coding, or progress indicators.
 3. ❌ **Unresponsive Tables**: Avoid horizontal scrollbars without sticky header controls on mobile devices.
-4. ❌ **Heavy Skeuomorphism**: Avoid heavy drop shadows or intrusive 3D gradients; keep glassmorphism subtle (`backdrop-blur-md`).
+4. ❌ **Heavy Skeuomorphism & AI Aesthetics**: Avoid heavy drop shadows, intrusive 3D gradients, glowing blobs, Magic UI abstractions, or unnecessary `framer-motion` overhead; use strict, native solid Tailwind blocks.

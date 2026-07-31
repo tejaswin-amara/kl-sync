@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable @next/next/no-img-element */
 import { useState, useEffect } from 'react';
 import {
   RefreshCw,
@@ -8,8 +9,6 @@ import {
   Loader2,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { RetroGrid } from '@/components/ui/retro-grid';
 
 
 export default function LoginPage() {
@@ -225,44 +224,29 @@ export default function LoginPage() {
     <div className="min-h-[100dvh] flex bg-zinc-950 text-zinc-50 relative overflow-y-auto font-sans">
       {/* LEFT: BRANDING PANEL (Taste-Skill asymmetric split) */}
       <div className="hidden lg:flex w-[45%] relative border-r border-zinc-900 overflow-hidden bg-zinc-900 flex-col">
-        {/* Magic UI Retro Grid Background */}
-        <RetroGrid className="opacity-60" />
 
         <div className="relative z-10 flex-1 flex flex-col p-16 justify-between">
           <div>
             <div className="bg-white rounded-2xl p-4 shadow-xl inline-block mb-12">
               <img src="/logo.png" alt="KLH" className="h-10 object-contain" />
             </div>
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            <h1
               className="text-5xl font-semibold tracking-tight text-white leading-[1.1] mb-6"
             >
               Academic sync,
               <br />
               precision engineered.
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.6,
-                delay: 0.1,
-                ease: [0.16, 1, 0.3, 1],
-              }}
+            </h1>
+            <p
               className="text-lg text-zinc-400 max-w-md leading-relaxed"
             >
               Secure, real-time access to your timetable, profile, and
               attendance metrics directly from the core ERP.
-            </motion.p>
+            </p>
           </div>
 
           {/* Material Status Chip */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.5 }}
+          <div
             className="flex items-center gap-3 px-4 py-3 rounded-full bg-emerald-500/10 border border-emerald-500/20 w-max"
           >
             <span className="relative flex h-2.5 w-2.5">
@@ -272,7 +256,7 @@ export default function LoginPage() {
             <span className="text-xs font-semibold text-emerald-400 tracking-wide uppercase">
               System Live & Secure
             </span>
-          </motion.div>
+          </div>
         </div>
       </div>
 
@@ -295,25 +279,21 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
+            <div
               className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
             >
               <AlertCircle className="w-5 h-5 shrink-0" />
               <p className="leading-tight">{error}</p>
-            </motion.div>
+            </div>
           )}
 
           {status && !error && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
+            <div
               className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm"
             >
               <AlertCircle className="w-5 h-5 shrink-0" />
               <p className="leading-tight">{status}</p>
-            </motion.div>
+            </div>
           )}
 
           <form onSubmit={handleLogin} className="space-y-5" aria-label="Student ERP Authentication Form">
@@ -413,9 +393,7 @@ export default function LoginPage() {
             </div>
 
             {/* Level AAA Button with Target Sizing & High Contrast */}
-            <motion.button
-              whileHover={{ scale: 0.995 }}
-              whileTap={{ scale: 0.98 }}
+            <button
               type="submit"
               disabled={loading}
               className="w-full min-h-[52px] py-4 mt-6 rounded-xl font-semibold text-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-indigo-600 text-white hover:bg-indigo-500 focus:ring-4 focus:ring-indigo-400 focus:outline-none shadow-lg"
@@ -427,7 +405,7 @@ export default function LoginPage() {
                   <LogIn className="w-5 h-5" /> Continue to Dashboard
                 </>
               )}
-            </motion.button>
+            </button>
           </form>
         </div>
       </div>

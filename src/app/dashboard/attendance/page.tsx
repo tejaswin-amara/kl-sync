@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useAcademicSession } from '@/hooks/useAcademicSession';
-import { motion } from 'framer-motion';
+
 import {
   AlertCircle,
   ChevronDown,
@@ -160,10 +160,7 @@ export default function AttendanceDashboard() {
               </thead>
               <tbody>
                 {data.map((row, idx) => (
-                  <motion.tr
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.03 }}
+                  <tr
                     key={idx}
                     className="group transition-all"
                   >
@@ -263,7 +260,7 @@ export default function AttendanceDashboard() {
                         </td>
                       );
                     })}
-                  </motion.tr>
+                  </tr>
                 ))}
               </tbody>
             </table>
