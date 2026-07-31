@@ -58,3 +58,30 @@ Ensure src/app/dashboard/timetable/page.tsx and src/app/dashboard/page.tsx ("Tod
 - [ ] Fee Due correctly sums pending/unpaid fee amounts without including paid fee orders.
 - [ ] Timetable loads properly without hanging spinners or blank states across matrix and list layouts.
 
+## Follow-up — 2026-07-30T14:56:48Z
+
+Build and refine KL Sync, a modern, high-performance, dark-themed ERP web client and edge proxy for university students built with Next.js 16, React 19, and Tailwind CSS v4 following the ByteByteGo system design, UI/UX Pro Max accessibility, Open-Design prototyping, and Ponytail anti-bloat philosophies.
+
+Working directory: C:/Users/speed/Documents/antigravity/optimistic-pascal
+Integrity mode: development
+
+## Requirements
+
+### R1. High-Performance Stateless ERP Proxy
+The application must proxy authentication, captchas, and student records (attendance, marks, timetables, fee receipts, circulars) from legacy university servers via Next.js Route Handlers. All user sessions must be securely encrypted server-side using AES-256-GCM without persisting user credentials in a database.
+
+### R2. Dark Cyber Minimalist UI & Accessibility
+The web dashboard must adhere to the UI/UX Pro Max Design System (DESIGN.md), featuring high-density cards, responsive navigation, smooth state transitions, and strict WCAG AA contrast compliance (minimum 4.5:1 ratio) with explicit focus rings and screen-reader accessibility labels.
+
+### R3. Ponytail Anti-Bloat Code Quality & Build Passing
+The codebase must avoid unnecessary third-party dependencies, leveraging native Node.js standard libraries (crypto, path) and standard Next.js APIs. The full production build (npm run build) must compile cleanly without TypeScript or linting errors.
+
+## Acceptance Criteria
+
+### Verification & Quality Gates
+- [x] All 18 Next.js application routes compile successfully via npm run build.
+- [x] Session tokens are encrypted using AES-256-GCM in src/lib/session.ts.
+- [x] High-level system architecture documented in ARCHITECTURE.md.
+- [x] WCAG AA design system and tokens documented in DESIGN.md.
+
+
