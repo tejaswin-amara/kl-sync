@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { GlassCard } from '@/components/ui/glass-card';
 import {
   Loader2,
   AlertCircle,
@@ -17,7 +16,7 @@ import {
 } from '@/lib/fee-utils';
 
 export default function FeePage() {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -116,9 +115,9 @@ export default function FeePage() {
                       key={idx}
                       className={`group transition-all ${summaryRow ? 'font-bold bg-white/[0.04]' : ''}`}
                     >
-                      {Object.values(row).map((val: any, j) => {
+                      {Object.values(row).map((val: unknown, j) => {
                         const colName = Object.keys(row)[j].toLowerCase();
-                        let displayVal = val;
+                        let displayVal: React.ReactNode = String(val);
 
                         // Add ₹ symbol or format currency amounts safely
                         if (
@@ -159,14 +158,14 @@ export default function FeePage() {
                             displayVal = (
                               <span className="inline-flex items-center gap-1 bg-green-500/10 text-green-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
                                 <CheckCircle className="w-3.5 h-3.5" />
-                                {val}
+                                {String(val)}
                               </span>
                             );
                           } else if (isPending) {
                             displayVal = (
                               <span className="inline-flex items-center gap-1 bg-red-500/10 text-red-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
                                 <Clock className="w-3.5 h-3.5" />
-                                {val}
+                                {String(val)}
                               </span>
                             );
                           }

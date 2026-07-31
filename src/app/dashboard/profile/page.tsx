@@ -1,27 +1,15 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { GlassCard } from '@/components/ui/glass-card';
 import {
   Loader2,
   AlertCircle,
-  Inbox,
-  ChevronDown,
-  TrendingUp,
-  TrendingDown,
-  AlertTriangle,
-  CalendarOff,
-  Armchair,
-  Megaphone,
-  Bed,
-  Book,
-  CheckCircle,
-  Clock,
 } from 'lucide-react';
 
 
 export default function ProfilePage() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string | null>(null);
@@ -30,9 +18,12 @@ export default function ProfilePage() {
     const cached = localStorage.getItem('kl_student_profile');
     if (cached) {
       try {
-        setData(JSON.parse(cached));
-        setLoading(false);
-      } catch (e) {}
+        const parsed = JSON.parse(cached);
+        queueMicrotask(() => {
+          setData(parsed);
+          setLoading(false);
+        });
+      } catch {}
     }
 
     fetch(`/api/erp-proxy/profile?t=${Date.now()}`, { cache: 'no-store' })
@@ -102,43 +93,51 @@ export default function ProfilePage() {
       ) : data ? (
         <div className="card bg-zinc-900/40 backdrop-blur-xl border border-white/5 overflow-hidden">
           {/* Profile Header */}
-          <div className="bg-[var(--color-primary-variant)] p-4 sm:p-6 relative">
-            <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-end gap-4">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded bg-zinc-950/50 backdrop-blur-md border-2 border-[var(--color-primary)] shadow-md flex items-center justify-center text-zinc-100 text-3xl overflow-hidden relative">
-                {data.universityId ? (
-                  <img
-                    src={
-                      data.photoUrl
-                        ?.replace(/\\s/g, '')
-                        .startsWith('data:image')
-                        ? data.photoUrl
-                        : data.photoUrl
-                          ? `/api/fetch-photo?path=${encodeURIComponent(data.photoUrl)}`
-                          : `/api/fetch-photo?id=${data.universityId}`
-                    }
-                    alt="Profile"
-                    className="w-full h-full object-cover absolute inset-0 z-10"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                ) : null}
-                <span className="z-0 relative">
-                  {data.name ? data.name.charAt(0).toUpperCase() : 'U'}
-                </span>
-              </div>
-              <div className="text-center sm:text-left text-[var(--color-on-primary)] pb-1 z-20">
-                <h3 className="text-3xl font-bold tracking-tight">
-                  {data.name || 'Unknown Student'}
-                </h3>
-                <div className="inline-flex items-center gap-2 mt-3 px-3 py-1 bg-black/20 rounded">
-                  <span className="text-xs text-zinc-500 font-mono tracking-wider tracking-wider">
-                    ID: {data.universityId || 'N/A'}
-                  </span>
+          {(() => {
+            const uid = String(data.universityId || '');
+            const photo = String(data.photoUrl || '');
+            const nameStr = String(data.name || '');
+
+            return (
+              <div className="bg-[var(--color-primary-variant)] p-4 sm:p-6 relative">
+                <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-end gap-4">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded bg-zinc-950/50 backdrop-blur-md border-2 border-[var(--color-primary)] shadow-md flex items-center justify-center text-zinc-100 text-3xl overflow-hidden relative">
+                    {uid ? (
+                      <img
+                        src={
+                          photo
+                            .replace(/\s/g, '')
+                            .startsWith('data:image')
+                            ? photo
+                            : photo
+                              ? `/api/fetch-photo?path=${encodeURIComponent(photo)}`
+                              : `/api/fetch-photo?id=${uid}`
+                        }
+                        alt="Profile"
+                        className="w-full h-full object-cover absolute inset-0 z-10"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : null}
+                    <span className="z-0 relative">
+                      {nameStr ? nameStr.charAt(0).toUpperCase() : 'U'}
+                    </span>
+                  </div>
+                  <div className="text-center sm:text-left text-[var(--color-on-primary)] pb-1 z-20">
+                    <h3 className="text-3xl font-bold tracking-tight">
+                      {nameStr || 'Unknown Student'}
+                    </h3>
+                    <div className="inline-flex items-center gap-2 mt-3 px-3 py-1 bg-black/20 rounded">
+                      <span className="text-xs text-zinc-500 font-mono tracking-wider tracking-wider">
+                        ID: {uid || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
+            );
+          })()}
 
           {/* Profile Details Grid */}
           <div className="p-4 sm:p-6 bg-zinc-950/50 backdrop-blur-md">
@@ -148,12 +147,12 @@ export default function ProfilePage() {
 
             <div>
               {(() => {
-                let displayData: Record<string, any> = {};
+                let displayData: Record<string, unknown> = {};
 
                 if (data.extendedProfile) {
                   try {
-                    displayData = JSON.parse(data.extendedProfile);
-                  } catch (e) {}
+                    displayData = JSON.parse(data.extendedProfile as string);
+                  } catch {}
                 } else {
                   displayData = { ...data };
                 }
@@ -180,10 +179,10 @@ export default function ProfilePage() {
                     !String(v).startsWith('http') &&
                     !String(v).startsWith('data:image')
                 );
-                const arrayEntries = allEntries.filter(([k, v]) => {
+                const arrayEntries = allEntries.filter(([, v]) => {
                   if (!Array.isArray(v) || v.length === 0) return false;
                   if (v.length === 1) {
-                    const vals = Object.values(v[0]);
+                    const vals = Object.values(v[0] as Record<string, unknown>);
                     if (
                       vals.some(
                         (val) =>
@@ -247,8 +246,10 @@ export default function ProfilePage() {
                           ))}
                         </div>
 
-                        {arrayEntries.map(([k, v]: [string, any]) => {
+                        {arrayEntries.map(([k, v]: [string, unknown]) => {
                           if (k !== currentTab) return null;
+                          const rows = (Array.isArray(v) ? v : []) as Record<string, unknown>[];
+                          if (rows.length === 0) return null;
 
                           return (
                             <motion.div
@@ -260,7 +261,7 @@ export default function ProfilePage() {
                               <table className="w-full text-left border-collapse">
                                 <thead>
                                   <tr className="border-b border-white/10">
-                                    {Object.keys(v[0]).map((header) => (
+                                    {Object.keys(rows[0]).map((header) => (
                                       <th
                                         key={header}
                                         className="p-3 text-[10px] uppercase tracking-wider text-zinc-400 font-semibold bg-[#2c2c2c]/50"
@@ -271,27 +272,27 @@ export default function ProfilePage() {
                                   </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5 bg-black/20">
-                                  {(v as any[]).map((row, idx) => (
+                                  {rows.map((row, idx) => (
                                     <tr
                                       key={idx}
                                       className="hover:bg-white/[0.02] transition-colors"
                                     >
                                       {Object.values(row).map(
-                                        (val: any, cellIdx) => (
+                                        (val: unknown, cellIdx) => (
                                           <td
                                             key={cellIdx}
                                             className="p-3 text-xs text-zinc-300"
                                           >
                                             {typeof val === 'object' &&
                                             val !== null &&
-                                            val.type === 'link' ? (
+                                            (val as { type?: string }).type === 'link' ? (
                                               <a
-                                                href={val.url}
+                                                href={(val as { url?: string }).url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="text-[var(--color-primary)] hover:underline"
                                               >
-                                                {val.text}
+                                                {(val as { text?: string }).text}
                                               </a>
                                             ) : (
                                               String(val)

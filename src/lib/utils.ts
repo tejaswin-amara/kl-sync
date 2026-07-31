@@ -4,7 +4,7 @@ import { twMerge } from 'tailwind-merge';
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-export function exportTableToCSV(data: any[], filename: string) {
+export function exportTableToCSV(data: Record<string, unknown>[], filename: string) {
   if (!data || data.length === 0) return;
   const headers = Object.keys(data[0]);
   const csvRows = [headers.join(',')];

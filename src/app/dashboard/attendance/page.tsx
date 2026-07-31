@@ -1,28 +1,19 @@
 'use client';
+
 import { useEffect, useState, useCallback } from 'react';
 import { useAcademicSession } from '@/hooks/useAcademicSession';
 import { motion } from 'framer-motion';
-import { GlassCard } from '@/components/ui/glass-card';
 import {
-  Loader2,
   AlertCircle,
-  Inbox,
   ChevronDown,
   TrendingUp,
   TrendingDown,
   AlertTriangle,
   CalendarOff,
-  Armchair,
-  Megaphone,
-  Bed,
-  Book,
-  CheckCircle,
-  Clock,
 } from 'lucide-react';
-import Link from 'next/link';
 
 export default function AttendanceDashboard() {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,10 +24,7 @@ export default function AttendanceDashboard() {
     selectedSem,
     handleYearChange,
     handleSemChange,
-    sessionError,
   } = useAcademicSession();
-
-  const displayError = error || sessionError;
 
   const fetchData = useCallback(async () => {
     if (!selectedYear || !selectedSem) return;
@@ -60,15 +48,18 @@ export default function AttendanceDashboard() {
       if (!resData.success)
         throw new Error(resData.error || 'Failed to fetch data');
       setData(resData.attendanceData || []);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to fetch attendance data';
+      setError(msg);
     } finally {
       setLoading(false);
     }
   }, [selectedYear, selectedSem]);
 
   useEffect(() => {
-    fetchData();
+    queueMicrotask(() => {
+      fetchData();
+    });
   }, [fetchData]);
 
   return (
@@ -176,9 +167,8 @@ export default function AttendanceDashboard() {
                     key={idx}
                     className="group transition-all"
                   >
-                    {Object.values(row).map((val: any, j) => {
-                      const colName = Object.keys(row)[j].toLowerCase();
-                      let displayVal = val;
+                    {Object.values(row).map((val: unknown, j: number) => {
+                      let displayVal: React.ReactNode = String(val);
 
                       // Highlight percentage and project attendance
                       if (typeof val === 'string' && val.includes('%')) {
@@ -191,13 +181,13 @@ export default function AttendanceDashboard() {
                           for (const k in row) {
                             const kl = k.toLowerCase();
                             if (kl.includes('total') && !kl.includes('%'))
-                              total = parseInt(row[k]) || 0;
+                              total = parseInt(String(row[k])) || 0;
                             if (
                               kl.includes('attend') &&
                               !kl.includes('total') &&
                               !kl.includes('%')
                             )
-                              attended = parseInt(row[k]) || 0;
+                              attended = parseInt(String(row[k])) || 0;
                           }
 
                           if (total > 0) {

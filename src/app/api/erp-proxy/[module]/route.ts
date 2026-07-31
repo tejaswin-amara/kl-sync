@@ -29,7 +29,7 @@ async function handleProxy(
     let session: ScraperSession;
     try {
       session = decodeSession(sessionCookie.value);
-    } catch (e) {
+    } catch {
       return NextResponse.json(
         { success: false, error: 'Invalid session' },
         { status: 400 }
@@ -37,14 +37,14 @@ async function handleProxy(
     }
 
     const resolvedParams = await params;
-    const module = resolvedParams.module;
+    const moduleName = resolvedParams.module;
 
     // Extract parameter payload from POST body or query parameters
-    let body: any = {};
+    let body: Record<string, string> = {};
     if (request.method === 'POST') {
       try {
         body = await request.json();
-      } catch (e) {}
+      } catch {}
     }
 
     const searchParams = request.nextUrl.searchParams;
@@ -52,21 +52,24 @@ async function handleProxy(
       body.academicYear ||
       searchParams.get('academicYear') ||
       searchParams.get('academicyear') ||
-      searchParams.get('academic_year');
+      searchParams.get('academic_year') ||
+      undefined;
     const semesterId =
       body.semesterId ||
       searchParams.get('semesterId') ||
       searchParams.get('semester') ||
-      searchParams.get('semester_id');
+      searchParams.get('semester_id') ||
+      undefined;
     const csrfToken =
       body.csrfToken ||
       searchParams.get('csrfToken') ||
-      searchParams.get('_csrf');
+      searchParams.get('_csrf') ||
+      undefined;
     const resolvedCsrf = csrfToken || session.csrfToken;
 
     let result;
 
-    switch (module) {
+    switch (moduleName) {
       case 'attendance':
         if (!academicYear || !semesterId)
           return NextResponse.json(
@@ -135,11 +138,11 @@ async function handleProxy(
         break;
       default:
         // Handle generic GET requests using the ERP_ENDPOINTS map
-        if (ERP_ENDPOINTS[module]) {
-          result = await fetchGenericModuleData(session, ERP_ENDPOINTS[module]);
+        if (ERP_ENDPOINTS[moduleName]) {
+          result = await fetchGenericModuleData(session, ERP_ENDPOINTS[moduleName]);
         } else {
           return NextResponse.json(
-            { success: false, error: `Unknown module: ${module}` },
+            { success: false, error: `Unknown module: ${moduleName}` },
             { status: 404 }
           );
         }
@@ -147,16 +150,17 @@ async function handleProxy(
     }
 
     return NextResponse.json(result);
-  } catch (error: any) {
+  } catch (error: unknown) {
     let modName = 'unknown';
     try {
       const resolved = await params;
       modName = resolved?.module || 'unknown';
     } catch {}
     console.error(`[erp-proxy/${modName}] Error:`, error);
-    const status = error.message?.includes('Session expired') ? 401 : 500;
+    const errMessage = error instanceof Error ? error.message : '';
+    const status = errMessage.includes('Session expired') ? 401 : 500;
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to fetch data' },
+      { success: false, error: errMessage || 'Failed to fetch data' },
       { status }
     );
   }

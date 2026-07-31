@@ -19,9 +19,7 @@ import {
   ChevronDown,
   Download,
   MapPin,
-  User,
   RefreshCw,
-  BookOpen,
   Filter,
 } from 'lucide-react';
 
@@ -68,7 +66,7 @@ export default function TimetablePage() {
           setLoading(false);
         }
       }
-    } catch (e) {
+    } catch {
       // Ignore cache parse error
     }
 
@@ -94,7 +92,7 @@ export default function TimetablePage() {
         if (profRes.status === 'fulfilled') {
           const pData = await profRes.value.json();
           if (pData.success && Array.isArray(pData.data)) {
-            pData.data.forEach((row: any) => {
+            pData.data.forEach((row: Record<string, unknown>) => {
               const keys = Object.keys(row);
               const codeK = keys.find((k) => k.toLowerCase().includes('code')) || '';
               const descK =
@@ -123,7 +121,7 @@ export default function TimetablePage() {
         if (marksRes.status === 'fulfilled') {
           const mData = await marksRes.value.json();
           if (mData.success && Array.isArray(mData.data)) {
-            mData.data.forEach((row: any) => {
+            mData.data.forEach((row: Record<string, unknown>) => {
               const keys = Object.keys(row);
               const codeK = keys.find((k) => k.toLowerCase().includes('code')) || '';
               const nameK =
@@ -152,7 +150,7 @@ export default function TimetablePage() {
             });
           }
         }
-      } catch (e) {
+      } catch {
         // Non-fatal lookup failure
       }
 
@@ -192,9 +190,10 @@ export default function TimetablePage() {
       });
       setParsedTT(parsed);
       setError(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (!loadedFromCache) {
-        setError(err.message || 'Failed to sync timetable with ERP');
+        const msg = err instanceof Error ? err.message : 'Failed to sync timetable with ERP';
+        setError(msg);
       }
     } finally {
       setLoading(false);
@@ -203,13 +202,19 @@ export default function TimetablePage() {
 
   useEffect(() => {
     if (sessionError) {
-      setLoading(false);
+      queueMicrotask(() => {
+        setLoading(false);
+      });
       return;
     }
     if (selectedYear && selectedSem) {
-      fetchData();
+      queueMicrotask(() => {
+        fetchData();
+      });
     } else {
-      setLoading(false);
+      queueMicrotask(() => {
+        setLoading(false);
+      });
     }
   }, [fetchData, selectedYear, selectedSem, sessionError]);
 

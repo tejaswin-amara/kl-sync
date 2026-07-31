@@ -87,7 +87,7 @@ export function mapGradeToPoints(gradeStr: string): number | null {
 /**
  * Safely parses numbers from string representations (e.g. " 3.0 Cr ", "10.00 / 10").
  */
-export function parseNumericValue(val: any): number | null {
+export function parseNumericValue(val: unknown): number | null {
   if (val === null || val === undefined) return null;
   if (typeof val === 'number') return isNaN(val) || !isFinite(val) ? null : val;
   if (typeof val === 'boolean') return null;
@@ -102,7 +102,7 @@ export function parseNumericValue(val: any): number | null {
 /**
  * Helper to extract official summary values from a key-value object.
  */
-function extractOfficialSummary(dataObj: any): {
+function extractOfficialSummary(dataObj: Record<string, unknown> | null | undefined): {
   cgpa: number | null;
   sgpa: number | null;
   credits: number | null;
@@ -177,8 +177,8 @@ function extractOfficialSummary(dataObj: any): {
  * Phase 2: Dynamic fallback computes weighted GPA, supporting letter grades & preserving failed course credits.
  */
 export function processERPDataForCGPA(
-  rawRows: any[],
-  profileData?: any
+  rawRows: Record<string, unknown>[],
+  profileData?: Record<string, unknown>
 ): CGPAResult {
   const hasRows = Array.isArray(rawRows) && rawRows.length > 0;
 

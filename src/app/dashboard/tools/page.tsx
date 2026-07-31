@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
 import { Loader2, Wrench, AlertCircle, Percent, Target } from 'lucide-react';
 import { SimpleCalculator } from '@/components/attendance-calculator';
 import { GlassCard } from '@/components/ui/glass-card';
@@ -49,7 +48,7 @@ export default function ToolsPage() {
         if (attData.success && attData.attendanceData) {
           let totalConducted = 0;
           let totalAttended = 0;
-          attData.attendanceData.forEach((row: any) => {
+          attData.attendanceData.forEach((row: Record<string, unknown>) => {
             const condKey = Object.keys(row).find((k) =>
               k.toLowerCase().includes('conducted')
             );
@@ -57,8 +56,8 @@ export default function ToolsPage() {
               k.toLowerCase().includes('attended')
             );
             if (condKey && attKey) {
-              totalConducted += parseFloat(row[condKey]) || 0;
-              totalAttended += parseFloat(row[attKey]) || 0;
+              totalConducted += parseFloat(String(row[condKey])) || 0;
+              totalAttended += parseFloat(String(row[attKey])) || 0;
             }
           });
           setTotalClasses(totalConducted);
@@ -73,7 +72,9 @@ export default function ToolsPage() {
   }, []);
 
   useEffect(() => {
-    fetchData();
+    queueMicrotask(() => {
+      fetchData();
+    });
   }, [fetchData]);
 
   const calculateRequiredGpa = () => {

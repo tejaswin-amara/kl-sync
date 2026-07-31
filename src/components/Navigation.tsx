@@ -11,7 +11,6 @@ import {
   Star,
   Calendar,
   CreditCard,
-  Armchair,
   Megaphone,
   Building2,
   BookOpen,
@@ -50,7 +49,9 @@ export default function Navigation({
             .substring(0, 2)
             .toUpperCase()
         : 'ST';
-    setUser({ name, initials, id, photoUrl: cachedPhoto });
+    queueMicrotask(() => {
+      setUser({ name, initials, id, photoUrl: cachedPhoto });
+    });
 
     if (!cachedName) {
       fetch('/api/erp-proxy/profile')
@@ -125,6 +126,7 @@ export default function Navigation({
           <button
             className="p-2 -ml-2 rounded-lg hover:bg-white/10 transition-colors"
             onClick={() => setDrawerOpen(true)}
+            aria-label="Open navigation menu"
           >
             <Menu className="w-5 h-5 text-zinc-300" />
           </button>
@@ -137,6 +139,7 @@ export default function Navigation({
           <Link
             href="/dashboard/circulars"
             className="relative p-2 rounded-full hover:bg-white/10 transition-colors text-zinc-300"
+            aria-label="View circulars"
           >
             <Bell className="w-4 h-4" />
             <span className="absolute top-2 right-2.5 w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
@@ -198,6 +201,7 @@ export default function Navigation({
             <button
               className="lg:hidden p-2 -mr-2 rounded-lg hover:bg-white/10 text-zinc-400"
               onClick={() => setDrawerOpen(false)}
+              aria-label="Close navigation menu"
             >
               <X className="w-5 h-5" />
             </button>
@@ -280,6 +284,7 @@ export default function Navigation({
             <Link
               href="/dashboard/circulars"
               className="relative p-2 rounded-full hover:bg-white/10 transition-colors text-zinc-400 bg-white/5 border border-white/5"
+              aria-label="View circulars"
             >
               <Bell className="w-4 h-4" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>

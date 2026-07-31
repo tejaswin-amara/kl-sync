@@ -1,26 +1,14 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { GlassCard } from '@/components/ui/glass-card';
 import {
   Loader2,
   AlertCircle,
-  Inbox,
-  ChevronDown,
-  TrendingUp,
-  TrendingDown,
-  AlertTriangle,
-  CalendarOff,
-  Armchair,
-  Megaphone,
-  Bed,
   Book,
-  CheckCircle,
-  Clock,
 } from 'lucide-react';
 
 export default function LibraryPage() {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -109,12 +97,12 @@ export default function LibraryPage() {
                     key={idx}
                     className="group transition-all"
                   >
-                    {Object.values(row).map((val: any, j) => (
+                    {Object.values(row).map((val: unknown, j) => (
                       <td
                         key={j}
                         className="px-4 py-4 text-sm text-zinc-100 bg-white/[0.02] group-hover:bg-white/[0.05] transition-colors first:rounded-l last:rounded-r border-y border-transparent"
                       >
-                        {val}
+                        {String(val)}
                       </td>
                     ))}
                   </motion.tr>

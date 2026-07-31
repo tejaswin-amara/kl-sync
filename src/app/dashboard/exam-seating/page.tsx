@@ -1,26 +1,14 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { GlassCard } from '@/components/ui/glass-card';
 import {
   Loader2,
   AlertCircle,
-  Inbox,
-  ChevronDown,
-  TrendingUp,
-  TrendingDown,
-  AlertTriangle,
-  CalendarOff,
   Armchair,
-  Megaphone,
-  Bed,
-  Book,
-  CheckCircle,
-  Clock,
 } from 'lucide-react';
 
 export default function ExamSeatingPage() {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -109,15 +97,15 @@ export default function ExamSeatingPage() {
                     key={idx}
                     className="group transition-all"
                   >
-                    {Object.values(row).map((val: any, j) => {
+                    {Object.values(row).map((val: unknown, j) => {
                       const colName = Object.keys(row)[j].toLowerCase();
-                      let displayVal = val;
+                      let displayVal: React.ReactNode = String(val);
 
                       if (colName.includes('seat')) {
                         displayVal = (
                           <span className="inline-flex items-center gap-1 bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded text-sm font-bold uppercase tracking-wider border border-indigo-500/20">
                             <Armchair className="w-4 h-4" />
-                            {val}
+                            {String(val)}
                           </span>
                         );
                       }

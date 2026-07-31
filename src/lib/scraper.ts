@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio';
+import type { Element, AnyNode } from 'domhandler';
 
 const ERP_URL = 'https://newerp.kluniversity.in';
 const LOGIN_URL = `${ERP_URL}/index.php?r=site%2Flogin`;
@@ -31,7 +32,7 @@ export interface ScraperSession {
 type CookieJar = Record<string, string>;
 
 function getSetCookies(res: Response): string[] {
-  const anyHeaders = res.headers as any;
+  const anyHeaders = res.headers as Headers & { getSetCookie?: () => string[] };
   if (typeof anyHeaders.getSetCookie === 'function') {
     return anyHeaders.getSetCookie();
   }
@@ -385,7 +386,7 @@ export interface ParseTableOptions {
 export function parseGenericTable(
   html: string | null | undefined,
   options?: ParseTableOptions
-): Record<string, any>[] {
+): Record<string, unknown>[] {
   if (!html || typeof html !== 'string' || html.trim() === '') {
     return [];
   }
@@ -411,13 +412,13 @@ export function parseGenericTable(
         for (const key of ['data', 'rows', 'result', 'items']) {
           if (
             Array.isArray(parsedJson[key]) &&
-            parsedJson[key].every((item: any) => typeof item === 'object' && item !== null)
+            parsedJson[key].every((item: unknown) => typeof item === 'object' && item !== null)
           ) {
-            return parsedJson[key];
+            return parsedJson[key] as Record<string, unknown>[];
           }
         }
       }
-    } catch (e) {
+    } catch {
       // Not JSON, continue with HTML table parsing
     }
   }
@@ -440,14 +441,14 @@ export function parseGenericTable(
     return [];
   }
 
-  function getDirectRows($table: any): any[] {
-    const rows: any[] = [];
-    $table.children().each((_i: number, child: any) => {
+  function getDirectRows($table: cheerio.Cheerio<Element>): Element[] {
+    const rows: Element[] = [];
+    $table.children().each((_i: number, child: Element) => {
       const tag = child.tagName?.toLowerCase();
       if (tag === 'tr') {
         rows.push(child);
       } else if (tag === 'tbody' || tag === 'thead' || tag === 'tfoot') {
-        $(child).children().each((_j: number, subChild: any) => {
+        $(child).children().each((_j: number, subChild: Element) => {
           if (subChild.tagName?.toLowerCase() === 'tr') {
             rows.push(subChild);
           }
@@ -457,9 +458,9 @@ export function parseGenericTable(
     return rows;
   }
 
-  function getDirectCells(rowEl: any): any[] {
-    const cells: any[] = [];
-    $(rowEl).children().each((_i: number, child: any) => {
+  function getDirectCells(rowEl: Element): Element[] {
+    const cells: Element[] = [];
+    $(rowEl).children().each((_i: number, child: Element) => {
       const tag = child.tagName?.toLowerCase();
       if (tag === 'th' || tag === 'td') {
         cells.push(child);
@@ -468,7 +469,7 @@ export function parseGenericTable(
     return cells;
   }
 
-  function getNodeText($cell: any): string {
+  function getNodeText($cell: cheerio.Cheerio<Element>): string {
     const $clone = $cell.clone();
     $clone.find('script, style, noscript, template, input[type="hidden"]').remove();
     $clone
@@ -480,7 +481,7 @@ export function parseGenericTable(
     return text.replace(/\s+/g, ' ').trim();
   }
 
-  function getNodeHref($cell: any): string | null {
+  function getNodeHref($cell: cheerio.Cheerio<Element>): string | null {
     const aTag = $cell.find('a[href]').first();
     if (aTag.length > 0) {
       const href = aTag.attr('href')?.trim();
@@ -491,9 +492,9 @@ export function parseGenericTable(
     return null;
   }
 
-  let bestTableEl: any = null;
+  let bestTableEl: Element | null = null;
   let maxScore = -Infinity;
-  let bestDirectRows: any[] = [];
+  let bestDirectRows: Element[] = [];
 
   tables.each((_idx, tableEl) => {
     const $t = $(tableEl);
@@ -701,7 +702,7 @@ export function parseGenericTable(
     }
   }
 
-  const resultData: Record<string, any>[] = [];
+  const resultData: Record<string, unknown>[] = [];
 
   for (let rIdx = startDataRowIdx; rIdx < grid.length; rIdx++) {
     const rowGrid = grid[rIdx] || [];
@@ -738,7 +739,7 @@ export function parseGenericTable(
       continue;
     }
 
-    const rowObj: Record<string, any> = {};
+    const rowObj: Record<string, unknown> = {};
     let hasData = false;
 
     for (let c = 0; c < totalCols; c++) {
@@ -765,7 +766,7 @@ export function parseGenericTable(
   return resultData;
 }
 
-export function isLikelyTimetableData(data: any[]): boolean {
+export function isLikelyTimetableData(data: Record<string, unknown>[]): boolean {
   if (!Array.isArray(data) || data.length === 0) return false;
 
   // Strong structural signal: day names in values + period-like column headers
@@ -941,8 +942,8 @@ export async function fetchTimetableData(
     `${ERP_URL}/index.php?r=studentattendance%2Fstudentdailyattendance%2Ftimetable`,
   ];
 
-  let data: any[] = [];
-  let fallbackData: any[] = [];
+  let data: Record<string, unknown>[] = [];
+  let fallbackData: Record<string, unknown>[] = [];
   let detectedSessionExpired = false;
 
   function isSessionExpiredHtml(htmlText: string): boolean {
@@ -987,8 +988,8 @@ export async function fetchTimetableData(
           }
         }
       }
-    } catch (err: any) {
-      if (err.message?.includes('Session expired')) {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message?.includes('Session expired')) {
         throw err;
       }
       console.error(`POST strategy failed for timetable ${url}:`, err);
@@ -1023,8 +1024,8 @@ export async function fetchTimetableData(
           }
         }
       }
-    } catch (err: any) {
-      if (err.message?.includes('Session expired')) {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message?.includes('Session expired')) {
         throw err;
       }
       console.error(`GET params strategy failed for timetable ${url}:`, err);
@@ -1058,8 +1059,8 @@ export async function fetchTimetableData(
           }
         }
       }
-    } catch (err: any) {
-      if (err.message?.includes('Session expired')) {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message?.includes('Session expired')) {
         throw err;
       }
       console.error(`Plain GET strategy failed for timetable ${url}:`, err);
@@ -1109,7 +1110,7 @@ export async function fetchCGPAData(
         }
       }
     }
-  } catch (err) {}
+  } catch {}
 
   // Strategy 2: GET
   const getRes = await fetchWithJar(ERP_ENDPOINTS['cgpa'], jar, {
@@ -1226,7 +1227,7 @@ export async function fetchProfileData(session: ScraperSession) {
   const $ = cheerio.load(html);
 
   // 1. Extract from <a> tags inside nav/tabs
-  $('a').each((_i: any, a: any) => {
+  $('a').each((_i: number, a: Element) => {
     const href = $(a).attr('href');
     const text = $(a).text().trim();
     if (
@@ -1266,7 +1267,7 @@ export async function fetchProfileData(session: ScraperSession) {
   }
 
   // Fetch tab URLs in small chunks to avoid overwhelming the ERP
-  const tabHtmls = [];
+  const tabHtmls: { name: string; html: string }[] = [];
   const entries = Array.from(tabUrls.entries());
   for (let i = 0; i < entries.length; i += 2) {
     const chunk = entries.slice(i, i + 2);
@@ -1286,7 +1287,7 @@ export async function fetchProfileData(session: ScraperSession) {
             }
           );
           return { name, html: await tabRes.text() };
-        } catch (e) {
+        } catch {
           return { name, html: '' };
         }
       })
@@ -1300,25 +1301,30 @@ export async function fetchProfileData(session: ScraperSession) {
 }
 
 function parseProfileData(pages: { name: string; html: string }[]) {
-
+  // --- HTML Extraction Logic ---
   const mainHtml = pages[0].html;
   const $main = cheerio.load(mainHtml);
-  const data: Record<string, any> = {};
+  const text = $main.text();
 
-  const text = $main('body').text() || mainHtml;
+  const data: Record<string, unknown> = {
+    name: '',
+    universityId: '',
+    photoUrl: '',
+    success: true,
+  };
 
-  // 1. Name parsing
+  // 1. Name extraction
   const profileBg = $main('.profile_bg');
   const nameEl = profileBg
     .find('h4')
     .filter(
-      (_i: any, el: any) => !$main(el).text().includes('Student Profile')
+      (_i: number, el: Element) => !$main(el).text().includes('Student Profile')
     );
   let name =
     nameEl.text().trim() ||
     profileBg
       .contents()
-      .filter((_i: any, el: any) => el.type === 'text')
+      .filter((_i: number, el: AnyNode) => (el as unknown as { type?: string }).type === 'text')
       .text()
       .trim();
 
@@ -1335,7 +1341,7 @@ function parseProfileData(pages: { name: string; html: string }[]) {
   if (uidMatch) data.universityId = uidMatch[1];
 
   // 2. Photo extraction
-  $main('img').each((_i: any, img: any) => {
+  $main('img').each((_i: number, img: Element) => {
     const src = $main(img).attr('src');
     if (src) {
       const lowerSrc = src.toLowerCase();
@@ -1346,7 +1352,7 @@ function parseProfileData(pages: { name: string; html: string }[]) {
       )
         return;
 
-      const uid = data.universityId || '';
+      const uid = (data.universityId as string) || '';
       if (
         lowerSrc.includes('studentphotos') ||
         lowerSrc.includes('profile') ||
@@ -1370,12 +1376,12 @@ function parseProfileData(pages: { name: string; html: string }[]) {
   }
 
   // 3. Extract ALL dynamic profile fields across ALL fetched HTMLs
-  const extendedDetails: any = {};
+  const extendedDetails: Record<string, unknown> = {};
 
   pages.forEach((page, pageIdx) => {
     const $ = cheerio.load(page.html);
 
-    $('table').each((_i: any, table: any) => {
+    $('table').each((_i: number, table: Element) => {
       const $table = $(table);
       const rows = $table.find('tr');
       if (rows.length < 2) return;
@@ -1385,13 +1391,13 @@ function parseProfileData(pages: { name: string; html: string }[]) {
       let headerRowIdx = 0;
       let potentialHeaders: string[] = [];
 
-      rows.slice(0, 3).each((idx: number, row: any) => {
+      rows.slice(0, 3).each((idx: number, row: Element) => {
         const cells = $(row).find('th, td');
         if (cells.length > maxCells) {
           maxCells = cells.length;
           headerRowIdx = idx;
           potentialHeaders = cells
-            .map((_: any, el: any) =>
+            .map((_: number, el: Element) =>
               $(el)
                 .text()
                 .trim()
@@ -1461,11 +1467,11 @@ function parseProfileData(pages: { name: string; html: string }[]) {
       if (!hasColons) {
         const headers = potentialHeaders;
         if (headers.filter((h: string) => h).length > 0) {
-          const tableData: any[] = [];
-          rows.slice(headerRowIdx + 1).each((_k: any, row: any) => {
+          const tableData: unknown[] = [];
+          rows.slice(headerRowIdx + 1).each((_k: number, row: Element) => {
             const cells = $(row)
               .find('td')
-              .map((_l: any, el: any) => {
+              .map((_l: number, el: Element) => {
                 const $el = $(el);
                 const link = $el.find('a').first();
                 if (link.length > 0 && link.attr('href')) {
@@ -1482,11 +1488,11 @@ function parseProfileData(pages: { name: string; html: string }[]) {
               })
               .get();
             if (cells.length > 0) {
-              const rowObj: any = {};
+              const rowObj: Record<string, unknown> = {};
               headers.forEach((h: string, idx: number) => {
                 if (h) rowObj[h] = cells[idx] || '';
               });
-              if (Object.values(rowObj).some((v: any) => v !== '')) {
+              if (Object.values(rowObj).some((v: unknown) => v !== '')) {
                 tableData.push(rowObj);
               }
             }

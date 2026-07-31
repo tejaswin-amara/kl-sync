@@ -12,7 +12,6 @@ import {
   Activity,
   Award,
   ChevronRight,
-  Clock,
   MapPin,
   User,
   RefreshCw,
@@ -34,19 +33,21 @@ export default function DashboardOverview() {
   const [activeSemId, setActiveSemId] = useState<string>('');
 
   useEffect(() => {
-    const name = localStorage.getItem('kl_student_name');
-    if (name) setStudentName(name);
+    queueMicrotask(() => {
+      const name = localStorage.getItem('kl_student_name');
+      if (name) setStudentName(name);
 
-    // Instant load from cache
-    const cachedCgpa = localStorage.getItem('kl_dashboard_cgpa');
-    const cachedCredits = localStorage.getItem('kl_dashboard_credits');
-    const cachedAttendance = localStorage.getItem('kl_dashboard_attendance');
-    const cachedFee = localStorage.getItem('kl_dashboard_fee');
+      // Instant load from cache
+      const cachedCgpa = localStorage.getItem('kl_dashboard_cgpa');
+      const cachedCredits = localStorage.getItem('kl_dashboard_credits');
+      const cachedAttendance = localStorage.getItem('kl_dashboard_attendance');
+      const cachedFee = localStorage.getItem('kl_dashboard_fee');
 
-    if (cachedCgpa) setCgpa(Number(cachedCgpa));
-    if (cachedCredits) setCompletedCredits(Number(cachedCredits));
-    if (cachedAttendance) setAttendance(Number(cachedAttendance));
-    if (cachedFee) setPendingFee(Number(cachedFee));
+      if (cachedCgpa) setCgpa(Number(cachedCgpa));
+      if (cachedCredits) setCompletedCredits(Number(cachedCredits));
+      if (cachedAttendance) setAttendance(Number(cachedAttendance));
+      if (cachedFee) setPendingFee(Number(cachedFee));
+    });
 
     // Fetch CGPA & Credits in background
     fetch('/api/erp-proxy/cgpa')
@@ -75,18 +76,20 @@ export default function DashboardOverview() {
       try {
         const years = JSON.parse(yStr);
         if (years.length > 0) yearId = years[0].value;
-      } catch (e) {}
+      } catch {}
     }
     if (!semId && sStr) {
       try {
         const semesters = JSON.parse(sStr);
         if (semesters.length > 0) semId = semesters[0].value;
-      } catch (e) {}
+      } catch {}
     }
 
     if (yearId && semId) {
-      setActiveYearId(yearId);
-      setActiveSemId(semId);
+      queueMicrotask(() => {
+        setActiveYearId(yearId);
+        setActiveSemId(semId);
+      });
 
       const csrf = sessionStorage.getItem('kl_erp_csrf_token');
       fetch('/api/erp-proxy/attendance', {
@@ -109,7 +112,7 @@ export default function DashboardOverview() {
             let totalConducted = 0;
             let filteredAttendance = resData.attendanceData;
             if (yearId && semId) {
-              const strictMatches = resData.attendanceData.filter((row: any) => {
+              const strictMatches = resData.attendanceData.filter((row: Record<string, unknown>) => {
                 const yrKey = Object.keys(row).find((k) =>
                   k.toLowerCase().includes('year')
                 );
@@ -140,7 +143,7 @@ export default function DashboardOverview() {
               }
             }
 
-            filteredAttendance.forEach((row: any) => {
+            filteredAttendance.forEach((row: Record<string, unknown>) => {
               const condKey = Object.keys(row).find((k) => {
                 const kl = k.toLowerCase();
                 return (
@@ -157,8 +160,8 @@ export default function DashboardOverview() {
                 );
               });
               if (condKey && attKey) {
-                totalConducted += parseFloat(row[condKey]) || 0;
-                totalAttended += parseFloat(row[attKey]) || 0;
+                totalConducted += parseFloat(String(row[condKey])) || 0;
+                totalAttended += parseFloat(String(row[attKey])) || 0;
               }
             });
             if (totalConducted > 0) {
@@ -179,7 +182,7 @@ export default function DashboardOverview() {
               );
               if (pctKey) {
                 const sum = filteredAttendance.reduce(
-                  (s: number, r: any) => s + (parseFloat(r[pctKey]) || 0),
+                  (s: number, r: Record<string, unknown>) => s + (parseFloat(String(r[pctKey])) || 0),
                   0
                 );
                 const calculatedAttendance = Math.round(
@@ -370,7 +373,7 @@ function TodayScheduleWidget({
         const profData = await profRes.json();
         const courses = profData.data?.courses || [];
         if (Array.isArray(courses)) {
-          courses.forEach((c: any) => {
+          courses.forEach((c: Record<string, unknown>) => {
             const rawCode = String(c.Coursecode || c.courseCode || c.code || '').toUpperCase().trim();
             const desc = String(c.Coursedesc || c.courseDesc || c.title || c.name || '').trim();
             const fac = String(c.FacultyName || c.facultyName || c.faculty || '').trim();
@@ -383,7 +386,7 @@ function TodayScheduleWidget({
           });
         }
       }
-    } catch (e) {
+    } catch {
       // ignore non-fatal lookup error
     }
 
@@ -417,7 +420,7 @@ function TodayScheduleWidget({
           setLoading(false);
         }
       }
-    } catch (e) {
+    } catch {
       // cache parse error ignored
     }
 
@@ -446,9 +449,10 @@ function TodayScheduleWidget({
           setError(resData.error || 'Failed to sync timetable with ERP');
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (!loadedFromCache) {
-        setError(err.message || 'Error connecting to timetable service');
+        const msg = err instanceof Error ? err.message : 'Error connecting to timetable service';
+        setError(msg);
       }
     } finally {
       setLoading(false);
@@ -456,7 +460,9 @@ function TodayScheduleWidget({
   }, [activeYearId, activeSemId]);
 
   useEffect(() => {
-    loadSchedule();
+    queueMicrotask(() => {
+      loadSchedule();
+    });
   }, [loadSchedule]);
 
   const activeDaySessions = allSessions.filter((s) => isSameDay(s.day, selectedDay));
@@ -549,7 +555,7 @@ function TodayScheduleWidget({
                 onClick={() => setSelectedDay('Monday')}
                 className="text-xs text-indigo-400 hover:underline font-medium"
               >
-                View Monday's Schedule →
+                View Monday&apos;s Schedule →
               </button>
             )}
           </div>
@@ -629,12 +635,14 @@ function CurrentCoursesWidget({
   activeYearId: string;
   activeSemId: string;
 }) {
-  const [courses, setCourses] = useState<any[]>([]);
+  const [courses, setCourses] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!activeYearId || !activeSemId) return;
-    setLoading(true);
+    queueMicrotask(() => {
+      setLoading(true);
+    });
     let mounted = true;
 
     async function loadCourses() {
@@ -647,7 +655,7 @@ function CurrentCoursesWidget({
           const profData = await profRes.json();
           const profCourses = profData.data?.courses;
           if (Array.isArray(profCourses) && profCourses.length > 0) {
-            const mapped = profCourses.slice(0, 6).map((c: any) => ({
+            const mapped = profCourses.slice(0, 6).map((c: Record<string, unknown>) => ({
               'Course Code': String(c.Coursecode || c.courseCode || c.code || 'N/A').toUpperCase().trim(),
               'Course Name': String(c.Coursedesc || c.courseDesc || c.title || c.name || 'Course').trim(),
               'Evaluation Components': String(c.FacultyName || c.facultyName || c.faculty || 'Active Course').trim(),
@@ -746,14 +754,14 @@ function CurrentCoursesWidget({
                   </div>
                   <div className="flex flex-col min-w-0 flex-1">
                     <p className="text-sm font-medium text-zinc-100 truncate">
-                      {name}
+                      {String(name)}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-[10px] font-mono bg-white/10 text-zinc-300 px-1.5 py-0.5 rounded">
-                        {code}
+                        {String(code)}
                       </span>
                       <span className="text-[11px] text-zinc-500 truncate">
-                        {components}
+                        {String(components)}
                       </span>
                     </div>
                   </div>

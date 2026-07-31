@@ -7,7 +7,7 @@
  * Handles ₹, $, €, £, ¥, commas, spaces, currency text ('INR', 'Rs', 'USD', etc.),
  * and accounting parens: (1,500.00) -> -1500.
  */
-export function parseCurrency(val: any): number {
+export function parseCurrency(val: unknown): number {
   if (val === null || val === undefined || typeof val === 'boolean') {
     return 0;
   }
@@ -76,7 +76,7 @@ function normalizeKey(key: string): string {
  * Dynamically finds the status column key using priority fuzzy matching
  * while excluding payment date/method/mode/ref/receipt/txn columns.
  */
-export function findStatusKey(row: Record<string, any>): string | undefined {
+export function findStatusKey(row: Record<string, unknown>): string | undefined {
   if (!row || typeof row !== 'object') return undefined;
 
   const keys = Object.keys(row);
@@ -155,7 +155,7 @@ export function findStatusKey(row: Record<string, any>): string | undefined {
 /**
  * Finds explicit due / balance column key (Tier 1).
  */
-export function findExplicitDueKey(row: Record<string, any>): string | undefined {
+export function findExplicitDueKey(row: Record<string, unknown>): string | undefined {
   if (!row || typeof row !== 'object') return undefined;
 
   const keys = Object.keys(row);
@@ -223,7 +223,7 @@ export function findExplicitDueKey(row: Record<string, any>): string | undefined
  * while excluding paid/concession/scholarship/date/id columns.
  * Prioritizes explicit due/balance columns (Tier 1) over gross fee/total columns (Tier 2).
  */
-export function findDueAmountKey(row: Record<string, any>): string | undefined {
+export function findDueAmountKey(row: Record<string, unknown>): string | undefined {
   if (!row || typeof row !== 'object') return undefined;
 
   const explicit = findExplicitDueKey(row);
@@ -290,7 +290,7 @@ export function findDueAmountKey(row: Record<string, any>): string | undefined {
 /**
  * Detects summary or total rows (e.g. "Total", "Grand Total", "Subtotal").
  */
-export function isSummaryRow(row: Record<string, any>): boolean {
+export function isSummaryRow(row: Record<string, unknown>): boolean {
   if (!row || typeof row !== 'object') return false;
 
   const summaryKeywords = [
@@ -319,7 +319,7 @@ export function isSummaryRow(row: Record<string, any>): boolean {
 /**
  * Determines whether a row represents an unpaid or pending fee item.
  */
-export function isRowUnpaid(row: Record<string, any>): boolean {
+export function isRowUnpaid(row: Record<string, unknown>): boolean {
   if (!row || typeof row !== 'object') return false;
   if (isSummaryRow(row)) return false;
 
@@ -407,7 +407,7 @@ export function isRowUnpaid(row: Record<string, any>): boolean {
 /**
  * Calculates pending fee amount for a single row.
  */
-export function getPendingAmountForRow(row: Record<string, any>): number {
+export function getPendingAmountForRow(row: Record<string, unknown>): number {
   const explicitDueKey = findExplicitDueKey(row);
   if (explicitDueKey) {
     const amt = parseCurrency(row[explicitDueKey]);
@@ -437,7 +437,7 @@ export function getPendingAmountForRow(row: Record<string, any>): number {
 /**
  * Calculates total pending fee due from array of ERP fee rows.
  */
-export function calculatePendingFee(data: Record<string, any>[]): number {
+export function calculatePendingFee(data: Record<string, unknown>[]): number {
   if (!Array.isArray(data) || data.length === 0) {
     return 0;
   }

@@ -27,12 +27,11 @@ export function useAcademicSession() {
 
       let parsedYears: SemesterOption[] = [];
       let parsedSems: SemesterOption[] = [];
+      let initialError: string | null = null;
 
       if (yStr) {
         try {
           parsedYears = JSON.parse(yStr);
-           
-          setYears(parsedYears);
         } catch (e) {
           console.error('Failed to parse academic years', e);
         }
@@ -41,8 +40,6 @@ export function useAcademicSession() {
       if (sStr) {
         try {
           parsedSems = JSON.parse(sStr);
-           
-          setSemesters(parsedSems);
         } catch (e) {
           console.error('Failed to parse semesters', e);
         }
@@ -50,18 +47,10 @@ export function useAcademicSession() {
 
       // Restore from localStorage or pick the first available option
       const savedYear = localStorage.getItem(LS_ERP_YEAR);
-      if (savedYear) {
-        setSelectedYear(savedYear);
-      } else if (parsedYears.length > 0) {
-        setSelectedYear(parsedYears[0].value);
-      }
+      const targetYear = savedYear || (parsedYears.length > 0 ? parsedYears[0].value : '');
 
       const savedSem = localStorage.getItem(LS_ERP_SEM);
-      if (savedSem) {
-        setSelectedSem(savedSem);
-      } else if (parsedSems.length > 0) {
-        setSelectedSem(parsedSems[0].value);
-      }
+      const targetSem = savedSem || (parsedSems.length > 0 ? parsedSems[0].value : '');
 
       // Check if we completely lack session choices
       if (
@@ -70,11 +59,21 @@ export function useAcademicSession() {
         !sStr ||
         parsedSems.length === 0
       ) {
-        setSessionError('Academic sessions not found. Please login again.');
+        initialError = 'Academic sessions not found. Please login again.';
       }
+
+      queueMicrotask(() => {
+        setYears(parsedYears);
+        setSemesters(parsedSems);
+        if (targetYear) setSelectedYear(targetYear);
+        if (targetSem) setSelectedSem(targetSem);
+        if (initialError) setSessionError(initialError);
+      });
     } catch (e) {
       console.error('Session init error:', e);
-      setSessionError('Failed to initialize session data.');
+      queueMicrotask(() => {
+        setSessionError('Failed to initialize session data.');
+      });
     }
   }, []);
 

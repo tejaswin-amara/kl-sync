@@ -100,12 +100,13 @@ export async function POST(request: NextRequest) {
         studentName: 'Student', // Placeholder, could be scraped
       })
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Login error:', error);
+    const message = error instanceof Error ? error.message : 'Login failed';
     return NextResponse.json(
       {
         success: false,
-        message: error.message || 'Login failed',
+        message,
       },
       { status: 401 }
     );

@@ -1,9 +1,9 @@
-import { NextResponse, NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getCaptcha } from '@/lib/scraper';
 import { encodeSession } from '@/lib/session';
 
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const { captchaImage, session } = await getCaptcha();
 

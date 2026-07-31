@@ -37,7 +37,7 @@ export async function GET(request: Request) {
     }
 
     const headers = {
-      Cookie: session.cookies.map((c: any) => `${c.name}=${c.value}`).join('; '),
+      Cookie: session.cookies.map((c: { name: string; value: string }) => `${c.name}=${c.value}`).join('; '),
       Referer: `${base}/`,
       'User-Agent': 'Mozilla/5.0',
     };
@@ -61,7 +61,7 @@ export async function GET(request: Request) {
         'Cache-Control': 'public, max-age=86400',
       },
     });
-  } catch (error) {
+  } catch {
     return new NextResponse('Error fetching photo', { status: 500 });
   }
 }

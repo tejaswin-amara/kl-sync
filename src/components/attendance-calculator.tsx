@@ -1,6 +1,15 @@
 'use client';
 
-function Card({ className, children }: any) {
+interface ComponentProps {
+  className?: string;
+  children?: React.ReactNode;
+}
+
+interface AlertProps extends ComponentProps {
+  variant?: 'default' | 'destructive';
+}
+
+export function Card({ className, children }: ComponentProps) {
   return (
     <div
       className={`rounded-xl border border-white/10 bg-zinc-950/50 text-zinc-100 shadow-sm ${className}`}
@@ -9,28 +18,28 @@ function Card({ className, children }: any) {
     </div>
   );
 }
-function CardHeader({ className, children }: any) {
+export function CardHeader({ className, children }: ComponentProps) {
   return (
     <div className={`flex flex-col space-y-1.5 p-6 ${className}`}>
       {children}
     </div>
   );
 }
-function CardTitle({ className, children }: any) {
+export function CardTitle({ className, children }: ComponentProps) {
   return (
     <h3 className={`font-semibold leading-none tracking-tight ${className}`}>
       {children}
     </h3>
   );
 }
-function CardDescription({ className, children }: any) {
+export function CardDescription({ className, children }: ComponentProps) {
   return <p className={`text-sm text-zinc-400 ${className}`}>{children}</p>;
 }
-function CardContent({ className, children }: any) {
+export function CardContent({ className, children }: ComponentProps) {
   return <div className={`p-6 pt-0 ${className}`}>{children}</div>;
 }
 
-function Alert({ variant = 'default', className, children }: any) {
+export function Alert({ variant = 'default', className, children }: AlertProps) {
   const vClass =
     variant === 'destructive'
       ? 'border-red-500/50 text-red-500 [&>svg]:text-red-500'
@@ -44,14 +53,14 @@ function Alert({ variant = 'default', className, children }: any) {
     </div>
   );
 }
-function AlertTitle({ className, children }: any) {
+export function AlertTitle({ className, children }: ComponentProps) {
   return (
     <h5 className={`mb-1 font-medium leading-none tracking-tight ${className}`}>
       {children}
     </h5>
   );
 }
-function AlertDescription({ className, children }: any) {
+export function AlertDescription({ className, children }: ComponentProps) {
   return (
     <div className={`text-sm [&_p]:leading-relaxed ${className}`}>
       {children}
@@ -91,9 +100,6 @@ export function SimpleCalculator({
 
   const percentage = calculatePercentage();
 
-  // Calculate how many classes are needed to maintain 75% attendance (for bunking)
-  const minRequiredFor75 = Math.ceil(totalClasses * 0.75);
-
   // Calculate how many classes can be missed while still maintaining 75%
   // Using the correct formula: (100 * present - percentage * total) / percentage
   const calculateClassesCanMiss = (targetPercentage: number) => {
@@ -126,13 +132,6 @@ export function SimpleCalculator({
 
   const classesToAttend75 = calculateClassesNeeded(75);
   const classesToAttend85 = calculateClassesNeeded(85);
-
-  // Calculate percentage if maximum classes are missed
-  const percentageIfMaxMissed =
-    ((presents - classesCanMiss) / totalClasses) * 100;
-
-  // Check if attendance is at least 75%
-  const hasMinimumAttendance = percentage >= 75;
 
   // Determine the color based on attendance policy
   const getAttendanceColor = () => {
