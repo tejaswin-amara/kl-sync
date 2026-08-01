@@ -269,7 +269,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="mb-10">
+          <div className="mb-12">
             <h2 className="text-3xl font-semibold tracking-tight text-white mb-2">
               Sign in
             </h2>
@@ -296,7 +296,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-5" aria-label="Student ERP Authentication Form">
+          <form onSubmit={handleLogin} className="space-y-6" aria-label="Student ERP Authentication Form">
             {/* Student ID input with WCAG 2.2 AAA Contrast & Accessibility */}
             <div className="space-y-1.5">
               <label htmlFor="student-id-field" className="text-xs font-semibold tracking-wide uppercase text-zinc-300">
@@ -347,7 +347,7 @@ export default function LoginPage() {
             </div>
 
             {/* Captcha Block with WCAG 3.3.9 Accessible Authentication & Copy-Paste Support */}
-            <div className="space-y-1.5 pt-2">
+            <div className="space-y-2 pt-2">
               <label htmlFor="captcha-field" className="text-xs font-semibold tracking-wide uppercase text-zinc-300">
                 Visual Security Code
               </label>
@@ -393,7 +393,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full min-h-[52px] py-4 mt-6 rounded-xl font-semibold text-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-indigo-600 text-white hover:bg-indigo-500 focus:ring-4 focus:ring-indigo-400 focus:outline-none shadow-lg"
+              className="w-full min-h-[52px] py-4 mt-8 rounded-xl font-semibold text-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-indigo-600 text-white hover:bg-indigo-500 focus:ring-4 focus:ring-indigo-400 focus:outline-none shadow-lg"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" aria-label="Authenticating..." />
