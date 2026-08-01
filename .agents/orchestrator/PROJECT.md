@@ -14,9 +14,11 @@ Primary components:
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
 | 1 | M1: Codebase Audit & Gap Analysis | Verify current implementation status against R1-R3 and all acceptance criteria | none | DONE |
-| 2 | M2: Refinement, Accessibility & Lint Remediation | Add `aria-label` to icon buttons in Navigation.tsx; resolve ESLint errors in `useAcademicSession.ts`, `scraper.ts`, `cgpa.ts`, `fee-utils.ts` | M1 | DONE |
-| 3 | M3: Code Review & Build Verification | Independent review of code quality, WCAG AA compliance, zero TS/ESLint errors, and production build | M2 | IN_PROGRESS |
-| 4 | M4: Forensic Integrity Audit | Independent integrity verification pass (no cheating, dummy implementations, or fake outputs) | M3 | PLANNED |
+| 2 | M2: Refinement, Accessibility & Lint Remediation | Add `aria-label` to icon buttons in Navigation.tsx; resolve ESLint errors | M1 | DONE |
+| 3 | M3: Code Review & Build Verification | Independent review of code quality, WCAG AA compliance, zero TS/ESLint errors, and production build | M2 | DONE |
+| 4 | M4: Forensic Integrity Audit | Independent integrity verification pass | M3 | DONE |
+| 5 | M5: Vercel Secret Configuration & Deployment | Configure `SESSION_SECRET` in Vercel production and re-deploy (`vercel --prod`) | M4 | DONE |
+| 6 | M6: Production Endpoint & Integrity Verification | Verify `vercel env ls production` and live `https://klhb.vercel.app/api/captcha` HTTP 200 response | M5 | DONE |
 
 ## Code Layout
 - Next.js App Router: `src/app/`

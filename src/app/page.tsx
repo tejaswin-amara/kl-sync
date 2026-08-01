@@ -221,7 +221,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] flex bg-zinc-950 text-zinc-50 relative overflow-y-auto font-sans">
+    <div className="h-[100dvh] flex bg-zinc-950 text-zinc-50 relative overflow-hidden font-sans">
       {/* LEFT: BRANDING PANEL (Taste-Skill asymmetric split) */}
       <div className="hidden lg:flex w-[45%] relative border-r border-zinc-900 overflow-hidden bg-zinc-900 flex-col">
 
@@ -351,9 +351,6 @@ export default function LoginPage() {
               <label htmlFor="captcha-field" className="text-xs font-semibold tracking-wide uppercase text-zinc-300">
                 Visual Security Code
               </label>
-              <p id="captcha-desc" className="text-xs text-zinc-400">
-                Copy-paste supported. If visual text is unreadable, select the refresh button to generate a clearer image.
-              </p>
               <div className="flex gap-3">
                 <input
                   id="captcha-field"

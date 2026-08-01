@@ -84,4 +84,28 @@ The codebase must avoid unnecessary third-party dependencies, leveraging native 
 - [x] High-level system architecture documented in ARCHITECTURE.md.
 - [x] WCAG AA design system and tokens documented in DESIGN.md.
 
+## Follow-up — 2026-08-01T06:10:00Z
+
+The production deployment of KL Sync is failing to load the CAPTCHA because it is throwing a 500 Internal Error. This is caused by the security hardening in `src/lib/session.ts` which throws an error if `SESSION_SECRET` is not set in the production environment. We need to securely resolve this issue by generating and configuring a `SESSION_SECRET` in Vercel, and verify that the CAPTCHA loads properly on the live site.
+
+Working directory: C:/Users/speed/Documents/antigravity/optimistic-pascal
+Integrity mode: demo
+
+## Requirements
+
+### R1. Configure Vercel Environment
+Generate a secure, random 32-byte (or longer) secret and inject it into the Vercel production environment as `SESSION_SECRET` using the Vercel CLI. Do not hardcode the secret into the codebase.
+
+### R2. Re-deploy the Application
+Trigger a new Vercel production build and deployment (`vercel --prod`) so that the newly added environment variable is picked up by the Edge network.
+
+## Acceptance Criteria
+
+### Configuration Verification
+- [ ] Running `vercel env ls production` shows `SESSION_SECRET` as a configured environment variable.
+
+### Production Endpoint Verification
+- [ ] The live Vercel endpoint (e.g. `https://klhb.vercel.app/api/captcha`) returns a 200 HTTP status code and successfully provides the base64-encoded `captchaImage` in the JSON response, confirming that the 500 Internal Error is resolved.
+
+
 
