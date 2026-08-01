@@ -1,22 +1,22 @@
-# BRIEFING — 2026-08-01T00:49:15Z
+# BRIEFING — 2026-08-01T01:05:24Z
 
 ## Mission
-Configure Vercel SESSION_SECRET environment variable, re-deploy KL Sync to production, and verify CAPTCHA loading.
+Diagnose and fix timetable parsing and UI rendering on `/dashboard/timetable`, add unit test `src/lib/scraper.test.ts` for parsing logic with mock HTML payload, and ensure tests and production build pass clean.
 
 ## 🔒 My Identity
 - Archetype: sentinel
 - Working directory: C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\sentinel
-- Orchestrator: e5ab54a7-e4cb-436a-a575-48c8327147d2
-- Victory Auditor: 1886bfe6-a800-4ca5-8e52-00a89afb53fb
+- Orchestrator: 6d797094-73f8-4319-9cd3-ac1816606f5e
+- Victory Auditor: c4aae3e0-bc2e-48e0-82ce-58cd0a24592a
 
 ## 🔒 Key Constraints
 - No technical decisions — relay only
 - Victory Audit is MANDATORY before reporting completion
 
 ## User Context
-- **Last user request**: Configure SESSION_SECRET in Vercel production environment, trigger vercel --prod redeploy, and verify https://klhb.vercel.app/api/captcha returns 200 OK with captchaImage.
+- **Last user request**: Diagnose and fix timetable parsing & UI rendering, add unit test `src/lib/scraper.test.ts` with mock HTML payload, verify test suite and production build pass.
 - **Pending clarifications**: none
-- **Delivered results**: SESSION_SECRET configured in Vercel production, app re-deployed via vercel --prod, live endpoint https://klhb.vercel.app/api/captcha verified HTTP 200 OK with captchaImage base64 data.
+- **Delivered results**: none for current request
 
 ## Project Status
 - **Phase**: complete
@@ -28,5 +28,4 @@ Configure Vercel SESSION_SECRET environment variable, re-deploy KL Sync to produ
 
 ## Artifact Index
 - C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\ORIGINAL_REQUEST.md — Original User Request
-- C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\orchestrator\handoff.md — Orchestrator Handoff
-- C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\victory_auditor_4\handoff.md — Victory Audit Report
+

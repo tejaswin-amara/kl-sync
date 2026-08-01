@@ -9,7 +9,7 @@ const COURSE_LIST_URL = `${ERP_URL}/index.php?r=studentattendance%2Fstudentdaily
 // --- Real ERP endpoints ---
 export const ERP_ENDPOINTS: Record<string, string> = {
   marks: `${ERP_URL}/index.php?r=studentinfo%2Fstudentendexamresult%2Fgetstudentinternalmarks`,
-  timetable: `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Findividualstudenttimetableget`,
+  timetable: `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Findexstudentindisearch`,
   fee: `${ERP_URL}/index.php?r=feepayments%2Fstudentfeeorderdetailsinfo%2Fmy_fee_orders`,
   profile: `${ERP_URL}/index.php?r=studentinfo%2Fstudentprofileinfo%2Fviewprofileindi`,
   cgpa: `${ERP_URL}/index.php?r=studentinfo%2Fstudentendexamresult%2Fsearchgetmycgpa`,
@@ -769,24 +769,59 @@ export function parseGenericTable(
 export function isLikelyTimetableData(data: Record<string, unknown>[]): boolean {
   if (!Array.isArray(data) || data.length === 0) return false;
 
-  // Strong structural signal: day names in values + period-like column headers
-  const dayPattern = /^\s*(mon|tue|wed|thu|fri|sat|sun)/i;
+  // Strong structural signal: day names / day orders in values + period-like column headers
+  const dayPattern = /^\s*(mon|tue|wed|thu|fri|sat|sun|day\s*order|day\s*\d|do\s*\d|d\d)/i;
   const keys = Object.keys(data[0] || {});
-  const hasPeriodHeaders = keys.filter(k => /^\d{1,2}$/.test(k.trim())).length >= 5;
-  const hasDayValues = data.some(row =>
-    Object.values(row).some(v => dayPattern.test(String(v || '').trim()))
+  const hasPeriodHeaders =
+    keys.filter((k) => /^\d{1,2}$/.test(k.trim()) || /^period\s*\d{1,2}$/i.test(k.trim())).length >=
+    3;
+  const hasDayValues = data.some((row) =>
+    Object.values(row).some((v) => dayPattern.test(String(v || '').trim()))
   );
-  if (hasDayValues && hasPeriodHeaders) return true;
+  if (hasDayValues && (hasPeriodHeaders || keys.length >= 4)) return true;
 
   // Day names in column headers (days-as-columns layout)
-  const dayHeaders = keys.filter(k => dayPattern.test(k.trim())).length;
+  const dayHeaders = keys.filter((k) => dayPattern.test(k.trim())).length;
   if (dayHeaders >= 3) return true;
 
   const timetableKeywords = [
-    'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
-    'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun',
-    'time', 'slot', 'period', 'course', 'subject', 'room', 'faculty', 'building',
-    'ltp', 'component', 'section', 'code', 'hour', 'timetable'
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+    'sunday',
+    'mon',
+    'tue',
+    'wed',
+    'thu',
+    'fri',
+    'sat',
+    'sun',
+    'day order',
+    'dayorder',
+    'do 1',
+    'do 2',
+    'do 3',
+    'do 4',
+    'do 5',
+    'do 6',
+    'do 7',
+    'time',
+    'slot',
+    'period',
+    'course',
+    'subject',
+    'room',
+    'faculty',
+    'building',
+    'ltp',
+    'component',
+    'section',
+    'code',
+    'hour',
+    'timetable',
   ];
 
   const timeRegex = /\b(\d{1,2}:\d{2}|am|pm)\b/i;
@@ -930,9 +965,8 @@ export async function fetchTimetableData(
   params.append('DynamicModel[semester]', semesterId);
 
   const candidateUrls = [
-    `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Findividualstudenttimetableget`,
-    `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Findexstudentindisearch`,
     ERP_ENDPOINTS['timetable'],
+    `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Findividualstudenttimetableget`,
     `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Fstudenttimetable`,
     `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Findex`,
     `${ERP_URL}/index.php?r=studentattendance%2Fstudentdailyattendance%2Fstudenttimetable`,

@@ -160,11 +160,11 @@ export default function LoginPage() {
         document.cookie = `kl_erp_session=${data.sessionId || ''}; max-age=86400; path=/;`;
         sessionStorage.setItem('kl_erp_session_id', data.sessionId || '');
         sessionStorage.setItem('kl_erp_csrf_token', data.csrfToken || '');
-        sessionStorage.setItem(
+        localStorage.setItem(
           'kl_erp_academic_years',
           JSON.stringify(data.academicYears || [])
         );
-        sessionStorage.setItem(
+        localStorage.setItem(
           'kl_erp_semesters',
           JSON.stringify(data.semesters || [])
         );

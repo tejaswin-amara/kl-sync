@@ -22,8 +22,8 @@ export function useAcademicSession() {
     try {
       // H6: Note that although the values are initially seeded into sessionStorage by the login process,
       // we gracefully handle missing/corrupt data (H8).
-      const yStr = sessionStorage.getItem(SS_ACADEMIC_YEARS);
-      const sStr = sessionStorage.getItem(SS_SEMESTERS);
+      const yStr = localStorage.getItem(SS_ACADEMIC_YEARS) || sessionStorage.getItem(SS_ACADEMIC_YEARS);
+      const sStr = localStorage.getItem(SS_SEMESTERS) || sessionStorage.getItem(SS_SEMESTERS);
 
       let parsedYears: SemesterOption[] = [];
       let parsedSems: SemesterOption[] = [];

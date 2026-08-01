@@ -26,8 +26,8 @@ export default function ToolsPage() {
         setCgpa(result.cgpa);
       }
 
-      const yearStr = sessionStorage.getItem('kl_erp_academic_years');
-      const semStr = sessionStorage.getItem('kl_erp_semesters');
+      const yearStr = localStorage.getItem('kl_erp_academic_years') || sessionStorage.getItem('kl_erp_academic_years');
+      const semStr = localStorage.getItem('kl_erp_semesters') || sessionStorage.getItem('kl_erp_semesters');
       let yearId = localStorage.getItem('kl_erp_year') || '';
       let semId = localStorage.getItem('kl_erp_sem') || '';
       if (!yearId && yearStr) yearId = JSON.parse(yearStr)[0]?.value;

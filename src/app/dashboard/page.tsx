@@ -70,8 +70,8 @@ export default function DashboardOverview() {
     // Fetch Academic Session & Attendance independently
     let yearId = localStorage.getItem('kl_erp_year') || '';
     let semId = localStorage.getItem('kl_erp_sem') || '';
-    const yStr = sessionStorage.getItem('kl_erp_academic_years');
-    const sStr = sessionStorage.getItem('kl_erp_semesters');
+    const yStr = localStorage.getItem('kl_erp_academic_years') || sessionStorage.getItem('kl_erp_academic_years');
+    const sStr = localStorage.getItem('kl_erp_semesters') || sessionStorage.getItem('kl_erp_semesters');
     if (!yearId && yStr) {
       try {
         const years = JSON.parse(yStr);

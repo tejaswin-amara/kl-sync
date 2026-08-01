@@ -95,6 +95,8 @@ export default function Navigation({
     localStorage.removeItem('kl_student_name');
     localStorage.removeItem('kl_student_photo');
     localStorage.removeItem('kl_student_profile');
+    localStorage.removeItem('kl_erp_academic_years');
+    localStorage.removeItem('kl_erp_semesters');
     document.cookie = 'kl_erp_session=; Max-Age=-99999999; path=/;';
     window.location.href = '/';
   };
@@ -150,7 +152,9 @@ export default function Navigation({
               <img
                 src={
                   user.photoUrl
-                    ? `/api/fetch-photo?path=${encodeURIComponent(user.photoUrl)}`
+                    ? user.photoUrl.startsWith('data:image/')
+                      ? user.photoUrl
+                      : `/api/fetch-photo?path=${encodeURIComponent(user.photoUrl)}`
                     : `/api/fetch-photo?id=${user.id}`
                 }
                 alt="Profile"
@@ -297,7 +301,9 @@ export default function Navigation({
                   <img
                     src={
                       user.photoUrl
-                        ? `/api/fetch-photo?path=${encodeURIComponent(user.photoUrl)}`
+                        ? user.photoUrl.startsWith('data:image/')
+                          ? user.photoUrl
+                          : `/api/fetch-photo?path=${encodeURIComponent(user.photoUrl)}`
                         : `/api/fetch-photo?id=${user.id}`
                     }
                     alt="Profile"

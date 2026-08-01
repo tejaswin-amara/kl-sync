@@ -107,5 +107,24 @@ Trigger a new Vercel production build and deployment (`vercel --prod`) so that t
 ### Production Endpoint Verification
 - [ ] The live Vercel endpoint (e.g. `https://klhb.vercel.app/api/captcha`) returns a 200 HTTP status code and successfully provides the base64-encoded `captchaImage` in the JSON response, confirming that the 500 Internal Error is resolved.
 
+## Follow-up — 2026-08-01T01:05:24Z
 
+The timetable page on the student dashboard (`/dashboard/timetable`) is currently broken and failing to display properly. The goal is to investigate the data fetching, parsing logic (`scraper.ts`), and UI rendering, identify the root cause, and implement a robust fix.
 
+Working directory: C:/Users/speed/Documents/antigravity/optimistic-pascal
+Integrity mode: development
+
+## Requirements
+
+### R1. Diagnose and Fix Timetable Parsing & Rendering
+Investigate why the timetable is completely broken. Fix any issues in the data parser (likely `src/lib/scraper.ts`) or the frontend rendering component so the timetable correctly parses and displays the schedule data. Ensure you maintain the existing dark cyber minimalist styling.
+
+### R2. Programmatic Verification
+Create a unit test for the timetable parsing logic. The test must mock an ERP timetable HTML payload and programmatically verify that the data is extracted accurately without crashing.
+
+## Acceptance Criteria
+
+### Verification
+- [ ] A new test file (e.g. `src/lib/scraper.test.ts`) is present, executing the parsing logic against a mock HTML payload.
+- [ ] Running the test suite passes successfully.
+- [ ] Running a full Next.js production build (`npm run build`) completes with zero TypeScript or lint errors.

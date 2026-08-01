@@ -23,6 +23,31 @@ import {
   Filter,
 } from 'lucide-react';
 
+function parseTimeSlotToMinutes(slot: string): number {
+  if (!slot) return 9999;
+  const key = normalizeSlotKey(slot);
+  const num = Number(key);
+  if (!isNaN(num)) {
+    return num * 60;
+  }
+
+  const match = slot.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+  if (match) {
+    let hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    const ampm = match[3]?.toUpperCase();
+
+    if (ampm === 'PM' && hours < 12) {
+      hours += 12;
+    } else if (ampm === 'AM' && hours === 12) {
+      hours = 0;
+    }
+    return hours * 60 + minutes;
+  }
+
+  return 9999;
+}
+
 export default function TimetablePage() {
   const [parsedTT, setParsedTT] = useState<ParsedTimetable | null>(null);
   const [loading, setLoading] = useState(true);
@@ -112,7 +137,10 @@ export default function TimetablePage() {
               const desc = descK ? String(row[descK]).trim() : '';
               const fac = facK ? String(row[facK]).trim() : '';
               if (code && desc) {
-                courseLookup[code] = { title: desc, faculty: fac };
+                const stripped = code.replace(/[-_][LTPSS]$/i, '').trim();
+                const item = { title: desc, faculty: fac };
+                courseLookup[code] = item;
+                if (stripped) courseLookup[stripped] = item;
               }
             });
           }
@@ -141,10 +169,19 @@ export default function TimetablePage() {
               const name = nameK ? String(row[nameK]).trim() : '';
               const fac = facK ? String(row[facK]).trim() : '';
               if (code && name) {
+                const stripped = code.replace(/[-_][LTPSS]$/i, '').trim();
+                const item = { title: name, faculty: fac };
                 if (!courseLookup[code]) {
-                  courseLookup[code] = { title: name, faculty: fac };
+                  courseLookup[code] = item;
                 } else if (fac && !courseLookup[code].faculty) {
                   courseLookup[code].faculty = fac;
+                }
+                if (stripped) {
+                  if (!courseLookup[stripped]) {
+                    courseLookup[stripped] = item;
+                  } else if (fac && !courseLookup[stripped].faculty) {
+                    courseLookup[stripped].faculty = fac;
+                  }
                 }
               }
             });
@@ -178,9 +215,15 @@ export default function TimetablePage() {
       sessionStorage.setItem(cacheKey, JSON.stringify(rawRows));
       const parsed = parseTimetable(rawRows);
       parsed.sessions.forEach((s) => {
-        const info = courseLookup[s.courseCode.toUpperCase()];
+        const rawCode = (s.courseCode || '').trim();
+        const strippedCode = rawCode.replace(/[-_][LTPSS]$/i, '').trim();
+        const info =
+          courseLookup[rawCode] ||
+          courseLookup[strippedCode] ||
+          courseLookup[rawCode.toUpperCase()] ||
+          courseLookup[strippedCode.toUpperCase()];
         if (info) {
-          if (info.title && (s.courseTitle === s.courseCode || !s.courseTitle)) {
+          if (info.title && (s.courseTitle === s.courseCode || !s.courseTitle || s.courseTitle === rawCode)) {
             s.courseTitle = info.title;
           }
           if (info.faculty && !s.faculty) {
@@ -461,7 +504,7 @@ export default function TimetablePage() {
                           return true;
                         });
 
-                        // Sort time slots logically (numeric period first, then clock times/alphabetic)
+                        // Sort time slots logically (numeric period first, then 12-hour clock times / minutes-from-midnight)
                         const sortedTimeSlots = [...parsedTT.timeSlotsPresent].sort((a, b) => {
                           const keyA = normalizeSlotKey(a);
                           const keyB = normalizeSlotKey(b);
@@ -470,23 +513,35 @@ export default function TimetablePage() {
                           if (!isNaN(numA) && !isNaN(numB) && numA !== numB) {
                             return numA - numB;
                           }
+                          const minA = parseTimeSlotToMinutes(a);
+                          const minB = parseTimeSlotToMinutes(b);
+                          if (minA !== minB) {
+                            return minA - minB;
+                          }
                           return a.localeCompare(b);
                         });
-                        
-                        // If no time slots found, fallback to 1-10
-                        const slotsToRender = sortedTimeSlots.length > 0 ? sortedTimeSlots : Array.from({ length: 10 }, (_, i) => String(i + 1));
+
+                        const numericSlots = sortedTimeSlots
+                          .map((s) => Number(normalizeSlotKey(s)))
+                          .filter((n) => !isNaN(n) && n > 0);
+
+                        let slotsToRender: string[];
+                        if (numericSlots.length > 0) {
+                          const maxNum = Math.max(...numericSlots, 6);
+                          const minNum = Math.min(...numericSlots, 1);
+                          const fullRange: string[] = [];
+                          for (let i = minNum; i <= maxNum; i++) {
+                            fullRange.push(String(i));
+                          }
+                          const nonNumeric = sortedTimeSlots.filter((s) => isNaN(Number(normalizeSlotKey(s))));
+                          slotsToRender = [...fullRange, ...nonNumeric];
+                        } else if (sortedTimeSlots.length > 0) {
+                          slotsToRender = sortedTimeSlots;
+                        } else {
+                          slotsToRender = Array.from({ length: 10 }, (_, i) => String(i + 1));
+                        }
 
                         return slotsToRender.map((periodNum) => {
-                          // Check if this period has ANY classes across active days to hide empty rows
-                          const hasAnyClass = daysToRender.some(day => {
-                            const daySessions = parsedTT.sessions.filter(s => isSameDay(s.day, day));
-                            return daySessions.some(s => {
-                              const rawSlot = String(s.timeSlot || '').trim();
-                              return rawSlot === periodNum || normalizeSlotKey(rawSlot) === normalizeSlotKey(periodNum);
-                            });
-                          });
-                          
-                          if (!hasAnyClass && sortedTimeSlots.length > 0) return null;
 
                           return (
                             <tr key={periodNum} className="hover:bg-white/[0.02] transition-colors">
