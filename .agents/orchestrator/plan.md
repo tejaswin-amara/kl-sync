@@ -1,26 +1,24 @@
-# Plan: Timetable Parsing & UI Rendering Repair
+# Plan: Timetable Grid Re-orientation & Data Parsing Fix
 
 ## Objective
-Investigate and resolve timetable parsing and UI rendering failures in KL Sync dashboard (`/dashboard/timetable`). Fix HTML parsing logic in `src/lib/scraper.ts` & `src/lib/timetable-parser.ts`, fix UI rendering in `src/app/dashboard/timetable/page.tsx`, create unit test `src/lib/scraper.test.ts` mocking an ERP timetable HTML payload, run tests (`npm test`), and verify clean Next.js production build (`npm run build`).
+Re-structure the timetable grid UI in `src/app/dashboard/timetable/page.tsx` so that Days/Day Orders are listed vertically on the Y-axis as row headers and Periods are listed horizontally across the X-axis as column headers. Update `src/lib/timetable-parser.ts` and `src/lib/scraper.ts` to preserve all class sessions per day without overwriting, vertically stacking multiple sessions per day/period slot, and support matrix format normalization (`matrix_days_rows` and `matrix_days_columns`). Update `src/lib/scraper.test.ts` unit tests and verify clean production build (`npm run build`).
 
 ## Milestones & Work Items
-1. **M7: Timetable Data Parsing & UI Investigation** (STATUS: DONE)
-   - Explored `src/lib/scraper.ts`, `src/lib/timetable-parser.ts`, `src/app/dashboard/timetable/page.tsx`, `src/app/api/timetable/route.ts`, and related types/data fetching.
-   - Identified 5 distinct root causes for timetable parsing failures, missing day order mappings, suffix resolution failures, cell parsing regex bugs, 12-hour time slot sorting bugs, and period display gaps.
+1. **M11: Timetable Grid & Parsing Investigation** (STATUS: IN_PROGRESS)
+   - Investigate `src/app/dashboard/timetable/page.tsx`, `src/lib/timetable-parser.ts`, `src/lib/scraper.ts`, and `src/lib/scraper.test.ts`.
+   - Analyze requirements for Y-axis Days / X-axis Periods orientation, multi-session stacking, sticky left headers, and matrix format support (`matrix_days_rows`, `matrix_days_columns`).
 
-2. **M8: Timetable Fix & Unit Test Implementation** (STATUS: DONE)
-   - Fixed course title lookup in `timetable/page.tsx` by stripping component suffixes (`[-_][LTPSS]$`).
-   - Fixed `normalizeDay` and expanded `DAY_MAP` coverage in `timetable-parser.ts` for all Day Order variations (`DAY ORDER 1-7`, `DO 1-7`, `D1-7`, `day1-7`, `Mon-Sun`).
-   - Refactored `parseCellContent` in `timetable-parser.ts` to make room optional and explicitly exclude section strings (`S-10`) from room candidates.
-   - Added `parseTimeSlotToMinutes` in `timetable/page.tsx` for chronological 12-hour time slot sorting.
-   - Created `src/lib/scraper.test.ts` with 12 unit tests using `node:test` and configured `"test": "npx tsx --test src/lib/scraper.test.ts"` in `package.json`.
-   - Verified `npm test` (12/12 passing) and `npm run build` (0 errors).
+2. **M12: Grid Re-orientation, Multi-Session Parsing & Test Suite Implementation** (STATUS: PLANNED)
+   - Re-structure UI layout in `src/app/dashboard/timetable/page.tsx` (Days as `<th>` inside `<tbody>` rows, Periods as `<th>` inside `<thead>`).
+   - Fix `src/lib/timetable-parser.ts` and `src/lib/scraper.ts` to store array of sessions per day/period slot instead of overwriting, and transpose `matrix_days_columns` to unified matrix model if needed.
+   - Update `src/lib/scraper.test.ts` unit tests to test both `matrix_days_rows` and `matrix_days_columns` HTML parsing.
+   - Verify `npm test` and `npm run build` pass cleanly.
 
-3. **M9: Independent Review & Verification** (STATUS: DONE)
-   - Conducted independent review of code changes, styling consistency, test coverage, and build outcomes. Verdict: APPROVE.
+3. **M13: Independent Code Quality & UI Review** (STATUS: PLANNED)
+   - Conduct independent review of UI grid structure, sticky scrolling, empty cell rendering, multi-session stacking, test coverage, and build results.
 
-4. **M10: Forensic Integrity Audit** (STATUS: DONE)
-   - Independent verification pass ensuring no test result hardcoding, fake mocks, or integrity violations. Verdict: CLEAN.
+4. **M14: Forensic Integrity Audit** (STATUS: PLANNED)
+   - Independent verification pass ensuring no test result hardcoding, fake mocks, or integrity violations.
 
 ## Execution Summary
-- All milestones M7 through M10 are complete and verified.
+- M11 started. Explorer dispatched to investigate codebase.

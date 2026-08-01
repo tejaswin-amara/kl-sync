@@ -467,25 +467,49 @@ export default function TimetablePage() {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-zinc-900/80 border-b border-white/10 text-[11px] font-bold uppercase tracking-wider text-zinc-300">
-                        <th className="p-4 sticky left-0 z-20 bg-zinc-900/95 backdrop-blur-md min-w-[80px] border-r border-white/10 text-indigo-400 text-center">
-                          Period
+                        <th className="p-4 sticky left-0 z-20 bg-zinc-900/95 backdrop-blur-md min-w-[120px] border-r border-white/10 text-indigo-400 text-center">
+                          Day / Period
                         </th>
                         {(() => {
-                          const allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-                          const daysToRender = allDays.filter((day) => {
-                            if (selectedDayFilter !== 'All') {
-                              return day === selectedDayFilter;
+                          const sortedTimeSlots = [...parsedTT.timeSlotsPresent].sort((a, b) => {
+                            const keyA = normalizeSlotKey(a);
+                            const keyB = normalizeSlotKey(b);
+                            const numA = Number(keyA);
+                            const numB = Number(keyB);
+                            if (!isNaN(numA) && !isNaN(numB) && numA !== numB) {
+                              return numA - numB;
                             }
-                            // In 'All' view, show Mon-Sat plus Sunday if Sunday sessions exist
-                            if (day === 'Sunday') {
-                              return parsedTT.daysPresent.some((d) => isSameDay(d, 'Sunday'));
+                            const minA = parseTimeSlotToMinutes(a);
+                            const minB = parseTimeSlotToMinutes(b);
+                            if (minA !== minB) {
+                              return minA - minB;
                             }
-                            return true;
+                            return a.localeCompare(b);
                           });
 
-                          return daysToRender.map((day) => (
-                            <th key={day} className="p-4 text-center min-w-[180px] border-r border-white/5 last:border-r-0 text-zinc-200">
-                              {day}
+                          const numericSlots = sortedTimeSlots
+                            .map((s) => Number(normalizeSlotKey(s)))
+                            .filter((n) => !isNaN(n) && n > 0);
+
+                          let slotsToRender: string[];
+                          if (numericSlots.length > 0) {
+                            const maxNum = Math.max(...numericSlots, 6);
+                            const minNum = Math.min(...numericSlots, 1);
+                            const fullRange: string[] = [];
+                            for (let i = minNum; i <= maxNum; i++) {
+                              fullRange.push(String(i));
+                            }
+                            const nonNumeric = sortedTimeSlots.filter((s) => isNaN(Number(normalizeSlotKey(s))));
+                            slotsToRender = [...fullRange, ...nonNumeric];
+                          } else if (sortedTimeSlots.length > 0) {
+                            slotsToRender = sortedTimeSlots;
+                          } else {
+                            slotsToRender = Array.from({ length: 8 }, (_, i) => String(i + 1));
+                          }
+
+                          return slotsToRender.map((periodNum) => (
+                            <th key={periodNum} className="p-4 text-center min-w-[200px] border-r border-white/5 last:border-r-0 text-zinc-200">
+                              {periodNum.length < 3 && !periodNum.toLowerCase().includes('p') ? `Period ${periodNum}` : periodNum}
                             </th>
                           ));
                         })()}
@@ -504,7 +528,6 @@ export default function TimetablePage() {
                           return true;
                         });
 
-                        // Sort time slots logically (numeric period first, then 12-hour clock times / minutes-from-midnight)
                         const sortedTimeSlots = [...parsedTT.timeSlotsPresent].sort((a, b) => {
                           const keyA = normalizeSlotKey(a);
                           const keyB = normalizeSlotKey(b);
@@ -538,21 +561,21 @@ export default function TimetablePage() {
                         } else if (sortedTimeSlots.length > 0) {
                           slotsToRender = sortedTimeSlots;
                         } else {
-                          slotsToRender = Array.from({ length: 10 }, (_, i) => String(i + 1));
+                          slotsToRender = Array.from({ length: 8 }, (_, i) => String(i + 1));
                         }
 
-                        return slotsToRender.map((periodNum) => {
+                        return daysToRender.map((day) => {
+                          const daySessions = parsedTT.sessions.filter((s) => isSameDay(s.day, day));
 
                           return (
-                            <tr key={periodNum} className="hover:bg-white/[0.02] transition-colors">
-                              {/* Sticky Period Column */}
-                              <td className="p-4 sticky left-0 z-10 bg-zinc-950/90 backdrop-blur-md font-bold text-xs text-zinc-400 border-r border-white/10 text-center whitespace-nowrap">
-                                {periodNum.length < 3 && !periodNum.toLowerCase().includes('p') ? `P${periodNum}` : periodNum}
+                            <tr key={day} className="hover:bg-white/[0.02] transition-colors">
+                              {/* Sticky Day Column */}
+                              <td className="p-4 sticky left-0 z-10 bg-zinc-950/90 backdrop-blur-md font-bold text-xs text-zinc-200 border-r border-white/10 text-center whitespace-nowrap">
+                                {day}
                               </td>
 
-                              {/* Day Columns for this Period */}
-                              {daysToRender.map((day) => {
-                                const daySessions = parsedTT.sessions.filter((s) => isSameDay(s.day, day));
+                              {/* Period Columns for this Day */}
+                              {slotsToRender.map((periodNum) => {
                                 const matchingSessions = daySessions.filter((s) => {
                                   const rawSlot = String(s.timeSlot || '').trim();
                                   return rawSlot === periodNum || normalizeSlotKey(rawSlot) === normalizeSlotKey(periodNum);
@@ -560,7 +583,7 @@ export default function TimetablePage() {
 
                                 return (
                                   <td
-                                    key={day}
+                                    key={periodNum}
                                     className="p-2.5 vertical-top border-r border-white/5 last:border-r-0 h-32 align-top"
                                   >
                                     {matchingSessions.length > 0 ? (

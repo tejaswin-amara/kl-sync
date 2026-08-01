@@ -128,3 +128,36 @@ Create a unit test for the timetable parsing logic. The test must mock an ERP ti
 - [ ] A new test file (e.g. `src/lib/scraper.test.ts`) is present, executing the parsing logic against a mock HTML payload.
 - [ ] Running the test suite passes successfully.
 - [ ] Running a full Next.js production build (`npm run build`) completes with zero TypeScript or lint errors.
+
+## Follow-up — 2026-08-01T08:11:12Z
+
+# Teamwork Project Prompt — Timetable Grid & Data Parsing Fix
+
+Fix the student timetable page by reorienting the grid layout (Days on the left vertical Y-axis header, Periods across the top horizontal X-axis header) and ensuring all classes per day are completely extracted, parsed, and rendered without missing or dropped slots.
+
+Working directory: C:/Users/speed/Documents/antigravity/optimistic-pascal
+Integrity mode: development
+
+## Requirements
+
+### R1. Grid Layout Reorientation
+Re-structure the timetable grid UI in `src/app/dashboard/timetable/page.tsx` so that Days/Day Orders (Monday–Sunday / Day Order 1–7) are listed vertically down the left column (Y-axis) as row headers, and Periods (Period 1, Period 2, ..., Period N) are listed horizontally across the top row (X-axis) as column headers.
+
+### R2. Complete Timetable Data Extraction & Multi-Class Parsing
+Fix `src/lib/timetable-parser.ts` and `src/lib/scraper.ts` to ensure that all class sessions per day are preserved without overwriting or dropping slots. Support parsing and vertically stacking multiple class/lab/skill sessions occurring within the same day/period slot.
+
+### R3. Responsive & Accessible Grid UX
+Ensure the horizontal scrolling container for period columns is smooth, sticky left day headers stay aligned during scroll, and empty period slots render cleanly without breaking grid alignment.
+
+## Acceptance Criteria
+
+### UI Orientation & Layout
+- [ ] Days (Monday–Sunday / Day Orders) are rendered as sticky left vertical table headers (`<th>` inside `<tbody>` rows).
+- [ ] Periods (Period 1 to Period N) are rendered as top horizontal table headers (`<th>` inside `<thead>`).
+- [ ] Every class scheduled for a given day appears in its corresponding period column along that day's row.
+- [ ] Days with multiple sessions in a single period display all sessions cleanly stacked inside the period cell.
+
+### Build & Verification Quality
+- [ ] Unit tests in `src/lib/scraper.test.ts` pass, verifying `parseTimetable` generates complete matrix grids for both `matrix_days_rows` and `matrix_days_columns` formats.
+- [ ] Next.js production build (`npm run build`) succeeds with zero TypeScript or lint errors.
+

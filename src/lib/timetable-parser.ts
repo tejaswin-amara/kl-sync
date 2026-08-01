@@ -22,7 +22,7 @@ export interface ParsedTimetable {
   sessions: NormalizedClassSession[];
   daysPresent: string[];
   timeSlotsPresent: string[];
-  matrixGrid: Record<string, Record<string, NormalizedClassSession | null>>; // day -> timeSlot -> session
+  matrixGrid: Record<string, Record<string, NormalizedClassSession[]>>; // day -> timeSlot -> array of sessions
 }
 
 function expandTimeSlots(raw: string): string[] {
@@ -379,7 +379,7 @@ export function parseTimetable(
   }
 
   const sessions: NormalizedClassSession[] = [];
-  const matrixGrid: Record<string, Record<string, NormalizedClassSession | null>> = {};
+  const matrixGrid: Record<string, Record<string, NormalizedClassSession[]>> = {};
   const daysSet = new Set<string>();
   const timeSlotsSet = new Set<string>();
 
@@ -415,7 +415,8 @@ export function parseTimetable(
             sessions.push(session);
             timeSlotsSet.add(timeSlot);
             if (!matrixGrid[normDay.full]) matrixGrid[normDay.full] = {};
-            matrixGrid[normDay.full][timeSlot] = session;
+            if (!matrixGrid[normDay.full][timeSlot]) matrixGrid[normDay.full][timeSlot] = [];
+            matrixGrid[normDay.full][timeSlot].push(session);
           });
         }
       });
@@ -455,7 +456,8 @@ export function parseTimetable(
             };
             sessions.push(session);
             if (!matrixGrid[normDay.full]) matrixGrid[normDay.full] = {};
-            matrixGrid[normDay.full][timeSlot] = session;
+            if (!matrixGrid[normDay.full][timeSlot]) matrixGrid[normDay.full][timeSlot] = [];
+            matrixGrid[normDay.full][timeSlot].push(session);
           });
         }
       });
@@ -523,7 +525,8 @@ export function parseTimetable(
 
       sessions.push(session);
       if (!matrixGrid[normDay.full]) matrixGrid[normDay.full] = {};
-      matrixGrid[normDay.full][timeSlot] = session;
+      if (!matrixGrid[normDay.full][timeSlot]) matrixGrid[normDay.full][timeSlot] = [];
+      matrixGrid[normDay.full][timeSlot].push(session);
     });
   }
 

@@ -1,29 +1,29 @@
-# BRIEFING — 2026-08-01T06:43:05+05:30
+# BRIEFING — 2026-08-01T08:11:31+05:30
 
 ## Mission
-Investigate and resolve timetable parsing and UI rendering failures in KL Sync dashboard (`/dashboard/timetable`). Fix HTML parsing logic in `src/lib/scraper.ts` & `src/lib/timetable-parser.ts`, fix UI rendering in `src/app/dashboard/timetable/page.tsx`, create unit test `src/lib/scraper.test.ts` mocking ERP timetable HTML payload, configure `npm test`, and verify clean Next.js production build (`npm run build`).
+Re-structure the student timetable grid UI in `src/app/dashboard/timetable/page.tsx` (Days/Day Orders on vertical Y-axis row headers, Periods on horizontal X-axis column headers), fix `src/lib/timetable-parser.ts` and `src/lib/scraper.ts` to preserve multi-session slots per day/period without dropping/overwriting, support `matrix_days_rows` and `matrix_days_columns` formats, ensure smooth horizontal scroll with sticky day headers, update `src/lib/scraper.test.ts` unit tests, and verify clean `npm run build`.
 
 ## 🔒 My Identity
 - Archetype: Project Orchestrator
 - Roles: orchestrator, user_liaison, human_reporter, successor
 - Working directory: C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\orchestrator
 - Original parent: parent
-- Original parent conversation ID: 257f4af1-912e-41a6-a1f4-6fb5b75c8e88
+- Original parent conversation ID: 54a6a4f9-cd79-4d42-afe1-a90263f83aa8
 
 ## 🔒 My Workflow
 - **Pattern**: Project Pattern
 - **Scope document**: C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\orchestrator\PROJECT.md
-1. **Decompose**: Decomposed into M7 (Timetable Investigation - DONE), M8 (Timetable Fix & Unit Test - DONE), M9 (Review - DONE), M10 (Forensic Audit - DONE).
+1. **Decompose**: Decomposed into M11 (Investigation), M12 (Implementation & Tests), M13 (Review), M14 (Forensic Audit).
 2. **Dispatch & Execute**: Explorer -> Worker -> Reviewer -> Auditor.
 3. **On failure**: Retry -> Replace -> Skip -> Redistribute -> Redesign.
 4. **Succession**: Threshold 16 spawns.
 - **Work items**:
-  1. M7: Timetable Data & UI Investigation [done]
-  2. M8: Timetable Fix & Unit Test Implementation [done]
-  3. M9: Independent Review & Verification [done]
-  4. M10: Forensic Integrity Audit [done]
-- **Current phase**: 4 (Done)
-- **Current focus**: Milestone Completion & Handoff Reporting
+  1. M11: Timetable Grid & Data Parsing Investigation [in-progress]
+  2. M12: Grid Re-orientation, Multi-Session Parsing & Test Implementation [pending]
+  3. M13: Independent Code Quality & UI Review [pending]
+  4. M14: Forensic Integrity Audit [pending]
+- **Current phase**: 2 (Iteration Loop)
+- **Current focus**: M11 Investigation
 
 ## 🔒 Key Constraints
 - Dispatch-only: delegate all code changes, builds, commands, and verification to subagents.
@@ -32,21 +32,18 @@ Investigate and resolve timetable parsing and UI rendering failures in KL Sync d
 - Perform forensic audit prior to milestone sign-off.
 
 ## Current Parent
-- Conversation ID: 257f4af1-912e-41a6-a1f4-6fb5b75c8e88
-- Updated: 2026-08-01T06:43:05+05:30
+- Conversation ID: 54a6a4f9-cd79-4d42-afe1-a90263f83aa8
+- Updated: 2026-08-01T08:11:31+05:30
 
 ## Key Decisions Made
-- Reviewer 3 (`f5ee6183-bf0f-4435-9891-e2e817dffeee`) returned verdict APPROVE.
-- Auditor 3 (`41f52217-49a6-4ede-b4ac-29e971fbb79d`) returned verdict CLEAN.
-- All acceptance criteria satisfied and verified via `npm test` and `npm run build`.
+- Re-orient timetable UI: Days on Y-axis (row headers), Periods on X-axis (column headers).
+- Multi-session support: array of sessions per day/period slot instead of single object overwriting.
+- Matrix format support: both `matrix_days_rows` and `matrix_days_columns` must generate complete matrix grids.
 
 ## Team Roster
 | Agent | Type | Work Item | Status | Conv ID |
 |-------|------|-----------|--------|---------|
-| Explorer 3 | teamwork_preview_explorer | Timetable Parsing & UI Investigation | completed | 7c201c31-5fc8-4794-b280-a505c58e5e50 |
-| Worker 3 | teamwork_preview_worker | Timetable Fixes, Unit Test & Build | completed | 29e61d56-d7ed-4021-af2c-b613f7db332b |
-| Reviewer 3 | teamwork_preview_reviewer | Code Quality & Build Review | completed (APPROVE) | f5ee6183-bf0f-4435-9891-e2e817dffeee |
-| Auditor 3 | teamwork_preview_auditor | Forensic Integrity Audit | completed (CLEAN) | 41f52217-49a6-4ede-b4ac-29e971fbb79d |
+| Explorer 4 | teamwork_preview_explorer | Timetable Grid & Parsing Investigation | pending | [Pending] |
 
 ## Succession Status
 - Succession required: no
@@ -63,8 +60,4 @@ Investigate and resolve timetable parsing and UI rendering failures in KL Sync d
 - C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\orchestrator\PROJECT.md — Project & Milestone plan
 - C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\orchestrator\plan.md — Detailed execution plan
 - C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\orchestrator\progress.md — Liveness heartbeat & progress log
-- C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\orchestrator\handoff.md — Orchestrator Handoff Report
-- C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\explorer_timetable\handoff.md — Explorer 3 Handoff Report
-- C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_timetable\handoff.md — Worker 3 Handoff Report
-- C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\reviewer_timetable\handoff.md — Reviewer 3 Handoff Report
-- C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\auditor_timetable\handoff.md — Auditor 3 Handoff Report
+- C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\orchestrator\ORIGINAL_REQUEST.md — Original User Request

@@ -141,6 +141,8 @@ describe('HTML Parsing (parseGenericTable & parseTimetable)', () => {
     const parsedTT = parseTimetable(rawRows);
     assert.equal(parsedTT.layout, 'matrix_days_rows');
     assert.ok(parsedTT.sessions.length >= 3);
+    assert.ok(Array.isArray(parsedTT.matrixGrid['Monday']['1']));
+    assert.equal(parsedTT.matrixGrid['Monday']['1'][0].courseCode, '25CS1302E');
 
     const session1 = parsedTT.sessions.find((s) => s.courseCode === '25CS1302E' && s.timeSlot === '1');
     assert.ok(session1);
