@@ -63,7 +63,9 @@ export function jarToArray(jar: CookieJar): { name: string; value: string }[] {
   return Object.entries(jar).map(([name, value]) => ({ name, value }));
 }
 
-export function arrayToJar(cookies: { name: string; value: string }[]): CookieJar {
+export function arrayToJar(
+  cookies: { name: string; value: string }[]
+): CookieJar {
   const jar: CookieJar = {};
   for (const c of cookies || []) {
     if (c && c.name) jar[c.name] = c.value;
@@ -140,19 +142,33 @@ export function parseGenericTable(
     try {
       const parsedJson = JSON.parse(trimmedInput);
       if (Array.isArray(parsedJson)) {
-        if (parsedJson.every((item) => typeof item === 'object' && item !== null)) {
+        if (
+          parsedJson.every((item) => typeof item === 'object' && item !== null)
+        ) {
           return parsedJson;
         }
       } else if (typeof parsedJson === 'object' && parsedJson !== null) {
-        for (const key of ['html', 'data', 'content', 'body', 'table', 'response']) {
-          if (typeof parsedJson[key] === 'string' && parsedJson[key].includes('<table')) {
+        for (const key of [
+          'html',
+          'data',
+          'content',
+          'body',
+          'table',
+          'response',
+        ]) {
+          if (
+            typeof parsedJson[key] === 'string' &&
+            parsedJson[key].includes('<table')
+          ) {
             return parseGenericTable(parsedJson[key], options);
           }
         }
         for (const key of ['data', 'rows', 'result', 'items']) {
           if (
             Array.isArray(parsedJson[key]) &&
-            parsedJson[key].every((item: unknown) => typeof item === 'object' && item !== null)
+            parsedJson[key].every(
+              (item: unknown) => typeof item === 'object' && item !== null
+            )
           ) {
             return parsedJson[key] as Record<string, unknown>[];
           }
@@ -199,14 +215,19 @@ export function parseGenericTable(
 
   function getNodeText($cell: cheerio.Cheerio<Element>): string {
     const $clone = $cell.clone();
-    $clone.find('script, style, noscript, template, input[type="hidden"]').remove();
+    $clone
+      .find('script, style, noscript, template, input[type="hidden"]')
+      .remove();
     $clone.find('br').replaceWith('\n');
-    $clone.find('div, p, tr, li, h1, h2, h3, h4, h5, h6').before('\n').after('\n');
+    $clone
+      .find('div, p, tr, li, h1, h2, h3, h4, h5, h6')
+      .before('\n')
+      .after('\n');
     $clone
       .find('span, a, b, i, strong, em, small, font, td, th')
       .before(' ')
       .after(' ');
-    let text = $clone.text();
+    const text = $clone.text();
 
     const lines = text
       .split('\n')
@@ -239,9 +260,7 @@ export function parseGenericTable(
     const firstTr = $(allTrs[0]);
     const ths = firstTr.children('th');
     if (ths.length > 0) {
-      headers = ths
-        .map((_i: number, el: Element) => getNodeText($(el)))
-        .get();
+      headers = ths.map((_i: number, el: Element) => getNodeText($(el))).get();
       dataRowStartIndex = 1;
     } else {
       const tds = firstTr.children('td');
@@ -298,7 +317,8 @@ export function parseGenericTable(
 
     if (
       currentTableData.length > bestRows.length ||
-      (currentTableData.length === bestRows.length && headers.length > maxColsFound)
+      (currentTableData.length === bestRows.length &&
+        headers.length > maxColsFound)
     ) {
       bestRows = currentTableData;
       maxColsFound = headers.length;

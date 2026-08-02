@@ -37,7 +37,14 @@ describe('Timetable Day Normalization & DAY_MAP Coverage', () => {
   });
 
   it('correctly normalizes Day Order 7 to Sunday', () => {
-    const do7Variations = ['DAY ORDER - 7', 'DAY ORDER 07', 'DO 7', 'D7', 'Sunday', 'Sun'];
+    const do7Variations = [
+      'DAY ORDER - 7',
+      'DAY ORDER 07',
+      'DO 7',
+      'D7',
+      'Sunday',
+      'Sun',
+    ];
     do7Variations.forEach((varStr) => {
       const result = normalizeDay(varStr);
       assert.notEqual(result, null, `Failed for variation: ${varStr}`);
@@ -137,13 +144,19 @@ describe('Cell Content Parser (parseCellContent & splitCellSessions)', () => {
       '25SC2107E-S - S-10',
     ]);
 
-    const textDashes = '22CS1101-P - S-05 - RoomNo-C-101 --- 25SC2107E-S - S-10';
+    const textDashes =
+      '22CS1101-P - S-05 - RoomNo-C-101 --- 25SC2107E-S - S-10';
+    assert.deepEqual(splitCellSessions(textDashes), [
+      '22CS1101-P - S-05 - RoomNo-C-101',
+      '25SC2107E-S - S-10',
+    ]);
   });
 });
 
 describe('Cell Content Multiple Parser (parseCellContentMultiple)', () => {
   it('correctly parses multiple session strings separated by \\n, <br/>, or ||', () => {
-    const text = '25CS1302E-L - S-10 - RoomNo-H-005\n25SC2107E-S - S-10 - RoomNo-H-006';
+    const text =
+      '25CS1302E-L - S-10 - RoomNo-H-005\n25SC2107E-S - S-10 - RoomNo-H-006';
     const parsed = parseCellContentMultiple(text);
     assert.equal(parsed.length, 2);
     assert.equal(parsed[0].courseCode, '25CS1302E');
@@ -213,7 +226,10 @@ describe('HTML Parsing & Matrix Formats (parseGenericTable & parseTimetable)', (
     assert.equal(parsedTT.matrixGrid['Monday']['1'][0].room, 'H-005');
 
     assert.ok(Array.isArray(parsedTT.matrixGrid['Tuesday']['3']));
-    assert.equal(parsedTT.matrixGrid['Tuesday']['3'][0].courseCode, '25CS1302E');
+    assert.equal(
+      parsedTT.matrixGrid['Tuesday']['3'][0].courseCode,
+      '25CS1302E'
+    );
     assert.equal(parsedTT.matrixGrid['Tuesday']['3'][0].component, 'Practical');
     assert.equal(parsedTT.matrixGrid['Tuesday']['3'][0].room, 'LAB-2');
   });
@@ -269,8 +285,14 @@ describe('HTML Parsing & Matrix Formats (parseGenericTable & parseTimetable)', (
 
     // Check Wednesday Period 2
     assert.ok(Array.isArray(parsedTT.matrixGrid['Wednesday']['2']));
-    assert.equal(parsedTT.matrixGrid['Wednesday']['2'][0].courseCode, '25CS1302E');
-    assert.equal(parsedTT.matrixGrid['Wednesday']['2'][0].component, 'Practical');
+    assert.equal(
+      parsedTT.matrixGrid['Wednesday']['2'][0].courseCode,
+      '25CS1302E'
+    );
+    assert.equal(
+      parsedTT.matrixGrid['Wednesday']['2'][0].component,
+      'Practical'
+    );
     assert.equal(parsedTT.matrixGrid['Wednesday']['2'][0].room, 'LAB-2');
   });
 
@@ -453,7 +475,9 @@ describe('Slot Key Normalization', () => {
     assert.equal(normalizeSlotKey('1'), '1');
     assert.equal(normalizeSlotKey('P1'), '1');
     assert.equal(normalizeSlotKey('Period 2'), '2');
-    assert.equal(normalizeSlotKey('09:00 AM - 09:50 AM'), '09:00 AM - 09:50 AM');
+    assert.equal(
+      normalizeSlotKey('09:00 AM - 09:50 AM'),
+      '09:00 AM - 09:50 AM'
+    );
   });
 });
-

@@ -2,14 +2,8 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { useState, useEffect } from 'react';
-import {
-  RefreshCw,
-  LogIn,
-  AlertCircle,
-  Loader2,
-} from 'lucide-react';
+import { RefreshCw, LogIn, AlertCircle, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-
 
 export default function LoginPage() {
   const router = useRouter();
@@ -31,8 +25,6 @@ export default function LoginPage() {
 
   // First-time ERP device registration status
   const [status, setStatus] = useState<string | null>(null);
-
-
 
   const fetchCaptcha = async (preserveError = false): Promise<string> => {
     setCaptchaLoading(true);
@@ -224,31 +216,24 @@ export default function LoginPage() {
     <div className="h-[100dvh] flex bg-zinc-950 text-zinc-50 relative overflow-hidden font-sans">
       {/* LEFT: BRANDING PANEL (Taste-Skill asymmetric split) */}
       <div className="hidden lg:flex w-[45%] relative border-r border-zinc-900 overflow-hidden bg-zinc-900 flex-col">
-
         <div className="relative z-10 flex-1 flex flex-col p-16 justify-between">
           <div>
             <div className="bg-white rounded-2xl p-4 shadow-xl inline-block mb-12">
               <img src="/logo.png" alt="KLH" className="h-10 object-contain" />
             </div>
-            <h1
-              className="text-5xl font-semibold tracking-tight text-white leading-[1.1] mb-6"
-            >
+            <h1 className="text-5xl font-semibold tracking-tight text-white leading-[1.1] mb-6">
               Academic sync,
               <br />
               precision engineered.
             </h1>
-            <p
-              className="text-lg text-zinc-400 max-w-md leading-relaxed"
-            >
+            <p className="text-lg text-zinc-400 max-w-md leading-relaxed">
               Secure, real-time access to your timetable, profile, and
               attendance metrics directly from the core ERP.
             </p>
           </div>
 
           {/* Material Status Chip */}
-          <div
-            className="flex items-center gap-3 px-4 py-3 rounded-full bg-emerald-500/10 border border-emerald-500/20 w-max"
-          >
+          <div className="flex items-center gap-3 px-4 py-3 rounded-full bg-emerald-500/10 border border-emerald-500/20 w-max">
             <span className="relative flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
@@ -279,27 +264,30 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div
-              className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
-            >
+            <div className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
               <AlertCircle className="w-5 h-5 shrink-0" />
               <p className="leading-tight">{error}</p>
             </div>
           )}
 
           {status && !error && (
-            <div
-              className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm"
-            >
+            <div className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm">
               <AlertCircle className="w-5 h-5 shrink-0" />
               <p className="leading-tight">{status}</p>
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-6" aria-label="Student ERP Authentication Form">
+          <form
+            onSubmit={handleLogin}
+            className="space-y-6"
+            aria-label="Student ERP Authentication Form"
+          >
             {/* Student ID input with WCAG 2.2 AAA Contrast & Accessibility */}
             <div className="space-y-1.5">
-              <label htmlFor="student-id-field" className="text-xs font-semibold tracking-wide uppercase text-zinc-300">
+              <label
+                htmlFor="student-id-field"
+                className="text-xs font-semibold tracking-wide uppercase text-zinc-300"
+              >
                 Student ID
               </label>
               <input
@@ -315,7 +303,10 @@ export default function LoginPage() {
 
             {/* Password input */}
             <div className="space-y-1.5">
-              <label htmlFor="password-field" className="text-xs font-semibold tracking-wide uppercase text-zinc-300">
+              <label
+                htmlFor="password-field"
+                className="text-xs font-semibold tracking-wide uppercase text-zinc-300"
+              >
                 Password
               </label>
               <input
@@ -348,7 +339,10 @@ export default function LoginPage() {
 
             {/* Captcha Block with WCAG 3.3.9 Accessible Authentication & Copy-Paste Support */}
             <div className="space-y-2 pt-2">
-              <label htmlFor="captcha-field" className="text-xs font-semibold tracking-wide uppercase text-zinc-300">
+              <label
+                htmlFor="captcha-field"
+                className="text-xs font-semibold tracking-wide uppercase text-zinc-300"
+              >
                 Visual Security Code
               </label>
               <div className="flex gap-3">
@@ -365,7 +359,10 @@ export default function LoginPage() {
                 <div className="flex items-center gap-2 shrink-0">
                   <div className="h-[52px] w-[120px] rounded-xl overflow-hidden flex items-center justify-center bg-white border border-zinc-700 shadow-md">
                     {captchaLoading ? (
-                      <Loader2 className="w-5 h-5 animate-spin text-zinc-600" aria-label="Loading new captcha image" />
+                      <Loader2
+                        className="w-5 h-5 animate-spin text-zinc-600"
+                        aria-label="Loading new captcha image"
+                      />
                     ) : captchaImage ? (
                       <img
                         src={captchaImage}
@@ -396,7 +393,10 @@ export default function LoginPage() {
               className="w-full min-h-[52px] py-4 mt-8 rounded-xl font-semibold text-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-indigo-600 text-white hover:bg-indigo-500 focus:ring-4 focus:ring-indigo-400 focus:outline-none shadow-lg"
             >
               {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" aria-label="Authenticating..." />
+                <Loader2
+                  className="w-5 h-5 animate-spin"
+                  aria-label="Authenticating..."
+                />
               ) : (
                 <>
                   <LogIn className="w-5 h-5" /> Continue to Dashboard

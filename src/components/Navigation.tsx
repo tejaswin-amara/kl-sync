@@ -21,7 +21,6 @@ import {
   Bell,
 } from 'lucide-react';
 
-
 export default function Navigation({
   children,
 }: {
@@ -118,9 +117,18 @@ export default function Navigation({
     <div className="min-h-screen bg-zinc-950 text-zinc-50 flex overflow-hidden">
       {/* Ambient background matching kl-attendance-v2 */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute rounded-full blur-[100px] bg-indigo-500/30 top-[10%] left-[20%] w-[30vw] h-[30vw] animate-pulse" style={{ animationDuration: '8s' }} />
-        <div className="absolute rounded-full blur-[120px] bg-purple-500/20 top-[40%] right-[10%] w-[25vw] h-[25vw] animate-pulse" style={{ animationDuration: '12s' }} />
-        <div className="absolute rounded-full blur-[100px] bg-emerald-500/30 bottom-[10%] left-[30%] w-[35vw] h-[35vw] animate-pulse" style={{ animationDuration: '10s' }} />
+        <div
+          className="absolute rounded-full blur-[100px] bg-indigo-500/30 top-[10%] left-[20%] w-[30vw] h-[30vw] animate-pulse"
+          style={{ animationDuration: '8s' }}
+        />
+        <div
+          className="absolute rounded-full blur-[120px] bg-purple-500/20 top-[40%] right-[10%] w-[25vw] h-[25vw] animate-pulse"
+          style={{ animationDuration: '12s' }}
+        />
+        <div
+          className="absolute rounded-full blur-[100px] bg-emerald-500/30 bottom-[10%] left-[30%] w-[35vw] h-[35vw] animate-pulse"
+          style={{ animationDuration: '10s' }}
+        />
       </div>
 
       {/* Mobile Header */}
@@ -180,7 +188,9 @@ export default function Navigation({
 
       <aside
         className={`fixed lg:static top-0 left-0 h-full w-[280px] shrink-0 flex flex-col border-r z-50 transition-transform duration-300 ease-in-out ${
-          drawerOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'
+          drawerOpen
+            ? 'translate-x-0 shadow-2xl'
+            : '-translate-x-full lg:translate-x-0'
         }`}
         style={{
           borderColor: 'rgba(255,255,255,.06)',
@@ -221,8 +231,7 @@ export default function Navigation({
             {navItems.map((item) => {
               const isActive =
                 pathname === item.href ||
-                (item.href !== '/dashboard' &&
-                  pathname.startsWith(item.href));
+                (item.href !== '/dashboard' && pathname.startsWith(item.href));
               const Icon = item.icon;
               return (
                 <Link

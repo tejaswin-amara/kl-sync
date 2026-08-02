@@ -3,11 +3,7 @@
 
 import { useEffect, useState } from 'react';
 
-import {
-  Loader2,
-  AlertCircle,
-} from 'lucide-react';
-
+import { Loader2, AlertCircle } from 'lucide-react';
 
 export default function ProfilePage() {
   const [data, setData] = useState<Record<string, unknown> | null>(null);
@@ -106,9 +102,7 @@ export default function ProfilePage() {
                     {uid ? (
                       <img
                         src={
-                          photo
-                            .replace(/\s/g, '')
-                            .startsWith('data:image')
+                          photo.replace(/\s/g, '').startsWith('data:image')
                             ? photo
                             : photo
                               ? `/api/fetch-photo?path=${encodeURIComponent(photo)}`
@@ -249,7 +243,10 @@ export default function ProfilePage() {
 
                         {arrayEntries.map(([k, v]: [string, unknown]) => {
                           if (k !== currentTab) return null;
-                          const rows = (Array.isArray(v) ? v : []) as Record<string, unknown>[];
+                          const rows = (Array.isArray(v) ? v : []) as Record<
+                            string,
+                            unknown
+                          >[];
                           if (rows.length === 0) return null;
 
                           return (
@@ -284,14 +281,20 @@ export default function ProfilePage() {
                                           >
                                             {typeof val === 'object' &&
                                             val !== null &&
-                                            (val as { type?: string }).type === 'link' ? (
+                                            (val as { type?: string }).type ===
+                                              'link' ? (
                                               <a
-                                                href={(val as { url?: string }).url}
+                                                href={
+                                                  (val as { url?: string }).url
+                                                }
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="text-[var(--color-primary)] hover:underline"
                                               >
-                                                {(val as { text?: string }).text}
+                                                {
+                                                  (val as { text?: string })
+                                                    .text
+                                                }
                                               </a>
                                             ) : (
                                               String(val)

@@ -113,7 +113,10 @@ function parseProfileData(pages: { name: string; html: string }[]) {
     nameEl.text().trim() ||
     profileBg
       .contents()
-      .filter((_i: number, el: AnyNode) => (el as unknown as { type?: string }).type === 'text')
+      .filter(
+        (_i: number, el: AnyNode) =>
+          (el as unknown as { type?: string }).type === 'text'
+      )
       .text()
       .trim();
 

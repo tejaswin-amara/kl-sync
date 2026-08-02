@@ -301,7 +301,9 @@ export async function fetchAttendanceData(
   const text = await res.text();
   if (
     text.includes('id="login-form"') ||
-    text.includes('action="https://newerp.kluniversity.in/index.php?r=site%2Flogin"') ||
+    text.includes(
+      'action="https://newerp.kluniversity.in/index.php?r=site%2Flogin"'
+    ) ||
     text.includes('action="/index.php?r=site%2Flogin"')
   ) {
     throw new Error('Session expired. Please login again.');

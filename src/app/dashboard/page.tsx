@@ -18,10 +18,13 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
-
 import { calculatePendingFee } from '@/lib/fee-utils';
 import { processERPDataForCGPA } from '@/lib/cgpa';
-import { parseTimetable, isSameDay, NormalizedClassSession } from '@/lib/timetable-parser';
+import {
+  parseTimetable,
+  isSameDay,
+  NormalizedClassSession,
+} from '@/lib/timetable-parser';
 
 export default function DashboardOverview() {
   const [studentName, setStudentName] = useState('Student');
@@ -57,7 +60,10 @@ export default function DashboardOverview() {
           const result = processERPDataForCGPA(resData.data);
           setCompletedCredits(result.credits);
           if (result.credits > 0) {
-            localStorage.setItem('kl_dashboard_credits', result.credits.toString());
+            localStorage.setItem(
+              'kl_dashboard_credits',
+              result.credits.toString()
+            );
           }
           if (result.cgpa > 0) {
             setCgpa(result.cgpa);
@@ -70,8 +76,12 @@ export default function DashboardOverview() {
     // Fetch Academic Session & Attendance independently
     let yearId = localStorage.getItem('kl_erp_year') || '';
     let semId = localStorage.getItem('kl_erp_sem') || '';
-    const yStr = localStorage.getItem('kl_erp_academic_years') || sessionStorage.getItem('kl_erp_academic_years');
-    const sStr = localStorage.getItem('kl_erp_semesters') || sessionStorage.getItem('kl_erp_semesters');
+    const yStr =
+      localStorage.getItem('kl_erp_academic_years') ||
+      sessionStorage.getItem('kl_erp_academic_years');
+    const sStr =
+      localStorage.getItem('kl_erp_semesters') ||
+      sessionStorage.getItem('kl_erp_semesters');
     if (!yearId && yStr) {
       try {
         const years = JSON.parse(yStr);
@@ -112,31 +122,37 @@ export default function DashboardOverview() {
             let totalConducted = 0;
             let filteredAttendance = resData.attendanceData;
             if (yearId && semId) {
-              const strictMatches = resData.attendanceData.filter((row: Record<string, unknown>) => {
-                const yrKey = Object.keys(row).find((k) =>
-                  k.toLowerCase().includes('year')
-                );
-                const semKey = Object.keys(row).find((k) =>
-                  k.toLowerCase().includes('sem')
-                );
+              const strictMatches = resData.attendanceData.filter(
+                (row: Record<string, unknown>) => {
+                  const yrKey = Object.keys(row).find((k) =>
+                    k.toLowerCase().includes('year')
+                  );
+                  const semKey = Object.keys(row).find((k) =>
+                    k.toLowerCase().includes('sem')
+                  );
 
-                let matchYear = true;
-                let matchSem = true;
+                  let matchYear = true;
+                  let matchSem = true;
 
-                if (yrKey && row[yrKey]) {
-                  matchYear =
-                    String(row[yrKey]).trim().includes(String(yearId).trim()) ||
-                    String(yearId).trim().includes(String(row[yrKey]).trim());
+                  if (yrKey && row[yrKey]) {
+                    matchYear =
+                      String(row[yrKey])
+                        .trim()
+                        .includes(String(yearId).trim()) ||
+                      String(yearId).trim().includes(String(row[yrKey]).trim());
+                  }
+
+                  if (semKey && row[semKey]) {
+                    matchSem =
+                      String(row[semKey])
+                        .trim()
+                        .includes(String(semId).trim()) ||
+                      String(semId).trim().includes(String(row[semKey]).trim());
+                  }
+
+                  return matchYear && matchSem;
                 }
-
-                if (semKey && row[semKey]) {
-                  matchSem =
-                    String(row[semKey]).trim().includes(String(semId).trim()) ||
-                    String(semId).trim().includes(String(row[semKey]).trim());
-                }
-
-                return matchYear && matchSem;
-              });
+              );
 
               if (strictMatches.length > 0) {
                 filteredAttendance = strictMatches;
@@ -154,10 +170,7 @@ export default function DashboardOverview() {
               });
               const attKey = Object.keys(row).find((k) => {
                 const kl = k.toLowerCase();
-                return (
-                  kl.includes('attended') ||
-                  kl.includes('present')
-                );
+                return kl.includes('attended') || kl.includes('present');
               });
               if (condKey && attKey) {
                 totalConducted += parseFloat(String(row[condKey])) || 0;
@@ -182,7 +195,8 @@ export default function DashboardOverview() {
               );
               if (pctKey) {
                 const sum = filteredAttendance.reduce(
-                  (s: number, r: Record<string, unknown>) => s + (parseFloat(String(r[pctKey])) || 0),
+                  (s: number, r: Record<string, unknown>) =>
+                    s + (parseFloat(String(r[pctKey])) || 0),
                   0
                 );
                 const calculatedAttendance = Math.round(
@@ -217,10 +231,7 @@ export default function DashboardOverview() {
     <div className="flex flex-col gap-6 w-full animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
       {/* Welcome Banner */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="rounded-xl border border-white/10 bg-zinc-950/50 shadow-sm relative overflow-hidden transition-all duration-300 lg:col-span-2 p-8 flex flex-col justify-center relative overflow-hidden group" 
-          
-          
-        >
+        <div className="rounded-xl border border-white/10 bg-zinc-950/50 shadow-sm relative overflow-hidden transition-all duration-300 lg:col-span-2 p-8 flex flex-col justify-center relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none transition-transform duration-700 group-hover:scale-110">
             <GraduationCap className="w-48 h-48 text-indigo-500" />
           </div>
@@ -244,7 +255,7 @@ export default function DashboardOverview() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-zinc-950/50 shadow-sm relative overflow-hidden transition-all duration-300 p-8 flex flex-col items-center justify-center text-center relative overflow-hidden group"  >
+        <div className="rounded-xl border border-white/10 bg-zinc-950/50 shadow-sm relative overflow-hidden transition-all duration-300 p-8 flex flex-col items-center justify-center text-center relative overflow-hidden group">
           <Award className="w-12 h-12 text-indigo-400 mb-4 opacity-80" />
           <div className="z-10">
             <p className="text-xs font-semibold tracking-widest text-zinc-400 uppercase mb-2">
@@ -252,11 +263,7 @@ export default function DashboardOverview() {
             </p>
             <div className="flex items-baseline justify-center gap-1">
               <span className="text-6xl font-black tracking-tighter text-zinc-100">
-                {cgpa > 0 ? (
-                  cgpa.toFixed(2)
-                ) : (
-                  '0.00'
-                )}
+                {cgpa > 0 ? cgpa.toFixed(2) : '0.00'}
               </span>
             </div>
           </div>
@@ -311,11 +318,7 @@ export default function DashboardOverview() {
               Completed Credits
             </p>
             <p className="text-3xl font-bold text-zinc-100">
-              {completedCredits > 0 ? (
-                completedCredits
-              ) : (
-                '0'
-              )}
+              {completedCredits > 0 ? completedCredits : '0'}
             </p>
           </div>
         </Link>
@@ -343,7 +346,15 @@ function TodayScheduleWidget({
   activeYearId: string;
   activeSemId: string;
 }) {
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const days = [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+  ];
   const todayDayName = days[new Date().getDay()];
   const defaultDay = todayDayName;
 
@@ -352,7 +363,14 @@ function TodayScheduleWidget({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const availableDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const availableDays = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+  ];
 
   const loadSchedule = useCallback(async () => {
     if (!activeYearId || !activeSemId) {
@@ -366,7 +384,8 @@ function TodayScheduleWidget({
     let loadedFromCache = false;
 
     // Fetch course titles & faculty mapping from profile/marks
-    const courseLookup: Record<string, { title?: string; faculty?: string }> = {};
+    const courseLookup: Record<string, { title?: string; faculty?: string }> =
+      {};
     try {
       const profRes = await fetch('/api/erp-proxy/profile').catch(() => null);
       if (profRes && profRes.ok) {
@@ -374,12 +393,21 @@ function TodayScheduleWidget({
         const courses = profData.data?.courses || [];
         if (Array.isArray(courses)) {
           courses.forEach((c: Record<string, unknown>) => {
-            const rawCode = String(c.Coursecode || c.courseCode || c.code || '').toUpperCase().trim();
-            const desc = String(c.Coursedesc || c.courseDesc || c.title || c.name || '').trim();
-            const fac = String(c.FacultyName || c.facultyName || c.faculty || '').trim();
+            const rawCode = String(c.Coursecode || c.courseCode || c.code || '')
+              .toUpperCase()
+              .trim();
+            const desc = String(
+              c.Coursedesc || c.courseDesc || c.title || c.name || ''
+            ).trim();
+            const fac = String(
+              c.FacultyName || c.facultyName || c.faculty || ''
+            ).trim();
             if (rawCode) {
               const strippedCode = rawCode.replace(/[-_][LTPSS]$/i, '').trim();
-              const info = { title: desc || undefined, faculty: fac || undefined };
+              const info = {
+                title: desc || undefined,
+                faculty: fac || undefined,
+              };
               courseLookup[rawCode] = info;
               if (strippedCode) courseLookup[strippedCode] = info;
             }
@@ -396,7 +424,12 @@ function TodayScheduleWidget({
         const strippedCode = rawCode.replace(/[-_][LTPSS]$/i, '').trim();
         const info = courseLookup[rawCode] || courseLookup[strippedCode];
         if (info) {
-          if (info.title && (s.courseTitle === s.courseCode || !s.courseTitle || s.courseTitle === rawCode)) {
+          if (
+            info.title &&
+            (s.courseTitle === s.courseCode ||
+              !s.courseTitle ||
+              s.courseTitle === rawCode)
+          ) {
             s.courseTitle = info.title;
           }
           if (info.faculty && !s.faculty) {
@@ -451,7 +484,10 @@ function TodayScheduleWidget({
       }
     } catch (err: unknown) {
       if (!loadedFromCache) {
-        const msg = err instanceof Error ? err.message : 'Error connecting to timetable service';
+        const msg =
+          err instanceof Error
+            ? err.message
+            : 'Error connecting to timetable service';
         setError(msg);
       }
     } finally {
@@ -465,10 +501,12 @@ function TodayScheduleWidget({
     });
   }, [loadSchedule]);
 
-  const activeDaySessions = allSessions.filter((s) => isSameDay(s.day, selectedDay));
+  const activeDaySessions = allSessions.filter((s) =>
+    isSameDay(s.day, selectedDay)
+  );
 
   return (
-    <div className="rounded-xl border border-white/10 bg-zinc-950/50 shadow-sm relative overflow-hidden transition-all duration-300 flex flex-col h-full !p-0"   >
+    <div className="rounded-xl border border-white/10 bg-zinc-950/50 shadow-sm relative overflow-hidden transition-all duration-300 flex flex-col h-full !p-0">
       <div className="p-4 sm:p-5 border-b border-white/5 flex flex-col gap-3 bg-zinc-950/30">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
@@ -569,15 +607,23 @@ function TodayScheduleWidget({
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-mono font-bold bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-md">
-                      P{String(s.timeSlot || '').replace(/^Period\s*/i, '').trim()}
+                      P
+                      {String(s.timeSlot || '')
+                        .replace(/^Period\s*/i, '')
+                        .trim()}
                     </span>
                     {s.component && (
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${
-                        s.component === 'Lecture' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' :
-                        s.component === 'Practical' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
-                        s.component === 'Skill' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' :
-                        'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                      }`}>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${
+                          s.component === 'Lecture'
+                            ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                            : s.component === 'Practical'
+                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                              : s.component === 'Skill'
+                                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                                : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                        }`}
+                      >
                         {s.component}
                       </span>
                     )}
@@ -655,11 +701,21 @@ function CurrentCoursesWidget({
           const profData = await profRes.json();
           const profCourses = profData.data?.courses;
           if (Array.isArray(profCourses) && profCourses.length > 0) {
-            const mapped = profCourses.slice(0, 6).map((c: Record<string, unknown>) => ({
-              'Course Code': String(c.Coursecode || c.courseCode || c.code || 'N/A').toUpperCase().trim(),
-              'Course Name': String(c.Coursedesc || c.courseDesc || c.title || c.name || 'Course').trim(),
-              'Evaluation Components': String(c.FacultyName || c.facultyName || c.faculty || 'Active Course').trim(),
-            }));
+            const mapped = profCourses
+              .slice(0, 6)
+              .map((c: Record<string, unknown>) => ({
+                'Course Code': String(
+                  c.Coursecode || c.courseCode || c.code || 'N/A'
+                )
+                  .toUpperCase()
+                  .trim(),
+                'Course Name': String(
+                  c.Coursedesc || c.courseDesc || c.title || c.name || 'Course'
+                ).trim(),
+                'Evaluation Components': String(
+                  c.FacultyName || c.facultyName || c.faculty || 'Active Course'
+                ).trim(),
+              }));
             if (mounted) {
               setCourses(mapped);
               setLoading(false);
@@ -681,7 +737,11 @@ function CurrentCoursesWidget({
 
         if (marksRes && marksRes.ok) {
           const marksData = await marksRes.json();
-          if (marksData.success && Array.isArray(marksData.data) && marksData.data.length > 0) {
+          if (
+            marksData.success &&
+            Array.isArray(marksData.data) &&
+            marksData.data.length > 0
+          ) {
             if (mounted) setCourses(marksData.data.slice(0, 6));
           }
         }
@@ -693,11 +753,13 @@ function CurrentCoursesWidget({
     }
 
     loadCourses();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [activeYearId, activeSemId]);
 
   return (
-    <div className="rounded-xl border border-white/10 bg-zinc-950/50 shadow-sm relative overflow-hidden transition-all duration-300 flex flex-col h-full !p-0"   >
+    <div className="rounded-xl border border-white/10 bg-zinc-950/50 shadow-sm relative overflow-hidden transition-all duration-300 flex flex-col h-full !p-0">
       <div className="p-5 border-b border-white/5 flex justify-between items-center bg-zinc-950/30">
         <div className="flex items-center gap-3">
           <BookOpen className="w-5 h-5 text-purple-400" />

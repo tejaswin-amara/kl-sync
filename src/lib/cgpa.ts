@@ -102,7 +102,9 @@ export function parseNumericValue(val: unknown): number | null {
 /**
  * Helper to extract official summary values from a key-value object.
  */
-function extractOfficialSummary(dataObj: Record<string, unknown> | null | undefined): {
+function extractOfficialSummary(
+  dataObj: Record<string, unknown> | null | undefined
+): {
   cgpa: number | null;
   sgpa: number | null;
   credits: number | null;
@@ -232,7 +234,9 @@ export function processERPDataForCGPA(
           const lk = k.toLowerCase().trim();
           const cleaned = lk.replace(/[^a-z0-9]/g, '');
           return (
-            (lk.includes('grade') && !lk.includes('point') && !lk.includes('gp')) ||
+            (lk.includes('grade') &&
+              !lk.includes('point') &&
+              !lk.includes('gp')) ||
             cleaned === 'grd' ||
             lk.includes('letter')
           );
@@ -265,7 +269,9 @@ export function processERPDataForCGPA(
       if (credits <= 0) continue; // Exclude 0-credit non-academic courses
 
       const gradeStr = gradeKey ? String(row[gradeKey] || '') : '';
-      let gradePoint: number | null = pointKey ? parseNumericValue(row[pointKey]) : null;
+      let gradePoint: number | null = pointKey
+        ? parseNumericValue(row[pointKey])
+        : null;
 
       // Fallback to letter grade mapping if grade points column is absent or invalid
       if (gradePoint === null || isNaN(gradePoint)) {
@@ -293,7 +299,8 @@ export function processERPDataForCGPA(
     return { cgpa: 0, credits: 0, isOfficial: false, sgpa: null };
   }
 
-  const finalCredits = officialCredits !== null ? officialCredits : totalCredits;
+  const finalCredits =
+    officialCredits !== null ? officialCredits : totalCredits;
   const calculatedCgpa =
     totalCredits > 0 ? Number((totalPoints / totalCredits).toFixed(2)) : 0;
 

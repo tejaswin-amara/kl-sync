@@ -5,7 +5,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function exportTableToCSV(data: Record<string, unknown>[], filename: string) {
+export function exportTableToCSV(
+  data: Record<string, unknown>[],
+  filename: string
+) {
   if (typeof window === 'undefined') return;
   if (!data || data.length === 0) return;
 

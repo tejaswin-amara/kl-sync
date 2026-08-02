@@ -99,7 +99,8 @@ export default function TimetablePage() {
       const csrf = sessionStorage.getItem('kl_erp_csrf_token');
 
       // Fetch profile & marks in parallel to build course title & faculty lookup
-      const courseLookup: Record<string, { title: string; faculty: string }> = {};
+      const courseLookup: Record<string, { title: string; faculty: string }> =
+        {};
       try {
         const [profRes, marksRes] = await Promise.allSettled([
           fetch('/api/erp-proxy/profile'),
@@ -119,7 +120,8 @@ export default function TimetablePage() {
           if (pData.success && Array.isArray(pData.data)) {
             pData.data.forEach((row: Record<string, unknown>) => {
               const keys = Object.keys(row);
-              const codeK = keys.find((k) => k.toLowerCase().includes('code')) || '';
+              const codeK =
+                keys.find((k) => k.toLowerCase().includes('code')) || '';
               const descK =
                 keys.find(
                   (k) =>
@@ -151,7 +153,8 @@ export default function TimetablePage() {
           if (mData.success && Array.isArray(mData.data)) {
             mData.data.forEach((row: Record<string, unknown>) => {
               const keys = Object.keys(row);
-              const codeK = keys.find((k) => k.toLowerCase().includes('code')) || '';
+              const codeK =
+                keys.find((k) => k.toLowerCase().includes('code')) || '';
               const nameK =
                 keys.find(
                   (k) =>
@@ -223,7 +226,12 @@ export default function TimetablePage() {
           courseLookup[rawCode.toUpperCase()] ||
           courseLookup[strippedCode.toUpperCase()];
         if (info) {
-          if (info.title && (s.courseTitle === s.courseCode || !s.courseTitle || s.courseTitle === rawCode)) {
+          if (
+            info.title &&
+            (s.courseTitle === s.courseCode ||
+              !s.courseTitle ||
+              s.courseTitle === rawCode)
+          ) {
             s.courseTitle = info.title;
           }
           if (info.faculty && !s.faculty) {
@@ -235,7 +243,10 @@ export default function TimetablePage() {
       setError(null);
     } catch (err: unknown) {
       if (!loadedFromCache) {
-        const msg = err instanceof Error ? err.message : 'Failed to sync timetable with ERP';
+        const msg =
+          err instanceof Error
+            ? err.message
+            : 'Failed to sync timetable with ERP';
         setError(msg);
       }
     } finally {
@@ -261,7 +272,16 @@ export default function TimetablePage() {
     }
   }, [fetchData, selectedYear, selectedSem, sessionError]);
 
-  const daysList = ['All', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const daysList = [
+    'All',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ];
 
   const filteredSessions = (parsedTT?.sessions || []).filter((session) => {
     const matchesDay =
@@ -289,7 +309,10 @@ export default function TimetablePage() {
       Room: s.room,
       Faculty: s.faculty,
     }));
-    exportTableToCSV(exportData, `Timetable_${selectedYear}_${selectedSem}.csv`);
+    exportTableToCSV(
+      exportData,
+      `Timetable_${selectedYear}_${selectedSem}.csv`
+    );
   };
 
   return (
@@ -340,7 +363,11 @@ export default function TimetablePage() {
                 onChange={(e) => handleYearChange(e.target.value)}
               >
                 {years.map((y) => (
-                  <option key={y.value} value={y.value} className="bg-zinc-900 text-zinc-100">
+                  <option
+                    key={y.value}
+                    value={y.value}
+                    className="bg-zinc-900 text-zinc-100"
+                  >
                     {y.label}
                   </option>
                 ))}
@@ -355,7 +382,11 @@ export default function TimetablePage() {
                 onChange={(e) => handleSemChange(e.target.value)}
               >
                 {semesters.map((s) => (
-                  <option key={s.value} value={s.value} className="bg-zinc-900 text-zinc-100">
+                  <option
+                    key={s.value}
+                    value={s.value}
+                    className="bg-zinc-900 text-zinc-100"
+                  >
                     {s.label}
                   </option>
                 ))}
@@ -414,12 +445,18 @@ export default function TimetablePage() {
           <div className="p-8 flex flex-col gap-6">
             <div className="flex gap-4">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-8 w-24 bg-zinc-800/40 rounded-lg animate-pulse"></div>
+                <div
+                  key={i}
+                  className="h-8 w-24 bg-zinc-800/40 rounded-lg animate-pulse"
+                ></div>
               ))}
             </div>
             <div className="flex flex-col gap-4">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-16 w-full bg-zinc-800/30 rounded-xl animate-pulse"></div>
+                <div
+                  key={i}
+                  className="h-16 w-full bg-zinc-800/30 rounded-xl animate-pulse"
+                ></div>
               ))}
             </div>
           </div>
@@ -451,7 +488,8 @@ export default function TimetablePage() {
               No Timetable Data Found
             </h3>
             <p className="text-xs text-zinc-500 max-w-sm">
-              There are no class sessions available for the selected academic term.
+              There are no class sessions available for the selected academic
+              term.
             </p>
           </div>
         ) : viewMode === 'grid' ? (
@@ -467,11 +505,16 @@ export default function TimetablePage() {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-zinc-900/80 border-b border-white/10 text-[11px] font-bold uppercase tracking-wider text-zinc-300">
-                        <th scope="col" className="p-4 sticky left-0 z-20 bg-zinc-900/95 backdrop-blur-md min-w-[120px] border-r border-white/10 text-indigo-400 text-center">
+                        <th
+                          scope="col"
+                          className="p-4 sticky left-0 z-20 bg-zinc-900/95 backdrop-blur-md min-w-[120px] border-r border-white/10 text-indigo-400 text-center"
+                        >
                           Day / Period
                         </th>
                         {(() => {
-                          const sortedTimeSlots = [...parsedTT.timeSlotsPresent].sort((a, b) => {
+                          const sortedTimeSlots = [
+                            ...parsedTT.timeSlotsPresent,
+                          ].sort((a, b) => {
                             const keyA = normalizeSlotKey(a);
                             const keyB = normalizeSlotKey(b);
                             const numA = Number(keyA);
@@ -499,17 +542,28 @@ export default function TimetablePage() {
                             for (let i = minNum; i <= maxNum; i++) {
                               fullRange.push(String(i));
                             }
-                            const nonNumeric = sortedTimeSlots.filter((s) => isNaN(Number(normalizeSlotKey(s))));
+                            const nonNumeric = sortedTimeSlots.filter((s) =>
+                              isNaN(Number(normalizeSlotKey(s)))
+                            );
                             slotsToRender = [...fullRange, ...nonNumeric];
                           } else if (sortedTimeSlots.length > 0) {
                             slotsToRender = sortedTimeSlots;
                           } else {
-                            slotsToRender = Array.from({ length: 8 }, (_, i) => String(i + 1));
+                            slotsToRender = Array.from({ length: 8 }, (_, i) =>
+                              String(i + 1)
+                            );
                           }
 
                           return slotsToRender.map((periodNum) => (
-                            <th scope="col" key={periodNum} className="p-4 text-center min-w-[200px] border-r border-white/5 last:border-r-0 text-zinc-200">
-                              {periodNum.length < 3 && !periodNum.toLowerCase().includes('p') ? `Period ${periodNum}` : periodNum}
+                            <th
+                              scope="col"
+                              key={periodNum}
+                              className="p-4 text-center min-w-[200px] border-r border-white/5 last:border-r-0 text-zinc-200"
+                            >
+                              {periodNum.length < 3 &&
+                              !periodNum.toLowerCase().includes('p')
+                                ? `Period ${periodNum}`
+                                : periodNum}
                             </th>
                           ));
                         })()}
@@ -517,18 +571,30 @@ export default function TimetablePage() {
                     </thead>
                     <tbody className="divide-y divide-white/5">
                       {(() => {
-                        const allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                        const allDays = [
+                          'Monday',
+                          'Tuesday',
+                          'Wednesday',
+                          'Thursday',
+                          'Friday',
+                          'Saturday',
+                          'Sunday',
+                        ];
                         const daysToRender = allDays.filter((day) => {
                           if (selectedDayFilter !== 'All') {
                             return day === selectedDayFilter;
                           }
                           if (day === 'Sunday') {
-                            return parsedTT.daysPresent.some((d) => isSameDay(d, 'Sunday'));
+                            return parsedTT.daysPresent.some((d) =>
+                              isSameDay(d, 'Sunday')
+                            );
                           }
                           return true;
                         });
 
-                        const sortedTimeSlots = [...parsedTT.timeSlotsPresent].sort((a, b) => {
+                        const sortedTimeSlots = [
+                          ...parsedTT.timeSlotsPresent,
+                        ].sort((a, b) => {
                           const keyA = normalizeSlotKey(a);
                           const keyB = normalizeSlotKey(b);
                           const numA = Number(keyA);
@@ -556,25 +622,36 @@ export default function TimetablePage() {
                           for (let i = minNum; i <= maxNum; i++) {
                             fullRange.push(String(i));
                           }
-                          const nonNumeric = sortedTimeSlots.filter((s) => isNaN(Number(normalizeSlotKey(s))));
+                          const nonNumeric = sortedTimeSlots.filter((s) =>
+                            isNaN(Number(normalizeSlotKey(s)))
+                          );
                           slotsToRender = [...fullRange, ...nonNumeric];
                         } else if (sortedTimeSlots.length > 0) {
                           slotsToRender = sortedTimeSlots;
                         } else {
-                          slotsToRender = Array.from({ length: 8 }, (_, i) => String(i + 1));
+                          slotsToRender = Array.from({ length: 8 }, (_, i) =>
+                            String(i + 1)
+                          );
                         }
 
                         return daysToRender.map((day) => {
                           return (
-                            <tr key={day} className="hover:bg-white/[0.02] transition-colors">
+                            <tr
+                              key={day}
+                              className="hover:bg-white/[0.02] transition-colors"
+                            >
                               {/* Sticky Day Column */}
-                              <th scope="row" className="p-4 sticky left-0 z-10 bg-zinc-950/90 backdrop-blur-md font-bold text-xs text-zinc-200 border-r border-white/10 text-center whitespace-nowrap">
+                              <th
+                                scope="row"
+                                className="p-4 sticky left-0 z-10 bg-zinc-950/90 backdrop-blur-md font-bold text-xs text-zinc-200 border-r border-white/10 text-center whitespace-nowrap"
+                              >
                                 {day}
                               </th>
 
                               {/* Period Columns for this Day */}
                               {slotsToRender.map((periodNum) => {
-                                const matchingSessions = parsedTT.matrixGrid[day]?.[periodNum] || [];
+                                const matchingSessions =
+                                  parsedTT.matrixGrid[day]?.[periodNum] || [];
 
                                 return (
                                   <td
@@ -583,49 +660,57 @@ export default function TimetablePage() {
                                   >
                                     {matchingSessions.length > 0 ? (
                                       <div className="flex flex-col gap-2 h-full">
-                                        {matchingSessions.map((session, sIdx) => (
-                                          <div
-                                            key={session.id || sIdx}
-                                            className="bg-zinc-900/80 border border-white/10 hover:border-indigo-500/50 p-3 rounded-xl flex flex-col justify-between gap-1.5 shadow-md group transition-all shrink-0"
-                                          >
-                                            <div className="flex items-center justify-between gap-1">
-                                              {session.component && (
-                                                <span
-                                                  className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider ${
-                                                    session.component === 'Lecture'
-                                                      ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-                                                      : session.component === 'Practical'
-                                                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                                                      : session.component === 'Skill'
-                                                      ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                                                      : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                                                  }`}
-                                                >
-                                                  {session.component}
-                                                </span>
-                                              )}
-                                              {session.section && (
-                                                <span className="text-[9px] font-mono bg-white/10 text-zinc-300 px-1 py-0.5 rounded">
-                                                  {session.section}
-                                                </span>
-                                              )}
-                                            </div>
+                                        {matchingSessions.map(
+                                          (session, sIdx) => (
+                                            <div
+                                              key={session.id || sIdx}
+                                              className="bg-zinc-900/80 border border-white/10 hover:border-indigo-500/50 p-3 rounded-xl flex flex-col justify-between gap-1.5 shadow-md group transition-all shrink-0"
+                                            >
+                                              <div className="flex items-center justify-between gap-1">
+                                                {session.component && (
+                                                  <span
+                                                    className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider ${
+                                                      session.component ===
+                                                      'Lecture'
+                                                        ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                                                        : session.component ===
+                                                            'Practical'
+                                                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                                          : session.component ===
+                                                              'Skill'
+                                                            ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                                                            : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                                    }`}
+                                                  >
+                                                    {session.component}
+                                                  </span>
+                                                )}
+                                                {session.section && (
+                                                  <span className="text-[9px] font-mono bg-white/10 text-zinc-300 px-1 py-0.5 rounded">
+                                                    {session.section}
+                                                  </span>
+                                                )}
+                                              </div>
 
-                                            <h5 className="text-xs font-semibold text-zinc-100 group-hover:text-indigo-300 transition-colors leading-snug line-clamp-2">
-                                              {session.courseTitle || session.courseCode}
-                                            </h5>
+                                              <h5 className="text-xs font-semibold text-zinc-100 group-hover:text-indigo-300 transition-colors leading-snug line-clamp-2">
+                                                {session.courseTitle ||
+                                                  session.courseCode}
+                                              </h5>
 
-                                            <div className="flex items-center justify-between gap-1 text-[10px] text-zinc-400 pt-1 border-t border-white/5 mt-auto">
-                                              <span className="font-mono text-zinc-400 truncate">{session.courseCode}</span>
-                                              {session.room && (
-                                                <span className="text-emerald-400 font-medium flex items-center gap-0.5 shrink-0">
-                                                  <MapPin className="w-2.5 h-2.5" />
-                                                  {session.room}
+                                              <div className="flex items-center justify-between gap-1 text-[10px] text-zinc-400 pt-1 border-t border-white/5 mt-auto">
+                                                <span className="font-mono text-zinc-400 truncate">
+                                                  {session.courseCode}
                                                 </span>
-                                              )}
+                                                {session.room && (
+                                                  <span className="text-emerald-400 font-medium flex items-center gap-0.5 shrink-0">
+                                                    <MapPin className="w-2.5 h-2.5" />
+                                                    {session.room}
+                                                  </span>
+                                                )}
+                                              </div>
                                             </div>
-                                          </div>
-                                        ))}
+                                          )
+                                        )}
                                       </div>
                                     ) : (
                                       <div className="h-full rounded-xl border border-dashed border-white/5 flex items-center justify-center text-zinc-700 text-xs">
@@ -690,14 +775,19 @@ export default function TimetablePage() {
                       </td>
                       <td className="px-4 py-3.5 text-xs font-mono text-zinc-300 border-y border-transparent">
                         <span className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded">
-                          Period {String(session.timeSlot || '').replace(/^Period\s*/i, '').trim()}
+                          Period{' '}
+                          {String(session.timeSlot || '')
+                            .replace(/^Period\s*/i, '')
+                            .trim()}
                         </span>
                       </td>
                       <td className="px-4 py-3.5 text-xs font-mono text-zinc-300 border-y border-transparent">
                         {session.courseCode || 'N/A'}
                       </td>
                       <td className="px-4 py-3.5 text-sm font-medium text-zinc-100 border-y border-transparent max-w-xs truncate">
-                        {session.courseTitle || session.courseCode || 'Class Session'}
+                        {session.courseTitle ||
+                          session.courseCode ||
+                          'Class Session'}
                       </td>
                       <td className="px-4 py-3.5 text-xs border-y border-transparent">
                         <div className="flex items-center gap-1.5">

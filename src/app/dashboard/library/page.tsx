@@ -1,11 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 
-import {
-  Loader2,
-  AlertCircle,
-  Book,
-} from 'lucide-react';
+import { Loader2, AlertCircle, Book } from 'lucide-react';
 
 export default function LibraryPage() {
   const [data, setData] = useState<Record<string, unknown>[]>([]);
@@ -90,10 +86,7 @@ export default function LibraryPage() {
               </thead>
               <tbody>
                 {data.map((row, idx) => (
-                  <tr
-                    key={idx}
-                    className="group transition-all"
-                  >
+                  <tr key={idx} className="group transition-all">
                     {Object.values(row).map((val: unknown, j) => (
                       <td
                         key={j}

@@ -39,7 +39,11 @@ export function CardContent({ className, children }: ComponentProps) {
   return <div className={`p-6 pt-0 ${className}`}>{children}</div>;
 }
 
-export function Alert({ variant = 'default', className, children }: AlertProps) {
+export function Alert({
+  variant = 'default',
+  className,
+  children,
+}: AlertProps) {
   const vClass =
     variant === 'destructive'
       ? 'border-red-500/50 text-red-500 [&>svg]:text-red-500'
@@ -162,7 +166,9 @@ export function SimpleCalculator({
       >
         <div className="rounded-xl border border-white/10 bg-zinc-950/50 text-zinc-100 shadow-sm bg-card/90 backdrop-blur-sm">
           <div className="flex flex-col space-y-1.5 p-6">
-            <h3 className="font-semibold leading-none tracking-tight text-2xl">Attendance Analysis</h3>
+            <h3 className="font-semibold leading-none tracking-tight text-2xl">
+              Attendance Analysis
+            </h3>
             <div className="flex items-center gap-2">
               <span className={`text-4xl font-bold ${attendanceColor}`}>
                 {percentage.toFixed(2)}%
@@ -296,9 +302,14 @@ export function SimpleCalculator({
 
       {percentage >= 85 ? (
         <div className="always-glow-success">
-          <div role="alert" className="relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7 bg-background text-foreground bg-background/90 backdrop-blur-sm">
+          <div
+            role="alert"
+            className="relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7 bg-background text-foreground bg-background/90 backdrop-blur-sm"
+          >
             <CheckCircle2 className="h-4 w-4" />
-            <h5 className="mb-1 font-medium leading-none tracking-tight">Eligible</h5>
+            <h5 className="mb-1 font-medium leading-none tracking-tight">
+              Eligible
+            </h5>
             <div className="text-sm [&_p]:leading-relaxed">
               Your attendance is above the minimum required 85%. You are
               eligible to appear for the examination.
@@ -307,9 +318,14 @@ export function SimpleCalculator({
         </div>
       ) : percentage >= 75 ? (
         <div className="always-glow-warning">
-          <div role="alert" className="relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7 bg-background text-foreground bg-yellow-500/10 border-yellow-500/20 backdrop-blur-sm">
+          <div
+            role="alert"
+            className="relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7 bg-background text-foreground bg-yellow-500/10 border-yellow-500/20 backdrop-blur-sm"
+          >
             <AlertCircle className="h-4 w-4 text-yellow-500" />
-            <h5 className="mb-1 font-medium leading-none tracking-tight">Conditional Eligibility</h5>
+            <h5 className="mb-1 font-medium leading-none tracking-tight">
+              Conditional Eligibility
+            </h5>
             <div className="text-sm [&_p]:leading-relaxed">
               Your attendance is between 75% and 85%. You need to pay a
               condonation fine to be eligible for the examination.
@@ -318,9 +334,14 @@ export function SimpleCalculator({
         </div>
       ) : (
         <div className="always-glow-danger">
-          <div role="alert" className="relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7 border-red-500/50 text-red-500 [&>svg]:text-red-500 backdrop-blur-sm">
+          <div
+            role="alert"
+            className="relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7 border-red-500/50 text-red-500 [&>svg]:text-red-500 backdrop-blur-sm"
+          >
             <XCircle className="h-4 w-4" />
-            <h5 className="mb-1 font-medium leading-none tracking-tight">Not Eligible</h5>
+            <h5 className="mb-1 font-medium leading-none tracking-tight">
+              Not Eligible
+            </h5>
             <div className="text-sm [&_p]:leading-relaxed">
               Your attendance is below 75%. You may face detention and will not
               be eligible to appear for the examination.
@@ -417,7 +438,9 @@ export function LTPSCalculator({ components }: LTPSCalculatorProps) {
       >
         <div className="rounded-xl border border-white/10 bg-zinc-950/50 text-zinc-100 shadow-sm bg-card/90 backdrop-blur-sm">
           <div className="flex flex-col space-y-1.5 p-6">
-            <h3 className="font-semibold leading-none tracking-tight text-2xl">Final Attendance</h3>
+            <h3 className="font-semibold leading-none tracking-tight text-2xl">
+              Final Attendance
+            </h3>
             <div className="flex items-center gap-2">
               <span className={`text-4xl font-bold ${attendanceColor}`}>
                 {finalPercentage.toFixed(2)}%
@@ -471,9 +494,14 @@ export function LTPSCalculator({ components }: LTPSCalculatorProps) {
 
       {finalPercentage >= 85 ? (
         <div className="always-glow-success">
-          <div role="alert" className="relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7 bg-background text-foreground bg-background/90 backdrop-blur-sm">
+          <div
+            role="alert"
+            className="relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7 bg-background text-foreground bg-background/90 backdrop-blur-sm"
+          >
             <CheckCircle2 className="h-4 w-4" />
-            <h5 className="mb-1 font-medium leading-none tracking-tight">Eligible</h5>
+            <h5 className="mb-1 font-medium leading-none tracking-tight">
+              Eligible
+            </h5>
             <div className="text-sm [&_p]:leading-relaxed">
               Your attendance is above the minimum required 85%. You are
               eligible to appear for the examination.
@@ -482,9 +510,14 @@ export function LTPSCalculator({ components }: LTPSCalculatorProps) {
         </div>
       ) : finalPercentage >= 75 ? (
         <div className="always-glow-warning">
-          <div role="alert" className="relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7 bg-background text-foreground bg-yellow-500/10 border-yellow-500/20 backdrop-blur-sm">
+          <div
+            role="alert"
+            className="relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7 bg-background text-foreground bg-yellow-500/10 border-yellow-500/20 backdrop-blur-sm"
+          >
             <AlertCircle className="h-4 w-4 text-yellow-500" />
-            <h5 className="mb-1 font-medium leading-none tracking-tight">Conditional Eligibility</h5>
+            <h5 className="mb-1 font-medium leading-none tracking-tight">
+              Conditional Eligibility
+            </h5>
             <div className="text-sm [&_p]:leading-relaxed">
               Your attendance is between 75% and 85%. You need to pay a
               condonation fine to be eligible for the examination.
@@ -493,9 +526,14 @@ export function LTPSCalculator({ components }: LTPSCalculatorProps) {
         </div>
       ) : (
         <div className="always-glow-danger">
-          <div role="alert" className="relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7 border-red-500/50 text-red-500 [&>svg]:text-red-500 backdrop-blur-sm">
+          <div
+            role="alert"
+            className="relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7 border-red-500/50 text-red-500 [&>svg]:text-red-500 backdrop-blur-sm"
+          >
             <XCircle className="h-4 w-4" />
-            <h5 className="mb-1 font-medium leading-none tracking-tight">Not Eligible</h5>
+            <h5 className="mb-1 font-medium leading-none tracking-tight">
+              Not Eligible
+            </h5>
             <div className="text-sm [&_p]:leading-relaxed">
               Your attendance is below 75%. You may face detention and will not
               be eligible to appear for the examination.

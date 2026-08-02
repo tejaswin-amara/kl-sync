@@ -1,19 +1,20 @@
 export interface NormalizedClassSession {
   id: string;
-  day: string;            // Normalized day name e.g. 'Monday'
-  dayShort: string;       // Normalized short day e.g. 'Mon'
-  dayIndex: number;       // 0=Sun, 1=Mon, ..., 6=Sat (-1 if Day Order/Unknown)
-  timeSlot: string;       // e.g. '09:00 AM - 10:00 AM' or 'Period 1'
-  courseCode: string;     // e.g. '25CS1302E'
-  courseTitle: string;    // e.g. 'DATABASE SYSTEMS ENGINEERING AND DISTRIBUTED BACKEND DEVELOPMENT'
-  component?: string;     // e.g. 'Lecture', 'Practical', 'Skill', 'Tutorial'
-  section?: string;       // e.g. 'S-10'
-  room: string;           // e.g. 'H-005'
-  faculty: string;        // e.g. 'khaja shareef sk'
-  rawText: string;        // Original cell string
+  day: string; // Normalized day name e.g. 'Monday'
+  dayShort: string; // Normalized short day e.g. 'Mon'
+  dayIndex: number; // 0=Sun, 1=Mon, ..., 6=Sat (-1 if Day Order/Unknown)
+  timeSlot: string; // e.g. '09:00 AM - 10:00 AM' or 'Period 1'
+  courseCode: string; // e.g. '25CS1302E'
+  courseTitle: string; // e.g. 'DATABASE SYSTEMS ENGINEERING AND DISTRIBUTED BACKEND DEVELOPMENT'
+  component?: string; // e.g. 'Lecture', 'Practical', 'Skill', 'Tutorial'
+  section?: string; // e.g. 'S-10'
+  room: string; // e.g. 'H-005'
+  faculty: string; // e.g. 'khaja shareef sk'
+  rawText: string; // Original cell string
 }
 
-export type TimetableLayoutType = 'matrix_days_columns' | 'matrix_days_rows' | 'list_rows' | 'unknown';
+export type TimetableLayoutType =
+  'matrix_days_columns' | 'matrix_days_rows' | 'list_rows' | 'unknown';
 
 export interface ParsedTimetable {
   layout: TimetableLayoutType;
@@ -27,14 +28,14 @@ export interface ParsedTimetable {
 
 function expandTimeSlots(raw: string): string[] {
   const str = String(raw).trim().toUpperCase();
-  
+
   // If it looks like a time string (e.g., 09:30-10:20), do not mangle it
   if (str.includes(':')) {
     return [str];
   }
-  
+
   const periods = new Set<string>();
-  
+
   const rangeRegex = /(\d+)\s*-\s*(\d+)/g;
   let match;
   let hasRange = false;
@@ -48,14 +49,14 @@ function expandTimeSlots(raw: string): string[] {
       }
     }
   }
-  
+
   if (!hasRange) {
     const numRegex = /\d+/g;
     while ((match = numRegex.exec(str)) !== null) {
       periods.add(match[0]);
     }
   }
-  
+
   if (periods.size === 0) {
     return [str];
   }
@@ -69,15 +70,26 @@ const dayDefinitions: Array<{
   index: number;
 }> = [
   { names: ['monday', 'mon'], full: 'Monday', short: 'Mon', index: 1 },
-  { names: ['tuesday', 'tue', 'tues'], full: 'Tuesday', short: 'Tue', index: 2 },
+  {
+    names: ['tuesday', 'tue', 'tues'],
+    full: 'Tuesday',
+    short: 'Tue',
+    index: 2,
+  },
   { names: ['wednesday', 'wed'], full: 'Wednesday', short: 'Wed', index: 3 },
-  { names: ['thursday', 'thu', 'thur', 'thurs'], full: 'Thursday', short: 'Thu', index: 4 },
+  {
+    names: ['thursday', 'thu', 'thur', 'thurs'],
+    full: 'Thursday',
+    short: 'Thu',
+    index: 4,
+  },
   { names: ['friday', 'fri'], full: 'Friday', short: 'Fri', index: 5 },
   { names: ['saturday', 'sat'], full: 'Saturday', short: 'Sat', index: 6 },
   { names: ['sunday', 'sun'], full: 'Sunday', short: 'Sun', index: 0 },
 ];
 
-const DAY_MAP: Record<string, { full: string; short: string; index: number }> = {};
+const DAY_MAP: Record<string, { full: string; short: string; index: number }> =
+  {};
 
 dayDefinitions.forEach((def) => {
   def.names.forEach((name) => {
@@ -139,7 +151,9 @@ export function normalizeSlotKey(slotStr: string): string {
  * Normalizes day string representation (e.g. 'Mon', 'Monday', 'Day 1') into a structured object.
  * Rejects pure numbers (e.g. '1', '2', '3') to prevent period numbers from being misclassified as days.
  */
-export function normalizeDay(dayStr: string): { full: string; short: string; index: number } | null {
+export function normalizeDay(
+  dayStr: string
+): { full: string; short: string; index: number } | null {
   if (!dayStr) return null;
   const clean = dayStr
     .toLowerCase()
@@ -260,7 +274,9 @@ export function parseCellContent(text: string): {
     S: 'Skill',
     T: 'Tutorial',
   };
-  const component = componentLetter ? compMap[componentLetter] || componentLetter : undefined;
+  const component = componentLetter
+    ? compMap[componentLetter] || componentLetter
+    : undefined;
 
   // 2. Extract Section (e.g. S-10, SEC-10, SECTION 10, L-10, P-10)
   let section: string | undefined = undefined;
@@ -271,11 +287,15 @@ export function parseCellContent(text: string): {
 
   // 3. Extract Room / Venue (room matching is optional)
   let room = '';
-  const explicitRoomMatch = raw.match(/(?:RoomNo|Room|Hall|Lab|Venue)[-:\s]*([A-Z0-9-]+)/i);
+  const explicitRoomMatch = raw.match(
+    /(?:RoomNo|Room|Hall|Lab|Venue)[-:\s]*([A-Z0-9-]+)/i
+  );
   if (explicitRoomMatch) {
     room = explicitRoomMatch[1].replace(/^RoomNo-/i, '').trim();
   } else {
-    const roomCandidates = raw.match(/\b([A-Z]{1,4}[-_\s]?\d{3,4}|[A-Z]-\d{2,4})\b/gi);
+    const roomCandidates = raw.match(
+      /\b([A-Z]{1,4}[-_\s]?\d{3,4}|[A-Z]-\d{2,4})\b/gi
+    );
     if (roomCandidates) {
       for (const cand of roomCandidates) {
         const cleanCand = cand.toUpperCase().trim();
@@ -297,7 +317,10 @@ export function parseCellContent(text: string): {
   if (facultyPrefixMatch) {
     faculty = facultyPrefixMatch[1].trim();
   } else {
-    const parts = raw.split(/[-|\n]/).map((p) => p.trim()).filter(Boolean);
+    const parts = raw
+      .split(/[-|\n]/)
+      .map((p) => p.trim())
+      .filter(Boolean);
     for (const part of parts) {
       if (
         /^(Dr\.|Prof\.|Mr\.|Mrs\.|Ms\.)/i.test(part) ||
@@ -344,7 +367,6 @@ export function parseCellContentMultiple(
     .filter((parsed) => Boolean(parsed.courseCode));
 }
 
-
 /**
  * Universal timetable parser that auto-detects layout format:
  * - Matrix Days-as-Columns (`headers` have day names)
@@ -381,11 +403,15 @@ export function parseTimetable(
 
   const dayHeaders = headers.filter((h) => normalizeDay(h) !== null);
   const dayColKey = headers.find((h) => {
-    const validCount = rawRows.filter((r) => normalizeDay(String(r[h] || '')) !== null).length;
+    const validCount = rawRows.filter(
+      (r) => normalizeDay(String(r[h] || '')) !== null
+    ).length;
     return validCount >= 1;
   });
 
-  const nonDayHeaders = headers.filter((h) => h !== dayColKey && normalizeDay(h) === null);
+  const nonDayHeaders = headers.filter(
+    (h) => h !== dayColKey && normalizeDay(h) === null
+  );
   const periodHeaderMatches = nonDayHeaders.filter(
     (h) =>
       /^\d{1,2}$/.test(normalizeSlotKey(h)) ||
@@ -424,12 +450,16 @@ export function parseTimetable(
   }
 
   const sessions: NormalizedClassSession[] = [];
-  const matrixGrid: Record<string, Record<string, NormalizedClassSession[]>> = {};
+  const matrixGrid: Record<
+    string,
+    Record<string, NormalizedClassSession[]>
+  > = {};
   const daysSet = new Set<string>();
   const timeSlotsSet = new Set<string>();
 
   if (layout === 'matrix_days_columns') {
-    const timeColKey = headers.find((h) => normalizeDay(h) === null) || headers[0];
+    const timeColKey =
+      headers.find((h) => normalizeDay(h) === null) || headers[0];
 
     rawRows.forEach((row, rIdx) => {
       const rawSlot = String(row[timeColKey] || `Period ${rIdx + 1}`).trim();
@@ -460,7 +490,8 @@ export function parseTimetable(
             sessions.push(session);
             timeSlotsSet.add(timeSlot);
             if (!matrixGrid[normDay.full]) matrixGrid[normDay.full] = {};
-            if (!matrixGrid[normDay.full][timeSlot]) matrixGrid[normDay.full][timeSlot] = [];
+            if (!matrixGrid[normDay.full][timeSlot])
+              matrixGrid[normDay.full][timeSlot] = [];
             matrixGrid[normDay.full][timeSlot].push(session);
           });
         });
@@ -495,7 +526,8 @@ export function parseTimetable(
             };
             sessions.push(session);
             if (!matrixGrid[normDay.full]) matrixGrid[normDay.full] = {};
-            if (!matrixGrid[normDay.full][timeSlot]) matrixGrid[normDay.full][timeSlot] = [];
+            if (!matrixGrid[normDay.full][timeSlot])
+              matrixGrid[normDay.full][timeSlot] = [];
             matrixGrid[normDay.full][timeSlot].push(session);
           });
         });
@@ -504,21 +536,54 @@ export function parseTimetable(
   } else {
     // List Timetable or fallback
     rawRows.forEach((row, rIdx) => {
-      const dayKey = headers.find(h => h.toLowerCase().includes('day')) || headers[0];
-      const timeKey = headers.find(h => h.toLowerCase().includes('time') || h.toLowerCase().includes('period') || h.toLowerCase().includes('slot'));
-      const codeKey = headers.find(h => h.toLowerCase().includes('code') || h.toLowerCase().includes('course'));
-      const titleKey = headers.find(h => h.toLowerCase().includes('title') || h.toLowerCase().includes('name') || h.toLowerCase().includes('subject'));
-      const roomKey = headers.find(h => h.toLowerCase().includes('room') || h.toLowerCase().includes('venue') || h.toLowerCase().includes('hall') || h.toLowerCase().includes('lab'));
-      const facultyKey = headers.find(h => h.toLowerCase().includes('faculty') || h.toLowerCase().includes('instructor') || h.toLowerCase().includes('staff') || h.toLowerCase().includes('teacher'));
+      const dayKey =
+        headers.find((h) => h.toLowerCase().includes('day')) || headers[0];
+      const timeKey = headers.find(
+        (h) =>
+          h.toLowerCase().includes('time') ||
+          h.toLowerCase().includes('period') ||
+          h.toLowerCase().includes('slot')
+      );
+      const codeKey = headers.find(
+        (h) =>
+          h.toLowerCase().includes('code') || h.toLowerCase().includes('course')
+      );
+      const titleKey = headers.find(
+        (h) =>
+          h.toLowerCase().includes('title') ||
+          h.toLowerCase().includes('name') ||
+          h.toLowerCase().includes('subject')
+      );
+      const roomKey = headers.find(
+        (h) =>
+          h.toLowerCase().includes('room') ||
+          h.toLowerCase().includes('venue') ||
+          h.toLowerCase().includes('hall') ||
+          h.toLowerCase().includes('lab')
+      );
+      const facultyKey = headers.find(
+        (h) =>
+          h.toLowerCase().includes('faculty') ||
+          h.toLowerCase().includes('instructor') ||
+          h.toLowerCase().includes('staff') ||
+          h.toLowerCase().includes('teacher')
+      );
 
       const rawDayVal = String(row[dayKey] || '').trim();
-      const normDay = normalizeDay(rawDayVal) || { full: rawDayVal || 'General', short: rawDayVal ? rawDayVal.slice(0, 3) : 'Gen', index: -1 };
+      const normDay = normalizeDay(rawDayVal) || {
+        full: rawDayVal || 'General',
+        short: rawDayVal ? rawDayVal.slice(0, 3) : 'Gen',
+        index: -1,
+      };
       daysSet.add(normDay.full);
 
-      const timeSlot = (timeKey && String(row[timeKey]).trim()) || `Period ${rIdx + 1}`;
+      const timeSlot =
+        (timeKey && String(row[timeKey]).trim()) || `Period ${rIdx + 1}`;
       timeSlotsSet.add(timeSlot);
 
-      const rawValues = Object.values(row).map(v => String(v || '').trim()).filter(Boolean);
+      const rawValues = Object.values(row)
+        .map((v) => String(v || '').trim())
+        .filter(Boolean);
 
       const rawCodeVal = (codeKey && String(row[codeKey]).trim()) || '';
       const parsedCodeCell = rawCodeVal ? parseCellContent(rawCodeVal) : null;
@@ -534,7 +599,8 @@ export function parseTimetable(
           const parsed = parseCellContent(val);
           if (!courseCode && parsed.courseCode) courseCode = parsed.courseCode;
           if (!component && parsed.component) component = parsed.component;
-          if (!courseTitle && parsed.courseTitle) courseTitle = parsed.courseTitle;
+          if (!courseTitle && parsed.courseTitle)
+            courseTitle = parsed.courseTitle;
           if (!room && parsed.room) room = parsed.room;
           if (!faculty && parsed.faculty) faculty = parsed.faculty;
         }
@@ -564,7 +630,8 @@ export function parseTimetable(
 
       sessions.push(session);
       if (!matrixGrid[normDay.full]) matrixGrid[normDay.full] = {};
-      if (!matrixGrid[normDay.full][timeSlot]) matrixGrid[normDay.full][timeSlot] = [];
+      if (!matrixGrid[normDay.full][timeSlot])
+        matrixGrid[normDay.full][timeSlot] = [];
       matrixGrid[normDay.full][timeSlot].push(session);
     });
   }
@@ -578,7 +645,15 @@ export function parseTimetable(
   });
 
   const timeSlotsPresent = Array.from(timeSlotsSet);
-  const standardDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const standardDays = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ];
   const allDaysToInit = Array.from(new Set([...standardDays, ...sortedDays]));
 
   allDaysToInit.forEach((day) => {

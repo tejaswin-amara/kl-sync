@@ -1,11 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 
-import {
-  Loader2,
-  AlertCircle,
-  Armchair,
-} from 'lucide-react';
+import { Loader2, AlertCircle, Armchair } from 'lucide-react';
 
 export default function ExamSeatingPage() {
   const [data, setData] = useState<Record<string, unknown>[]>([]);
@@ -90,10 +86,7 @@ export default function ExamSeatingPage() {
               </thead>
               <tbody>
                 {data.map((row, idx) => (
-                  <tr
-                    key={idx}
-                    className="group transition-all"
-                  >
+                  <tr key={idx} className="group transition-all">
                     {Object.values(row).map((val: unknown, j) => {
                       const colName = Object.keys(row)[j].toLowerCase();
                       let displayVal: React.ReactNode = String(val);

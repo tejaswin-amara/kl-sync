@@ -68,7 +68,10 @@ async function handleProxy(
     const resolvedCsrf = csrfToken || session.csrfToken;
 
     // Validate CSRF token resolution for POST endpoints requiring form submission
-    if (!resolvedCsrf && ['attendance', 'timetable', 'marks', 'end-exam'].includes(moduleName)) {
+    if (
+      !resolvedCsrf &&
+      ['attendance', 'timetable', 'marks', 'end-exam'].includes(moduleName)
+    ) {
       return NextResponse.json(
         { success: false, error: 'CSRF token missing' },
         { status: 400 }
@@ -147,7 +150,10 @@ async function handleProxy(
       default:
         // Handle generic GET requests using the ERP_ENDPOINTS map
         if (ERP_ENDPOINTS[moduleName]) {
-          result = await fetchGenericModuleData(session, ERP_ENDPOINTS[moduleName]);
+          result = await fetchGenericModuleData(
+            session,
+            ERP_ENDPOINTS[moduleName]
+          );
         } else {
           return NextResponse.json(
             { success: false, error: `Unknown module: ${moduleName}` },

@@ -1,11 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 
-import {
-  Loader2,
-  AlertCircle,
-  Megaphone,
-} from 'lucide-react';
+import { Loader2, AlertCircle, Megaphone } from 'lucide-react';
 
 export default function CircularsPage() {
   const [data, setData] = useState<Record<string, unknown>[]>([]);
@@ -88,10 +84,7 @@ export default function CircularsPage() {
               </thead>
               <tbody>
                 {data.map((row, idx) => (
-                  <tr
-                    key={idx}
-                    className="group transition-all"
-                  >
+                  <tr key={idx} className="group transition-all">
                     {Object.values(row).map((val: unknown, j) => (
                       <td
                         key={j}

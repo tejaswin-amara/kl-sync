@@ -1,13 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 
-import {
-  Loader2,
-  AlertCircle,
-  Inbox,
-  CheckCircle,
-  Clock,
-} from 'lucide-react';
+import { Loader2, AlertCircle, Inbox, CheckCircle, Clock } from 'lucide-react';
 import {
   findStatusKey,
   isRowUnpaid,
@@ -102,10 +96,16 @@ export default function FeePage() {
                 {data.map((row, idx) => {
                   // Determine status for styling using fee-utils
                   const statusKey = findStatusKey(row);
-                  const statusVal = statusKey && row[statusKey] ? String(row[statusKey]).toLowerCase() : '';
+                  const statusVal =
+                    statusKey && row[statusKey]
+                      ? String(row[statusKey]).toLowerCase()
+                      : '';
                   const isPending = isRowUnpaid(row);
                   const summaryRow = isSummaryRow(row);
-                  const isPaid = !isPending && !summaryRow && (statusVal.includes('paid') || !statusKey);
+                  const isPaid =
+                    !isPending &&
+                    !summaryRow &&
+                    (statusVal.includes('paid') || !statusKey);
 
                   return (
                     <tr
@@ -118,7 +118,8 @@ export default function FeePage() {
 
                         // Add ₹ symbol or format currency amounts safely
                         if (
-                          (typeof val === 'string' || typeof val === 'number') &&
+                          (typeof val === 'string' ||
+                            typeof val === 'number') &&
                           (colName.includes('amount') ||
                             colName.includes('fee') ||
                             colName.includes('scholarship') ||
@@ -131,10 +132,17 @@ export default function FeePage() {
                           const valStr = String(val).trim();
                           const numVal = parseCurrency(val);
                           if (numVal !== 0 || /^-?0(\.0+)?$/.test(valStr)) {
-                            if (valStr.includes('₹') || valStr.includes('$') || valStr.includes('€')) {
+                            if (
+                              valStr.includes('₹') ||
+                              valStr.includes('$') ||
+                              valStr.includes('€')
+                            ) {
                               displayVal = valStr;
                             } else {
-                              displayVal = numVal < 0 ? `-₹${Math.abs(numVal)}` : `₹${valStr}`;
+                              displayVal =
+                                numVal < 0
+                                  ? `-₹${Math.abs(numVal)}`
+                                  : `₹${valStr}`;
                             }
                           }
                         }

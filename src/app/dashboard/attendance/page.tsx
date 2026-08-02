@@ -49,7 +49,8 @@ export default function AttendanceDashboard() {
         throw new Error(resData.error || 'Failed to fetch data');
       setData(resData.attendanceData || []);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to fetch attendance data';
+      const msg =
+        err instanceof Error ? err.message : 'Failed to fetch attendance data';
       setError(msg);
     } finally {
       setLoading(false);
@@ -160,10 +161,7 @@ export default function AttendanceDashboard() {
               </thead>
               <tbody>
                 {data.map((row, idx) => (
-                  <tr
-                    key={idx}
-                    className="group transition-all"
-                  >
+                  <tr key={idx} className="group transition-all">
                     {Object.values(row).map((val: unknown, j: number) => {
                       let displayVal: React.ReactNode = String(val);
 

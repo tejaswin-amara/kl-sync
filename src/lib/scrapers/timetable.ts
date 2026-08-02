@@ -7,14 +7,18 @@ import {
   parseGenericTable,
 } from './http-jar';
 
-export function isLikelyTimetableData(data: Record<string, unknown>[]): boolean {
+export function isLikelyTimetableData(
+  data: Record<string, unknown>[]
+): boolean {
   if (!Array.isArray(data) || data.length === 0) return false;
 
-  const dayPattern = /^\s*(mon|tue|wed|thu|fri|sat|sun|day\s*order|day\s*\d|do\s*\d|d\d)/i;
+  const dayPattern =
+    /^\s*(mon|tue|wed|thu|fri|sat|sun|day\s*order|day\s*\d|do\s*\d|d\d)/i;
   const keys = Object.keys(data[0] || {});
   const hasPeriodHeaders =
-    keys.filter((k) => /^\d{1,2}$/.test(k.trim()) || /^period\s*\d{1,2}$/i.test(k.trim())).length >=
-    3;
+    keys.filter(
+      (k) => /^\d{1,2}$/.test(k.trim()) || /^period\s*\d{1,2}$/i.test(k.trim())
+    ).length >= 3;
   const hasDayValues = data.some((row) =>
     Object.values(row).some((v) => dayPattern.test(String(v || '').trim()))
   );
@@ -76,7 +80,10 @@ export function isLikelyTimetableData(data: Record<string, unknown>[]): boolean 
         matchCount++;
       }
       const val = String(row[key] || '').toLowerCase();
-      if (timetableKeywords.some((kw) => val.includes(kw)) || timeRegex.test(val)) {
+      if (
+        timetableKeywords.some((kw) => val.includes(kw)) ||
+        timeRegex.test(val)
+      ) {
         matchCount++;
       }
       if (courseCodeRegex.test(val) || roomNoRegex.test(val)) {
@@ -116,10 +123,7 @@ export async function fetchTimetableData(
     'UniversityMasterAcademicTimetableView[semesterid]',
     semesterId
   );
-  params.append(
-    'UniversityMasterAcademicTimetableView[semester]',
-    semesterId
-  );
+  params.append('UniversityMasterAcademicTimetableView[semester]', semesterId);
   params.append('DynamicModel[academicyear]', academicYear);
   params.append('DynamicModel[semesterid]', semesterId);
   params.append('DynamicModel[semester]', semesterId);
@@ -144,9 +148,12 @@ export async function fetchTimetableData(
     if (!htmlText || typeof htmlText !== 'string') return false;
     return (
       htmlText.includes('id="login-form"') ||
-      htmlText.includes('action="https://newerp.kluniversity.in/index.php?r=site%2Flogin"') ||
+      htmlText.includes(
+        'action="https://newerp.kluniversity.in/index.php?r=site%2Flogin"'
+      ) ||
       htmlText.includes('action="/index.php?r=site%2Flogin"') ||
-      (/name="LoginForm\[/.test(htmlText) && !htmlText.includes('UniversityMasterAcademicTimetableView'))
+      (/name="LoginForm\[/.test(htmlText) &&
+        !htmlText.includes('UniversityMasterAcademicTimetableView'))
     );
   }
 

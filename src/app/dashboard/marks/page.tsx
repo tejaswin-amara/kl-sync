@@ -4,12 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAcademicSession } from '@/hooks/useAcademicSession';
 
 import { exportTableToCSV } from '@/lib/utils';
-import {
-  AlertCircle,
-  Inbox,
-  ChevronDown,
-  CheckCircle,
-} from 'lucide-react';
+import { AlertCircle, Inbox, ChevronDown, CheckCircle } from 'lucide-react';
 
 export default function MarksPage() {
   const [data, setData] = useState<Record<string, unknown>[]>([]);
@@ -70,8 +65,6 @@ export default function MarksPage() {
     });
   }, [selectedYear, selectedSem, fetchData]);
 
-  
-  
   return (
     <div className="flex flex-col gap-6 w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col md:flex-row justify-between gap-6">
@@ -192,10 +185,7 @@ export default function MarksPage() {
                 </thead>
                 <tbody>
                   {filteredData.map((row, idx) => (
-                    <tr
-                      key={idx}
-                      className="group transition-all"
-                    >
+                    <tr key={idx} className="group transition-all">
                       {Object.values(row).map((val: unknown, j) => (
                         <td
                           key={j}

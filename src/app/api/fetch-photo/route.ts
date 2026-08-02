@@ -62,7 +62,9 @@ export async function GET(request: Request) {
     }
 
     if (!res || !res.ok) {
-      return new NextResponse('Photo not found', { status: res?.status || 404 });
+      return new NextResponse('Photo not found', {
+        status: res?.status || 404,
+      });
     }
 
     const buffer = await res.arrayBuffer();

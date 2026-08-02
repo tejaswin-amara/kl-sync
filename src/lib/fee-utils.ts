@@ -76,7 +76,9 @@ function normalizeKey(key: string): string {
  * Dynamically finds the status column key using priority fuzzy matching
  * while excluding payment date/method/mode/ref/receipt/txn columns.
  */
-export function findStatusKey(row: Record<string, unknown>): string | undefined {
+export function findStatusKey(
+  row: Record<string, unknown>
+): string | undefined {
   if (!row || typeof row !== 'object') return undefined;
 
   const keys = Object.keys(row);
@@ -155,7 +157,9 @@ export function findStatusKey(row: Record<string, unknown>): string | undefined 
 /**
  * Finds explicit due / balance column key (Tier 1).
  */
-export function findExplicitDueKey(row: Record<string, unknown>): string | undefined {
+export function findExplicitDueKey(
+  row: Record<string, unknown>
+): string | undefined {
   if (!row || typeof row !== 'object') return undefined;
 
   const keys = Object.keys(row);
@@ -223,7 +227,9 @@ export function findExplicitDueKey(row: Record<string, unknown>): string | undef
  * while excluding paid/concession/scholarship/date/id columns.
  * Prioritizes explicit due/balance columns (Tier 1) over gross fee/total columns (Tier 2).
  */
-export function findDueAmountKey(row: Record<string, unknown>): string | undefined {
+export function findDueAmountKey(
+  row: Record<string, unknown>
+): string | undefined {
   if (!row || typeof row !== 'object') return undefined;
 
   const explicit = findExplicitDueKey(row);
@@ -384,7 +390,16 @@ export function isRowUnpaid(row: Record<string, unknown>): boolean {
   // If fallback gross fee key exists, check if paid column exists and compare
   const paidKey = Object.keys(row).find((k) => {
     const norm = normalizeKey(k);
-    return (norm.includes('paid') || norm.includes('receipt') || norm.includes('received') || norm.includes('cleared') || norm.includes('credited')) && !norm.includes('unpaid') && !norm.includes('status') && !norm.includes('date');
+    return (
+      (norm.includes('paid') ||
+        norm.includes('receipt') ||
+        norm.includes('received') ||
+        norm.includes('cleared') ||
+        norm.includes('credited')) &&
+      !norm.includes('unpaid') &&
+      !norm.includes('status') &&
+      !norm.includes('date')
+    );
   });
 
   if (fallbackDueKey && paidKey) {
@@ -422,7 +437,16 @@ export function getPendingAmountForRow(row: Record<string, unknown>): number {
 
   const paidKey = Object.keys(row).find((k) => {
     const norm = normalizeKey(k);
-    return (norm.includes('paid') || norm.includes('receipt') || norm.includes('received') || norm.includes('cleared') || norm.includes('credited')) && !norm.includes('unpaid') && !norm.includes('status') && !norm.includes('date');
+    return (
+      (norm.includes('paid') ||
+        norm.includes('receipt') ||
+        norm.includes('received') ||
+        norm.includes('cleared') ||
+        norm.includes('credited')) &&
+      !norm.includes('unpaid') &&
+      !norm.includes('status') &&
+      !norm.includes('date')
+    );
   });
 
   if (paidKey) {
@@ -453,4 +477,3 @@ export function calculatePendingFee(data: Record<string, unknown>[]): number {
     return sum;
   }, 0);
 }
-
