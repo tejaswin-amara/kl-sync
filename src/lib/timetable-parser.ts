@@ -180,6 +180,32 @@ export function isSameDay(dayA: string, dayB: string): boolean {
 }
 
 /**
+ * Splits a timetable cell string into individual session blocks if it contains multiple class sessions
+ * separated by newlines (\n), HTML break tags (<br>), double pipes (||), or triple dashes (---).
+ */
+export function splitCellSessions(text: string): string[] {
+  if (!text || typeof text !== 'string') return [];
+
+  const clean = text.replace(/<br\s*\/?>/gi, '\n');
+
+  const blocks = clean
+    .split(/[\r\n]+|\|{2,}|-{3,}/)
+    .map((b) => b.trim())
+    .filter((b) => {
+      if (!b) return false;
+      const lower = b.toLowerCase();
+      return (
+        lower !== '-' &&
+        lower !== '- - -' &&
+        lower !== 'free' &&
+        lower !== 'n/a'
+      );
+    });
+
+  return blocks;
+}
+
+/**
  * Smart Cell Parser: Robustly parses course code, course title, room/venue, and faculty from cell strings.
  * Handles multi-hyphen strings ("22-CS-1101", "C-101 - Lab", "22-CS-1101 - Data Structures - C-101 - Dr. Smith").
  */
@@ -200,6 +226,11 @@ export function parseCellContent(text: string): {
     text.toLowerCase().trim() === 'n/a'
   ) {
     return { courseCode: '', courseTitle: '', room: '', faculty: '' };
+  }
+
+  const sessionBlocks = splitCellSessions(text);
+  if (sessionBlocks.length > 1) {
+    return parseCellContent(sessionBlocks[0]);
   }
 
   const raw = text.trim();
@@ -301,6 +332,20 @@ export function parseCellContent(text: string): {
 }
 
 /**
+ * Parses multiple class sessions in a single table cell text, splitting by newlines (\n) or double pipes (||).
+ */
+export function parseCellContentMultiple(
+  text: string
+): Array<ReturnType<typeof parseCellContent>> {
+  if (!text || typeof text !== 'string') return [];
+  const blocks = splitCellSessions(text);
+  return blocks
+    .map((block) => parseCellContent(block))
+    .filter((parsed) => Boolean(parsed.courseCode));
+}
+
+
+/**
  * Universal timetable parser that auto-detects layout format:
  * - Matrix Days-as-Columns (`headers` have day names)
  * - Matrix Days-as-Rows (Row 0 has day names in col 0)
@@ -399,12 +444,12 @@ export function parseTimetable(
         daysSet.add(normDay.full);
 
         const rawText = String(row[dayHeader] || '').trim();
-        if (rawText && rawText !== '-' && rawText !== '- - -' && rawText.toLowerCase() !== 'free') {
-          const parsedCell = parseCellContent(rawText);
+        const parsedSessions = parseCellContentMultiple(rawText);
 
+        parsedSessions.forEach((parsedCell, blockIdx) => {
           expandedPeriods.forEach((timeSlot) => {
             const session: NormalizedClassSession = {
-              id: `matrix-col-${normDay.full}-${timeSlot}-${rIdx}`,
+              id: `matrix-col-${normDay.full}-${timeSlot}-${rIdx}-${blockIdx}`,
               day: normDay.full,
               dayShort: normDay.short,
               dayIndex: normDay.index,
@@ -418,7 +463,7 @@ export function parseTimetable(
             if (!matrixGrid[normDay.full][timeSlot]) matrixGrid[normDay.full][timeSlot] = [];
             matrixGrid[normDay.full][timeSlot].push(session);
           });
-        }
+        });
       });
     });
   } else if (layout === 'matrix_days_rows') {
@@ -434,19 +479,13 @@ export function parseTimetable(
       timeSlotHeaders.forEach((tsHeader) => {
         const expandedPeriods = expandTimeSlots(tsHeader);
         const cellVal = String(row[tsHeader] || '').trim();
-        if (
-          cellVal &&
-          cellVal !== '-' &&
-          cellVal !== '- - -' &&
-          cellVal.toLowerCase() !== 'free' &&
-          cellVal.toLowerCase() !== 'n/a'
-        ) {
-          const parsedCell = parseCellContent(cellVal);
+        const parsedSessions = parseCellContentMultiple(cellVal);
 
+        parsedSessions.forEach((parsedCell, blockIdx) => {
           expandedPeriods.forEach((timeSlot) => {
             timeSlotsSet.add(timeSlot);
             const session: NormalizedClassSession = {
-              id: `matrix-row-${normDay.full}-${timeSlot}-${rIdx}`,
+              id: `matrix-row-${normDay.full}-${timeSlot}-${rIdx}-${blockIdx}`,
               day: normDay.full,
               dayShort: normDay.short,
               dayIndex: normDay.index,
@@ -459,7 +498,7 @@ export function parseTimetable(
             if (!matrixGrid[normDay.full][timeSlot]) matrixGrid[normDay.full][timeSlot] = [];
             matrixGrid[normDay.full][timeSlot].push(session);
           });
-        }
+        });
       });
     });
   } else {
@@ -538,13 +577,26 @@ export function parseTimetable(
     return idxA - idxB;
   });
 
+  const timeSlotsPresent = Array.from(timeSlotsSet);
+  const standardDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const allDaysToInit = Array.from(new Set([...standardDays, ...sortedDays]));
+
+  allDaysToInit.forEach((day) => {
+    if (!matrixGrid[day]) matrixGrid[day] = {};
+    timeSlotsPresent.forEach((slot) => {
+      if (!matrixGrid[day][slot]) {
+        matrixGrid[day][slot] = [];
+      }
+    });
+  });
+
   return {
     layout,
     headers,
     rawRows,
     sessions,
     daysPresent: sortedDays,
-    timeSlotsPresent: Array.from(timeSlotsSet),
+    timeSlotsPresent,
     matrixGrid,
   };
 }

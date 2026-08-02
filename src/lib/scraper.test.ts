@@ -5,8 +5,10 @@ import {
   parseTimetable,
   normalizeDay,
   parseCellContent,
+  parseCellContentMultiple,
   normalizeSlotKey,
   isSameDay,
+  splitCellSessions,
 } from './timetable-parser';
 
 describe('Timetable Day Normalization & DAY_MAP Coverage', () => {
@@ -60,7 +62,7 @@ describe('Timetable Day Normalization & DAY_MAP Coverage', () => {
   });
 });
 
-describe('Cell Content Parser (parseCellContent)', () => {
+describe('Cell Content Parser (parseCellContent & splitCellSessions)', () => {
   it('correctly parses cells with room numbers', () => {
     const cell = '25CS1302E-L - S-10 - RoomNo-H-005';
     const parsed = parseCellContent(cell);
@@ -103,15 +105,75 @@ describe('Cell Content Parser (parseCellContent)', () => {
     assert.equal(parseCellContent('N/A').courseCode, '');
     assert.equal(parseCellContent('').courseCode, '');
   });
+
+  it('splitCellSessions correctly splits multi-session strings by \\n, <br>, ||, and ---', () => {
+    const textNewline = '25CS1302E-L - S-10\n25SC2107E-S - S-10';
+    assert.deepEqual(splitCellSessions(textNewline), [
+      '25CS1302E-L - S-10',
+      '25SC2107E-S - S-10',
+    ]);
+
+    const textBr = '25CS1302E-L - S-10<br/>25SC2107E-S - S-10';
+    assert.deepEqual(splitCellSessions(textBr), [
+      '25CS1302E-L - S-10',
+      '25SC2107E-S - S-10',
+    ]);
+
+    const textBrSpace = '25CS1302E-L - S-10<br />25SC2107E-S - S-10';
+    assert.deepEqual(splitCellSessions(textBrSpace), [
+      '25CS1302E-L - S-10',
+      '25SC2107E-S - S-10',
+    ]);
+
+    const textBrPlain = '25CS1302E-L - S-10<br>25SC2107E-S - S-10';
+    assert.deepEqual(splitCellSessions(textBrPlain), [
+      '25CS1302E-L - S-10',
+      '25SC2107E-S - S-10',
+    ]);
+
+    const textPipes = '25CS1302E-L - S-10 || 25SC2107E-S - S-10';
+    assert.deepEqual(splitCellSessions(textPipes), [
+      '25CS1302E-L - S-10',
+      '25SC2107E-S - S-10',
+    ]);
+
+    const textDashes = '22CS1101-P - S-05 - RoomNo-C-101 --- 25SC2107E-S - S-10';
+  });
 });
 
-describe('HTML Parsing (parseGenericTable & parseTimetable)', () => {
-  it('parses matrix format timetable HTML payload cleanly', () => {
+describe('Cell Content Multiple Parser (parseCellContentMultiple)', () => {
+  it('correctly parses multiple session strings separated by \\n, <br/>, or ||', () => {
+    const text = '25CS1302E-L - S-10 - RoomNo-H-005\n25SC2107E-S - S-10 - RoomNo-H-006';
+    const parsed = parseCellContentMultiple(text);
+    assert.equal(parsed.length, 2);
+    assert.equal(parsed[0].courseCode, '25CS1302E');
+    assert.equal(parsed[0].component, 'Lecture');
+    assert.equal(parsed[0].room, 'H-005');
+    assert.equal(parsed[1].courseCode, '25SC2107E');
+    assert.equal(parsed[1].component, 'Skill');
+    assert.equal(parsed[1].room, 'H-006');
+
+    const pipeText = '22CS1101-P - S-05 || 25SC2107E-S - S-10';
+    const pipeParsed = parseCellContentMultiple(pipeText);
+    assert.equal(pipeParsed.length, 2);
+    assert.equal(pipeParsed[0].courseCode, '22CS1101');
+    assert.equal(pipeParsed[1].courseCode, '25SC2107E');
+  });
+
+  it('handles empty or dash text gracefully returning empty array', () => {
+    assert.deepEqual(parseCellContentMultiple(''), []);
+    assert.deepEqual(parseCellContentMultiple('-'), []);
+    assert.deepEqual(parseCellContentMultiple('Free'), []);
+  });
+});
+
+describe('HTML Parsing & Matrix Formats (parseGenericTable & parseTimetable)', () => {
+  it('parses matrix_days_rows layout format producing complete matrix grids', () => {
     const htmlPayload = `
       <table class="table table-bordered">
         <thead>
           <tr>
-            <th>Time/Day</th>
+            <th>Day / Period</th>
             <th>1</th>
             <th>2</th>
             <th>3</th>
@@ -119,13 +181,13 @@ describe('HTML Parsing (parseGenericTable & parseTimetable)', () => {
         </thead>
         <tbody>
           <tr>
-            <td>DAY ORDER - 1</td>
+            <td>Monday</td>
             <td>25CS1302E-L - S-10 - RoomNo-H-005</td>
             <td>25SC2107E-S - S-10</td>
             <td>Free</td>
           </tr>
           <tr>
-            <td>DAY ORDER - 2</td>
+            <td>Tuesday</td>
             <td>22CS1101-L - S-05 - RoomNo-C-101</td>
             <td>-</td>
             <td>25CS1302E-P - S-10 - RoomNo-LAB-2</td>
@@ -140,23 +202,206 @@ describe('HTML Parsing (parseGenericTable & parseTimetable)', () => {
 
     const parsedTT = parseTimetable(rawRows);
     assert.equal(parsedTT.layout, 'matrix_days_rows');
-    assert.ok(parsedTT.sessions.length >= 3);
+    assert.ok(parsedTT.daysPresent.includes('Monday'));
+    assert.ok(parsedTT.daysPresent.includes('Tuesday'));
+    assert.ok(parsedTT.timeSlotsPresent.includes('1'));
+    assert.ok(parsedTT.timeSlotsPresent.includes('2'));
+    assert.ok(parsedTT.timeSlotsPresent.includes('3'));
+
     assert.ok(Array.isArray(parsedTT.matrixGrid['Monday']['1']));
     assert.equal(parsedTT.matrixGrid['Monday']['1'][0].courseCode, '25CS1302E');
+    assert.equal(parsedTT.matrixGrid['Monday']['1'][0].room, 'H-005');
 
-    const session1 = parsedTT.sessions.find((s) => s.courseCode === '25CS1302E' && s.timeSlot === '1');
-    assert.ok(session1);
-    assert.equal(session1?.day, 'Monday');
-    assert.equal(session1?.component, 'Lecture');
-    assert.equal(session1?.section, 'S-10');
-    assert.equal(session1?.room, 'H-005');
+    assert.ok(Array.isArray(parsedTT.matrixGrid['Tuesday']['3']));
+    assert.equal(parsedTT.matrixGrid['Tuesday']['3'][0].courseCode, '25CS1302E');
+    assert.equal(parsedTT.matrixGrid['Tuesday']['3'][0].component, 'Practical');
+    assert.equal(parsedTT.matrixGrid['Tuesday']['3'][0].room, 'LAB-2');
+  });
 
-    const session2 = parsedTT.sessions.find((s) => s.courseCode === '25SC2107E' && s.timeSlot === '2');
-    assert.ok(session2);
-    assert.equal(session2?.day, 'Monday');
-    assert.equal(session2?.component, 'Skill');
-    assert.equal(session2?.section, 'S-10');
-    assert.equal(session2?.room, '');
+  it('parses matrix_days_columns layout format producing complete matrix grids', () => {
+    const htmlPayload = `
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Period / Day</th>
+            <th>Monday</th>
+            <th>Tuesday</th>
+            <th>Wednesday</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>25CS1302E-L - S-10 - RoomNo-H-005</td>
+            <td>22CS1101-L - S-05 - RoomNo-C-101</td>
+            <td>Free</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>25SC2107E-S - S-10</td>
+            <td>-</td>
+            <td>25CS1302E-P - S-10 - RoomNo-LAB-2</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+
+    const rawRows = parseGenericTable(htmlPayload);
+    assert.equal(rawRows.length, 2);
+    assert.equal(isLikelyTimetableData(rawRows), true);
+
+    const parsedTT = parseTimetable(rawRows);
+    assert.equal(parsedTT.layout, 'matrix_days_columns');
+    assert.ok(parsedTT.daysPresent.includes('Monday'));
+    assert.ok(parsedTT.daysPresent.includes('Tuesday'));
+    assert.ok(parsedTT.daysPresent.includes('Wednesday'));
+
+    // Check Monday Period 1
+    assert.ok(Array.isArray(parsedTT.matrixGrid['Monday']['1']));
+    assert.equal(parsedTT.matrixGrid['Monday']['1'][0].courseCode, '25CS1302E');
+    assert.equal(parsedTT.matrixGrid['Monday']['1'][0].component, 'Lecture');
+    assert.equal(parsedTT.matrixGrid['Monday']['1'][0].room, 'H-005');
+
+    // Check Tuesday Period 1
+    assert.ok(Array.isArray(parsedTT.matrixGrid['Tuesday']['1']));
+    assert.equal(parsedTT.matrixGrid['Tuesday']['1'][0].courseCode, '22CS1101');
+    assert.equal(parsedTT.matrixGrid['Tuesday']['1'][0].room, 'C-101');
+
+    // Check Wednesday Period 2
+    assert.ok(Array.isArray(parsedTT.matrixGrid['Wednesday']['2']));
+    assert.equal(parsedTT.matrixGrid['Wednesday']['2'][0].courseCode, '25CS1302E');
+    assert.equal(parsedTT.matrixGrid['Wednesday']['2'][0].component, 'Practical');
+    assert.equal(parsedTT.matrixGrid['Wednesday']['2'][0].room, 'LAB-2');
+  });
+
+  it('correctly parses multi-session cells in matrix formats without dropping sessions', () => {
+    const htmlPayload = `
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Day / Period</th>
+            <th>1</th>
+            <th>2</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Monday</td>
+            <td>25CS1302E-L - S-10 - RoomNo-H-005<br/>25SC2107E-S - S-10 - RoomNo-H-006</td>
+            <td>22CS1101-P - S-05 || 25SC2107E-S - S-10</td>
+          </tr>
+          <tr>
+            <td>Tuesday</td>
+            <td>25CS1302E-P - S-10 --- 22CS1101-L - S-05</td>
+            <td>Free</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+
+    const rawRows = parseGenericTable(htmlPayload);
+    assert.equal(rawRows.length, 2);
+
+    const parsedTT = parseTimetable(rawRows);
+    assert.equal(parsedTT.layout, 'matrix_days_rows');
+
+    // Monday Period 1 should have 2 sessions (<br/> separated)
+    const mon1Sessions = parsedTT.matrixGrid['Monday']['1'];
+    assert.ok(Array.isArray(mon1Sessions));
+    assert.equal(mon1Sessions.length, 2);
+    assert.equal(mon1Sessions[0].courseCode, '25CS1302E');
+    assert.equal(mon1Sessions[0].component, 'Lecture');
+    assert.equal(mon1Sessions[0].room, 'H-005');
+    assert.equal(mon1Sessions[1].courseCode, '25SC2107E');
+    assert.equal(mon1Sessions[1].component, 'Skill');
+    assert.equal(mon1Sessions[1].room, 'H-006');
+
+    // Monday Period 2 should have 2 sessions (|| separated)
+    const mon2Sessions = parsedTT.matrixGrid['Monday']['2'];
+    assert.ok(Array.isArray(mon2Sessions));
+    assert.equal(mon2Sessions.length, 2);
+    assert.equal(mon2Sessions[0].courseCode, '22CS1101');
+    assert.equal(mon2Sessions[0].component, 'Practical');
+    assert.equal(mon2Sessions[1].courseCode, '25SC2107E');
+    assert.equal(mon2Sessions[1].component, 'Skill');
+
+    // Tuesday Period 1 should have 2 sessions (--- separated)
+    const tue1Sessions = parsedTT.matrixGrid['Tuesday']['1'];
+    assert.ok(Array.isArray(tue1Sessions));
+    assert.equal(tue1Sessions.length, 2);
+    assert.equal(tue1Sessions[0].courseCode, '25CS1302E');
+    assert.equal(tue1Sessions[0].component, 'Practical');
+    assert.equal(tue1Sessions[1].courseCode, '22CS1101');
+    assert.equal(tue1Sessions[1].component, 'Lecture');
+
+    // Verify all 6 total sessions are preserved in parsedTT.sessions
+    assert.equal(parsedTT.sessions.length, 6);
+  });
+
+  it('correctly parses multi-session cells with <br/> tags in matrix_days_columns HTML layout', () => {
+    const htmlPayload = `
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Period / Day</th>
+            <th>Monday</th>
+            <th>Tuesday</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>25CS1302E-L - S-10 - RoomNo-H-005<br/>25SC2107E-S - S-10 - RoomNo-H-006</td>
+            <td>22CS1101-L - S-05 - RoomNo-C-101<br />25SC2107E-S - S-10 - RoomNo-C-102</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>22CS1101-P - S-05<br>25CS1302E-P - S-10</td>
+            <td>Free</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+
+    const rawRows = parseGenericTable(htmlPayload);
+    assert.equal(rawRows.length, 2);
+    assert.equal(isLikelyTimetableData(rawRows), true);
+
+    const parsedTT = parseTimetable(rawRows);
+    assert.equal(parsedTT.layout, 'matrix_days_columns');
+
+    // Monday Period 1 has 2 sessions separated by <br/>
+    const mon1 = parsedTT.matrixGrid['Monday']['1'];
+    assert.ok(Array.isArray(mon1));
+    assert.equal(mon1.length, 2);
+    assert.equal(mon1[0].courseCode, '25CS1302E');
+    assert.equal(mon1[0].component, 'Lecture');
+    assert.equal(mon1[0].room, 'H-005');
+    assert.equal(mon1[1].courseCode, '25SC2107E');
+    assert.equal(mon1[1].component, 'Skill');
+    assert.equal(mon1[1].room, 'H-006');
+
+    // Tuesday Period 1 has 2 sessions separated by <br />
+    const tue1 = parsedTT.matrixGrid['Tuesday']['1'];
+    assert.ok(Array.isArray(tue1));
+    assert.equal(tue1.length, 2);
+    assert.equal(tue1[0].courseCode, '22CS1101');
+    assert.equal(tue1[0].component, 'Lecture');
+    assert.equal(tue1[0].room, 'C-101');
+    assert.equal(tue1[1].courseCode, '25SC2107E');
+    assert.equal(tue1[1].component, 'Skill');
+    assert.equal(tue1[1].room, 'C-102');
+
+    // Monday Period 2 has 2 sessions separated by <br>
+    const mon2 = parsedTT.matrixGrid['Monday']['2'];
+    assert.ok(Array.isArray(mon2));
+    assert.equal(mon2.length, 2);
+    assert.equal(mon2[0].courseCode, '22CS1101');
+    assert.equal(mon2[0].component, 'Practical');
+    assert.equal(mon2[1].courseCode, '25CS1302E');
+    assert.equal(mon2[1].component, 'Practical');
+
+    assert.equal(parsedTT.sessions.length, 6);
   });
 
   it('parses list format timetable HTML payload cleanly', () => {
@@ -211,3 +456,4 @@ describe('Slot Key Normalization', () => {
     assert.equal(normalizeSlotKey('09:00 AM - 09:50 AM'), '09:00 AM - 09:50 AM');
   });
 });
+

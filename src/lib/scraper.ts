@@ -472,13 +472,19 @@ export function parseGenericTable(
   function getNodeText($cell: cheerio.Cheerio<Element>): string {
     const $clone = $cell.clone();
     $clone.find('script, style, noscript, template, input[type="hidden"]').remove();
+    $clone.find('br').replaceWith('\n');
+    $clone.find('div, p, tr, li, h1, h2, h3, h4, h5, h6').before('\n').after('\n');
     $clone
-      .find('br, div, p, span, a, b, i, strong, em, small, font, li, td, th, h1, h2, h3, h4, h5, h6')
+      .find('span, a, b, i, strong, em, small, font, td, th')
       .before(' ')
       .after(' ');
     let text = $clone.text();
     text = text.replace(/\u00a0/g, ' ');
-    return text.replace(/\s+/g, ' ').trim();
+    const lines = text
+      .split('\n')
+      .map((line) => line.replace(/[ \t]+/g, ' ').trim())
+      .filter(Boolean);
+    return lines.join('\n');
   }
 
   function getNodeHref($cell: cheerio.Cheerio<Element>): string | null {

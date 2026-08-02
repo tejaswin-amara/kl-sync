@@ -467,7 +467,7 @@ export default function TimetablePage() {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-zinc-900/80 border-b border-white/10 text-[11px] font-bold uppercase tracking-wider text-zinc-300">
-                        <th className="p-4 sticky left-0 z-20 bg-zinc-900/95 backdrop-blur-md min-w-[120px] border-r border-white/10 text-indigo-400 text-center">
+                        <th scope="col" className="p-4 sticky left-0 z-20 bg-zinc-900/95 backdrop-blur-md min-w-[120px] border-r border-white/10 text-indigo-400 text-center">
                           Day / Period
                         </th>
                         {(() => {
@@ -508,7 +508,7 @@ export default function TimetablePage() {
                           }
 
                           return slotsToRender.map((periodNum) => (
-                            <th key={periodNum} className="p-4 text-center min-w-[200px] border-r border-white/5 last:border-r-0 text-zinc-200">
+                            <th scope="col" key={periodNum} className="p-4 text-center min-w-[200px] border-r border-white/5 last:border-r-0 text-zinc-200">
                               {periodNum.length < 3 && !periodNum.toLowerCase().includes('p') ? `Period ${periodNum}` : periodNum}
                             </th>
                           ));
@@ -565,21 +565,16 @@ export default function TimetablePage() {
                         }
 
                         return daysToRender.map((day) => {
-                          const daySessions = parsedTT.sessions.filter((s) => isSameDay(s.day, day));
-
                           return (
                             <tr key={day} className="hover:bg-white/[0.02] transition-colors">
                               {/* Sticky Day Column */}
-                              <td className="p-4 sticky left-0 z-10 bg-zinc-950/90 backdrop-blur-md font-bold text-xs text-zinc-200 border-r border-white/10 text-center whitespace-nowrap">
+                              <th scope="row" className="p-4 sticky left-0 z-10 bg-zinc-950/90 backdrop-blur-md font-bold text-xs text-zinc-200 border-r border-white/10 text-center whitespace-nowrap">
                                 {day}
-                              </td>
+                              </th>
 
                               {/* Period Columns for this Day */}
                               {slotsToRender.map((periodNum) => {
-                                const matchingSessions = daySessions.filter((s) => {
-                                  const rawSlot = String(s.timeSlot || '').trim();
-                                  return rawSlot === periodNum || normalizeSlotKey(rawSlot) === normalizeSlotKey(periodNum);
-                                });
+                                const matchingSessions = parsedTT.matrixGrid[day]?.[periodNum] || [];
 
                                 return (
                                   <td
