@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { getCaptcha } from '@/lib/scraper';
 import { encodeSession } from '@/lib/session';
 
-
 export async function GET() {
   try {
     const { captchaImage, session } = await getCaptcha();
@@ -23,6 +22,9 @@ export async function GET() {
     );
   } catch (error) {
     console.error('Error in captcha route:', error);
-    return new NextResponse('Internal Error', { status: 500 });
+    return NextResponse.json(
+      { success: false, error: 'Failed to fetch captcha' },
+      { status: 500 }
+    );
   }
 }

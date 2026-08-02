@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { loginAndFetchSemesters, ScraperSession } from '@/lib/scraper';
 import { decodeSession, encodeSession } from '@/lib/session';
 
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -26,8 +25,6 @@ export async function POST(request: NextRequest) {
     }
 
     if (!sessionId) {
-      // Fallback to mock login if no session ID provided (and user knows it's mock)
-      // But for now, we enforce session ID because we need cookies
       return NextResponse.json(
         { success: false, message: 'Session expired. Please refresh captcha.' },
         { status: 400 }
@@ -39,7 +36,8 @@ export async function POST(request: NextRequest) {
     try {
       session = decodeSession(sessionId);
     } catch (e) {
-      console.error('Session parsing failed:', e);
+      const errMessage = e instanceof Error ? e.message : 'Invalid session';
+      console.error('Session parsing failed:', errMessage);
       return NextResponse.json(
         { success: false, message: 'Invalid session. Please refresh captcha.' },
         { status: 400 }
@@ -97,16 +95,15 @@ export async function POST(request: NextRequest) {
         csrfToken: result.csrfToken,
         academicYears: result.academicYears,
         semesters: result.semesters,
-        studentName: 'Student', // Placeholder, could be scraped
       })
     );
   } catch (error: unknown) {
-    console.error('Login error:', error);
-    const message = error instanceof Error ? error.message : 'Login failed';
+    const safeMessage = error instanceof Error ? error.message : 'Login failed';
+    console.error('[AUTH_ERROR]', safeMessage);
     return NextResponse.json(
       {
         success: false,
-        message,
+        message: safeMessage,
       },
       { status: 401 }
     );

@@ -67,6 +67,14 @@ async function handleProxy(
       undefined;
     const resolvedCsrf = csrfToken || session.csrfToken;
 
+    // Validate CSRF token resolution for POST endpoints requiring form submission
+    if (!resolvedCsrf && ['attendance', 'timetable', 'marks', 'end-exam'].includes(moduleName)) {
+      return NextResponse.json(
+        { success: false, error: 'CSRF token missing' },
+        { status: 400 }
+      );
+    }
+
     let result;
 
     switch (moduleName) {

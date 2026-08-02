@@ -28,16 +28,29 @@ export async function GET(request: Request) {
 
   try {
     const base = 'https://newerp.kluniversity.in';
-    const urls = path 
-      ? [path.startsWith('http') ? path : `${base}${path.startsWith('/') ? path : '/' + path}`] 
-      : [`${base}/uploads/studentphotos/${id}.jpg`, `${base}/uploads/StudentPhotos/${id}.jpg`];
+    let urls: string[] = [];
+
+    if (path) {
+      const sanitizedPath = path.startsWith('/') ? path : '/' + path;
+      if (!sanitizedPath.toLowerCase().startsWith('/uploads/')) {
+        return new NextResponse('Invalid photo path', { status: 400 });
+      }
+      urls = [path.startsWith('http') ? path : `${base}${sanitizedPath}`];
+    } else {
+      urls = [
+        `${base}/uploads/studentphotos/${id}.jpg`,
+        `${base}/uploads/StudentPhotos/${id}.jpg`,
+      ];
+    }
 
     if (path && urls[0].startsWith('http') && !urls[0].startsWith(base)) {
       return new NextResponse('Invalid photo URL', { status: 400 });
     }
 
     const headers = {
-      Cookie: session.cookies.map((c: { name: string; value: string }) => `${c.name}=${c.value}`).join('; '),
+      Cookie: session.cookies
+        .map((c: { name: string; value: string }) => `${c.name}=${c.value}`)
+        .join('; '),
       Referer: `${base}/`,
       'User-Agent': 'Mozilla/5.0',
     };

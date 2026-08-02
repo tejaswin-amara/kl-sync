@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import {
   LS_ERP_YEAR,
   LS_ERP_SEM,
+  LS_ACADEMIC_YEARS,
+  LS_SEMESTERS,
   SS_ACADEMIC_YEARS,
   SS_SEMESTERS,
 } from '@/lib/constants';
@@ -20,10 +22,14 @@ export function useAcademicSession() {
 
   useEffect(() => {
     try {
-      // H6: Note that although the values are initially seeded into sessionStorage by the login process,
-      // we gracefully handle missing/corrupt data (H8).
-      const yStr = localStorage.getItem(SS_ACADEMIC_YEARS) || sessionStorage.getItem(SS_ACADEMIC_YEARS);
-      const sStr = localStorage.getItem(SS_SEMESTERS) || sessionStorage.getItem(SS_SEMESTERS);
+      const yStr =
+        localStorage.getItem(LS_ACADEMIC_YEARS) ||
+        localStorage.getItem(SS_ACADEMIC_YEARS) ||
+        sessionStorage.getItem(SS_ACADEMIC_YEARS);
+      const sStr =
+        localStorage.getItem(LS_SEMESTERS) ||
+        localStorage.getItem(SS_SEMESTERS) ||
+        sessionStorage.getItem(SS_SEMESTERS);
 
       let parsedYears: SemesterOption[] = [];
       let parsedSems: SemesterOption[] = [];
@@ -47,10 +53,12 @@ export function useAcademicSession() {
 
       // Restore from localStorage or pick the first available option
       const savedYear = localStorage.getItem(LS_ERP_YEAR);
-      const targetYear = savedYear || (parsedYears.length > 0 ? parsedYears[0].value : '');
+      const targetYear =
+        savedYear || (parsedYears.length > 0 ? parsedYears[0].value : '');
 
       const savedSem = localStorage.getItem(LS_ERP_SEM);
-      const targetSem = savedSem || (parsedSems.length > 0 ? parsedSems[0].value : '');
+      const targetSem =
+        savedSem || (parsedSems.length > 0 ? parsedSems[0].value : '');
 
       // Check if we completely lack session choices
       if (

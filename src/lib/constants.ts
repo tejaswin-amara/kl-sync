@@ -13,6 +13,8 @@ export const LS_DASHBOARD_CGPA = 'kl_dashboard_cgpa';
 export const LS_DASHBOARD_CREDITS = 'kl_dashboard_credits';
 export const LS_DASHBOARD_ATTENDANCE = 'kl_dashboard_attendance';
 export const LS_DASHBOARD_FEE = 'kl_dashboard_fee';
+export const LS_ACADEMIC_YEARS = 'kl_erp_academic_years';
+export const LS_SEMESTERS = 'kl_erp_semesters';
 
 // sessionStorage keys
 export const SS_ACADEMIC_YEARS = 'kl_erp_academic_years';

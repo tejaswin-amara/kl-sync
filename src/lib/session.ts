@@ -5,9 +5,6 @@ import { ScraperSession } from './scraper';
 // the browser between captcha -> login -> fetch-attendance. Those cookies are
 // sensitive, so when SESSION_SECRET is configured we authenticated-encrypt the
 // token (AES-256-GCM) so the client can neither read nor tamper with it.
-//
-// If no secret is set we fall back to plain base64 (the original behaviour) so
-
 
 const ALGO = 'aes-256-gcm';
 const ENC_PREFIX = 'enc.';
@@ -18,7 +15,7 @@ function getKey(): Buffer | null {
   if (!secret) {
     if (process.env.NODE_ENV === 'production') {
       throw new Error(
-        '[SECURITY] SESSION_SECRET is not set in production! Sessions will use plain base64 encoding. Set SESSION_SECRET for encryption.'
+        '[SECURITY FATAL] SESSION_SECRET environment variable is missing in production environment. Set SESSION_SECRET for encryption.'
       );
     }
     return null;
