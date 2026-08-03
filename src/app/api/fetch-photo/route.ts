@@ -20,11 +20,14 @@ export async function GET(request: Request) {
     return new NextResponse('Invalid path', { status: 400 });
   }
 
+  const headerSessionId = request.headers.get('x-session-id');
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get('kl_erp_session');
-  if (!sessionCookie) return new NextResponse('Unauthorized', { status: 401 });
+  const sessionCookie = cookieStore.get('kl_erp_session')?.value;
+  const rawSession = headerSessionId || sessionCookie;
 
-  const session = decodeSession(sessionCookie.value);
+  if (!rawSession) return new NextResponse('Unauthorized', { status: 401 });
+
+  const session = decodeSession(rawSession);
 
   try {
     const base = 'https://newerp.kluniversity.in';
