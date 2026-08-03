@@ -58,33 +58,28 @@ export async function fetchProfileData(session: ScraperSession) {
     }
   }
 
-  const tabHtmls: { name: string; html: string }[] = [];
   const entries = Array.from(tabUrls.entries());
-  for (let i = 0; i < entries.length; i += 2) {
-    const chunk = entries.slice(i, i + 2);
-    const chunkRes = await Promise.all(
-      chunk.map(async ([url, name]) => {
-        try {
-          const tabRes = await fetchWithJar(
-            `https://newerp.kluniversity.in${url}`,
-            jar,
-            {
-              method: 'GET',
-              extraHeaders: {
-                Origin: ERP_URL,
-                Referer: ERP_ENDPOINTS['profile'],
-                'X-Requested-With': 'XMLHttpRequest',
-              },
-            }
-          );
-          return { name, html: await tabRes.text() };
-        } catch {
-          return { name, html: '' };
-        }
-      })
-    );
-    tabHtmls.push(...chunkRes);
-  }
+  const tabHtmls = await Promise.all(
+    entries.map(async ([url, name]) => {
+      try {
+        const tabRes = await fetchWithJar(
+          `https://newerp.kluniversity.in${url}`,
+          jar,
+          {
+            method: 'GET',
+            extraHeaders: {
+              Origin: ERP_URL,
+              Referer: ERP_ENDPOINTS['profile'],
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+          }
+        );
+        return { name, html: await tabRes.text() };
+      } catch {
+        return { name, html: '' };
+      }
+    })
+  );
 
   const allPages = [{ name: 'Personal Information', html }, ...tabHtmls];
 

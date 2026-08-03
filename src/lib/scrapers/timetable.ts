@@ -128,17 +128,13 @@ export async function fetchTimetableData(
   params.append('DynamicModel[semesterid]', semesterId);
   params.append('DynamicModel[semester]', semesterId);
 
-  const candidateUrls = [
-    ERP_ENDPOINTS['timetable'],
+  const primaryUrl = ERP_ENDPOINTS['timetable'];
+  const fallbackUrls = [
     `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Findividualstudenttimetableget`,
     `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Fstudenttimetable`,
-    `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Findex`,
     `${ERP_URL}/index.php?r=studentattendance%2Fstudentdailyattendance%2Fstudenttimetable`,
-    `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Fviewstudenttimetable`,
-    `${ERP_URL}/index.php?r=timetables%2Fdefault%2Findex`,
-    `${ERP_URL}/index.php?r=timetables%2Fstudenttimetable%2Findex`,
-    `${ERP_URL}/index.php?r=studentattendance%2Fstudentdailyattendance%2Ftimetable`,
   ];
+  const candidateUrls = [primaryUrl, ...fallbackUrls];
 
   let data: Record<string, unknown>[] = [];
   let fallbackData: Record<string, unknown>[] = [];

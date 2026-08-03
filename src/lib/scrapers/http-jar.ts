@@ -86,6 +86,7 @@ export async function fetchWithJar(
   for (let i = 0; i <= maxRedirects; i++) {
     const headers: Record<string, string> = {
       'User-Agent': USER_AGENT,
+      Connection: 'keep-alive',
       ...(init.extraHeaders || {}),
     };
     const cookies = cookieHeader(jar);
@@ -174,11 +175,10 @@ export function parseGenericTable(
     }
   }
 
-  const cleanHtml = html
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/<style[\s\S]*?<\/style>/gi, '')
-    .replace(/<noscript[\s\S]*?<\/noscript>/gi, '')
-    .replace(/<!--[\s\S]*?-->/g, '');
+  const cleanHtml = html.replace(
+    /<(script|style|noscript)[\s\S]*?<\/\1>|<!--[\s\S]*?-->/gi,
+    ''
+  );
 
   if (cleanHtml.trim() === '') {
     return [];
