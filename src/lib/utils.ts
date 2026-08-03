@@ -32,4 +32,5 @@ export function exportTableToCSV(
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+  setTimeout(() => window.URL.revokeObjectURL(url), 100);
 }

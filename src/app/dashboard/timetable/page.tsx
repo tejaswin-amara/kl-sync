@@ -341,18 +341,20 @@ export default function TimetablePage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedYear, selectedSem]);
+  }, [selectedYear, selectedSem, handleYearChange, years]);
 
   useEffect(() => {
-    if (sessionError) {
-      setLoading(false);
-      return;
-    }
-    if (selectedYear && selectedSem) {
-      fetchData();
-    } else {
-      setLoading(false);
-    }
+    queueMicrotask(() => {
+      if (sessionError) {
+        setLoading(false);
+        return;
+      }
+      if (selectedYear && selectedSem) {
+        fetchData();
+      } else {
+        setLoading(false);
+      }
+    });
   }, [fetchData, selectedYear, selectedSem, sessionError]);
 
   const daysList = [

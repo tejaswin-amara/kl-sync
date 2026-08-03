@@ -375,10 +375,33 @@ export function isRowUnpaid(row: Record<string, unknown>): boolean {
       !statusVal.includes('un');
 
     if (matchesPaid) {
-      if (explicitDueKey) {
-        return parseCurrency(row[explicitDueKey]) > 0;
+      const paidKey = Object.keys(row).find((k) => {
+        const norm = normalizeKey(k);
+        return (
+          (norm.includes('paid') ||
+            norm.includes('receipt') ||
+            norm.includes('received') ||
+            norm.includes('cleared') ||
+            norm.includes('credited')) &&
+          !norm.includes('unpaid') &&
+          !norm.includes('status') &&
+          !norm.includes('date')
+        );
+      });
+      const balanceKey = Object.keys(row).find((k) => {
+        const norm = normalizeKey(k);
+        return norm.includes('balance') || norm.includes('pending') || norm.includes('remaining');
+      });
+
+      if (balanceKey) {
+        return parseCurrency(row[balanceKey]) > 0;
       }
-      return false; // Explicitly paid with no explicit balance/due > 0 = not unpaid
+      if (paidKey && explicitDueKey) {
+        const total = parseCurrency(row[explicitDueKey]);
+        const paid = parseCurrency(row[paidKey]);
+        if (total > 0 && paid >= total) return false;
+      }
+      return false;
     }
   }
 
@@ -423,16 +446,19 @@ export function isRowUnpaid(row: Record<string, unknown>): boolean {
  * Calculates pending fee amount for a single row.
  */
 function getPendingAmountForRow(row: Record<string, unknown>): number {
-  const explicitDueKey = findExplicitDueKey(row);
-  if (explicitDueKey) {
-    const amt = parseCurrency(row[explicitDueKey]);
-    return amt > 0 ? amt : 0;
+  const balanceKey = Object.keys(row).find((k) => {
+    const norm = normalizeKey(k);
+    return norm.includes('balance') || norm.includes('pending') || norm.includes('remaining');
+  });
+  if (balanceKey) {
+    const bal = parseCurrency(row[balanceKey]);
+    return bal > 0 ? bal : 0;
   }
 
-  const fallbackDueKey = findDueAmountKey(row);
-  if (!fallbackDueKey) return 0;
+  const dueKey = findExplicitDueKey(row) || findDueAmountKey(row);
+  if (!dueKey) return 0;
 
-  const total = parseCurrency(row[fallbackDueKey]);
+  const total = parseCurrency(row[dueKey]);
   if (total <= 0) return 0;
 
   const paidKey = Object.keys(row).find((k) => {

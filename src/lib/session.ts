@@ -52,6 +52,9 @@ export function decodeSession(token: string): ScraperSession {
       );
     }
     const raw = Buffer.from(token.slice(ENC_PREFIX.length), 'base64');
+    if (raw.length < 28) {
+      throw new Error('Invalid or corrupted encrypted session token');
+    }
     const iv = raw.subarray(0, 12);
     const tag = raw.subarray(12, 28);
     const data = raw.subarray(28);
