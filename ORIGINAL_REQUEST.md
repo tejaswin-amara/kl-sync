@@ -1,6 +1,6 @@
 # Original User Request
 
-## 2026-07-23T19:15:55Z
+## Initial Request — 2026-07-23T19:15:55Z
 
 Fix all ERP data synchronization issues in kl-sync (Timetable, CGPA calculation, Fee Due calculation, Attendance, and generic table scraping) following the Ponytail doctrine.
 
