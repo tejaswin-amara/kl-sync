@@ -6,7 +6,7 @@ const hasRedisEnv = Boolean(
 
 const redis = hasRedisEnv ? Redis.fromEnv() : null;
 
-// In-memory fallback for development environments without active Upstash Redis env vars
+// In-memory fallback for local dev & when Redis connection fails
 const memoryNonces = new Map<string, number>();
 const memoryTokens = new Map<string, number>();
 
@@ -31,8 +31,12 @@ async function sha256Hex(input: string): Promise<string> {
 // Prevents a captured PoW submission from being redeemed twice.
 export async function consumeNonce(sigHex: string, ttlMs: number): Promise<boolean> {
   if (redis) {
-    const ok = await redis.set(`cap-nonce:${sigHex}`, "1", { nx: true, px: ttlMs });
-    return ok === "OK";
+    try {
+      const ok = await redis.set(`cap-nonce:${sigHex}`, "1", { nx: true, px: ttlMs });
+      return ok === "OK";
+    } catch (e) {
+      console.error("Upstash Redis consumeNonce failed, using memory fallback:", e);
+    }
   }
   cleanExpired();
   const key = `cap-nonce:${sigHex}`;
@@ -44,9 +48,13 @@ export async function consumeNonce(sigHex: string, ttlMs: number): Promise<boole
 // Records a successfully redeemed CAPTCHA token so it can be checked later.
 export async function storeRedeemedToken(tokenKey: string, expiresAtMs: number) {
   if (redis) {
-    const ttlSec = Math.max(1, Math.ceil((expiresAtMs - Date.now()) / 1000));
-    await redis.set(`cap-token:${tokenKey}`, expiresAtMs, { ex: ttlSec });
-    return;
+    try {
+      const ttlSec = Math.max(1, Math.ceil((expiresAtMs - Date.now()) / 1000));
+      await redis.set(`cap-token:${tokenKey}`, expiresAtMs, { ex: ttlSec });
+      return;
+    } catch (e) {
+      console.error("Upstash Redis storeRedeemedToken failed, using memory fallback:", e);
+    }
   }
   cleanExpired();
   memoryTokens.set(`cap-token:${tokenKey}`, expiresAtMs);
@@ -61,11 +69,15 @@ export async function verifyCaptchaToken(token: string | undefined | null): Prom
   const tokenKey = `${id}:${await sha256Hex(verToken)}`;
 
   if (redis) {
-    const expires = await redis.get<number>(`cap-token:${tokenKey}`);
-    if (!expires || expires < Date.now()) return false;
-
-    await redis.del(`cap-token:${tokenKey}`);
-    return true;
+    try {
+      const expires = await redis.get<number>(`cap-token:${tokenKey}`);
+      if (expires && expires >= Date.now()) {
+        await redis.del(`cap-token:${tokenKey}`);
+        return true;
+      }
+    } catch (e) {
+      console.error("Upstash Redis verifyCaptchaToken failed, using memory fallback:", e);
+    }
   }
 
   cleanExpired();
