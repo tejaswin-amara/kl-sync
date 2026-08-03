@@ -36,21 +36,19 @@ export default function DashboardOverview() {
   const [activeSemId, setActiveSemId] = useState<string>('');
 
   useEffect(() => {
-    queueMicrotask(() => {
-      const name = localStorage.getItem('kl_student_name');
-      if (name) setStudentName(name);
+    const name = localStorage.getItem('kl_student_name');
+    if (name) setStudentName(name);
 
-      // Instant load from cache
-      const cachedCgpa = localStorage.getItem('kl_dashboard_cgpa');
-      const cachedCredits = localStorage.getItem('kl_dashboard_credits');
-      const cachedAttendance = localStorage.getItem('kl_dashboard_attendance');
-      const cachedFee = localStorage.getItem('kl_dashboard_fee');
+    // Instant load from cache
+    const cachedCgpa = localStorage.getItem('kl_dashboard_cgpa');
+    const cachedCredits = localStorage.getItem('kl_dashboard_credits');
+    const cachedAttendance = localStorage.getItem('kl_dashboard_attendance');
+    const cachedFee = localStorage.getItem('kl_dashboard_fee');
 
-      if (cachedCgpa) setCgpa(Number(cachedCgpa));
-      if (cachedCredits) setCompletedCredits(Number(cachedCredits));
-      if (cachedAttendance) setAttendance(Number(cachedAttendance));
-      if (cachedFee) setPendingFee(Number(cachedFee));
-    });
+    if (cachedCgpa) setCgpa(Number(cachedCgpa));
+    if (cachedCredits) setCompletedCredits(Number(cachedCredits));
+    if (cachedAttendance) setAttendance(Number(cachedAttendance));
+    if (cachedFee) setPendingFee(Number(cachedFee));
 
     // Fetch CGPA & Credits in background
     fetch('/api/erp-proxy/cgpa')
@@ -96,10 +94,8 @@ export default function DashboardOverview() {
     }
 
     if (yearId && semId) {
-      queueMicrotask(() => {
-        setActiveYearId(yearId);
-        setActiveSemId(semId);
-      });
+      setActiveYearId(yearId);
+      setActiveSemId(semId);
 
       const csrf = sessionStorage.getItem('kl_erp_csrf_token');
       fetch('/api/erp-proxy/attendance', {
@@ -383,33 +379,82 @@ function TodayScheduleWidget({
     const cacheKey = `kl_timetable_${activeYearId}_${activeSemId}`;
     let loadedFromCache = false;
 
-    // Fetch course titles & faculty mapping from profile/marks
+    // Fetch course titles & faculty mapping from profile and marks
     const courseLookup: Record<string, { title?: string; faculty?: string }> =
       {};
     try {
-      const profRes = await fetch('/api/erp-proxy/profile').catch(() => null);
-      if (profRes && profRes.ok) {
-        const profData = await profRes.json();
-        const courses = profData.data?.courses || [];
-        if (Array.isArray(courses)) {
-          courses.forEach((c: Record<string, unknown>) => {
-            const rawCode = String(c.Coursecode || c.courseCode || c.code || '')
-              .toUpperCase()
-              .trim();
-            const desc = String(
-              c.Coursedesc || c.courseDesc || c.title || c.name || ''
-            ).trim();
-            const fac = String(
-              c.FacultyName || c.facultyName || c.faculty || ''
-            ).trim();
-            if (rawCode) {
-              const strippedCode = rawCode.replace(/[-_][LTPSS]$/i, '').trim();
-              const info = {
-                title: desc || undefined,
-                faculty: fac || undefined,
-              };
-              courseLookup[rawCode] = info;
-              if (strippedCode) courseLookup[strippedCode] = info;
+      const csrf = sessionStorage.getItem('kl_erp_csrf_token');
+      const [profRes, marksRes] = await Promise.allSettled([
+        fetch('/api/erp-proxy/profile'),
+        fetch('/api/erp-proxy/marks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            academicYear: activeYearId,
+            semesterId: activeSemId,
+            csrfToken: csrf,
+          }),
+        }),
+      ]);
+
+      if (profRes.status === 'fulfilled') {
+        const pData = await profRes.value.json();
+        const rawArr = Array.isArray(pData.data)
+          ? pData.data
+          : Array.isArray(pData.data?.courses)
+            ? pData.data.courses
+            : [];
+        rawArr.forEach((row: Record<string, unknown>) => {
+          const keys = Object.keys(row);
+          const codeK = keys.find((k) => k.toLowerCase().includes('code')) || '';
+          const nameK = keys.find(
+            (k) =>
+              k.toLowerCase().includes('desc') ||
+              k.toLowerCase().includes('name') ||
+              k.toLowerCase().includes('title')
+          ) || '';
+          const facK = keys.find(
+            (k) =>
+              k.toLowerCase().includes('faculty') ||
+              k.toLowerCase().includes('instructor')
+          ) || '';
+          const code = codeK ? String(row[codeK]).trim().toUpperCase() : '';
+          const name = nameK ? String(row[nameK]).trim() : '';
+          const fac = facK ? String(row[facK]).trim() : '';
+          if (code && name) {
+            const stripped = code.replace(/[-_][LTPSS]$/i, '').trim();
+            const item = { title: name, faculty: fac };
+            courseLookup[code] = item;
+            if (stripped) courseLookup[stripped] = item;
+          }
+        });
+      }
+
+      if (marksRes.status === 'fulfilled') {
+        const mData = await marksRes.value.json();
+        if (mData.success && Array.isArray(mData.data)) {
+          mData.data.forEach((row: Record<string, unknown>) => {
+            const keys = Object.keys(row);
+            const codeK = keys.find((k) => k.toLowerCase().includes('code')) || '';
+            const nameK = keys.find(
+              (k) =>
+                k.toLowerCase().includes('name') ||
+                k.toLowerCase().includes('title') ||
+                k.toLowerCase().includes('desc')
+            ) || '';
+            const facK = keys.find(
+              (k) =>
+                k.toLowerCase().includes('faculty') ||
+                k.toLowerCase().includes('instructor')
+            ) || '';
+            const code = codeK ? String(row[codeK]).trim().toUpperCase() : '';
+            const name = nameK ? String(row[nameK]).trim() : '';
+            const fac = facK ? String(row[facK]).trim() : '';
+            if (code && name) {
+              const stripped = code.replace(/[-_][LTPSS]$/i, '').trim();
+              const item = { title: name, faculty: fac };
+              if (!courseLookup[code]) courseLookup[code] = item;
+              if (stripped && !courseLookup[stripped]) courseLookup[stripped] = item;
             }
           });
         }
@@ -422,7 +467,10 @@ function TodayScheduleWidget({
       sessionsList.forEach((s) => {
         const rawCode = s.courseCode.toUpperCase().trim();
         const strippedCode = rawCode.replace(/[-_][LTPSS]$/i, '').trim();
-        const info = courseLookup[rawCode] || courseLookup[strippedCode];
+        const info =
+          courseLookup[rawCode] ||
+          courseLookup[strippedCode] ||
+          courseLookup[rawCode.replace(/[^A-Z0-9]/g, '')];
         if (info) {
           if (
             info.title &&
@@ -496,9 +544,7 @@ function TodayScheduleWidget({
   }, [activeYearId, activeSemId]);
 
   useEffect(() => {
-    queueMicrotask(() => {
-      loadSchedule();
-    });
+    loadSchedule();
   }, [loadSchedule]);
 
   const activeDaySessions = allSessions.filter((s) =>
@@ -686,9 +732,7 @@ function CurrentCoursesWidget({
 
   useEffect(() => {
     if (!activeYearId || !activeSemId) return;
-    queueMicrotask(() => {
-      setLoading(true);
-    });
+    setLoading(true);
     let mounted = true;
 
     async function loadCourses() {

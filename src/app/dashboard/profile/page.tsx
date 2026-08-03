@@ -16,10 +16,8 @@ export default function ProfilePage() {
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
-        queueMicrotask(() => {
-          setData(parsed);
-          setLoading(false);
-        });
+        setData(parsed);
+        setLoading(false);
       } catch {}
     }
 
@@ -82,7 +80,7 @@ export default function ProfilePage() {
           <div className="w-16 h-16 rounded bg-red-500/10 flex items-center justify-center text-red-400 mb-4">
             <AlertCircle className="w-10 h-10" />
           </div>
-          <p className="md-h5 text-red-400">Failed to load profile</p>
+          <p className="text-xl font-semibold text-red-400">Failed to load profile</p>
           <p className="text-sm text-zinc-500 text-gray-400 mt-2 max-w-md">
             {error}
           </p>
@@ -96,7 +94,7 @@ export default function ProfilePage() {
             const nameStr = String(data.name || '');
 
             return (
-              <div className="bg-[var(--color-primary-variant)] p-4 sm:p-6 relative">
+              <div className="bg-zinc-900 p-4 sm:p-6 relative">
                 <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-end gap-4">
                   <div className="w-20 h-20 sm:w-24 sm:h-24 rounded bg-zinc-950/50 backdrop-blur-md border-2 border-[var(--color-primary)] shadow-md flex items-center justify-center text-zinc-100 text-3xl overflow-hidden relative">
                     {uid ? (
@@ -119,7 +117,7 @@ export default function ProfilePage() {
                       {nameStr ? nameStr.charAt(0).toUpperCase() : 'U'}
                     </span>
                   </div>
-                  <div className="text-center sm:text-left text-[var(--color-on-primary)] pb-1 z-20">
+                  <div className="text-center sm:text-left text-zinc-100 pb-1 z-20">
                     <h3 className="text-3xl font-bold tracking-tight">
                       {nameStr || 'Unknown Student'}
                     </h3>

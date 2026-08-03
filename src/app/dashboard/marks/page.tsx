@@ -60,9 +60,7 @@ export default function MarksPage() {
   }, []);
 
   useEffect(() => {
-    queueMicrotask(() => {
-      fetchData(selectedYear, selectedSem);
-    });
+    fetchData(selectedYear, selectedSem);
   }, [selectedYear, selectedSem, fetchData]);
 
   return (

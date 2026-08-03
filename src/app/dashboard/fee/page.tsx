@@ -63,7 +63,7 @@ export default function FeePage() {
             <div className="w-16 h-16 rounded bg-red-500/10 flex items-center justify-center text-red-400 mb-4">
               <AlertCircle className="w-10 h-10" />
             </div>
-            <p className="md-h5 text-red-400">Failed to sync with ERP</p>
+            <p className="text-xl font-semibold text-red-400">Failed to sync with ERP</p>
             <p className="text-sm text-zinc-500 text-gray-400 mt-2 max-w-md">
               {error}
             </p>

@@ -48,6 +48,49 @@ function parseTimeSlotToMinutes(slot: string): number {
   return 9999;
 }
 
+function getSlotsToRender(parsedTT: ParsedTimetable | null): string[] {
+  if (!parsedTT || !parsedTT.timeSlotsPresent) {
+    return Array.from({ length: 8 }, (_, i) => String(i + 1));
+  }
+
+  const sortedTimeSlots = [...parsedTT.timeSlotsPresent].sort((a, b) => {
+    const keyA = normalizeSlotKey(a);
+    const keyB = normalizeSlotKey(b);
+    const numA = Number(keyA);
+    const numB = Number(keyB);
+    if (!isNaN(numA) && !isNaN(numB) && numA !== numB) {
+      return numA - numB;
+    }
+    const minA = parseTimeSlotToMinutes(a);
+    const minB = parseTimeSlotToMinutes(b);
+    if (minA !== minB) {
+      return minA - minB;
+    }
+    return a.localeCompare(b);
+  });
+
+  const numericSlots = sortedTimeSlots
+    .map((s) => Number(normalizeSlotKey(s)))
+    .filter((n) => !isNaN(n) && n > 0);
+
+  if (numericSlots.length > 0) {
+    const maxNum = Math.max(...numericSlots, 8);
+    const minNum = Math.min(...numericSlots, 1);
+    const fullRange: string[] = [];
+    for (let i = minNum; i <= maxNum; i++) {
+      fullRange.push(String(i));
+    }
+    const nonNumeric = sortedTimeSlots.filter((s) =>
+      isNaN(Number(normalizeSlotKey(s)))
+    );
+    return [...fullRange, ...nonNumeric];
+  } else if (sortedTimeSlots.length > 0) {
+    return sortedTimeSlots;
+  } else {
+    return Array.from({ length: 8 }, (_, i) => String(i + 1));
+  }
+}
+
 export default function TimetablePage() {
   const [parsedTT, setParsedTT] = useState<ParsedTimetable | null>(null);
   const [loading, setLoading] = useState(true);
@@ -96,7 +139,21 @@ export default function TimetablePage() {
     }
 
     try {
-      const csrf = sessionStorage.getItem('kl_erp_csrf_token');
+      let csrf = sessionStorage.getItem('kl_erp_csrf_token') || '';
+      if (!csrf) {
+        try {
+          const profCheck = await fetch('/api/erp-proxy/profile');
+          if (profCheck.ok) {
+            const pData = await profCheck.json();
+            if (pData.csrfToken) {
+              csrf = pData.csrfToken;
+              sessionStorage.setItem('kl_erp_csrf_token', csrf);
+            }
+          }
+        } catch {
+          // Ignore
+        }
+      }
 
       // Fetch profile & marks in parallel to build course title & faculty lookup
       const courseLookup: Record<string, { title: string; faculty: string }> =
@@ -214,24 +271,48 @@ export default function TimetablePage() {
         throw new Error(resData.error || 'Failed to fetch timetable');
       }
 
-      const rawRows = resData.data || [];
+      let rawRows = resData.data || [];
+
+      // Auto-fallback: If selected year has 0 timetable rows, scan sibling academic years
+      if (rawRows.length === 0 && years.length > 1) {
+        for (const yOpt of years) {
+          if (yOpt.value === selectedYear) continue;
+          try {
+            const fbRes = await fetch('/api/erp-proxy/timetable', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                academicYear: yOpt.value,
+                semesterId: selectedSem,
+                csrfToken: csrf,
+              }),
+            });
+            if (fbRes.ok) {
+              const fbData = await fbRes.json();
+              if (fbData.success && Array.isArray(fbData.data) && fbData.data.length > 0) {
+                rawRows = fbData.data;
+                handleYearChange(yOpt.value);
+                break;
+              }
+            }
+          } catch {
+            // Continue scanning sibling years
+          }
+        }
+      }
+
       sessionStorage.setItem(cacheKey, JSON.stringify(rawRows));
       const parsed = parseTimetable(rawRows);
       parsed.sessions.forEach((s) => {
-        const rawCode = (s.courseCode || '').trim();
+        const rawCode = (s.courseCode || '').trim().toUpperCase();
         const strippedCode = rawCode.replace(/[-_][LTPSS]$/i, '').trim();
+        const baseCode = rawCode.replace(/[^A-Z0-9]/g, '');
         const info =
           courseLookup[rawCode] ||
           courseLookup[strippedCode] ||
-          courseLookup[rawCode.toUpperCase()] ||
-          courseLookup[strippedCode.toUpperCase()];
+          courseLookup[baseCode];
         if (info) {
-          if (
-            info.title &&
-            (s.courseTitle === s.courseCode ||
-              !s.courseTitle ||
-              s.courseTitle === rawCode)
-          ) {
+          if (info.title) {
             s.courseTitle = info.title;
           }
           if (info.faculty && !s.faculty) {
@@ -256,19 +337,13 @@ export default function TimetablePage() {
 
   useEffect(() => {
     if (sessionError) {
-      queueMicrotask(() => {
-        setLoading(false);
-      });
+      setLoading(false);
       return;
     }
     if (selectedYear && selectedSem) {
-      queueMicrotask(() => {
-        fetchData();
-      });
+      fetchData();
     } else {
-      queueMicrotask(() => {
-        setLoading(false);
-      });
+      setLoading(false);
     }
   }, [fetchData, selectedYear, selectedSem, sessionError]);
 
@@ -494,13 +569,13 @@ export default function TimetablePage() {
           </div>
         ) : viewMode === 'grid' ? (
           /* Horizontal Academic Matrix Grid View Mode */
-          <div className="p-6 overflow-x-auto custom-scrollbar flex-1">
+          <div className="p-4 sm:p-6 overflow-x-auto custom-scrollbar flex-1 w-full">
             {parsedTT.daysPresent.length === 0 ? (
               <div className="text-center py-12 text-zinc-400 text-sm">
                 No matching sessions for the selected day filter.
               </div>
             ) : (
-              <div className="min-w-[1100px] flex flex-col gap-6">
+              <div className="w-full min-w-max flex flex-col gap-6">
                 <div className="bg-zinc-950/40 border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
                   <table className="w-full text-left border-collapse">
                     <thead>
@@ -511,62 +586,18 @@ export default function TimetablePage() {
                         >
                           Day / Period
                         </th>
-                        {(() => {
-                          const sortedTimeSlots = [
-                            ...parsedTT.timeSlotsPresent,
-                          ].sort((a, b) => {
-                            const keyA = normalizeSlotKey(a);
-                            const keyB = normalizeSlotKey(b);
-                            const numA = Number(keyA);
-                            const numB = Number(keyB);
-                            if (!isNaN(numA) && !isNaN(numB) && numA !== numB) {
-                              return numA - numB;
-                            }
-                            const minA = parseTimeSlotToMinutes(a);
-                            const minB = parseTimeSlotToMinutes(b);
-                            if (minA !== minB) {
-                              return minA - minB;
-                            }
-                            return a.localeCompare(b);
-                          });
-
-                          const numericSlots = sortedTimeSlots
-                            .map((s) => Number(normalizeSlotKey(s)))
-                            .filter((n) => !isNaN(n) && n > 0);
-
-                          let slotsToRender: string[];
-                          if (numericSlots.length > 0) {
-                            const maxNum = Math.max(...numericSlots, 6);
-                            const minNum = Math.min(...numericSlots, 1);
-                            const fullRange: string[] = [];
-                            for (let i = minNum; i <= maxNum; i++) {
-                              fullRange.push(String(i));
-                            }
-                            const nonNumeric = sortedTimeSlots.filter((s) =>
-                              isNaN(Number(normalizeSlotKey(s)))
-                            );
-                            slotsToRender = [...fullRange, ...nonNumeric];
-                          } else if (sortedTimeSlots.length > 0) {
-                            slotsToRender = sortedTimeSlots;
-                          } else {
-                            slotsToRender = Array.from({ length: 8 }, (_, i) =>
-                              String(i + 1)
-                            );
-                          }
-
-                          return slotsToRender.map((periodNum) => (
-                            <th
-                              scope="col"
-                              key={periodNum}
-                              className="p-4 text-center min-w-[200px] border-r border-white/5 last:border-r-0 text-zinc-200"
-                            >
-                              {periodNum.length < 3 &&
-                              !periodNum.toLowerCase().includes('p')
-                                ? `Period ${periodNum}`
-                                : periodNum}
-                            </th>
-                          ));
-                        })()}
+                        {getSlotsToRender(parsedTT).map((periodNum) => (
+                          <th
+                            scope="col"
+                            key={periodNum}
+                            className="p-3.5 text-center min-w-[170px] border-r border-white/5 last:border-r-0 text-zinc-200"
+                          >
+                            {periodNum.length < 3 &&
+                            !periodNum.toLowerCase().includes('p')
+                              ? `Period ${periodNum}`
+                              : periodNum}
+                          </th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
@@ -592,47 +623,7 @@ export default function TimetablePage() {
                           return true;
                         });
 
-                        const sortedTimeSlots = [
-                          ...parsedTT.timeSlotsPresent,
-                        ].sort((a, b) => {
-                          const keyA = normalizeSlotKey(a);
-                          const keyB = normalizeSlotKey(b);
-                          const numA = Number(keyA);
-                          const numB = Number(keyB);
-                          if (!isNaN(numA) && !isNaN(numB) && numA !== numB) {
-                            return numA - numB;
-                          }
-                          const minA = parseTimeSlotToMinutes(a);
-                          const minB = parseTimeSlotToMinutes(b);
-                          if (minA !== minB) {
-                            return minA - minB;
-                          }
-                          return a.localeCompare(b);
-                        });
-
-                        const numericSlots = sortedTimeSlots
-                          .map((s) => Number(normalizeSlotKey(s)))
-                          .filter((n) => !isNaN(n) && n > 0);
-
-                        let slotsToRender: string[];
-                        if (numericSlots.length > 0) {
-                          const maxNum = Math.max(...numericSlots, 6);
-                          const minNum = Math.min(...numericSlots, 1);
-                          const fullRange: string[] = [];
-                          for (let i = minNum; i <= maxNum; i++) {
-                            fullRange.push(String(i));
-                          }
-                          const nonNumeric = sortedTimeSlots.filter((s) =>
-                            isNaN(Number(normalizeSlotKey(s)))
-                          );
-                          slotsToRender = [...fullRange, ...nonNumeric];
-                        } else if (sortedTimeSlots.length > 0) {
-                          slotsToRender = sortedTimeSlots;
-                        } else {
-                          slotsToRender = Array.from({ length: 8 }, (_, i) =>
-                            String(i + 1)
-                          );
-                        }
+                        const slotsToRender = getSlotsToRender(parsedTT);
 
                         return daysToRender.map((day) => {
                           return (

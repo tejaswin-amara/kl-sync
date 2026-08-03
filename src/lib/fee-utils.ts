@@ -157,7 +157,7 @@ export function findStatusKey(
 /**
  * Finds explicit due / balance column key (Tier 1).
  */
-export function findExplicitDueKey(
+function findExplicitDueKey(
   row: Record<string, unknown>
 ): string | undefined {
   if (!row || typeof row !== 'object') return undefined;
@@ -227,7 +227,7 @@ export function findExplicitDueKey(
  * while excluding paid/concession/scholarship/date/id columns.
  * Prioritizes explicit due/balance columns (Tier 1) over gross fee/total columns (Tier 2).
  */
-export function findDueAmountKey(
+function findDueAmountKey(
   row: Record<string, unknown>
 ): string | undefined {
   if (!row || typeof row !== 'object') return undefined;
@@ -422,7 +422,7 @@ export function isRowUnpaid(row: Record<string, unknown>): boolean {
 /**
  * Calculates pending fee amount for a single row.
  */
-export function getPendingAmountForRow(row: Record<string, unknown>): number {
+function getPendingAmountForRow(row: Record<string, unknown>): number {
   const explicitDueKey = findExplicitDueKey(row);
   if (explicitDueKey) {
     const amt = parseCurrency(row[explicitDueKey]);

@@ -7,9 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "npx tsx --test src/lib/scraper.test.ts"
+    "test": "npx tsx --test src/**/*.test.ts"
   },
   "dependencies": {
+    "@upstash/redis": "^1.38.1",
+    "cap-widget": "^0.1.56",
+    "capjs-core": "^0.1.1",
     "cheerio": "^1.2.0",
     "clsx": "^2.1.1",
     "lucide-react": "^1.21.0",

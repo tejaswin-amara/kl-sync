@@ -70,18 +70,14 @@ export function useAcademicSession() {
         initialError = 'Academic sessions not found. Please login again.';
       }
 
-      queueMicrotask(() => {
-        setYears(parsedYears);
-        setSemesters(parsedSems);
-        if (targetYear) setSelectedYear(targetYear);
-        if (targetSem) setSelectedSem(targetSem);
-        if (initialError) setSessionError(initialError);
-      });
+      setYears(parsedYears);
+      setSemesters(parsedSems);
+      if (targetYear) setSelectedYear(targetYear);
+      if (targetSem) setSelectedSem(targetSem);
+      if (initialError) setSessionError(initialError);
     } catch (e) {
       console.error('Session init error:', e);
-      queueMicrotask(() => {
-        setSessionError('Failed to initialize session data.');
-      });
+      setSessionError('Failed to initialize session data.');
     }
   }, []);
 

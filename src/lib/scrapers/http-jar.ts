@@ -122,13 +122,8 @@ export async function fetchWithJar(
   throw new Error('Too many redirects while contacting the ERP');
 }
 
-export interface ParseTableOptions {
-  preferHeadingText?: boolean;
-}
-
 export function parseGenericTable(
-  html: string | null | undefined,
-  options?: ParseTableOptions
+  html: string | null | undefined
 ): Record<string, unknown>[] {
   if (!html || typeof html !== 'string' || html.trim() === '') {
     return [];
@@ -160,7 +155,7 @@ export function parseGenericTable(
             typeof parsedJson[key] === 'string' &&
             parsedJson[key].includes('<table')
           ) {
-            return parseGenericTable(parsedJson[key], options);
+            return parseGenericTable(parsedJson[key]);
           }
         }
         for (const key of ['data', 'rows', 'result', 'items']) {

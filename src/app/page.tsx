@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import { RefreshCw, LogIn, AlertCircle, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { Captcha } from '@/components/Captcha';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,6 +12,7 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [captcha, setCaptcha] = useState('');
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [captchaImage, setCaptchaImage] = useState<string | null>(null);
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -29,7 +31,6 @@ export default function LoginPage() {
   const fetchCaptcha = async (preserveError = false): Promise<string> => {
     setCaptchaLoading(true);
     if (!preserveError) setError(null);
-    setCaptcha('');
 
     try {
       const response = await fetch('/api/captcha');
@@ -41,10 +42,16 @@ export default function LoginPage() {
       const data = await response.json();
       const originalBase64 = data.captchaImage;
       setCaptchaImage(originalBase64);
-      return '';
+      if (data.solvedCaptcha) {
+        setCaptcha(data.solvedCaptcha);
+      } else {
+        setCaptcha('');
+      }
+      return data.solvedCaptcha || '';
     } catch (err) {
       console.error(err);
       setError('Failed to load CAPTCHA. Please try again.');
+      setCaptcha('');
       return '';
     } finally {
       setCaptchaLoading(false);
@@ -55,31 +62,23 @@ export default function LoginPage() {
     try {
       const storedSession = sessionStorage.getItem('kl_erp_session_id');
       if (storedSession) {
-        queueMicrotask(() => {
-          setSessionId(storedSession);
-        });
+        setSessionId(storedSession);
         router.push('/dashboard');
       } else {
-        queueMicrotask(() => {
-          fetchCaptcha();
-        });
+        fetchCaptcha();
       }
       const savedDevice = localStorage.getItem('kl_erp_device_id');
       if (savedDevice) {
-        queueMicrotask(() => {
-          setDeviceId(savedDevice);
-        });
+        setDeviceId(savedDevice);
       }
     } catch {}
 
     const savedUser = localStorage.getItem('remember_username');
     const savedPass = localStorage.getItem('remember_password');
     if (savedUser && savedPass) {
-      queueMicrotask(() => {
-        setUsername(savedUser);
-        setPassword(savedPass);
-        setRememberMe(true);
-      });
+      setUsername(savedUser);
+      setPassword(savedPass);
+      setRememberMe(true);
     }
   }, [router]);
 
@@ -106,6 +105,7 @@ export default function LoginPage() {
           username,
           password,
           captcha,
+          captchaToken,
           deviceId:
             deviceId ||
             (typeof localStorage !== 'undefined'
@@ -386,10 +386,15 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {/* Cap CAPTCHA bot protection widget */}
+            <div className="pt-2">
+              <Captcha onVerify={setCaptchaToken} />
+            </div>
+
             {/* Level AAA Button with Target Sizing & High Contrast */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !captchaToken}
               className="w-full min-h-[52px] py-4 mt-8 rounded-xl font-semibold text-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-indigo-600 text-white hover:bg-indigo-500 focus:ring-4 focus:ring-indigo-400 focus:outline-none shadow-lg"
             >
               {loading ? (

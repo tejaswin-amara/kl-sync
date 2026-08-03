@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loginAndFetchSemesters, ScraperSession } from '@/lib/scraper';
 import { decodeSession, encodeSession } from '@/lib/session';
+import { verifyCaptchaToken } from '@/lib/captcha';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { username, password, captcha, deviceId } = body;
+    const { captchaToken, username, password, captcha, deviceId } = body;
+
+    if (!(await verifyCaptchaToken(captchaToken))) {
+      return NextResponse.json({ error: 'Captcha verification failed' }, { status: 400 });
+    }
 
     // The ERP device id is the load-bearing value that avoids its post-login
     // UserAccessToken crash. Prefer the httpOnly cookie we set on a previous

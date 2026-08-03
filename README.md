@@ -66,7 +66,11 @@ KL Sync uses environment variables to secure sessions and configure backend beha
 
 | Variable | Requirement | Description |
 |---|---|---|
-| `SESSION_SECRET` | **Strictly Required in Production** | A 32+ character random secret string used to derive a fixed 32-byte key for **AES-256-GCM** session encryption. **In production (`NODE_ENV=production`), omitting `SESSION_SECRET` triggers a fatal runtime exception (`[SECURITY FATAL]`), preventing unencrypted session tokens from circulating.** |
+| `SESSION_SECRET` | **Strictly Required in Production** | A 32+ character random secret string used to derive a fixed 32-byte key for **AES-256-GCM** session encryption. In production, omitting `SESSION_SECRET` triggers a fatal runtime exception (`[SECURITY FATAL]`). |
+| `CAP_SECRET` | **Required** | Secret key for signing Cap CAPTCHA nonces and validating proof-of-work challenges. |
+| `UPSTASH_REDIS_REST_URL` | **Required** | Upstash Redis REST endpoint URL for distributed nonce validation & token redemption (with built-in in-memory fallback for local dev). |
+| `UPSTASH_REDIS_REST_TOKEN` | **Required** | Upstash Redis REST access token. |
+| `OCR_SPACE_API_KEY` | Optional | API Key for OCR.space visual security code auto-solving (defaults to `helloworld`). |
 | `NODE_ENV` | Optional | Set to `development` locally or `production` when deployed. |
 
 ---

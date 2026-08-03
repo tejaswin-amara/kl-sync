@@ -21,6 +21,38 @@ import {
   Bell,
 } from 'lucide-react';
 
+function ProfileAvatar({
+  user,
+  className = '',
+}: {
+  user: { id: string; initials: string; photoUrl: string };
+  className?: string;
+}) {
+  return (
+    <div
+      className={`w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-xs shadow-sm overflow-hidden border border-white/10 relative ${className}`}
+    >
+      {user.id !== 'Student ID' && user.id !== 'Loading...' && (
+        <img
+          src={
+            user.photoUrl
+              ? user.photoUrl.startsWith('data:image/')
+                ? user.photoUrl
+                : `/api/fetch-photo?path=${encodeURIComponent(user.photoUrl)}`
+              : `/api/fetch-photo?id=${user.id}`
+          }
+          alt="Profile"
+          className="w-full h-full object-cover absolute inset-0 z-10"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+          }}
+        />
+      )}
+      <span className="text-zinc-400 z-0 relative">{user.initials}</span>
+    </div>
+  );
+}
+
 export default function Navigation({
   children,
 }: {
@@ -49,9 +81,7 @@ export default function Navigation({
             .substring(0, 2)
             .toUpperCase()
         : 'ST';
-    queueMicrotask(() => {
-      setUser({ name, initials, id, photoUrl: cachedPhoto });
-    });
+    setUser({ name, initials, id, photoUrl: cachedPhoto });
 
     if (!cachedName) {
       fetch('/api/erp-proxy/profile')
@@ -155,25 +185,7 @@ export default function Navigation({
             <Bell className="w-4 h-4" />
             <span className="absolute top-2 right-2.5 w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
           </Link>
-          <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-xs shadow-sm overflow-hidden border border-white/10 relative">
-            {user.id !== 'Student ID' && user.id !== 'Loading...' && (
-              <img
-                src={
-                  user.photoUrl
-                    ? user.photoUrl.startsWith('data:image/')
-                      ? user.photoUrl
-                      : `/api/fetch-photo?path=${encodeURIComponent(user.photoUrl)}`
-                    : `/api/fetch-photo?id=${user.id}`
-                }
-                alt="Profile"
-                className="w-full h-full object-cover absolute inset-0 z-10"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            )}
-            <span className="text-zinc-400 z-0 relative">{user.initials}</span>
-          </div>
+          <ProfileAvatar user={user} />
         </div>
       </header>
 
@@ -305,27 +317,7 @@ export default function Navigation({
             </Link>
             <div className="h-8 w-px bg-white/10 mx-1"></div>
             <div className="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-1.5 pr-3 rounded-full transition-colors">
-              <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-xs shadow-sm overflow-hidden border border-white/10 relative shrink-0">
-                {user.id !== 'Student ID' && user.id !== 'Loading...' && (
-                  <img
-                    src={
-                      user.photoUrl
-                        ? user.photoUrl.startsWith('data:image/')
-                          ? user.photoUrl
-                          : `/api/fetch-photo?path=${encodeURIComponent(user.photoUrl)}`
-                        : `/api/fetch-photo?id=${user.id}`
-                    }
-                    alt="Profile"
-                    className="w-full h-full object-cover absolute inset-0 z-10"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                )}
-                <span className="text-zinc-400 z-0 relative">
-                  {user.initials}
-                </span>
-              </div>
+              <ProfileAvatar user={user} className="shrink-0" />
               <span className="text-sm font-semibold text-zinc-100 hidden sm:block">
                 {user.name}
               </span>
