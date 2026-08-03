@@ -138,7 +138,7 @@ export default function LoginPage() {
       }
 
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        throw new Error(data.message || data.error || 'Login failed');
       }
 
       if (rememberMe) {
