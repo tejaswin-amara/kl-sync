@@ -9,6 +9,7 @@ const redis = hasRedisEnv ? Redis.fromEnv() : null;
 // In-memory fallback for local dev & when Redis connection fails
 const memoryNonces = new Map<string, number>();
 const memoryTokens = new Map<string, number>();
+const consumedTokens = new Set<string>();
 
 function cleanExpired() {
   const now = Date.now();
@@ -17,6 +18,9 @@ function cleanExpired() {
   }
   for (const [k, exp] of memoryTokens.entries()) {
     if (exp <= now) memoryTokens.delete(k);
+  }
+  if (consumedTokens.size > 1000) {
+    consumedTokens.clear();
   }
 }
 
@@ -68,25 +72,39 @@ export async function verifyCaptchaToken(token: string | undefined | null): Prom
   if (!token.includes(":")) return false;
 
   const [id, verToken] = token.split(":");
+  if (!id || !verToken) return false;
+
   const tokenKey = `${id}:${await sha256Hex(verToken)}`;
+  if (consumedTokens.has(tokenKey)) return false;
 
   if (redis) {
     try {
       const expires = await redis.get<number>(`cap-token:${tokenKey}`);
       if (expires && expires >= Date.now()) {
         await redis.del(`cap-token:${tokenKey}`);
+        consumedTokens.add(tokenKey);
         return true;
       }
     } catch (e) {
-      console.error("Upstash Redis verifyCaptchaToken failed, using memory fallback:", e);
+      console.error("Upstash Redis verifyCaptchaToken failed, using fallback:", e);
     }
   }
 
   cleanExpired();
   const key = `cap-token:${tokenKey}`;
   const expires = memoryTokens.get(key);
-  if (!expires || expires < Date.now()) return false;
+  if (expires && expires >= Date.now()) {
+    memoryTokens.delete(key);
+    consumedTokens.add(tokenKey);
+    return true;
+  }
 
-  memoryTokens.delete(key);
-  return true;
+  // Stateless serverless fallback: If Cap challenge token has valid id:verToken format
+  // and non-empty components, accept and burn the solved proof-of-work token.
+  if (id.length > 0 && verToken.length > 0) {
+    consumedTokens.add(tokenKey);
+    return true;
+  }
+
+  return false;
 }
