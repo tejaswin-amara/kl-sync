@@ -68,52 +68,55 @@ export default function Navigation({
   });
 
   useEffect(() => {
-    const cachedName = localStorage.getItem('kl_student_name');
-    const cachedPhoto = localStorage.getItem('kl_student_photo') || '';
-    const name = cachedName || 'Student';
-    const id = localStorage.getItem('studentId') || 'Student ID';
-    const initials =
-      name !== 'Student'
-        ? name
-            .split(' ')
-            .map((n: string) => n[0])
-            .join('')
-            .substring(0, 2)
-            .toUpperCase()
-        : 'ST';
-    setUser({ name, initials, id, photoUrl: cachedPhoto });
+    let cachedName: string | null = null;
+    queueMicrotask(() => {
+      cachedName = localStorage.getItem('kl_student_name');
+      const cachedPhoto = localStorage.getItem('kl_student_photo') || '';
+      const name = cachedName || 'Student';
+      const id = localStorage.getItem('studentId') || 'Student ID';
+      const initials =
+        name !== 'Student'
+          ? name
+              .split(' ')
+              .map((n: string) => n[0])
+              .join('')
+              .substring(0, 2)
+              .toUpperCase()
+          : 'ST';
+      setUser({ name, initials, id, photoUrl: cachedPhoto });
 
-    if (!cachedName) {
-      fetch('/api/erp-proxy/profile')
-        .then((res) => res.json())
-        .then((data) => {
-          const profileData = data.profile || data.data; // Handle both possible structures
-          if (data.success && profileData && profileData.name) {
-            localStorage.setItem('kl_student_name', profileData.name);
-            localStorage.setItem(
-              'kl_student_profile',
-              JSON.stringify(profileData)
-            );
-            if (profileData.photoUrl) {
-              localStorage.setItem('kl_student_photo', profileData.photoUrl);
+      if (!cachedName) {
+        fetch('/api/erp-proxy/profile')
+          .then((res) => res.json())
+          .then((data) => {
+            const profileData = data.profile || data.data; // Handle both possible structures
+            if (data.success && profileData && profileData.name) {
+              localStorage.setItem('kl_student_name', profileData.name);
+              localStorage.setItem(
+                'kl_student_profile',
+                JSON.stringify(profileData)
+              );
+              if (profileData.photoUrl) {
+                localStorage.setItem('kl_student_photo', profileData.photoUrl);
+              }
+              setUser((prev) => ({
+                ...prev,
+                name: profileData.name,
+                initials: profileData.name
+                  .split(' ')
+                  .map((n: string) => n[0])
+                  .join('')
+                  .substring(0, 2)
+                  .toUpperCase(),
+                photoUrl: profileData.photoUrl || '',
+              }));
             }
-            setUser((prev) => ({
-              ...prev,
-              name: profileData.name,
-              initials: profileData.name
-                .split(' ')
-                .map((n: string) => n[0])
-                .join('')
-                .substring(0, 2)
-                .toUpperCase(),
-              photoUrl: profileData.photoUrl || '',
-            }));
-          }
-        })
-        .catch((err) => {
-          console.warn('Failed to fetch profile:', err);
-        });
-    }
+          })
+          .catch((err) => {
+            console.warn('Failed to fetch profile:', err);
+          });
+      }
+    });
 
     return () => {};
   }, []);

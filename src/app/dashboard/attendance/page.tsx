@@ -58,7 +58,9 @@ export default function AttendanceDashboard() {
   }, [selectedYear, selectedSem]);
 
   useEffect(() => {
-    fetchData();
+    queueMicrotask(() => {
+      fetchData();
+    });
   }, [fetchData]);
 
   return (

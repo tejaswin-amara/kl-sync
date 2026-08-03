@@ -12,14 +12,17 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<string | null>(null);
 
   useEffect(() => {
-    const cached = localStorage.getItem('kl_student_profile');
-    if (cached) {
-      try {
-        const parsed = JSON.parse(cached);
-        setData(parsed);
-        setLoading(false);
-      } catch {}
-    }
+    let cached: string | null = null;
+    queueMicrotask(() => {
+      cached = localStorage.getItem('kl_student_profile');
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          setData(parsed);
+          setLoading(false);
+        } catch {}
+      }
+    });
 
     fetch(`/api/erp-proxy/profile?t=${Date.now()}`, { cache: 'no-store' })
       .then((res) => {

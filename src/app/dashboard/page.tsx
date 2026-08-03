@@ -36,19 +36,21 @@ export default function DashboardOverview() {
   const [activeSemId, setActiveSemId] = useState<string>('');
 
   useEffect(() => {
-    const name = localStorage.getItem('kl_student_name');
-    if (name) setStudentName(name);
+    queueMicrotask(() => {
+      const name = localStorage.getItem('kl_student_name');
+      if (name) setStudentName(name);
 
-    // Instant load from cache
-    const cachedCgpa = localStorage.getItem('kl_dashboard_cgpa');
-    const cachedCredits = localStorage.getItem('kl_dashboard_credits');
-    const cachedAttendance = localStorage.getItem('kl_dashboard_attendance');
-    const cachedFee = localStorage.getItem('kl_dashboard_fee');
+      // Instant load from cache
+      const cachedCgpa = localStorage.getItem('kl_dashboard_cgpa');
+      const cachedCredits = localStorage.getItem('kl_dashboard_credits');
+      const cachedAttendance = localStorage.getItem('kl_dashboard_attendance');
+      const cachedFee = localStorage.getItem('kl_dashboard_fee');
 
-    if (cachedCgpa) setCgpa(Number(cachedCgpa));
-    if (cachedCredits) setCompletedCredits(Number(cachedCredits));
-    if (cachedAttendance) setAttendance(Number(cachedAttendance));
-    if (cachedFee) setPendingFee(Number(cachedFee));
+      if (cachedCgpa) setCgpa(Number(cachedCgpa));
+      if (cachedCredits) setCompletedCredits(Number(cachedCredits));
+      if (cachedAttendance) setAttendance(Number(cachedAttendance));
+      if (cachedFee) setPendingFee(Number(cachedFee));
+    });
 
     // Fetch CGPA & Credits in background
     fetch('/api/erp-proxy/cgpa')
@@ -71,144 +73,145 @@ export default function DashboardOverview() {
       })
       .catch(console.error);
 
-    // Fetch Academic Session & Attendance independently
-    let yearId = localStorage.getItem('kl_erp_year') || '';
-    let semId = localStorage.getItem('kl_erp_sem') || '';
-    const yStr =
-      localStorage.getItem('kl_erp_academic_years') ||
-      sessionStorage.getItem('kl_erp_academic_years');
-    const sStr =
-      localStorage.getItem('kl_erp_semesters') ||
-      sessionStorage.getItem('kl_erp_semesters');
-    if (!yearId && yStr) {
-      try {
-        const years = JSON.parse(yStr);
-        if (years.length > 0) yearId = years[0].value;
-      } catch {}
-    }
-    if (!semId && sStr) {
-      try {
-        const semesters = JSON.parse(sStr);
-        if (semesters.length > 0) semId = semesters[0].value;
-      } catch {}
-    }
+    queueMicrotask(() => {
+      let yearId = localStorage.getItem('kl_erp_year') || '';
+      let semId = localStorage.getItem('kl_erp_sem') || '';
+      const yStr =
+        localStorage.getItem('kl_erp_academic_years') ||
+        sessionStorage.getItem('kl_erp_academic_years');
+      const sStr =
+        localStorage.getItem('kl_erp_semesters') ||
+        sessionStorage.getItem('kl_erp_semesters');
+      if (!yearId && yStr) {
+        try {
+          const years = JSON.parse(yStr);
+          if (years.length > 0) yearId = years[0].value;
+        } catch {}
+      }
+      if (!semId && sStr) {
+        try {
+          const semesters = JSON.parse(sStr);
+          if (semesters.length > 0) semId = semesters[0].value;
+        } catch {}
+      }
 
-    if (yearId && semId) {
-      setActiveYearId(yearId);
-      setActiveSemId(semId);
+      if (yearId && semId) {
+        setActiveYearId(yearId);
+        setActiveSemId(semId);
 
-      const csrf = sessionStorage.getItem('kl_erp_csrf_token');
-      fetch('/api/erp-proxy/attendance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          academicYear: yearId,
-          semesterId: semId,
-          csrfToken: csrf,
-        }),
-      })
-        .then((res) => res.json())
-        .then((resData) => {
-          if (
-            resData.success &&
-            resData.attendanceData &&
-            resData.attendanceData.length > 0
-          ) {
-            let totalAttended = 0;
-            let totalConducted = 0;
-            let filteredAttendance = resData.attendanceData;
-            if (yearId && semId) {
-              const strictMatches = resData.attendanceData.filter(
-                (row: Record<string, unknown>) => {
-                  const yrKey = Object.keys(row).find((k) =>
-                    k.toLowerCase().includes('year')
-                  );
-                  const semKey = Object.keys(row).find((k) =>
-                    k.toLowerCase().includes('sem')
-                  );
+        const csrf = sessionStorage.getItem('kl_erp_csrf_token');
+        fetch('/api/erp-proxy/attendance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            academicYear: yearId,
+            semesterId: semId,
+            csrfToken: csrf,
+          }),
+        })
+          .then((res) => res.json())
+          .then((resData) => {
+            if (
+              resData.success &&
+              resData.attendanceData &&
+              resData.attendanceData.length > 0
+            ) {
+              let totalAttended = 0;
+              let totalConducted = 0;
+              let filteredAttendance = resData.attendanceData;
+              if (yearId && semId) {
+                const strictMatches = resData.attendanceData.filter(
+                  (row: Record<string, unknown>) => {
+                    const yrKey = Object.keys(row).find((k) =>
+                      k.toLowerCase().includes('year')
+                    );
+                    const semKey = Object.keys(row).find((k) =>
+                      k.toLowerCase().includes('sem')
+                    );
 
-                  let matchYear = true;
-                  let matchSem = true;
+                    let matchYear = true;
+                    let matchSem = true;
 
-                  if (yrKey && row[yrKey]) {
-                    matchYear =
-                      String(row[yrKey])
-                        .trim()
-                        .includes(String(yearId).trim()) ||
-                      String(yearId).trim().includes(String(row[yrKey]).trim());
+                    if (yrKey && row[yrKey]) {
+                      matchYear =
+                        String(row[yrKey])
+                          .trim()
+                          .includes(String(yearId).trim()) ||
+                        String(yearId).trim().includes(String(row[yrKey]).trim());
+                    }
+
+                    if (semKey && row[semKey]) {
+                      matchSem =
+                        String(row[semKey])
+                          .trim()
+                          .includes(String(semId).trim()) ||
+                        String(semId).trim().includes(String(row[semKey]).trim());
+                    }
+
+                    return matchYear && matchSem;
                   }
+                );
 
-                  if (semKey && row[semKey]) {
-                    matchSem =
-                      String(row[semKey])
-                        .trim()
-                        .includes(String(semId).trim()) ||
-                      String(semId).trim().includes(String(row[semKey]).trim());
-                  }
-
-                  return matchYear && matchSem;
+                if (strictMatches.length > 0) {
+                  filteredAttendance = strictMatches;
                 }
-              );
-
-              if (strictMatches.length > 0) {
-                filteredAttendance = strictMatches;
               }
-            }
 
-            filteredAttendance.forEach((row: Record<string, unknown>) => {
-              const condKey = Object.keys(row).find((k) => {
-                const kl = k.toLowerCase();
-                return (
-                  kl.includes('conducted') ||
-                  kl.includes('held') ||
-                  (kl.includes('total') && !kl.includes('%'))
-                );
+              filteredAttendance.forEach((row: Record<string, unknown>) => {
+                const condKey = Object.keys(row).find((k) => {
+                  const kl = k.toLowerCase();
+                  return (
+                    kl.includes('conducted') ||
+                    kl.includes('held') ||
+                    (kl.includes('total') && !kl.includes('%'))
+                  );
+                });
+                const attKey = Object.keys(row).find((k) => {
+                  const kl = k.toLowerCase();
+                  return kl.includes('attended') || kl.includes('present');
+                });
+                if (condKey && attKey) {
+                  totalConducted += parseFloat(String(row[condKey])) || 0;
+                  totalAttended += parseFloat(String(row[attKey])) || 0;
+                }
               });
-              const attKey = Object.keys(row).find((k) => {
-                const kl = k.toLowerCase();
-                return kl.includes('attended') || kl.includes('present');
-              });
-              if (condKey && attKey) {
-                totalConducted += parseFloat(String(row[condKey])) || 0;
-                totalAttended += parseFloat(String(row[attKey])) || 0;
-              }
-            });
-            if (totalConducted > 0) {
-              const calculatedAttendance = Math.round(
-                (totalAttended / totalConducted) * 100
-              );
-              setAttendance(calculatedAttendance);
-              localStorage.setItem(
-                'kl_dashboard_attendance',
-                calculatedAttendance.toString()
-              );
-            } else if (filteredAttendance.length > 0) {
-              const pctKey = Object.keys(filteredAttendance[0]).find(
-                (k) =>
-                  k.toLowerCase().includes('%') ||
-                  k.toLowerCase().includes('percent') ||
-                  k.toLowerCase().includes('attendance')
-              );
-              if (pctKey) {
-                const sum = filteredAttendance.reduce(
-                  (s: number, r: Record<string, unknown>) =>
-                    s + (parseFloat(String(r[pctKey])) || 0),
-                  0
-                );
+              if (totalConducted > 0) {
                 const calculatedAttendance = Math.round(
-                  sum / filteredAttendance.length
+                  (totalAttended / totalConducted) * 100
                 );
                 setAttendance(calculatedAttendance);
                 localStorage.setItem(
                   'kl_dashboard_attendance',
                   calculatedAttendance.toString()
                 );
+              } else if (filteredAttendance.length > 0) {
+                const pctKey = Object.keys(filteredAttendance[0]).find(
+                  (k) =>
+                    k.toLowerCase().includes('%') ||
+                    k.toLowerCase().includes('percent') ||
+                    k.toLowerCase().includes('attendance')
+                );
+                if (pctKey) {
+                  const sum = filteredAttendance.reduce(
+                    (s: number, r: Record<string, unknown>) =>
+                      s + (parseFloat(String(r[pctKey])) || 0),
+                    0
+                  );
+                  const calculatedAttendance = Math.round(
+                    sum / filteredAttendance.length
+                  );
+                  setAttendance(calculatedAttendance);
+                  localStorage.setItem(
+                    'kl_dashboard_attendance',
+                    calculatedAttendance.toString()
+                  );
+                }
               }
             }
-          }
-        })
-        .catch(console.error);
-    }
+          })
+          .catch(console.error);
+      }
+    });
 
     // Fetch Fee Data independently with flexible column key matching
     fetch('/api/erp-proxy/fee')
@@ -544,7 +547,9 @@ function TodayScheduleWidget({
   }, [activeYearId, activeSemId]);
 
   useEffect(() => {
-    loadSchedule();
+    queueMicrotask(() => {
+      loadSchedule();
+    });
   }, [loadSchedule]);
 
   const activeDaySessions = allSessions.filter((s) =>
@@ -732,10 +737,10 @@ function CurrentCoursesWidget({
 
   useEffect(() => {
     if (!activeYearId || !activeSemId) return;
-    setLoading(true);
     let mounted = true;
 
     async function loadCourses() {
+      setLoading(true);
       try {
         const csrf = sessionStorage.getItem('kl_erp_csrf_token');
 

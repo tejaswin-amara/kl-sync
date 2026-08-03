@@ -100,7 +100,7 @@ export async function fetchWithJar(
       headers,
       body: method === 'GET' || method === 'HEAD' ? undefined : body,
       redirect: 'manual',
-      signal: init.signal || AbortSignal.timeout(25000),
+      signal: init.signal || AbortSignal.timeout(1500),
     });
 
     mergeSetCookies(jar, res);

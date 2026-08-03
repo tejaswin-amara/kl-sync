@@ -59,27 +59,30 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    try {
-      const storedSession = sessionStorage.getItem('kl_erp_session_id');
-      if (storedSession) {
-        setSessionId(storedSession);
-        router.push('/dashboard');
-      } else {
-        fetchCaptcha();
-      }
-      const savedDevice = localStorage.getItem('kl_erp_device_id');
-      if (savedDevice) {
-        setDeviceId(savedDevice);
-      }
-    } catch {}
+    queueMicrotask(() => {
+      try {
+        const storedSession = sessionStorage.getItem('kl_erp_session_id');
+        if (storedSession) {
+          setSessionId(storedSession);
+          router.push('/dashboard');
+          return;
+        } else {
+          fetchCaptcha();
+        }
+        const savedDevice = localStorage.getItem('kl_erp_device_id');
+        if (savedDevice) {
+          setDeviceId(savedDevice);
+        }
+      } catch {}
 
-    const savedUser = localStorage.getItem('remember_username');
-    const savedPass = localStorage.getItem('remember_password');
-    if (savedUser && savedPass) {
-      setUsername(savedUser);
-      setPassword(savedPass);
-      setRememberMe(true);
-    }
+      const savedUser = localStorage.getItem('remember_username');
+      const savedPass = localStorage.getItem('remember_password');
+      if (savedUser && savedPass) {
+        setUsername(savedUser);
+        setPassword(savedPass);
+        setRememberMe(true);
+      }
+    });
   }, [router]);
 
   const handleLogin = async (e?: React.FormEvent) => {
@@ -152,6 +155,7 @@ export default function LoginPage() {
         document.cookie = `kl_erp_session=${data.sessionId || ''}; max-age=86400; path=/;`;
         sessionStorage.setItem('kl_erp_session_id', data.sessionId || '');
         sessionStorage.setItem('kl_erp_csrf_token', data.csrfToken || '');
+        localStorage.setItem('kl_erp_csrf_token', data.csrfToken || '');
         localStorage.setItem(
           'kl_erp_academic_years',
           JSON.stringify(data.academicYears || [])

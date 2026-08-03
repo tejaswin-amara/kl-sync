@@ -76,7 +76,9 @@ export default function ToolsPage() {
   }, []);
 
   useEffect(() => {
-    fetchData();
+    queueMicrotask(() => {
+      fetchData();
+    });
   }, [fetchData]);
 
   const calculateRequiredGpa = () => {

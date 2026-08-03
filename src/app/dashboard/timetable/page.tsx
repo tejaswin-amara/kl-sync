@@ -139,7 +139,10 @@ export default function TimetablePage() {
     }
 
     try {
-      let csrf = sessionStorage.getItem('kl_erp_csrf_token') || '';
+      let csrf =
+        sessionStorage.getItem('kl_erp_csrf_token') ||
+        localStorage.getItem('kl_erp_csrf_token') ||
+        '';
       if (!csrf) {
         try {
           const profCheck = await fetch('/api/erp-proxy/profile');
@@ -155,23 +158,38 @@ export default function TimetablePage() {
         }
       }
 
-      // Fetch profile & marks in parallel to build course title & faculty lookup
       const courseLookup: Record<string, { title: string; faculty: string }> =
         {};
-      try {
-        const [profRes, marksRes] = await Promise.allSettled([
-          fetch('/api/erp-proxy/profile'),
-          fetch('/api/erp-proxy/marks', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              academicYear: selectedYear,
-              semesterId: selectedSem,
-              csrfToken: csrf,
-            }),
-          }),
-        ]);
 
+      const [ttRes, profRes, marksRes] = await Promise.allSettled([
+        fetch('/api/erp-proxy/timetable', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            academicYear: selectedYear,
+            semesterId: selectedSem,
+            csrfToken: csrf,
+          }),
+        }),
+        fetch('/api/erp-proxy/profile'),
+        fetch('/api/erp-proxy/marks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            academicYear: selectedYear,
+            semesterId: selectedSem,
+            csrfToken: csrf,
+          }),
+        }),
+      ]);
+
+      if (ttRes.status === 'rejected') {
+        throw ttRes.reason || new Error('Failed to fetch timetable');
+      }
+
+      const res = ttRes.value;
+
+      try {
         if (profRes.status === 'fulfilled') {
           const pData = await profRes.value.json();
           if (pData.success && Array.isArray(pData.data)) {
@@ -250,16 +268,6 @@ export default function TimetablePage() {
       } catch {
         // Non-fatal lookup failure
       }
-
-      const res = await fetch('/api/erp-proxy/timetable', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          academicYear: selectedYear,
-          semesterId: selectedSem,
-          csrfToken: csrf,
-        }),
-      });
 
       const ct = res.headers.get('content-type') || '';
       if (!ct.includes('application/json')) {
