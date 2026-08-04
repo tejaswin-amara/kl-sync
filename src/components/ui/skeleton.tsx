@@ -1,16 +1,17 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
-  shimmer?: boolean;
+interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: 'default' | 'circle' | 'text';
 }
 
-function Skeleton({ className, shimmer = true, ...props }: SkeletonProps) {
+function Skeleton({ className, variant = 'default', ...props }: SkeletonProps) {
   return (
     <div
       className={cn(
-        'rounded-xl bg-zinc-800/80 animate-pulse',
-        shimmer && 'animate-shimmer',
+        'bg-surface-2 shimmer rounded-[--radius-md]',
+        variant === 'circle' && 'rounded-full',
+        variant === 'text' && 'h-4 rounded-[--radius-sm]',
         className
       )}
       {...props}

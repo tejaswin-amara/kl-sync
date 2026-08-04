@@ -1,97 +1,64 @@
 'use client';
-import { useEffect, useState } from 'react';
 
-import { Loader2, AlertCircle, Megaphone } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { PageHeader } from '@/components/ui/page-header';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Megaphone } from 'lucide-react';
 
 export default function CircularsPage() {
   const [data, setData] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchData = () => {
+    setLoading(true);
+    setError(null);
     fetch('/api/erp-proxy/circulars')
       .then((res) => {
         const ct = res.headers.get('content-type') || '';
-        if (!ct.includes('application/json')) {
-          throw new Error(
-            'Session expired or server error. Please login again.'
-          );
-        }
+        if (!ct.includes('application/json')) throw new Error('Session expired.');
         return res.json();
       })
       .then((resData) => {
-        if (!resData.success) {
-          throw new Error(resData.error || 'Failed to fetch data');
-        }
+        if (!resData.success) throw new Error(resData.error || 'Failed to fetch data');
         setData(resData.data || []);
       })
-      .catch((err) => {
-        setError(err.message);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  };
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- data-fetching pattern, setState is in async callback
+  useEffect(() => { fetchData(); }, []);
 
   return (
-    <div className="flex flex-col gap-6 w-full">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight text-zinc-100">
-          Circulars
-        </h2>
-        <p className="text-base text-zinc-400 mt-1">
-          Live data synced securely from the ERP.
-        </p>
-      </div>
+    <div className="flex flex-col gap-5 w-full animate-up">
+      <PageHeader title="Circulars" description="Announcements from the ERP system" />
 
-      <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md shadow-2xl overflow-hidden min-h-[400px]">
+      <div className="rounded-[--radius-xl] bg-surface-1 border border-border overflow-hidden">
         {loading ? (
-          <div className="flex flex-col items-center justify-center h-[400px]">
-            <Loader2 className="w-10 h-10 text-indigo-400 animate-spin mb-4" />
-            <span className="text-base text-zinc-400">
-              Connecting to ERP via secure proxy...
-            </span>
+          <div className="p-5 space-y-3">
+            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
           </div>
         ) : error ? (
-          <div className="flex flex-col items-center justify-center h-[400px] p-8 text-center">
-            <div className="w-16 h-16 rounded bg-red-500/10 flex items-center justify-center text-red-400 mb-4">
-              <AlertCircle className="w-10 h-10" />
-            </div>
-            <p className="text-xl font-semibold text-red-400">Failed to sync with ERP</p>
-            <p className="text-sm text-zinc-500 mt-2 max-w-md">{error}</p>
-          </div>
+          <EmptyState variant="error" description={error} action={{ label: 'Retry', onClick: fetchData }} />
         ) : data.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-[400px] text-center">
-            <div className="w-16 h-16 rounded bg-[#2c2c2c] flex items-center justify-center text-gray-400 mb-4">
-              <Megaphone className="w-10 h-10" />
-            </div>
-            <p className="text-base text-zinc-400">No circulars found.</p>
-          </div>
+          <EmptyState icon={<Megaphone className="w-10 h-10 text-muted-foreground/30" />} title="No circulars" description="Circulars will appear here when published." />
         ) : (
-          <div className="overflow-x-auto p-4 sm:p-6">
-            <table className="w-full text-left whitespace-nowrap border-separate border-spacing-y-2">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
               <thead>
-                <tr>
+                <tr className="border-b border-border bg-surface-1 sticky top-0 z-10">
                   {Object.keys(data[0] || {}).map((key, i) => (
-                    <th
-                      key={i}
-                      className="px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-zinc-500 border-b border-white/5 sticky top-0 z-10 bg-zinc-950/50 backdrop-blur-md"
-                    >
-                      {key}
-                    </th>
+                    <th key={i} className="px-4 py-3 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground whitespace-nowrap text-left">{key}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-border/50">
                 {data.map((row, idx) => (
-                  <tr key={idx} className="group transition-all">
+                  <tr key={idx} className="hover:bg-surface-2/30 transition-colors">
                     {Object.values(row).map((val: unknown, j) => (
-                      <td
-                        key={j}
-                        className="px-4 py-4 text-sm text-zinc-100 bg-white/[0.02] group-hover:bg-white/[0.05] transition-colors first:rounded-l last:rounded-r border-y border-transparent"
-                      >
-                        {String(val)}
-                      </td>
+                      <td key={j} className="px-4 py-3.5 text-sm text-foreground">{String(val)}</td>
                     ))}
                   </tr>
                 ))}

@@ -1,7 +1,11 @@
 'use client';
-import { useEffect, useState } from 'react';
 
-import { Loader2, AlertCircle, Inbox, CheckCircle, Clock } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { PageHeader } from '@/components/ui/page-header';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Skeleton } from '@/components/ui/skeleton';
+import { StatCard } from '@/components/ui/stat-card';
+import { CheckCircle, Clock } from 'lucide-react';
 import {
   findStatusKey,
   isRowUnpaid,
@@ -14,174 +18,89 @@ export default function FeePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchFee = () => {
+    setLoading(true);
+    setError(null);
     fetch('/api/erp-proxy/fee')
       .then((res) => {
         const ct = res.headers.get('content-type') || '';
-        if (!ct.includes('application/json')) {
-          throw new Error(
-            'Session expired or server error. Please login again.'
-          );
-        }
+        if (!ct.includes('application/json')) throw new Error('Session expired.');
         return res.json();
       })
       .then((resData) => {
-        if (!resData.success) {
-          throw new Error(resData.error || 'Failed to fetch data');
-        }
+        if (!resData.success) throw new Error(resData.error || 'Failed to fetch data');
         setData(resData.data || []);
       })
-      .catch((err) => {
-        setError(err.message);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  };
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- data-fetching pattern, setState is in async callback
+  useEffect(() => { fetchFee(); }, []);
+
+  // Compute totals
+  let totalPending = 0;
+  let totalPaid = 0;
+  data.forEach((row) => {
+    if (isSummaryRow(row)) return;
+    const statusKey = findStatusKey(row);
+    if (statusKey && isRowUnpaid(row)) {
+      const amtKey = Object.keys(row).find((k) => k.toLowerCase().includes('amount') || k.toLowerCase().includes('fee'));
+      if (amtKey) totalPending += parseCurrency(String(row[amtKey]));
+    } else {
+      const amtKey = Object.keys(row).find((k) => k.toLowerCase().includes('amount') || k.toLowerCase().includes('fee'));
+      if (amtKey) totalPaid += parseCurrency(String(row[amtKey]));
+    }
+  });
 
   return (
-    <div className="flex flex-col gap-6 w-full">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight text-zinc-100">
-          Fee Payments
-        </h2>
-        <p className="text-base text-zinc-400 text-gray-400 mt-1">
-          Live data synced securely from the ERP.
-        </p>
-      </div>
+    <div className="flex flex-col gap-5 w-full animate-up">
+      <PageHeader title="Fee Details" description="Payment records synced from ERP" />
 
-      <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md shadow-2xl overflow-hidden min-h-[400px]">
+      {!loading && !error && data.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-up animate-up-1">
+          <StatCard label="Total Pending" value={`₹${totalPending.toLocaleString()}`} icon={Clock} accent="danger" />
+          <StatCard label="Total Paid" value={`₹${totalPaid.toLocaleString()}`} icon={CheckCircle} accent="success" />
+        </div>
+      )}
+
+      <div className="rounded-[--radius-xl] bg-surface-1 border border-border overflow-hidden">
         {loading ? (
-          <div className="flex flex-col items-center justify-center h-[400px]">
-            <Loader2 className="w-10 h-10 text-indigo-400 animate-spin mb-4" />
-            <span className="text-base text-zinc-400 text-gray-400">
-              Connecting to ERP via secure proxy...
-            </span>
+          <div className="p-5 space-y-3">
+            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
           </div>
         ) : error ? (
-          <div className="flex flex-col items-center justify-center h-[400px] p-8 text-center">
-            <div className="w-16 h-16 rounded bg-red-500/10 flex items-center justify-center text-red-400 mb-4">
-              <AlertCircle className="w-10 h-10" />
-            </div>
-            <p className="text-xl font-semibold text-red-400">Failed to sync with ERP</p>
-            <p className="text-sm text-zinc-500 text-gray-400 mt-2 max-w-md">
-              {error}
-            </p>
-          </div>
+          <EmptyState variant="error" description={error} action={{ label: 'Retry', onClick: fetchFee }} />
         ) : data.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-[400px] text-center">
-            <div className="w-16 h-16 rounded bg-[#2c2c2c] flex items-center justify-center text-gray-400 mb-4">
-              <Inbox className="w-10 h-10" />
-            </div>
-            <p className="text-base text-zinc-400 text-gray-400">
-              No fee data found.
-            </p>
-          </div>
+          <EmptyState title="No fee records" description="Fee data will appear here once available." />
         ) : (
-          <div className="overflow-x-auto p-4 sm:p-6">
-            <table className="w-full text-left whitespace-nowrap border-separate border-spacing-y-2">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
               <thead>
-                <tr>
+                <tr className="border-b border-border bg-surface-1 sticky top-0 z-10">
                   {Object.keys(data[0] || {}).map((key, i) => (
-                    <th
-                      key={i}
-                      className="px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-zinc-500 text-gray-400 border-b border-white/5 sticky top-0 z-10 bg-zinc-950/50 backdrop-blur-md"
-                    >
-                      {key}
-                    </th>
+                    <th key={i} className="px-4 py-3 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground whitespace-nowrap text-left">{key}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-border/50">
                 {data.map((row, idx) => {
-                  // Determine status for styling using fee-utils
-                  const statusKey = findStatusKey(row);
-                  const statusVal =
-                    statusKey && row[statusKey]
-                      ? String(row[statusKey]).toLowerCase()
-                      : '';
-                  const isPending = isRowUnpaid(row);
-                  const summaryRow = isSummaryRow(row);
-                  const isPaid =
-                    !isPending &&
-                    !summaryRow &&
-                    (statusVal.includes('paid') || !statusKey);
-
+                  const unpaid = isRowUnpaid(row);
                   return (
-                    <tr
-                      key={idx}
-                      className={`group transition-all ${summaryRow ? 'font-bold bg-white/[0.04]' : ''}`}
-                    >
-                      {Object.values(row).map((val: unknown, j) => {
-                        const colName = Object.keys(row)[j].toLowerCase();
-                        let displayVal: React.ReactNode = String(val);
-
-                        // Add ₹ symbol or format currency amounts safely
-                        if (
-                          (typeof val === 'string' ||
-                            typeof val === 'number') &&
-                          (colName.includes('amount') ||
-                            colName.includes('fee') ||
-                            colName.includes('scholarship') ||
-                            colName.includes('concession') ||
-                            colName.includes('balance') ||
-                            colName.includes('due') ||
-                            colName.includes('paid') ||
-                            colName.includes('payable'))
-                        ) {
-                          const valStr = String(val).trim();
-                          const numVal = parseCurrency(val);
-                          if (numVal !== 0 || /^-?0(\.0+)?$/.test(valStr)) {
-                            if (
-                              valStr.includes('₹') ||
-                              valStr.includes('$') ||
-                              valStr.includes('€')
-                            ) {
-                              displayVal = valStr;
-                            } else {
-                              displayVal =
-                                numVal < 0
-                                  ? `-₹${Math.abs(numVal)}`
-                                  : `₹${valStr}`;
-                            }
-                          }
-                        }
-
-                        // Status styling
-                        if (
-                          colName.includes('status') ||
-                          colName.includes('remarks') ||
-                          colName === 'scholarship' ||
-                          colName === 'concession'
-                        ) {
-                          const vLow = String(val).toLowerCase();
-                          if (
-                            isPaid ||
-                            vLow.includes('scholarship') ||
-                            vLow.includes('concession')
-                          ) {
-                            displayVal = (
-                              <span className="inline-flex items-center gap-1 bg-green-500/10 text-green-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                                <CheckCircle className="w-3.5 h-3.5" />
-                                {String(val)}
-                              </span>
-                            );
-                          } else if (isPending) {
-                            displayVal = (
-                              <span className="inline-flex items-center gap-1 bg-red-500/10 text-red-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                                <Clock className="w-3.5 h-3.5" />
-                                {String(val)}
-                              </span>
-                            );
-                          }
-                        }
-
+                    <tr key={idx} className={`hover:bg-surface-2/30 transition-colors ${unpaid ? 'bg-destructive/3' : ''}`}>
+                      {Object.entries(row).map(([key, val], j) => {
+                        const statusKey = findStatusKey(row);
+                        const isStatus = statusKey === key;
                         return (
-                          <td
-                            key={j}
-                            className="px-4 py-4 text-sm text-zinc-100 bg-white/[0.02] group-hover:bg-white/[0.05] transition-colors first:rounded-l last:rounded-r border-y border-transparent"
-                          >
-                            {displayVal}
+                          <td key={j} className="px-4 py-3.5 text-sm text-foreground whitespace-nowrap">
+                            {isStatus ? (
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold ${
+                                unpaid ? 'bg-destructive/10 text-destructive' : 'bg-success/10 text-success'
+                              }`}>
+                                {unpaid ? <Clock className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
+                                {String(val)}
+                              </span>
+                            ) : String(val)}
                           </td>
                         );
                       })}

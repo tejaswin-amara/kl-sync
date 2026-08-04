@@ -13,24 +13,30 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="relative flex items-center w-full">
         {leftIcon && (
-          <div className="absolute left-3.5 flex items-center pointer-events-none text-zinc-400">
+          <div className="absolute left-3.5 flex items-center pointer-events-none text-muted-foreground">
             {leftIcon}
           </div>
         )}
         <input
           type={type}
           className={cn(
-            'flex w-full min-h-[44px] rounded-xl px-4 py-2.5 text-sm glass-input text-zinc-100 placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200',
+            'flex w-full min-h-[44px] rounded-[--radius-md] px-4 py-2.5 text-sm',
+            'bg-surface-2/70 border border-border text-foreground',
+            'placeholder:text-muted-foreground/60',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+            'hover:border-white/16 transition-all duration-[--duration-normal]',
+            'disabled:cursor-not-allowed disabled:opacity-50',
             leftIcon && 'pl-10',
             rightIcon && 'pr-10',
-            error && 'border-red-500/50 focus-visible:ring-red-400',
+            error && 'border-destructive/50 focus-visible:ring-destructive',
             className
           )}
           ref={ref}
+          aria-invalid={error || undefined}
           {...props}
         />
         {rightIcon && (
-          <div className="absolute right-3.5 flex items-center text-zinc-400">
+          <div className="absolute right-3.5 flex items-center text-muted-foreground">
             {rightIcon}
           </div>
         )}

@@ -1,20 +1,30 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter, Outfit } from 'next/font/google';
 import './globals.css';
 
 const inter = Inter({
   variable: '--font-inter',
   subsets: ['latin'],
+  display: 'swap',
 });
 
 const outfit = Outfit({
   variable: '--font-outfit',
   subsets: ['latin'],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: 'KL Sync',
-  description: 'Modern KL Sync Overlay',
+  title: 'KL Sync — Academic Dashboard',
+  description: 'Secure, real-time access to your KL University timetable, attendance, marks and more.',
+  keywords: ['KL University', 'ERP', 'timetable', 'attendance', 'academic dashboard'],
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#6366f1',
 };
 
 export default function RootLayout({
@@ -30,16 +40,20 @@ export default function RootLayout({
     >
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#6366f1" />
         <link rel="apple-touch-icon" href="/logo.png" />
+        <meta name="color-scheme" content="dark" />
       </head>
       <body
-        className="min-h-full flex flex-col font-sans text-zinc-50 bg-zinc-950"
+        className="min-h-full flex flex-col font-sans text-foreground bg-background"
         suppressHydrationWarning
       >
-        {children}
+        <a href="#main-content" className="skip-nav">
+          Skip to content
+        </a>
+        <div id="main-content">
+          {children}
+        </div>
       </body>
     </html>
   );
 }
-
