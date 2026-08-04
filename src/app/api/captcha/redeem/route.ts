@@ -2,6 +2,8 @@ import { validateChallenge } from "capjs-core";
 import { NextResponse } from "next/server";
 import { consumeNonce, storeRedeemedToken } from "@/lib/captcha";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();

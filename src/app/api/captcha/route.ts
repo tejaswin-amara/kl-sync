@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getCaptcha } from '@/lib/scraper';
 import { encodeSession } from '@/lib/session';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     let captchaImage = '';

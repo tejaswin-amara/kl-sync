@@ -1,6 +1,8 @@
 import { generateChallenge } from "capjs-core";
 import { NextResponse } from "next/server";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST() {
   try {
     const secret =

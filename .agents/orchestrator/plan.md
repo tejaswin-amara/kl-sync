@@ -1,31 +1,27 @@
-# Execution Plan — KL Sync Application Optimization
+# Concrete Step-by-Step Orchestration Plan: KL Sync Frontend Redesign
 
-## Objectives
-1. Perform Ponytail optimization across `src/`: remove unused code, imports, redundant abstractions, maximize execution speed while preserving functionality.
-2. Achieve 100% pass rates on `npx tsc --noEmit` (0 errors) and `npm test` (19/19 tests).
-3. Verify comprehensive Playwright E2E browser testing for all 7 routes (`/`, `/dashboard`, `/dashboard/timetable`, `/dashboard/attendance`, `/dashboard/marks`, `/dashboard/profile`, `/dashboard/fee`) with seamless Cap & OCR CAPTCHA auto-solving and live ERP rendering.
+## Phase 0: Survey & Architecture Discovery
+- [ ] Dispatch 3 parallel survey subagents (`teamwork_preview_explorer` / `teamwork_preview_spec_miner`) to analyze existing codebase, project structure, component hierarchy, build/test scripts, styling framework, and exact feature requirements from `ORIGINAL_REQUEST.md`.
+- [ ] Aggregate survey findings into `PROJECT.md` at project root (`C:\Users\speed\Documents\antigravity\optimistic-pascal\PROJECT.md`).
 
-## Phase Breakdown
+## Phase 1: Architecture & Milestone Decomposition (`PROJECT.md`)
+- [ ] Define feature inventory mapping R1 (Landing, Login, Dashboard modules: Attendance, Timetable, Marks, Fee, Profile, Circulars, Hostels, Library, Tools), R2 (Cap CAPTCHA & ERP image captcha, clear feedback, error alerts), and R3 (Dark-mode, micro-interactions, glassmorphism, typography).
+- [ ] Define modular milestones (3-7 milestones) with clear module boundaries and interface contracts.
+- [ ] Establish parallel Dual Track: Implementation Track + E2E / Unit Testing Track.
 
-### Phase 1: Investigation & Audit (M1)
-- Dispatch 3 Explorers (`explorer_m1_1`, `explorer_m1_2`, `explorer_m1_3`).
-  - Explorer 1: Inspect `src/lib/`, check dead code, unused functions, imports, captcha logic, unit test suite (`npm test`).
-  - Explorer 2: Inspect `src/app/`, check route pages, components, unused UI imports, state calls, layout truncation risks across the 7 routes.
-  - Explorer 3: Audit E2E browser testing infrastructure (Playwright/scripts), verify CAPTCHA auto-solver endpoints and route testing capabilities.
+## Phase 2: Milestone Execution & Quality Gates
+- [ ] Iterative execution per milestone using the standard cycle:
+  1. Explorer(s) analyze target files, dependencies, and fix strategy.
+  2. Worker implements changes, verifies local build and tests.
+  3. Reviewers (2) evaluate code quality, visual aesthetics, accessibility, and correctness.
+  4. Challengers (2) stress test and verify edge cases.
+  5. Forensic Auditor (`teamwork_preview_auditor`) verifies non-cheating, authentic implementations.
+  6. Gate Check (`GATE_STATUS.md`): ALL pass -> advance; ANY fail -> iteration loop back with failure report.
 
-### Phase 2: Ponytail Optimization & Unit Test Fixes (M2)
-- Dispatch Worker (`worker_m2`).
-  - Implement dead code elimination, import pruning, state optimization.
-  - Fix any failing unit tests or type errors, run `npx tsc --noEmit` and `npm test`.
-  - Confirm 19/19 unit tests pass and 0 type errors.
-
-### Phase 3: E2E Browser Testing & Route Verification (M3)
-- Dispatch Worker (`worker_m3`).
-  - Set up / execute Playwright browser tests across all 7 routes (`/`, `/dashboard`, `/dashboard/timetable`, `/dashboard/attendance`, `/dashboard/marks`, `/dashboard/profile`, `/dashboard/fee`).
-  - Test form submissions, Cap CAPTCHA auto-solving, visual ERP OCR CAPTCHA auto-solving, and ERP data rendering without layout truncation.
-
-### Phase 4: Review, Challenger & Forensic Integrity Audit (M4)
-- Dispatch 2 Reviewers (`reviewer_1`, `reviewer_2`) to check code quality and test coverage.
-- Dispatch 2 Challengers (`challenger_1`, `challenger_2`) to stress-test browser automation and routes.
-- Dispatch Forensic Auditor (`auditor_1`) to perform integrity verification.
-- Gate sign-off.
+## Phase 3: Final Acceptance & Quality Audit
+- [ ] Verify `npm run build` (0 TS errors).
+- [ ] Verify `npm run lint` (0 warnings/errors).
+- [ ] Verify `npm run test` (all 30 tests pass cleanly).
+- [ ] Verify responsive rendering across mobile (320px+), tablet, desktop, and ultra-wide viewports.
+- [ ] Perform final forensic audit.
+- [ ] Report victory to Sentinel & parent caller.

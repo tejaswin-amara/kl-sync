@@ -13,6 +13,8 @@ import {
   ScraperSession,
 } from '@/lib/scraper';
 
+export const dynamic = 'force-dynamic';
+
 async function handleProxy(
   request: NextRequest,
   { params }: { params: Promise<{ module: string }> }

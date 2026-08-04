@@ -2,9 +2,21 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { useState, useEffect } from 'react';
-import { RefreshCw, LogIn, AlertCircle, Loader2 } from 'lucide-react';
+import { RefreshCw, LogIn, AlertCircle, ShieldCheck, User, Lock, HelpCircle, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Captcha } from '@/components/Captcha';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -40,8 +52,7 @@ export default function LoginPage() {
       if (sid) setSessionId(sid);
 
       const data = await response.json();
-      const originalBase64 = data.captchaImage;
-      setCaptchaImage(originalBase64);
+      setCaptchaImage(data.captchaImage);
       if (data.solvedCaptcha) {
         setCaptcha(data.solvedCaptcha);
       } else {
@@ -70,9 +81,7 @@ export default function LoginPage() {
           fetchCaptcha();
         }
         const savedDevice = localStorage.getItem('kl_erp_device_id');
-        if (savedDevice) {
-          setDeviceId(savedDevice);
-        }
+        if (savedDevice) setDeviceId(savedDevice);
       } catch {}
 
       const savedUser = localStorage.getItem('remember_username');
@@ -87,7 +96,6 @@ export default function LoginPage() {
 
   const handleLogin = async (e?: React.FormEvent) => {
     e?.preventDefault();
-
     if (!username || !password || !captcha) {
       setError('Please fill in all fields');
       return;
@@ -166,7 +174,6 @@ export default function LoginPage() {
         );
       } catch {}
 
-      // Auto-select the correct academic year and semester
       let academicYear = '';
       if (data.academicYears && data.academicYears.length > 0) {
         const sortedYears = [...data.academicYears].sort(
@@ -180,9 +187,8 @@ export default function LoginPage() {
 
       let semesterId = '';
       if (data.semesters && data.semesters.length > 0) {
-        const oddSem = data.semesters.find(
-          (s: { label: string; value: string }) =>
-            s.label.toLowerCase().includes('odd')
+        const oddSem = data.semesters.find((s: { label: string; value: string }) =>
+          s.label.toLowerCase().includes('odd')
         );
         semesterId = oddSem ? oddSem.value : data.semesters[0].value;
       }
@@ -218,203 +224,191 @@ export default function LoginPage() {
 
   return (
     <div className="h-[100dvh] flex bg-zinc-950 text-zinc-50 relative overflow-hidden font-sans">
+      {/* Background ambient blobs */}
+      <div className="blob blob-a w-[500px] h-[500px] bg-indigo-600 top-[-100px] left-[-100px]" />
+      <div className="blob blob-b w-[400px] h-[400px] bg-emerald-600 bottom-[-100px] right-[-100px]" />
+
       {/* LEFT: BRANDING PANEL (Taste-Skill asymmetric split) */}
-      <div className="hidden lg:flex w-[45%] relative border-r border-zinc-900 overflow-hidden bg-zinc-900 flex-col">
+      <div className="hidden lg:flex w-[45%] relative border-r border-zinc-900 overflow-hidden bg-zinc-900/60 backdrop-blur-2xl flex-col">
         <div className="relative z-10 flex-1 flex flex-col p-16 justify-between">
           <div>
-            <div className="bg-white rounded-2xl p-4 shadow-xl inline-block mb-12">
+            <div className="bg-white rounded-2xl p-4 shadow-xl inline-block mb-12 border border-white/20">
               <img src="/logo.png" alt="KLH" className="h-10 object-contain" />
             </div>
-            <h1 className="text-5xl font-semibold tracking-tight text-white leading-[1.1] mb-6">
+            <h1 className="text-5xl font-semibold tracking-tight text-white leading-[1.1] mb-6 font-heading">
               Academic sync,
               <br />
               precision engineered.
             </h1>
             <p className="text-lg text-zinc-400 max-w-md leading-relaxed">
-              Secure, real-time access to your timetable, profile, and
-              attendance metrics directly from the core ERP.
+              Secure, real-time access to your timetable, profile, and attendance metrics directly from the core ERP.
             </p>
           </div>
 
-          {/* Material Status Chip */}
-          <div className="flex items-center gap-3 px-4 py-3 rounded-full bg-emerald-500/10 border border-emerald-500/20 w-max">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
-            <span className="text-xs font-semibold text-emerald-400 tracking-wide uppercase">
+          <div className="flex items-center gap-4">
+            <Badge variant="emerald" dot className="px-3.5 py-1.5 text-xs font-semibold tracking-wide uppercase">
               System Live & Secure
-            </span>
+            </Badge>
+
+            <Dialog>
+              <DialogTrigger className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors cursor-pointer">
+                <HelpCircle className="w-4 h-4" />
+                <span>Security Info</span>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>KL Sync Security & Single Sign-On</DialogTitle>
+                  <DialogDescription>
+                    KL Sync uses encrypted session tokens and proof-of-work bot protection to communicate directly with KL University ERP servers.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="text-xs text-zinc-300 space-y-2 py-2">
+                  <p>• <strong>First-Time Device Setup</strong>: When signing in from a new device, a registered device token is issued. Enter the captcha code once more when prompted.</p>
+                  <p>• <strong>Credential Encryption</strong>: Your student password is used strictly to establish an ERP session and is never logged.</p>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>
 
       {/* RIGHT: LOGIN FORM */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-12 relative z-10 bg-zinc-950">
-        <div className="w-full max-w-[380px]">
-          <div className="lg:hidden mb-12">
-            <div className="bg-white rounded-xl p-3 shadow-md inline-block">
-              <img src="/logo.png" alt="KLH" className="h-8 object-contain" />
-            </div>
-          </div>
-
-          <div className="mb-12">
-            <h2 className="text-3xl font-semibold tracking-tight text-white mb-2">
-              Sign in
-            </h2>
-            <p className="text-zinc-400 text-sm">
-              Enter your student credentials to continue.
-            </p>
-          </div>
-
-          {error && (
-            <div className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-              <AlertCircle className="w-5 h-5 shrink-0" />
-              <p className="leading-tight">{error}</p>
-            </div>
-          )}
-
-          {status && !error && (
-            <div className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm">
-              <AlertCircle className="w-5 h-5 shrink-0" />
-              <p className="leading-tight">{status}</p>
-            </div>
-          )}
-
-          <form
-            onSubmit={handleLogin}
-            className="space-y-6"
-            aria-label="Student ERP Authentication Form"
-          >
-            {/* Student ID input with WCAG 2.2 AAA Contrast & Accessibility */}
-            <div className="space-y-1.5">
-              <label
-                htmlFor="student-id-field"
-                className="text-xs font-semibold tracking-wide uppercase text-zinc-300"
-              >
-                Student ID
-              </label>
-              <input
-                id="student-id-field"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="210003xxxx"
-                aria-required="true"
-                className="w-full min-h-[48px] rounded-xl px-4 py-3.5 bg-zinc-900 border border-zinc-700 text-sm font-mono text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-4 focus:ring-indigo-400 focus:border-indigo-400 transition-all"
-              />
-            </div>
-
-            {/* Password input */}
-            <div className="space-y-1.5">
-              <label
-                htmlFor="password-field"
-                className="text-xs font-semibold tracking-wide uppercase text-zinc-300"
-              >
-                Password
-              </label>
-              <input
-                id="password-field"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                aria-required="true"
-                className="w-full min-h-[48px] rounded-xl px-4 py-3.5 bg-zinc-900 border border-zinc-700 text-sm text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-4 focus:ring-indigo-400 focus:border-indigo-400 transition-all"
-              />
-            </div>
-
-            {/* Checkbox with WCAG 2.5.8 AAA >= 24px Target Sizing */}
-            <div className="flex items-center gap-3 py-1">
-              <input
-                type="checkbox"
-                id="remember"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-6 h-6 rounded bg-zinc-900 border-zinc-700 text-indigo-400 focus:ring-4 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-zinc-950 cursor-pointer"
-              />
-              <label
-                htmlFor="remember"
-                className="text-sm font-medium text-zinc-200 cursor-pointer select-none"
-              >
-                Remember my credentials securely
-              </label>
-            </div>
-
-            {/* Captcha Block with WCAG 3.3.9 Accessible Authentication & Copy-Paste Support */}
-            <div className="space-y-2 pt-2">
-              <label
-                htmlFor="captcha-field"
-                className="text-xs font-semibold tracking-wide uppercase text-zinc-300"
-              >
-                Visual Security Code
-              </label>
-              <div className="flex gap-3">
-                <input
-                  id="captcha-field"
-                  type="text"
-                  value={captcha}
-                  onChange={(e) => setCaptcha(e.target.value)}
-                  placeholder="Enter code"
-                  aria-describedby="captcha-desc"
-                  aria-required="true"
-                  className="flex-1 min-h-[48px] rounded-xl px-4 py-3.5 bg-zinc-900 border border-zinc-700 text-sm font-mono text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-4 focus:ring-indigo-400 focus:border-indigo-400 transition-all"
-                />
-                <div className="flex items-center gap-2 shrink-0">
-                  <div className="h-[52px] w-[120px] rounded-xl overflow-hidden flex items-center justify-center bg-white border border-zinc-700 shadow-md">
-                    {captchaLoading ? (
-                      <Loader2
-                        className="w-5 h-5 animate-spin text-zinc-600"
-                        aria-label="Loading new captcha image"
-                      />
-                    ) : captchaImage ? (
-                      <img
-                        src={captchaImage}
-                        alt="Security verification code image containing letters and numbers"
-                        className="h-full w-full object-contain mix-blend-multiply opacity-100 scale-105 filter contrast-150"
-                      />
-                    ) : null}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => fetchCaptcha()}
-                    disabled={captchaLoading}
-                    aria-label="Refresh security verification code"
-                    className="h-[52px] w-[52px] min-w-[52px] rounded-xl bg-zinc-900 border border-zinc-700 flex items-center justify-center text-zinc-200 hover:text-white hover:bg-zinc-800 focus:ring-4 focus:ring-indigo-400 focus:outline-none transition-all disabled:opacity-50"
-                  >
-                    <RefreshCw
-                      className={`w-5 h-5 ${captchaLoading ? 'animate-spin' : ''}`}
-                    />
-                  </button>
-                </div>
+      <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-12 relative z-10 bg-zinc-950/80 backdrop-blur-lg">
+        <Card variant="glass" className="w-full max-w-[420px] p-6 sm:p-8 border border-white/10 shadow-2xl">
+          <CardHeader className="p-0 mb-8">
+            <div className="lg:hidden mb-6">
+              <div className="bg-white rounded-xl p-3 shadow-md inline-block">
+                <img src="/logo.png" alt="KLH" className="h-8 object-contain" />
               </div>
             </div>
+            <CardTitle className="text-3xl font-semibold tracking-tight text-white mb-2 font-heading">
+              Sign in
+            </CardTitle>
+            <CardDescription className="text-zinc-400 text-sm">
+              Enter your student credentials to continue.
+            </CardDescription>
+          </CardHeader>
 
-            {/* Cap CAPTCHA bot protection widget */}
-            <div className="pt-2">
-              <Captcha onVerify={setCaptchaToken} />
-            </div>
+          <CardContent className="p-0">
+            {error && (
+              <div className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm animate-in fade-in-0 duration-200">
+                <AlertCircle className="w-5 h-5 shrink-0 text-red-400 mt-0.5" />
+                <p className="leading-tight">{error}</p>
+              </div>
+            )}
 
-            {/* Level AAA Button with Target Sizing & High Contrast */}
-            <button
-              type="submit"
-              disabled={loading || !captchaToken}
-              className="w-full min-h-[52px] py-4 mt-8 rounded-xl font-semibold text-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-indigo-600 text-white hover:bg-indigo-500 focus:ring-4 focus:ring-indigo-400 focus:outline-none shadow-lg"
-            >
-              {loading ? (
-                <Loader2
-                  className="w-5 h-5 animate-spin"
-                  aria-label="Authenticating..."
+            {status && !error && (
+              <div className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm animate-in fade-in-0 duration-200">
+                <ShieldCheck className="w-5 h-5 shrink-0 text-blue-400 mt-0.5" />
+                <p className="leading-tight">{status}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleLogin} className="space-y-5" aria-label="Student ERP Authentication Form">
+              <div className="space-y-1.5">
+                <label htmlFor="student-id-field" className="text-xs font-semibold tracking-wide uppercase text-zinc-300">
+                  Student ID
+                </label>
+                <Input
+                  id="student-id-field"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="210003xxxx"
+                  leftIcon={<User className="w-4 h-4 text-zinc-400" />}
+                  aria-required="true"
                 />
-              ) : (
-                <>
-                  <LogIn className="w-5 h-5" /> Continue to Dashboard
-                </>
-              )}
-            </button>
-          </form>
-        </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label htmlFor="password-field" className="text-xs font-semibold tracking-wide uppercase text-zinc-300">
+                  Password
+                </label>
+                <Input
+                  id="password-field"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  leftIcon={<Lock className="w-4 h-4 text-zinc-400" />}
+                  aria-required="true"
+                />
+              </div>
+
+              <div className="flex items-center gap-3 py-1">
+                <input
+                  type="checkbox"
+                  id="remember"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-5 h-5 rounded bg-zinc-900 border-zinc-700 text-indigo-400 focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-zinc-950 cursor-pointer"
+                />
+                <label htmlFor="remember" className="text-sm font-medium text-zinc-300 cursor-pointer select-none">
+                  Remember my credentials securely
+                </label>
+              </div>
+
+              <div className="space-y-2 pt-1">
+                <label htmlFor="captcha-field" className="text-xs font-semibold tracking-wide uppercase text-zinc-300">
+                  Visual Security Code
+                </label>
+                <div className="flex gap-3 items-center">
+                  <Input
+                    id="captcha-field"
+                    type="text"
+                    value={captcha}
+                    onChange={(e) => setCaptcha(e.target.value)}
+                    placeholder="Enter code"
+                    aria-required="true"
+                    className="flex-1 font-mono"
+                  />
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="h-[44px] w-[110px] rounded-xl overflow-hidden flex items-center justify-center bg-white border border-white/20 shadow-md">
+                      {captchaLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-zinc-600" aria-label="Loading new captcha image" />
+                      ) : captchaImage ? (
+                        <img
+                          src={captchaImage}
+                          alt="Security code"
+                          className="h-full w-full object-contain mix-blend-multiply opacity-100 scale-105 filter contrast-150"
+                        />
+                      ) : null}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => fetchCaptcha()}
+                      isLoading={captchaLoading}
+                      disabled={captchaLoading}
+                      aria-label="Refresh security verification code"
+                      className="h-[44px] w-[44px] shrink-0 border-white/10 hover:bg-white/10 text-zinc-300"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-1">
+                <Captcha onVerify={setCaptchaToken} />
+              </div>
+
+              <Button
+                type="submit"
+                size="lg"
+                isLoading={loading}
+                disabled={loading || !captchaToken}
+                className="w-full mt-6 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-lg shadow-indigo-600/25"
+              >
+                <LogIn className="w-5 h-5 mr-2" />
+                Continue to Dashboard
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
 }
+

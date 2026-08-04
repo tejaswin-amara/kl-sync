@@ -4,7 +4,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
 import {
   LayoutDashboard,
   User,
@@ -17,9 +16,13 @@ import {
   BookOpen,
   LogOut,
   Menu,
-  X,
   Bell,
 } from 'lucide-react';
+
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip } from '@/components/ui/tooltip';
 
 function ProfileAvatar({
   user,
@@ -89,7 +92,7 @@ export default function Navigation({
         fetch('/api/erp-proxy/profile')
           .then((res) => res.json())
           .then((data) => {
-            const profileData = data.profile || data.data; // Handle both possible structures
+            const profileData = data.profile || data.data;
             if (data.success && profileData && profileData.name) {
               localStorage.setItem('kl_student_name', profileData.name);
               localStorage.setItem(
@@ -146,9 +149,37 @@ export default function Navigation({
     { href: '/dashboard/tools', label: 'Tools & Calcs', icon: CheckSquare },
   ];
 
+  const renderNavLinks = (onItemClick?: () => void) => (
+    <div className="flex-1 flex flex-col justify-evenly min-h-[420px]">
+      {navItems.map((item) => {
+        const isActive =
+          pathname === item.href ||
+          (item.href !== '/dashboard' && pathname.startsWith(item.href));
+        const Icon = item.icon;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={onItemClick}
+            className={`w-full text-left px-3 py-2.5 flex items-center gap-3 transition-all cursor-pointer rounded-xl text-sm font-medium ${
+              isActive
+                ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shadow-[0_0_12px_rgba(99,102,241,0.15)] font-semibold'
+                : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/5'
+            }`}
+          >
+            <Icon
+              className={`w-4 h-4 ${isActive ? 'text-indigo-400' : 'text-zinc-500'} shrink-0`}
+            />
+            <span className="truncate">{item.label}</span>
+          </Link>
+        );
+      })}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50 flex overflow-hidden">
-      {/* Ambient background matching kl-attendance-v2 */}
+      {/* Ambient background */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div
           className="absolute rounded-full blur-[100px] bg-indigo-500/30 top-[10%] left-[20%] w-[30vw] h-[30vw] animate-pulse"
@@ -165,20 +196,46 @@ export default function Navigation({
       </div>
 
       {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-5 py-3 border-b border-white/10 bg-zinc-950/80 backdrop-blur-md">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-5 py-3 border-b border-white/10 glass-panel">
         <div className="flex items-center gap-3">
-          <button
-            className="p-2 -ml-2 rounded-lg hover:bg-white/10 transition-colors"
-            onClick={() => setDrawerOpen(true)}
-            aria-label="Open navigation menu"
-          >
-            <Menu className="w-5 h-5 text-zinc-300" />
-          </button>
+          <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="Open navigation menu">
+                <Menu className="w-5 h-5 text-zinc-300" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 flex flex-col w-[280px]">
+              <div className="p-6 border-b border-white/10 flex items-center justify-between">
+                <Link href="/dashboard" className="flex items-center gap-2" onClick={() => setDrawerOpen(false)}>
+                  <img src="/logo.png" alt="KL" className="h-7 w-auto object-contain" />
+                  <span className="font-bold text-lg text-zinc-100 font-heading">KL Sync</span>
+                </Link>
+              </div>
+              <div className="flex-1 py-4 px-3 flex flex-col overflow-y-auto custom-scrollbar">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 px-3 mb-2">
+                  Navigation
+                </div>
+                {renderNavLinks(() => setDrawerOpen(false))}
+              </div>
+              <div className="p-4 border-t border-white/10">
+                <Button
+                  variant="ghost"
+                  onClick={handleSignOut}
+                  className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
+
           <Link href="/dashboard" className="flex items-center gap-2">
             <img src="/logo.png" alt="KL" className="h-6 object-contain" />
-            <span className="font-bold text-sm text-zinc-100">KL Sync</span>
+            <span className="font-bold text-sm text-zinc-100 font-heading">KL Sync</span>
           </Link>
         </div>
+
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard/circulars"
@@ -186,109 +243,48 @@ export default function Navigation({
             aria-label="View circulars"
           >
             <Bell className="w-4 h-4" />
-            <span className="absolute top-2 right-2.5 w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+            <span className="absolute top-2 right-2.5 w-1.5 h-1.5 bg-emerald-500 rounded-full" />
           </Link>
           <ProfileAvatar user={user} />
         </div>
       </header>
 
-      {/* Sidebar (Desktop + Mobile Drawer) */}
-      {/* Backdrop for mobile */}
-      {drawerOpen && (
-        <div
-          onClick={() => setDrawerOpen(false)}
-          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
-        />
-      )}
-
-      <aside
-        className={`fixed lg:static top-0 left-0 h-full w-[280px] shrink-0 flex flex-col border-r z-50 transition-transform duration-300 ease-in-out ${
-          drawerOpen
-            ? 'translate-x-0 shadow-2xl'
-            : '-translate-x-full lg:translate-x-0'
-        }`}
-        style={{
-          borderColor: 'rgba(255,255,255,.06)',
-          background: 'rgba(9,9,11,0.95)',
-          backdropFilter: 'blur(20px)',
-        }}
-      >
-        <div
-          className="p-6 border-b"
-          style={{ borderColor: 'rgba(255,255,255,.06)' }}
-        >
-          <div className="flex items-center justify-between">
-            <Link href="/dashboard" className="flex items-center gap-2">
-              <img
-                src="/logo.png"
-                alt="KL"
-                className="h-8 w-auto object-contain"
-              />
-              <span className="font-bold text-lg text-zinc-100 tracking-tight">
-                KL Sync
-              </span>
-            </Link>
-            <button
-              className="lg:hidden p-2 -mr-2 rounded-lg hover:bg-white/10 text-zinc-400"
-              onClick={() => setDrawerOpen(false)}
-              aria-label="Close navigation menu"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+      {/* Desktop Fixed Sidebar */}
+      <aside className="hidden lg:flex fixed top-0 left-0 h-full w-[280px] shrink-0 flex-col border-r border-white/10 glass-panel z-30">
+        <div className="p-6 border-b border-white/10">
+          <Link href="/dashboard" className="flex items-center gap-2.5">
+            <img src="/logo.png" alt="KL" className="h-8 w-auto object-contain" />
+            <span className="font-bold text-lg text-zinc-100 tracking-tight font-heading">
+              KL Sync
+            </span>
+          </Link>
         </div>
 
-        <div className="flex-1 py-2 px-3 flex flex-col overflow-y-auto custom-scrollbar">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 px-3 shrink-0 mb-2">
+        <div className="flex-1 py-4 px-3 flex flex-col overflow-y-auto custom-scrollbar">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 px-3 mb-2">
             Menu
           </div>
-          <div className="flex-1 flex flex-col justify-evenly min-h-[450px]">
-            {navItems.map((item) => {
-              const isActive =
-                pathname === item.href ||
-                (item.href !== '/dashboard' && pathname.startsWith(item.href));
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setDrawerOpen(false)}
-                  className={`w-full text-left px-3 py-3 flex items-center gap-3 transition-all cursor-pointer rounded-xl text-[14px] font-medium ${
-                    isActive
-                      ? 'bg-indigo-500/10 text-indigo-400 shadow-[inset_0_0_0_1px_rgba(99,102,241,0.2)]'
-                      : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/5'
-                  }`}
-                >
-                  <Icon
-                    className={`w-[18px] h-[18px] ${isActive ? 'text-indigo-400' : 'text-zinc-500'} shrink-0`}
-                  />
-                  <span className="truncate">{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
+          {renderNavLinks()}
         </div>
 
-        <div
-          className="p-4 border-t"
-          style={{ borderColor: 'rgba(255,255,255,.06)' }}
-        >
-          <button
+        <div className="p-4 border-t border-white/10">
+          <Button
+            variant="ghost"
             onClick={handleSignOut}
-            className="w-full text-left px-3 py-1 flex items-center gap-2.5 transition-all cursor-pointer rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10"
+            className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/10"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-4 h-4 mr-2" />
             Sign Out
-          </button>
+          </Button>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden relative z-10 w-full pt-[60px] lg:pt-0">
+      <main className="flex-1 flex flex-col h-screen overflow-hidden relative z-10 w-full pt-[60px] lg:pt-0 lg:pl-[280px]">
         {/* Desktop Header */}
         <header className="hidden lg:flex items-center justify-between px-8 py-4 border-b border-white/5 bg-transparent backdrop-blur-sm z-20 shrink-0">
           <div>
-            <h1 className="text-xl font-semibold text-zinc-100 tracking-tight">
+            <h1 className="text-xl font-semibold text-zinc-100 tracking-tight font-heading">
               {pathname === '/dashboard'
                 ? 'Overview'
                 : navItems.find(
@@ -306,19 +302,23 @@ export default function Navigation({
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold transition-all hover:bg-indigo-500/20">
-              <Calendar className="w-3.5 h-3.5" />
+            <Badge variant="info" className="py-1 px-3">
+              <Calendar className="w-3.5 h-3.5 mr-1" />
               Current Sem
-            </button>
-            <Link
-              href="/dashboard/circulars"
-              className="relative p-2 rounded-full hover:bg-white/10 transition-colors text-zinc-400 bg-white/5 border border-white/5"
-              aria-label="View circulars"
-            >
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
-            </Link>
-            <div className="h-8 w-px bg-white/10 mx-1"></div>
+            </Badge>
+
+            <Tooltip content="View Notifications & Circulars">
+              <Link
+                href="/dashboard/circulars"
+                className="relative p-2 rounded-full hover:bg-white/10 transition-colors text-zinc-400 bg-white/5 border border-white/5 inline-flex items-center justify-center"
+                aria-label="View circulars"
+              >
+                <Bell className="w-4 h-4" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+              </Link>
+            </Tooltip>
+
+            <div className="h-8 w-px bg-white/10 mx-1" />
             <div className="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-1.5 pr-3 rounded-full transition-colors">
               <ProfileAvatar user={user} className="shrink-0" />
               <span className="text-sm font-semibold text-zinc-100 hidden sm:block">
@@ -328,7 +328,7 @@ export default function Navigation({
           </div>
         </header>
 
-        {/* Scrollable Canvas */}
+        {/* Scrollable Canvas Container */}
         <div className="flex-1 overflow-y-auto custom-scrollbar relative z-10">
           <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">{children}</div>
         </div>

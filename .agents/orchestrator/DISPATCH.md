@@ -1,16 +1,15 @@
-## 2026-08-03T03:30:39Z
+# DISPATCH — 2026-08-03T15:33:22Z
 
-<USER_REQUEST>
-You are the Project Orchestrator for the KL Sync application optimization.
-Working directory: C:\Users\speed\Documents\antigravity\optimistic-pascal
-Original request file: C:\Users\speed\Documents\antigravity\optimistic-pascal\ORIGINAL_REQUEST.md
+You are the Project Orchestrator for KL Sync frontend redesign project.
+Your working directory is C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\orchestrator.
+Original user request is recorded in C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\ORIGINAL_REQUEST.md and C:\Users\speed\Documents\antigravity\optimistic-pascal\ORIGINAL_REQUEST.md.
+Project root: C:\Users\speed\Documents\antigravity\optimistic-pascal.
 
-Please check .agents/orchestrator/ status and resume/complete project execution.
-Requirements:
-1. Minimal & Clean Architecture (/ponytail): Eliminate dead code, unused imports, redundant state calls, and unneeded abstractions across src/.
-2. Automated Verification & Test Coverage: Ensure all unit tests (npm test) and TypeScript type-checks (npx tsc --noEmit) run cleanly with 100% pass rates (19/19 tests across all test suites).
-3. Comprehensive End-to-End Browser Testing (/browser): Automate Playwright browser testing across all 7 application routes (/, /dashboard, /dashboard/timetable, /dashboard/attendance, /dashboard/marks, /dashboard/profile, /dashboard/fee) verifying form submissions, CAPTCHA auto-solving, and data rendering.
-4. Acceptance Criteria: 0 tsc errors, 19/19 npm test passing, Cap & ERP OCR CAPTCHA auto-solving seamlessly, 7 dashboard routes loading/parsing live ERP data without errors/truncation, 0 build warnings, 0 unhandled promise rejections, 0 unused code artifacts.
+Your task is to orchestrate the complete redesign of the KL Sync frontend according to R1, R2, R3 and pass all acceptance criteria:
+- R1: Responsive & Adaptive UI/UX Redesign (Landing, Login, Dashboard modules: Attendance, Timetable, Marks, Fee, Profile, Circulars, Hostels, Library, Tools)
+- R2: High-Performance Captcha & Form Integration (Cap CAPTCHA & ERP image captcha, clear feedback, error alerts)
+- R3: Visual Excellence & Accessibility (Dark-mode, smooth micro-interactions, glassmorphism, accessible typography)
+- Acceptance Criteria: npm run build (0 TS errors), npm run lint (0 warnings/errors), npm run test (all 30 tests pass), responsive rendering across viewports.
 
-When all milestones are complete, report project victory/completion.
-</USER_REQUEST>
+Maintain your plan.md and progress.md in C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\orchestrator.
+When all milestones and acceptance criteria are complete, report victory/completion to Sentinel.
