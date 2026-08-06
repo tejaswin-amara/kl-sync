@@ -116,4 +116,4 @@ function Progress({
   );
 }
 
-export { Progress, getProgressColor, getProgressBg };
+export { Progress };

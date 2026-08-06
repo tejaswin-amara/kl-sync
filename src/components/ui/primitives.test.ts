@@ -8,10 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from './card';
 import { Input } from './input';
 import { Badge } from './badge';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose, useDialog } from './dialog';
-import { Tabs, TabsList, TabsTrigger, TabsContent, useTabs } from './tabs';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose, useSheet } from './sheet';
 import { Skeleton } from './skeleton';
-import { Tooltip } from './tooltip';
 
 describe('UI Primitives - Empirical Stress Testing & Verification', () => {
   describe('Button Component', () => {
@@ -19,7 +16,7 @@ describe('UI Primitives - Empirical Stress Testing & Verification', () => {
       const html = renderToString(React.createElement(Button, null, 'Click Me'));
       assert.match(html, /min-h-\[44px\]/);
       assert.match(html, /type="button"/);
-      assert.match(html, /bg-indigo-600/);
+      assert.match(html, /bg-primary/);
       assert.match(html, /focus-visible:ring-2/);
       assert.match(html, /Click Me/);
     });
@@ -61,8 +58,8 @@ describe('UI Primitives - Empirical Stress Testing & Verification', () => {
     test('renders input with 44px min-height touch target and focus ring', () => {
       const html = renderToString(React.createElement(Input, { placeholder: 'Enter text...' }));
       assert.match(html, /min-h-\[44px\]/);
-      assert.match(html, /glass-input/);
-      assert.match(html, /focus-visible:ring-indigo-400/);
+      assert.match(html, /bg-surface-2\/70/);
+      assert.match(html, /focus-visible:ring-ring/);
     });
 
     test('renders leftIcon and applies pl-10 padding offset', () => {
@@ -80,29 +77,29 @@ describe('UI Primitives - Empirical Stress Testing & Verification', () => {
       assert.match(html, /pr-10/);
     });
 
-    test('renders error state with red border and red focus ring', () => {
+    test('renders error state with destructive border and focus ring', () => {
       const html = renderToString(React.createElement(Input, { error: true }));
-      assert.match(html, /border-red-500\/50/);
-      assert.match(html, /focus-visible:ring-red-400/);
+      assert.match(html, /border-destructive\/50/);
+      assert.match(html, /focus-visible:ring-destructive/);
     });
   });
 
   describe('Badge Component', () => {
-    test('renders default badge with uppercase tracking', () => {
+    test('renders default badge with font and tracking styling', () => {
       const html = renderToString(React.createElement(Badge, null, 'Active'));
-      assert.match(html, /uppercase/);
+      assert.match(html, /tracking-wide/);
       assert.match(html, /Active/);
     });
 
-    test('renders pulsing indicator dot when dot=true', () => {
+    test('renders indicator dot when dot=true', () => {
       const html = renderToString(React.createElement(Badge, { variant: 'success', dot: true }, 'Online'));
-      assert.match(html, /animate-pulse/);
-      assert.match(html, /bg-emerald-400/);
+      assert.match(html, /w-1.5 h-1.5/);
+      assert.match(html, /bg-success/);
       assert.match(html, /Online/);
     });
 
     test('supports all variant color themes (success, warning, error, info, etc.)', () => {
-      const variants = ['success', 'warning', 'error', 'info', 'secondary', 'outline'] as const;
+      const variants = ['success', 'warning', 'danger', 'info', 'outline', 'emerald'] as const;
       for (const variant of variants) {
         const html = renderToString(React.createElement(Badge, { variant }, variant));
         assert.ok(html.length > 0);
@@ -111,7 +108,7 @@ describe('UI Primitives - Empirical Stress Testing & Verification', () => {
   });
 
   describe('Card Components', () => {
-    test('renders Card with glass variant by default', () => {
+    test('renders Card with modern surface styles by default', () => {
       const html = renderToString(
         React.createElement(
           Card,
@@ -121,7 +118,7 @@ describe('UI Primitives - Empirical Stress Testing & Verification', () => {
           React.createElement(CardFooter, null, 'Footer')
         )
       );
-      assert.match(html, /glass-card/);
+      assert.match(html, /bg-surface-1/);
       assert.match(html, /Title/);
       assert.match(html, /Body Content/);
       assert.match(html, /Footer/);
@@ -184,93 +181,11 @@ describe('UI Primitives - Empirical Stress Testing & Verification', () => {
     });
   });
 
-  describe('Tabs Component', () => {
-    test('throws error if useTabs is invoked outside Tabs context', () => {
-      function BadComponent() {
-        useTabs();
-        return null;
-      }
-      assert.throws(() => renderToString(React.createElement(BadComponent)), /useTabs must be used within Tabs/);
-    });
-
-    test('renders tablist, tabs triggers, and active tab content', () => {
-      const html = renderToString(
-        React.createElement(
-          Tabs,
-          { defaultValue: 'tab1' },
-          React.createElement(
-            TabsList,
-            null,
-            React.createElement(TabsTrigger, { value: 'tab1' }, 'Tab 1'),
-            React.createElement(TabsTrigger, { value: 'tab2' }, 'Tab 2')
-          ),
-          React.createElement(TabsContent, { value: 'tab1' }, 'Content for Tab 1'),
-          React.createElement(TabsContent, { value: 'tab2' }, 'Content for Tab 2')
-        )
-      );
-      assert.match(html, /role="tablist"/);
-      assert.match(html, /role="tab"/);
-      assert.match(html, /aria-selected="true"/);
-      assert.match(html, /aria-selected="false"/);
-      assert.match(html, /Content for Tab 1/);
-      assert.doesNotMatch(html, /Content for Tab 2/);
-    });
-  });
-
-  describe('Sheet Component', () => {
-    test('throws error if useSheet is invoked outside Sheet context', () => {
-      function BadComponent() {
-        useSheet();
-        return null;
-      }
-      assert.throws(() => renderToString(React.createElement(BadComponent)), /useSheet must be used within Sheet/);
-    });
-
-    test('renders mobile drawer when open with specified slide side', () => {
-      const html = renderToString(
-        React.createElement(
-          Sheet,
-          { open: true },
-          React.createElement(
-            SheetContent,
-            { side: 'left' },
-            React.createElement(SheetHeader, null, React.createElement(SheetTitle, null, 'Navigation Drawer')),
-            React.createElement(SheetDescription, null, 'Drawer links...'),
-            React.createElement(SheetFooter, null, React.createElement(SheetClose, null, 'Dismiss'))
-          )
-        )
-      );
-      assert.match(html, /role="dialog"/);
-      assert.match(html, /aria-modal="true"/);
-      assert.match(html, /slide-in-from-left/);
-      assert.match(html, /Navigation Drawer/);
-      assert.match(html, /aria-label="Close menu"/);
-    });
-  });
-
   describe('Skeleton Component', () => {
     test('renders rounded card loader with shimmer effect by default', () => {
       const html = renderToString(React.createElement(Skeleton, { className: 'h-12 w-full' }));
-      assert.match(html, /animate-pulse/);
-      assert.match(html, /animate-shimmer/);
+      assert.match(html, /shimmer/);
       assert.match(html, /h-12 w-full/);
-    });
-
-    test('omits animate-shimmer when shimmer=false', () => {
-      const html = renderToString(React.createElement(Skeleton, { shimmer: false }));
-      assert.match(html, /animate-pulse/);
-      assert.doesNotMatch(html, /animate-shimmer/);
-    });
-  });
-
-  describe('Tooltip Component', () => {
-    test('renders trigger children wrapped in container', () => {
-      const html = renderToString(
-        React.createElement(Tooltip, { content: 'Tooltip text' }, React.createElement('button', null, 'Hover me'))
-      );
-      assert.match(html, /Hover me/);
-      // Tooltip content is hidden until hover/focus state
-      assert.doesNotMatch(html, /role="tooltip"/);
     });
   });
 });

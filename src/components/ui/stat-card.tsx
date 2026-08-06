@@ -8,7 +8,6 @@ interface StatCardProps extends React.HTMLAttributes<HTMLDivElement> {
   icon?: LucideIcon;
   trend?: { value: string; positive?: boolean };
   accent?: 'primary' | 'success' | 'warning' | 'danger' | 'purple';
-  href?: string;
 }
 
 const accentMap = {
@@ -45,20 +44,16 @@ function StatCard({
   icon: Icon,
   trend,
   accent = 'primary',
-  href,
   className,
   ...props
 }: StatCardProps) {
   const colors = accentMap[accent];
 
-  const content = (
+  return (
     <div
       className={cn(
         'flex items-center gap-4 p-5 rounded-[--radius-lg]',
         'bg-surface-1 border border-border shadow-sm',
-        'transition-all duration-[--duration-normal]',
-        href && 'hover-lift cursor-pointer',
-        href && colors.hoverBorder,
         'hover:bg-surface-2/50',
         className
       )}
@@ -91,13 +86,6 @@ function StatCard({
       </div>
     </div>
   );
-
-  if (href) {
-    // Use next/link externally; this component just renders the card
-    return content;
-  }
-
-  return content;
 }
 
 export { StatCard };
