@@ -657,30 +657,32 @@ export default function TimetablePage() {
                                 return (
                                   <td
                                     key={periodNum}
-                                    className="p-2.5 vertical-top border-r border-white/5 last:border-r-0 h-32 align-top"
+                                    className="p-2 border-r border-white/5 last:border-r-0 align-top min-w-[170px]"
                                   >
                                     {matchingSessions.length > 0 ? (
                                       <div className="flex flex-col gap-2 h-full">
-                                        {matchingSessions.map(
-                                          (session, sIdx) => (
+                                        {matchingSessions.map((session, sIdx) => {
+                                          const hasDistinctTitle =
+                                            session.courseTitle &&
+                                            session.courseTitle.trim().toUpperCase() !==
+                                              session.courseCode.trim().toUpperCase();
+
+                                          return (
                                             <div
-                                              key={session.id || sIdx}
-                                              className="bg-zinc-900/80 border border-white/10 hover:border-indigo-500/50 p-3 rounded-xl flex flex-col justify-between gap-1.5 shadow-md group transition-all shrink-0"
+                                              key={session.id || `${session.courseCode}-${sIdx}`}
+                                              className="bg-zinc-900/80 border border-white/10 hover:border-indigo-500/50 p-3 rounded-xl flex flex-col justify-between gap-2 shadow-md transition-all overflow-hidden min-h-[96px] group"
                                             >
                                               <div className="flex items-center justify-between gap-1">
                                                 {session.component && (
                                                   <span
                                                     className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider ${
-                                                      session.component ===
-                                                      'Lecture'
+                                                      session.component === 'Lecture'
                                                         ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-                                                        : session.component ===
-                                                            'Practical'
-                                                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                                                          : session.component ===
-                                                              'Skill'
-                                                            ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                                                            : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                                        : session.component === 'Practical'
+                                                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                                        : session.component === 'Skill'
+                                                        ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                                                        : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                                                     }`}
                                                   >
                                                     {session.component}
@@ -693,28 +695,27 @@ export default function TimetablePage() {
                                                 )}
                                               </div>
 
-                                              <h5 className="text-xs font-semibold text-zinc-100 group-hover:text-indigo-300 transition-colors leading-snug line-clamp-2">
-                                                {session.courseTitle ||
-                                                  session.courseCode}
+                                              <h5 className="text-xs font-semibold text-zinc-100 group-hover:text-indigo-300 transition-colors leading-snug line-clamp-2 overflow-hidden">
+                                                {hasDistinctTitle ? session.courseTitle : session.courseCode}
                                               </h5>
 
-                                              <div className="flex items-center justify-between gap-1 text-[10px] text-zinc-400 pt-1 border-t border-white/5 mt-auto">
+                                              <div className="flex items-center justify-between gap-1 text-[10px] text-zinc-400 pt-1.5 border-t border-white/5 mt-auto">
                                                 <span className="font-mono text-zinc-400 truncate">
-                                                  {session.courseCode}
+                                                  {hasDistinctTitle ? session.courseCode : ''}
                                                 </span>
                                                 {session.room && (
-                                                  <span className="text-emerald-400 font-medium flex items-center gap-0.5 shrink-0">
+                                                  <span className="text-emerald-400 font-medium flex items-center gap-0.5 shrink-0 ml-auto">
                                                     <MapPin className="w-2.5 h-2.5" />
                                                     {session.room}
                                                   </span>
                                                 )}
                                               </div>
                                             </div>
-                                          )
-                                        )}
+                                          );
+                                        })}
                                       </div>
                                     ) : (
-                                      <div className="h-full rounded-xl border border-dashed border-white/5 flex items-center justify-center text-zinc-700 text-xs">
+                                      <div className="h-24 rounded-xl border border-dashed border-white/5 flex items-center justify-center text-zinc-700 text-xs">
                                         -
                                       </div>
                                     )}
