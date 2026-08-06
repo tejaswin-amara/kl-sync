@@ -32,10 +32,18 @@ export default function ToolsPage() {
       const semStr =
         localStorage.getItem('kl_erp_semesters') ||
         sessionStorage.getItem('kl_erp_semesters');
-      let yearId = localStorage.getItem('kl_erp_year') || '';
-      let semId = localStorage.getItem('kl_erp_sem') || '';
-      if (!yearId && yearStr) yearId = JSON.parse(yearStr)[0]?.value;
-      if (!semId && semStr) semId = JSON.parse(semStr)[0]?.value;
+      if (!yearId && yearStr) {
+        try {
+          const parsed = JSON.parse(yearStr);
+          if (Array.isArray(parsed) && parsed.length > 0) yearId = parsed[0]?.value || '';
+        } catch {}
+      }
+      if (!semId && semStr) {
+        try {
+          const parsed = JSON.parse(semStr);
+          if (Array.isArray(parsed) && parsed.length > 0) semId = parsed[0]?.value || '';
+        } catch {}
+      }
 
       if (yearId && semId) {
         const csrf = sessionStorage.getItem('kl_erp_csrf_token');
