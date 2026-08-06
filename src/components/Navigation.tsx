@@ -256,7 +256,7 @@ export default function Navigation({
       {/* ═══ DESKTOP: Fixed Sidebar ═══ */}
       <aside
         className={`hidden lg:flex fixed top-0 left-0 h-full shrink-0 flex-col border-r border-border glass z-30 transition-all duration-[--duration-slow] ease-out ${
-          collapsed ? 'w-[--sidebar-collapsed]' : 'w-[--sidebar-width]'
+          collapsed ? 'w-[68px]' : 'w-[260px]'
         }`}
       >
         <div className={`p-4 border-b border-border flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
@@ -401,7 +401,7 @@ export default function Navigation({
       {/* ═══ Main Content Area ═══ */}
       <main
         className={`flex-1 flex flex-col min-h-[100dvh] overflow-hidden relative z-10 w-full transition-all duration-[--duration-slow] ease-out ${
-          collapsed ? 'lg:pl-[--sidebar-collapsed]' : 'lg:pl-[--sidebar-width]'
+          collapsed ? 'lg:pl-[68px]' : 'lg:pl-[260px]'
         }`}
         style={{
           paddingTop: 'var(--header-height)',

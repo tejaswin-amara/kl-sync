@@ -405,10 +405,10 @@ export default function TimetablePage() {
       {/* Header Bar */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-zinc-100">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground font-heading">
             Student Timetable
           </h2>
-          <p className="text-sm text-zinc-400 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Interactive weekly schedule synced securely from the ERP.
           </p>
         </div>
