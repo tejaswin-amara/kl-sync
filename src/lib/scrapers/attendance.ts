@@ -19,10 +19,11 @@ export interface CaptchaResponse {
   session: ScraperSession;
 }
 
-export async function getCaptcha(): Promise<CaptchaResponse> {
+export async function getCaptcha(options?: { signal?: AbortSignal }): Promise<CaptchaResponse> {
   try {
     const jar: CookieJar = {};
-    const loginRes = await fetchWithJar(LOGIN_URL, jar);
+    const signal = options?.signal || AbortSignal.timeout(3000);
+    const loginRes = await fetchWithJar(LOGIN_URL, jar, { signal });
     const html = await loginRes.text();
     const $ = cheerio.load(html);
 
@@ -49,6 +50,7 @@ export async function getCaptcha(): Promise<CaptchaResponse> {
     const captchaUrl = new URL(captchaSrc, LOGIN_URL).toString();
     const imageRes = await fetchWithJar(captchaUrl, jar, {
       extraHeaders: { Referer: LOGIN_URL },
+      signal,
     });
 
     const imageBuffer = await imageRes.arrayBuffer();

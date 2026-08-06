@@ -10,13 +10,13 @@ export async function GET() {
     let session;
 
     try {
-      const captchaRes = await getCaptcha();
+      const captchaRes = await getCaptcha({ signal: AbortSignal.timeout(3000) });
       captchaImage = captchaRes.captchaImage;
       session = captchaRes.session;
     } catch (e) {
-      console.warn('[CAPTCHA] ERP unreachable, using fallback captcha session:', e);
+      console.warn('[CAPTCHA] ERP unreachable or timed out, using fallback captcha session:', e);
       captchaImage =
-        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCAxMjAgNDAiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNMCwyMCBRMzAsNSA2MCwyMCBUMTIwLDIwIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTAsMTAgUTQwLDMwIDgwLDEwIFQxMjAsMzAiIHN0cm9rZT0iI2Q1ZDVkNSIgc3Ryb2tlLXdpZHRoPSIxLjUiIGZpbGw9Im5vbmUiLz48dGV4dCB4PSI1MCUiIHk9IjU1JSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9Im1vbm9zcGFjZSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMxMTExMTEiIGxldHRlci1zcGFjaW5nPSIzIj44ODg4PC90ZXh0Pjwvc3ZnPg==';
+        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCAxMjAgNDAiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNMCwyMCBRMzAsNSA2MCwyMCBUMTIwLDIwIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTAsMTAgUTQwLDMwIDgwLDEwIFQxMjAsMzAiIHN0cm9rZT0iI2Q1ZDVkNSIgc3Ryb2tlLXdpZHRoPSIxLjUiIGZpbGw9Im5vbmUiLz48dGV4dCB4PSI5MCUiIHk9IjU1JSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9Im1vbm9zcGFjZSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMxMTExMTEiIGxldHRlci1zcGFjaW5nPSIzIj44ODg4PC90ZXh0Pjwvc3ZnPg==';
       session = {
         cookies: [{ name: 'PHPSESSID', value: 'demo_phpsessid_123' }],
         csrfToken: 'demo_csrf_token_123',
@@ -35,7 +35,7 @@ export async function GET() {
           .replace(/^data:image\/[a-z]+;base64,/, '')
           .replace(/[\r\n\s]/g, '');
 
-        // Attempt 1: OCR Engine 2
+        // Attempt 1: OCR Engine 2 with 2s timeout
         const formData = new URLSearchParams();
         formData.append('base64Image', `data:image/png;base64,${cleanBase64}`);
         formData.append('OCREngine', '2');
@@ -47,6 +47,7 @@ export async function GET() {
             'Content-Type': 'application/x-www-form-urlencoded',
           },
           body: formData.toString(),
+          signal: AbortSignal.timeout(2000),
         });
 
         if (ocrRes.ok) {
@@ -57,7 +58,7 @@ export async function GET() {
           }
         }
 
-        // Attempt 2 Fallback: OCR Engine 1 if Engine 2 returned empty or short result
+        // Attempt 2 Fallback: OCR Engine 1 with 2s timeout
         if (!solvedCaptcha || solvedCaptcha.length < 3) {
           const formData1 = new URLSearchParams();
           formData1.append('base64Image', `data:image/png;base64,${cleanBase64}`);
@@ -70,6 +71,7 @@ export async function GET() {
               'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: formData1.toString(),
+            signal: AbortSignal.timeout(2000),
           });
 
           if (ocrRes1.ok) {
