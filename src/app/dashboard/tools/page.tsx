@@ -32,6 +32,8 @@ export default function ToolsPage() {
       const semStr =
         localStorage.getItem('kl_erp_semesters') ||
         sessionStorage.getItem('kl_erp_semesters');
+      let yearId = localStorage.getItem('kl_erp_year') || '';
+      let semId = localStorage.getItem('kl_erp_sem') || '';
       if (!yearId && yearStr) {
         try {
           const parsed = JSON.parse(yearStr);
