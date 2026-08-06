@@ -176,7 +176,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] flex bg-background text-foreground relative overflow-hidden font-sans">
+    <div className="h-[100dvh] max-h-[100dvh] w-full flex bg-background text-foreground relative overflow-hidden font-sans">
       {/* Background gradient mesh */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <div className="absolute w-[60vw] h-[60vw] rounded-full bg-primary/8 blur-[120px] -top-[20%] -left-[10%]" />
@@ -184,18 +184,18 @@ export default function LoginPage() {
       </div>
 
       {/* ── LEFT: BRANDING PANEL (desktop only) ── */}
-      <div className="hidden lg:flex w-[45%] relative border-r border-border overflow-hidden glass-subtle flex-col">
-        <div className="relative z-10 flex-1 flex flex-col p-12 xl:p-16 justify-between">
+      <div className="hidden lg:flex w-[45%] h-full relative border-r border-border overflow-hidden glass-subtle flex-col">
+        <div className="relative z-10 flex-1 flex flex-col p-8 xl:p-12 justify-between h-full">
           <div>
-            <div className="bg-white rounded-2xl p-3.5 shadow-lg inline-block mb-10 border border-white/20">
-              <img src="/logo.png" alt="KLH" className="h-9 object-contain" />
+            <div className="bg-white rounded-2xl p-3 shadow-lg inline-block mb-6 border border-white/20">
+              <img src="/logo.png" alt="KLH" className="h-8 object-contain" />
             </div>
-            <h1 className="text-4xl xl:text-5xl font-semibold tracking-tight text-foreground leading-[1.1] mb-5 font-heading">
+            <h1 className="text-3xl xl:text-4xl font-semibold tracking-tight text-foreground leading-[1.15] mb-4 font-heading">
               Academic sync,
               <br />
               <span className="text-gradient">precision engineered.</span>
             </h1>
-            <p className="text-base text-muted-foreground max-w-md leading-relaxed">
+            <p className="text-sm xl:text-base text-muted-foreground max-w-md leading-relaxed">
               Secure, real-time access to your timetable, profile, and attendance metrics directly from the core ERP.
             </p>
           </div>
@@ -228,15 +228,15 @@ export default function LoginPage() {
       </div>
 
       {/* ── RIGHT: LOGIN FORM ── */}
-      <div className="flex-1 flex flex-col items-center justify-center p-5 sm:p-8 relative z-10">
-        <Card variant="glass" className="w-full max-w-[420px] p-6 sm:p-8 shadow-xl">
-          <CardHeader className="p-0 mb-7">
-            <div className="lg:hidden mb-5">
-              <div className="bg-white rounded-xl p-3 shadow-md inline-block">
+      <div className="flex-1 h-full flex flex-col items-center justify-center p-4 sm:p-6 overflow-y-auto lg:overflow-hidden relative z-10">
+        <Card variant="glass" className="w-full max-w-[420px] p-5 sm:p-7 shadow-xl">
+          <CardHeader className="p-0 mb-5">
+            <div className="lg:hidden mb-4">
+              <div className="bg-white rounded-xl p-2.5 shadow-md inline-block">
                 <img src="/logo.png" alt="KLH" className="h-7 object-contain" />
               </div>
             </div>
-            <CardTitle className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-1.5 font-heading">
+            <CardTitle className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-1 font-heading">
               Sign in
             </CardTitle>
             <CardDescription>
@@ -246,21 +246,21 @@ export default function LoginPage() {
 
           <CardContent className="p-0">
             {error && (
-              <div className="mb-5 flex items-start gap-3 p-3.5 rounded-[--radius-md] bg-destructive/8 border border-destructive/15 text-destructive text-sm animate-up">
+              <div className="mb-4 flex items-start gap-3 p-3 rounded-[--radius-md] bg-destructive/8 border border-destructive/15 text-destructive text-sm animate-up">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <p className="text-xs leading-relaxed">{error}</p>
               </div>
             )}
 
             {status && !error && (
-              <div className="mb-5 flex items-start gap-3 p-3.5 rounded-[--radius-md] bg-info/8 border border-info/15 text-info text-sm animate-up">
+              <div className="mb-4 flex items-start gap-3 p-3 rounded-[--radius-md] bg-info/8 border border-info/15 text-info text-sm animate-up">
                 <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
                 <p className="text-xs leading-relaxed">{status}</p>
               </div>
             )}
 
-            <form onSubmit={handleLogin} className="space-y-4" aria-label="Student ERP Authentication Form">
-              <div className="space-y-1.5">
+            <form onSubmit={handleLogin} className="space-y-3" aria-label="Student ERP Authentication Form">
+              <div className="space-y-1">
                 <label htmlFor="student-id-field" className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground">
                   Student ID
                 </label>
@@ -276,7 +276,7 @@ export default function LoginPage() {
                 />
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <label htmlFor="password-field" className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground">
                   Password
                 </label>
@@ -292,7 +292,7 @@ export default function LoginPage() {
                 />
               </div>
 
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2.5 pt-0.5">
                 <input
                   type="checkbox"
                   id="remember"
@@ -300,12 +300,12 @@ export default function LoginPage() {
                   onChange={(e) => setRememberMe(e.target.checked)}
                   className="w-4 h-4 rounded bg-surface-2 border-border text-primary focus:ring-2 focus:ring-ring cursor-pointer accent-[--primary]"
                 />
-                <label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer select-none">
+                <label htmlFor="remember" className="text-xs text-muted-foreground cursor-pointer select-none">
                   Remember credentials
                 </label>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <label htmlFor="captcha-field" className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground">
                   Security Code
                 </label>
@@ -356,7 +356,7 @@ export default function LoginPage() {
                 size="lg"
                 isLoading={loading}
                 disabled={loading || !captchaToken}
-                className="w-full mt-4"
+                className="w-full mt-3"
               >
                 <LogIn className="w-4 h-4" />
                 Continue to Dashboard
@@ -365,7 +365,7 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        <p className="text-[11px] text-muted-foreground/50 mt-6 text-center">
+        <p className="text-[11px] text-muted-foreground/50 mt-4 text-center shrink-0">
           KL Sync is an independent project • Not affiliated with KL University
         </p>
       </div>
