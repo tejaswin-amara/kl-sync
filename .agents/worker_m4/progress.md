@@ -1,13 +1,10 @@
-# Progress Log - Worker M4
+# Progress — worker_m4
 
-Last visited: 2026-07-24T00:50:09Z
+Last visited: 2026-08-08T08:53:30Z
 
 ## Status
-- [x] Initialized agent environment and briefing
-- [ ] Inspect existing codebase (`src/app/dashboard/page.tsx`, `src/app/dashboard/timetable/page.tsx`, `src/lib/utils.ts`, etc.)
-- [ ] Build `src/lib/timetable-parser.ts`
-- [ ] Refactor `TodayScheduleWidget` in `src/app/dashboard/page.tsx`
-- [ ] Refactor `src/app/dashboard/timetable/page.tsx`
-- [ ] Verify build via `npm run build`
-- [ ] Write handoff report `handoff.md`
-- [ ] Send completion message to parent orchestrator
+- Consolidated fixtures created at `src/lib/fixtures/index.ts`.
+- All 6 target consumer files refactored to import mock data from `@/lib/fixtures`.
+- Added unit test `src/lib/fixtures.test.ts`.
+- Verification passed: `npm test` (187 passed), `npx tsc --noEmit` (0 errors), `npm run lint` (0 errors).
+- Handoff report being written.

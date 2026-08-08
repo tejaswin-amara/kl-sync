@@ -6,7 +6,7 @@ import { RefreshCw, LogIn, AlertCircle, ShieldCheck, User, Lock, HelpCircle, Loa
 import { useRouter } from 'next/navigation';
 import { Captcha } from '@/components/Captcha';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardDescription, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -178,7 +178,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="h-[100dvh] max-h-[100dvh] w-full flex bg-background text-foreground relative overflow-hidden font-sans">
+    <main className="h-[100dvh] max-h-[100dvh] w-full flex bg-background text-foreground relative overflow-hidden font-sans">
+      <h1 className="sr-only">KL Sync Student Portal</h1>
       {/* Background gradient mesh */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <div className="absolute w-[60vw] h-[60vw] rounded-full bg-primary/8 blur-[120px] -top-[20%] -left-[10%]" />
@@ -208,7 +209,7 @@ export default function LoginPage() {
             </Badge>
 
             <Dialog>
-              <DialogTrigger className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+              <DialogTrigger className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer min-h-[44px] px-2">
                 <HelpCircle className="w-3.5 h-3.5" />
                 <span>Security Info</span>
               </DialogTrigger>
@@ -238,9 +239,9 @@ export default function LoginPage() {
                 <img src="/logo.png" alt="KLH" className="h-7 object-contain" />
               </div>
             </div>
-            <CardTitle className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-1 font-heading">
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-1 font-heading">
               Sign in
-            </CardTitle>
+            </h2>
             <CardDescription>
               Enter your student credentials to continue.
             </CardDescription>
@@ -248,14 +249,22 @@ export default function LoginPage() {
 
           <CardContent className="p-0">
             {error && (
-              <div className="mb-4 flex items-start gap-3 p-3 rounded-[--radius-md] bg-destructive/8 border border-destructive/15 text-destructive text-sm animate-up">
+              <div
+                role="alert"
+                aria-live="assertive"
+                className="mb-4 flex items-start gap-3 p-3 rounded-[--radius-md] bg-destructive/8 border border-destructive/15 text-destructive text-sm animate-up"
+              >
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <p className="text-xs leading-relaxed">{error}</p>
               </div>
             )}
 
             {status && !error && (
-              <div className="mb-4 flex items-start gap-3 p-3 rounded-[--radius-md] bg-info/8 border border-info/15 text-info text-sm animate-up">
+              <div
+                role="status"
+                aria-live="polite"
+                className="mb-4 flex items-start gap-3 p-3 rounded-[--radius-md] bg-info/8 border border-info/15 text-info text-sm animate-up"
+              >
                 <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
                 <p className="text-xs leading-relaxed">{status}</p>
               </div>
@@ -294,15 +303,15 @@ export default function LoginPage() {
                 />
               </div>
 
-              <div className="flex items-center gap-2.5 pt-0.5">
+              <div className="flex items-center gap-2.5 min-h-[44px]">
                 <input
                   type="checkbox"
                   id="remember"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded bg-surface-2 border-border text-primary focus:ring-2 focus:ring-ring cursor-pointer accent-[--primary]"
+                  className="w-5 h-5 rounded bg-surface-2 border-border text-primary focus:ring-2 focus:ring-ring cursor-pointer accent-[--primary]"
                 />
-                <label htmlFor="remember" className="text-xs text-muted-foreground cursor-pointer select-none">
+                <label htmlFor="remember" className="text-xs text-muted-foreground cursor-pointer select-none py-2">
                   Remember credentials
                 </label>
               </div>
@@ -332,7 +341,7 @@ export default function LoginPage() {
                           className="h-full w-full object-contain mix-blend-multiply scale-105 contrast-150"
                           onError={(e) => {
                             (e.target as HTMLImageElement).src =
-                              'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCAxMjAgNDAiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNMCwyMCBRMzAsNSA2MCwyMCBUMTIwLDIwIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTAsMTAgUTQwLDMwIDgwLDEwIFQxMjAsMzAiIHN0cm9rZT0iI2Q1ZDVkNSIgc3Ryb2tlLXdpZHRoPSIxLjUiIGZpbGw9Im5vbmUiLz48dGV4dCB4PSI5MCUiIHk9IjU1JSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9Im1vbm9zcGFjZSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMxMTExMTEiIGxldHRlci1zcGFjaW5nPSIzIj44ODg4PC90ZXh0Pjwvc3ZnPg==';
+                              'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCAxMjAgNDAiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNMCwyMCBRMzAsNSA2MCwyMCBUMTIwLDIwIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTAsMTAgUTQwLDMwIDgwLDEwIFQxMjAsMzAiIHN0cm9rZT0iI2Q1ZDVkNSIgc3Ryb2tlLXdpZHRoPSIxLjUiIGZpbGw9Im5vbmUiLz48dGV4dCB4PSI5MCUiIHk9IjU1JSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgdGV4dC1mYW1pbHk9Im1vbm9zcGFjZSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMxMTExMTEiIGxldHRlci1zcGFjaW5nPSIzIj48ODg4PC90ZXh0Pjwvc3ZnPg==';
                           }}
                         />
                       ) : null}
@@ -362,7 +371,7 @@ export default function LoginPage() {
                 size="lg"
                 isLoading={loading}
                 disabled={loading || !captchaToken}
-                className="w-full mt-3"
+                className="w-full mt-3 min-h-[44px]"
               >
                 <LogIn className="w-4 h-4" />
                 Continue to Dashboard
@@ -371,10 +380,10 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        <p className="text-[11px] text-muted-foreground/50 mt-4 text-center shrink-0">
+        <p className="text-[11px] text-muted-foreground mt-4 text-center shrink-0">
           KL Sync is an independent project • Not affiliated with KL University
         </p>
       </div>
-    </div>
+    </main>
   );
 }

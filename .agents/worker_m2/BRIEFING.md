@@ -1,51 +1,42 @@
-# BRIEFING — 2026-07-24T04:25:15Z
+# BRIEFING — 2026-08-08T09:02:38Z
 
 ## Mission
-Implement Milestone M2 (R2. Accurate & Flexible CGPA Calculation) in `kl-sync`.
+Milestone M2: Native AI Tool Calling (R2) for KL Sync
 
 ## 🔒 My Identity
-- Archetype: worker
+- Archetype: implementer/qa/specialist
 - Roles: implementer, qa, specialist
 - Working directory: C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m2
-- Original parent: cfa49052-43a6-4cd5-9629-a723e1246ccb
-- Milestone: M2
+- Original parent: d001f6ce-ed2c-4291-9348-4a740f85a8b7 (caller ID: be50fe69-11ce-49ae-96de-9e997d80fc6d)
+- Milestone: M2: Native AI Tool Calling (R2)
 
 ## 🔒 Key Constraints
-- Update `src/lib/cgpa.ts` to implement `processERPDataForCGPA(rows, profileData)`, `mapGradeToPoints(gradeStr)`, and `parseNumericValue(val)`.
-- Phase 1: Official Summary Detection. Check ERP searchgetmycgpa and summary tables for official CGPA/SGPA keys (`cgpa`, `sgpa`, `cumulative gpa`, `overall gpa`, `gpa`). If found, return official values immediately.
-- Phase 2: Dynamic Fallback Calculation. Case-insensitive, flexible column matching (`grade`, `credit`, `point`/`gp`). If grade points column missing, map letter grades to 10-point scale (O/S: 10, A+: 9, A: 8, B+: 7, B: 6, C: 5, D: 4, F: 0). Keep failed course credits in total credits denominator. Exclude 0-credit non-academic courses (Pass/Fail, Audit).
-- Refactor `src/app/dashboard/page.tsx` and `src/app/dashboard/tools/page.tsx` to consume `processERPDataForCGPA`.
-- Run `npm run build` to verify compilation.
+- DO NOT CHEAT. All implementations must be genuine.
+- Minimal change principle.
+- Update tests referencing `parseNaturalLanguageIntent`.
+- Strict Zod tool schemas.
+- Deterministic fallback/mock when OPENAI_API_KEY is absent.
 
 ## Current Parent
-- Conversation ID: cfa49052-43a6-4cd5-9629-a723e1246ccb
-- Updated: 2026-07-24T04:25:15Z
+- Conversation ID: be50fe69-11ce-49ae-96de-9e997d80fc6d
+- Updated: 2026-08-08T09:02:38Z
 
 ## Task Summary
-- **What to build**: Accurate & Flexible CGPA calculation library and integration in dashboard pages.
-- **Success criteria**: TypeScript & Next.js build succeeds, Phase 1 official CGPA extraction works, Phase 2 dynamic calculation works as specified, pages refactored to use shared cgpa.ts library.
+- **What to build**: Refactor KL Sync AI tool calling from regex-based `parseNaturalLanguageIntent` to native Vercel AI SDK `generateText` with Zod tool schemas and deterministic offline mock/fallback handling.
+- **Success criteria**: All tests pass (`npm test`, `npx tsc --noEmit`, `npm run lint`), `parseNaturalLanguageIntent` deleted, native tool calling works both online and offline.
+- **Interface contracts**: `src/lib/ai/tools.ts`, `src/lib/ai/executor.ts`, `src/app/api/ai/chat/route.ts`
+- **Code layout**: Next.js TypeScript app in `src/`
+
+## Key Decisions Made
+- Initializing briefing.
 
 ## Change Tracker
-- **Files modified**:
-  - `src/lib/cgpa.ts`: Complete implementation of `processERPDataForCGPA`, `mapGradeToPoints`, `parseNumericValue`, and helper `extractOfficialSummary`.
-  - `src/app/dashboard/page.tsx`: Refactored CGPA/Credits background fetch logic to use `processERPDataForCGPA`.
-  - `src/app/dashboard/tools/page.tsx`: Refactored `fetchData` CGPA/Credits logic to use `processERPDataForCGPA`.
-- **Build status**: PASS (`npm run build` compiled successfully in 4.3s; `npx tsc --noEmit` passed cleanly).
-- **Pending issues**: None
+- **Files modified**: None yet
 
 ## Quality Status
-- **Build/test result**: PASS
-- **Lint status**: PASS
-- **Tests added/modified**: Verified TypeScript compilation and full production build.
+- **Build/test result**: TBD
+- **Lint status**: TBD
+- **Tests added/modified**: TBD
 
 ## Loaded Skills
 - None
-
-## Key Decisions Made
-- `src/lib/cgpa.ts` functions handle all 10-point grading scales, letter grade fallbacks, failed course credits retention, 0-credit course exclusion, and official summary key detection across ERP row variants.
-
-## Artifact Index
-- `.agents/worker_m2/ORIGINAL_REQUEST.md` — Original request
-- `.agents/worker_m2/BRIEFING.md` — Agent briefing state
-- `.agents/worker_m2/progress.md` — Progress log
-- `.agents/worker_m2/handoff.md` — Final handoff report

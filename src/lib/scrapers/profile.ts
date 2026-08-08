@@ -59,27 +59,35 @@ export async function fetchProfileData(session: ScraperSession) {
   }
 
   const entries = Array.from(tabUrls.entries());
-  const tabHtmls = await Promise.all(
-    entries.map(async ([url, name]) => {
-      try {
-        const tabRes = await fetchWithJar(
-          `https://newerp.kluniversity.in${url}`,
-          jar,
-          {
-            method: 'GET',
-            extraHeaders: {
-              Origin: ERP_URL,
-              Referer: ERP_ENDPOINTS['profile'],
-              'X-Requested-With': 'XMLHttpRequest',
-            },
-          }
-        );
-        return { name, html: await tabRes.text() };
-      } catch {
-        return { name, html: '' };
-      }
-    })
-  );
+  const BATCH_SIZE = 3;
+  const tabHtmls: { name: string; html: string }[] = [];
+
+  for (let i = 0; i < entries.length; i += BATCH_SIZE) {
+    const batch = entries.slice(i, i + BATCH_SIZE);
+    const batchResults = await Promise.all(
+      batch.map(async ([url, name]) => {
+        try {
+          const tabRes = await fetchWithJar(
+            `https://newerp.kluniversity.in${url}`,
+            jar,
+            {
+              method: 'GET',
+              extraHeaders: {
+                Origin: ERP_URL,
+                Referer: ERP_ENDPOINTS['profile'],
+                'X-Requested-With': 'XMLHttpRequest',
+              },
+              signal: AbortSignal.timeout(5000),
+            }
+          );
+          return { name, html: await tabRes.text() };
+        } catch {
+          return { name, html: '' };
+        }
+      })
+    );
+    tabHtmls.push(...batchResults);
+  }
 
   const allPages = [{ name: 'Personal Information', html }, ...tabHtmls];
 

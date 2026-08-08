@@ -8,54 +8,14 @@
  * and accounting parens: (1,500.00) -> -1500.
  */
 export function parseCurrency(val: unknown): number {
-  if (val === null || val === undefined || typeof val === 'boolean') {
-    return 0;
-  }
-  if (typeof val === 'number') {
-    return isNaN(val) ? 0 : val;
-  }
+  if (val === null || val === undefined || typeof val === 'boolean') return 0;
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
 
   let str = String(val).trim();
-  if (
-    !str ||
-    str === '-' ||
-    str.toLowerCase() === 'n/a' ||
-    str.toLowerCase() === 'nil' ||
-    str.toLowerCase() === 'none' ||
-    str.toLowerCase() === 'null' ||
-    str.toLowerCase() === 'undefined'
-  ) {
-    return 0;
-  }
+  if (!str || /^(n\/a|nil|none|null|undefined|-)$/i.test(str)) return 0;
 
-  let isNegative = false;
-
-  // Handle accounting parens: (1,500.00) or (₹1,500)
-  if (/^\(.*\)$/.test(str)) {
-    isNegative = true;
-    str = str.slice(1, -1).trim();
-  }
-
-  // Check for leading minus
-  if (str.startsWith('-')) {
-    isNegative = true;
-    str = str.substring(1).trim();
-  }
-
-  // Strip currency symbols and common currency text
-  str = str
-    .replace(/[₹$€£¥]/g, '')
-    .replace(/\b(inr|rs\.?|usd|eur|gbp|cr|dr)\b/gi, '')
-    .replace(/,/g, '')
-    .trim();
-
-  // If after stripping currency symbols it starts with minus
-  if (str.startsWith('-')) {
-    isNegative = true;
-    str = str.substring(1).trim();
-  }
-
-  // Match standard number with optional decimal
+  const isNegative = /^\(.*\)$/.test(str) || /^-\s*\d/.test(str.replace(/^[^\d-]*/, ''));
+  str = str.replace(/\/-\s*$/, '').replace(/,/g, '');
   const match = str.match(/\d+(?:\.\d+)?/);
   if (!match) return 0;
 

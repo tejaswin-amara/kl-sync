@@ -46,7 +46,14 @@ function Progress({
     const offset = circ - (pct / 100) * circ;
 
     return (
-      <div className={cn('relative inline-flex items-center justify-center', className)} {...props}>
+      <div
+        className={cn('relative inline-flex items-center justify-center', className)}
+        role="progressbar"
+        aria-valuenow={value}
+        aria-valuemin={0}
+        aria-valuemax={max}
+        {...props}
+      >
         <svg width={dim} height={dim} className="-rotate-90">
           <circle
             cx={dim / 2}

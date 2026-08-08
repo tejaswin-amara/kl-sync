@@ -109,7 +109,7 @@ export function DialogContent({
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+          className="absolute right-4 top-4 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
           aria-label="Close dialog"
         >
           <X className="w-5 h-5" />

@@ -53,9 +53,9 @@ export function SimpleCalculator({
 
   // Determine the color based on attendance policy
   const getAttendanceColor = () => {
-    if (percentage >= 85) return 'text-green-500';
-    if (percentage >= 75) return 'text-yellow-500';
-    return 'text-red-500';
+    if (percentage >= 85) return 'text-emerald-400';
+    if (percentage >= 75) return 'text-amber-300';
+    return 'text-red-300';
   };
 
   const getAttendanceStatus = () => {
@@ -236,7 +236,7 @@ export function SimpleCalculator({
             role="alert"
             className="relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7 bg-background text-foreground bg-yellow-500/10 border-yellow-500/20 backdrop-blur-sm"
           >
-            <AlertCircle className="h-4 w-4 text-yellow-500" />
+            <AlertCircle className="h-4 w-4 text-amber-300" />
             <h5 className="mb-1 font-medium leading-none tracking-tight">
               Conditional Eligibility
             </h5>
@@ -250,7 +250,7 @@ export function SimpleCalculator({
         <div className="always-glow-danger">
           <div
             role="alert"
-            className="relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7 border-red-500/50 text-red-500 [&>svg]:text-red-500 backdrop-blur-sm"
+            className="relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7 border-red-500/50 text-red-300 [&>svg]:text-red-300 backdrop-blur-sm"
           >
             <XCircle className="h-4 w-4" />
             <h5 className="mb-1 font-medium leading-none tracking-tight">

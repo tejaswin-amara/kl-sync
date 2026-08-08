@@ -289,7 +289,11 @@ function TodayScheduleWidget({
           </div>
           <div className="flex items-center gap-2">
             {error && (
-              <button onClick={loadSchedule} className="p-1 text-muted-foreground hover:text-foreground transition-colors">
+              <button
+                onClick={loadSchedule}
+                aria-label="Refresh timetable schedule"
+                className="p-2 text-muted-foreground hover:text-foreground transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+              >
                 <RefreshCw className="w-3.5 h-3.5" />
               </button>
             )}
@@ -306,7 +310,7 @@ function TodayScheduleWidget({
               <button
                 key={d}
                 onClick={() => setSelectedDay(d)}
-                className={`px-2.5 py-1 rounded-[--radius-sm] text-[11px] font-medium transition-all shrink-0 flex items-center gap-1 ${
+                className={`px-2.5 py-1 rounded-[--radius-sm] text-[11px] font-medium transition-all shrink-0 flex items-center gap-1 min-h-[44px] ${
                   isSelected
                     ? 'bg-primary text-primary-foreground shadow-sm font-semibold'
                     : 'bg-surface-2/50 text-muted-foreground hover:text-foreground hover:bg-surface-2'
@@ -344,7 +348,7 @@ function TodayScheduleWidget({
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-mono font-bold bg-primary/10 border border-primary/20 text-primary px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] font-mono font-bold bg-primary/10 border border-primary/20 text-indigo-400 px-1.5 py-0.5 rounded">
                     P{String(s.timeSlot || '').replace(/^Period\s*/i, '').trim()}
                   </span>
                   {s.component && (
@@ -381,7 +385,7 @@ function TodayScheduleWidget({
 
       <Link
         href="/dashboard/timetable"
-        className="flex items-center justify-center gap-1.5 w-full p-3.5 text-[11px] font-semibold tracking-wider text-primary border-t border-border hover:bg-surface-2/30 transition-colors uppercase mt-auto"
+        className="flex items-center justify-center gap-1.5 w-full p-3.5 text-[11px] font-semibold tracking-wider text-indigo-400 border-t border-border hover:bg-surface-2/30 transition-colors uppercase mt-auto"
       >
         View Full Timetable <ChevronRight className="w-3.5 h-3.5" />
       </Link>
@@ -478,7 +482,7 @@ function CurrentCoursesWidget({
                     <p className="text-sm font-medium text-foreground truncate">{String(course[nameKey] || 'N/A')}</p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-[10px] font-mono bg-surface-2 text-muted-foreground px-1.5 py-0.5 rounded">{String(course[codeKey] || 'N/A')}</span>
-                      <span className="text-[11px] text-muted-foreground/70 truncate">{String(course[compKey] || '')}</span>
+                      <span className="text-[11px] text-muted-foreground truncate">{String(course[compKey] || '')}</span>
                     </div>
                   </div>
                 </div>

@@ -25,19 +25,13 @@ export const USER_AGENT =
 export interface ScraperSession {
   cookies: { name: string; value: string }[];
   csrfToken: string;
-  userAgent: string;
+  userAgent?: string;
 }
 
 export type CookieJar = Record<string, string>;
 
 export function getSetCookies(res: Response): string[] {
-  const anyHeaders = res.headers as Headers & { getSetCookie?: () => string[] };
-  if (typeof anyHeaders.getSetCookie === 'function') {
-    return anyHeaders.getSetCookie();
-  }
-  const raw = res.headers.get('set-cookie');
-  if (!raw) return [];
-  return raw.split(/,(?=\s*[^=;,]+=)/);
+  return res.headers.getSetCookie?.() ?? (res.headers.get('set-cookie')?.split(/,(?=\s*[^=;,]+=)/) ?? []);
 }
 
 export function mergeSetCookies(jar: CookieJar, res: Response): void {
@@ -64,7 +58,7 @@ export function jarToArray(jar: CookieJar): { name: string; value: string }[] {
 }
 
 export function arrayToJar(
-  cookies: { name: string; value: string }[]
+  cookies?: { name: string; value: string }[] | null
 ): CookieJar {
   const jar: CookieJar = {};
   for (const c of cookies || []) {
@@ -210,25 +204,14 @@ export function parseGenericTable(
 
   function getNodeText($cell: cheerio.Cheerio<Element>): string {
     const $clone = $cell.clone();
-    $clone
-      .find('script, style, noscript, template, input[type="hidden"]')
-      .remove();
+    $clone.find('script, style, noscript').remove();
     $clone.find('br').replaceWith('\n');
-    $clone
-      .find('div, p, tr, li, h1, h2, h3, h4, h5, h6')
-      .before('\n')
-      .after('\n');
-    $clone
-      .find('span, a, b, i, strong, em, small, font, td, th')
-      .before(' ')
-      .after(' ');
-    const text = $clone.text();
-
-    const lines = text
+    return $clone
+      .text()
       .split('\n')
-      .map((line) => line.replace(/[ \t]+/g, ' ').trim())
-      .filter(Boolean);
-    return lines.join('\n');
+      .map((line) => line.replace(/\s+/g, ' ').trim())
+      .filter(Boolean)
+      .join('\n');
   }
 
   function getNodeHref($cell: cheerio.Cheerio<Element>): string | null {

@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
+import { AICopilot } from '@/components/ai/AICopilot';
 
 /* ── Profile Avatar ── */
 function ProfileAvatar({
@@ -176,8 +177,9 @@ export default function Navigation({
         <div className="flex items-center gap-3">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 -ml-2 rounded-[--radius-md] hover:bg-white/8 text-muted-foreground transition-colors"
+            className="p-2 -ml-2 rounded-[--radius-md] hover:bg-white/8 text-muted-foreground transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
             aria-label="Open navigation"
+            aria-expanded={sidebarOpen}
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -189,7 +191,7 @@ export default function Navigation({
         <div className="flex items-center gap-2">
           <Link
             href="/dashboard/circulars"
-            className="relative p-2 rounded-full hover:bg-white/8 transition-colors text-muted-foreground"
+            className="relative p-2 rounded-full hover:bg-white/8 transition-colors text-muted-foreground min-w-[44px] min-h-[44px] flex items-center justify-center"
             aria-label="Notifications"
           >
             <Bell className="w-4 h-4" />
@@ -203,8 +205,17 @@ export default function Navigation({
       {sidebarOpen && (
         <>
           <div
-            className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+            role="button"
+            tabIndex={0}
+            aria-label="Close navigation overlay"
+            className="fixed inset-0 bg-black/60 z-40 lg:hidden cursor-pointer"
             onClick={() => setSidebarOpen(false)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+                e.preventDefault();
+                setSidebarOpen(false);
+              }
+            }}
           />
           <aside className="fixed top-0 left-0 bottom-0 w-[280px] z-50 lg:hidden flex flex-col bg-surface-0 border-r border-border animate-up">
             <div className="p-5 border-b border-border flex items-center justify-between">
@@ -212,7 +223,11 @@ export default function Navigation({
                 <img src="/logo.png" alt="KL" className="h-7 object-contain" />
                 <span className="font-bold text-lg text-foreground font-heading">KL Sync</span>
               </Link>
-              <button onClick={() => setSidebarOpen(false)} className="p-1.5 rounded-[--radius-sm] hover:bg-white/8 text-muted-foreground">
+              <button
+                onClick={() => setSidebarOpen(false)}
+                aria-label="Close menu"
+                className="p-1.5 rounded-[--radius-sm] hover:bg-white/8 text-muted-foreground min-w-[44px] min-h-[44px] flex items-center justify-center"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -227,8 +242,9 @@ export default function Navigation({
                   <Link
                     key={item.href}
                     href={item.href}
+                    aria-current={active ? 'page' : undefined}
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-[--radius-md] text-sm font-medium transition-all mb-0.5 ${
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-[--radius-md] text-sm font-medium transition-all mb-0.5 min-h-[44px] ${
                       active
                         ? 'bg-primary/10 text-primary border border-primary/20 font-semibold'
                         : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
@@ -243,7 +259,7 @@ export default function Navigation({
             <div className="p-3 border-t border-border">
               <button
                 onClick={handleSignOut}
-                className="flex items-center gap-3 w-full px-3 py-2.5 rounded-[--radius-md] text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
+                className="flex items-center gap-3 w-full px-3 py-2.5 rounded-[--radius-md] text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors min-h-[44px]"
               >
                 <LogOut className="w-4 h-4" />
                 Sign Out
@@ -275,8 +291,9 @@ export default function Navigation({
           )}
           <button
             onClick={toggleCollapse}
-            className={`p-1.5 rounded-[--radius-sm] hover:bg-white/8 text-muted-foreground transition-colors ${collapsed ? 'hidden' : ''}`}
+            className={`p-1.5 rounded-[--radius-sm] hover:bg-white/8 text-muted-foreground transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${collapsed ? 'hidden' : ''}`}
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-expanded={!collapsed}
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -295,8 +312,9 @@ export default function Navigation({
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={active ? 'page' : undefined}
                 title={collapsed ? item.label : undefined}
-                className={`flex items-center gap-3 rounded-[--radius-md] text-sm font-medium transition-all mb-0.5 ${
+                className={`flex items-center gap-3 rounded-[--radius-md] text-sm font-medium transition-all mb-0.5 min-h-[44px] ${
                   collapsed ? 'justify-center px-0 py-2.5 mx-1' : 'px-3 py-2.5'
                 } ${
                   active
@@ -327,6 +345,7 @@ export default function Navigation({
           )}
           <button
             onClick={handleSignOut}
+            aria-label="Sign Out"
             className={`flex items-center gap-3 w-full rounded-[--radius-md] text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors ${
               collapsed ? 'justify-center px-0 py-2.5' : 'px-3 py-2.5'
             }`}
@@ -347,6 +366,7 @@ export default function Navigation({
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={active ? 'page' : undefined}
                 className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors ${
                   active ? 'text-primary' : 'text-muted-foreground'
                 }`}
@@ -360,6 +380,9 @@ export default function Navigation({
           {/* More button */}
           <button
             onClick={() => setMoreOpen(!moreOpen)}
+            aria-expanded={moreOpen}
+            aria-label="More navigation options"
+            aria-controls="more-overflow-menu"
             className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors ${
               moreOpen || overflowItems.some(i => isActive(i.href)) ? 'text-primary' : 'text-muted-foreground'
             }`}
@@ -373,7 +396,7 @@ export default function Navigation({
         {moreOpen && (
           <>
             <div className="fixed inset-0 z-30" onClick={() => setMoreOpen(false)} />
-            <div className="absolute bottom-full left-0 right-0 z-40 glass border-t border-border rounded-t-[--radius-xl] p-3 animate-up">
+            <div id="more-overflow-menu" className="absolute bottom-full left-0 right-0 z-40 glass border-t border-border rounded-t-[--radius-xl] p-3 animate-up">
               <div className="grid grid-cols-3 gap-1">
                 {overflowItems.map((item) => {
                   const active = isActive(item.href);
@@ -382,8 +405,9 @@ export default function Navigation({
                     <Link
                       key={item.href}
                       href={item.href}
+                      aria-current={active ? 'page' : undefined}
                       onClick={() => setMoreOpen(false)}
-                      className={`flex flex-col items-center gap-1.5 p-3 rounded-[--radius-md] transition-colors ${
+                      className={`flex flex-col items-center gap-1.5 p-3 rounded-[--radius-md] transition-colors min-h-[44px] ${
                         active ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-white/5'
                       }`}
                     >
@@ -412,7 +436,12 @@ export default function Navigation({
         <header className="hidden lg:flex items-center justify-between px-8 py-3 border-b border-border/50 glass-subtle z-20 shrink-0">
           <div className="flex items-center gap-3">
             {collapsed && (
-              <button onClick={toggleCollapse} className="p-1.5 rounded-[--radius-sm] hover:bg-white/8 text-muted-foreground mr-2">
+              <button
+                onClick={toggleCollapse}
+                aria-label="Expand sidebar"
+                aria-expanded={false}
+                className="p-1.5 rounded-[--radius-sm] hover:bg-white/8 text-muted-foreground mr-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
+              >
                 <Menu className="w-4 h-4" />
               </button>
             )}
@@ -439,7 +468,7 @@ export default function Navigation({
 
             <Link
               href="/dashboard/circulars"
-              className="relative p-2 rounded-full hover:bg-white/8 transition-colors text-muted-foreground"
+              className="relative p-2 rounded-full hover:bg-white/8 transition-colors text-muted-foreground min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label="Notifications"
             >
               <Bell className="w-4 h-4" />
@@ -448,19 +477,23 @@ export default function Navigation({
 
             <div className="h-6 w-px bg-border mx-1" />
 
-            <div className="flex items-center gap-2.5 cursor-pointer hover:bg-white/5 p-1.5 pr-3 rounded-full transition-colors">
+            <button
+              type="button"
+              aria-label="User profile and account options"
+              onClick={() => { window.location.href = '/dashboard/profile'; }}
+              className="flex items-center gap-2.5 cursor-pointer hover:bg-white/5 p-1.5 pr-3 rounded-full transition-colors min-h-[44px]"
+            >
               <ProfileAvatar user={user} />
               <span className="text-sm font-medium text-foreground hidden xl:block">{user.name}</span>
-            </div>
+            </button>
           </div>
         </header>
 
-        {/* Remove padding-top and padding-bottom for lg since header and no bottom bar */}
+        {/* Target div for Skip to Content */}
         <div
-          className="flex-1 overflow-y-auto relative z-10"
-          style={{
-            /* Desktop: no extra padding needed since header height is auto */
-          }}
+          id="main-content"
+          tabIndex={-1}
+          className="flex-1 overflow-y-auto relative z-10 focus:outline-hidden"
         >
           <div className="p-4 sm:p-6 lg:p-8 max-w-[--content-max-width] mx-auto w-full">
             {children}
@@ -474,6 +507,9 @@ export default function Navigation({
           main { padding-top: 0 !important; padding-bottom: 0 !important; }
         }
       `}</style>
+
+      {/* AI Copilot Widget */}
+      <AICopilot />
     </div>
   );
 }

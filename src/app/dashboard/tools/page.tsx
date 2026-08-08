@@ -141,10 +141,11 @@ export default function ToolsPage() {
 
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-2">
+                  <label htmlFor="total-classes-input" className="text-xs font-bold text-zinc-300 uppercase tracking-wider block mb-2">
                     Total Classes
                   </label>
                   <input
+                    id="total-classes-input"
                     type="number"
                     className="w-full bg-zinc-950/50 border border-white/10 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                     value={totalClasses}
@@ -154,10 +155,11 @@ export default function ToolsPage() {
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-2">
+                  <label htmlFor="classes-attended-input" className="text-xs font-bold text-zinc-300 uppercase tracking-wider block mb-2">
                     Classes Attended
                   </label>
                   <input
+                    id="classes-attended-input"
                     type="number"
                     className="w-full bg-zinc-950/50 border border-white/10 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                     value={presents}
@@ -205,10 +207,11 @@ export default function ToolsPage() {
 
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-2">
+                  <label htmlFor="target-cgpa-input" className="text-xs font-bold text-zinc-300 uppercase tracking-wider block mb-2">
                     Target CGPA Goal
                   </label>
                   <input
+                    id="target-cgpa-input"
                     type="number"
                     step="0.1"
                     className="w-full bg-zinc-950/50 border border-white/10 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
@@ -217,10 +220,11 @@ export default function ToolsPage() {
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-2">
+                  <label htmlFor="upcoming-credits-input" className="text-xs font-bold text-zinc-300 uppercase tracking-wider block mb-2">
                     Upcoming Credits
                   </label>
                   <input
+                    id="upcoming-credits-input"
                     type="number"
                     className="w-full bg-zinc-950/50 border border-white/10 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                     value={newCredits}

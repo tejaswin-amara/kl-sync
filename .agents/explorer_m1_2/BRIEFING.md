@@ -1,34 +1,45 @@
-# BRIEFING — 2026-07-24T00:47:15Z
+# BRIEFING — 2026-08-06T17:16:27Z
 
 ## Mission
-Investigate `src/lib/scraper.ts` and related files to analyze candidate endpoint resilience and robust scraper table parsing (`parseGenericTable`), then produce a comprehensive handoff report.
+Investigate M1 Scraper Resilience & Performance requirements and formulate concrete plans for ERP proxy error handling refactoring, profile scraper concurrency pooling (batch size 3), and captcha OCR timeout & nonce handling resilience.
 
 ## 🔒 My Identity
-- Archetype: Explorer
-- Roles: Read-only investigation, candidate endpoint resilience analysis, table parsing analysis
+- Archetype: explorer
+- Roles: M1 Scraper Resilience & Performance Explorer
 - Working directory: C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\explorer_m1_2
-- Original parent: c877f3ab-7cf2-4e66-83ce-2783c400be36
-- Milestone: M1 (R1. Robust Scraper Table Parsing & Candidate Endpoint Resilience)
+- Original parent: 410aea0e-292f-49f2-8394-a5515516e72e
+- Milestone: M1 Architecture & Data Fetching Foundation
 
 ## 🔒 Key Constraints
-- Read-only investigation — do NOT implement changes in source code (`src/...`)
-- Produce findings in `handoff.md` within `.agents/explorer_m1_2`
-- Communicate result back to parent via `send_message`
+- Read-only investigation — do NOT implement outside working directory
+- Produce `analysis.md` and `handoff.md` in working directory
+- Communicate with parent agent via `send_message` when complete
 
 ## Current Parent
-- Conversation ID: c877f3ab-7cf2-4e66-83ce-2783c400be36
-- Updated: 2026-07-24T00:47:15Z
+- Conversation ID: 410aea0e-292f-49f2-8394-a5515516e72e
+- Updated: 2026-08-06T17:16:27Z
 
 ## Investigation State
-- **Explored paths**: `src/lib/scraper.ts`, `src/app/api/erp-proxy/[module]/route.ts`, `src/app/dashboard/*`, `src/lib/constants.ts`
-- **Key findings**: Identified single-point-of-failure URLs in fetchers, scope flaws in `fetchTimetableData` fallback loop, missing HTTP status & timeout checks in `fetchWithJar`, and table parsing vulnerabilities (`tr.first()` title banners, `$row.find` nested table pollution, missing `colspan` alignment, text sanitization).
-- **Unexplored areas**: None.
+- **Explored paths**:
+  - `src/app/api/erp-proxy/[module]/route.ts`
+  - `src/lib/scrapers/profile.ts`
+  - `src/app/api/captcha/route.ts`
+  - `src/lib/captcha.ts`
+  - `src/lib/scrapers/attendance.ts`
+  - `src/lib/captcha.test.ts`
+  - `src/lib/scraper.test.ts`
+- **Key findings**:
+  - Formulated precise refactoring plan for `erp-proxy` returning 502/504/401 HTTP JSON error responses when ERP network/timeout calls fail, removing silent mock fallbacks in `catch`.
+  - Formulated batch size 3 concurrency pool execution plan for `profile.ts` sub-tab fetching with 5s per-tab signal bounds.
+  - Formulated parallel OCR engine race plan (2s max budget) in `captcha/route.ts` and timestamp-pruned `Map<string, number>` token burn in `captcha.ts`.
+- **Unexplored areas**: None (all assigned scope explored).
 
 ## Key Decisions Made
-- Completed read-only investigation and compiled full handoff report in `handoff.md`.
+- Authored complete code proposals with rationale, file locations, line numbers, and verification commands in `analysis.md` and `handoff.md`.
 
 ## Artifact Index
-- `.agents/explorer_m1_2/ORIGINAL_REQUEST.md` — Original request log
-- `.agents/explorer_m1_2/BRIEFING.md` — Agent working memory
-- `.agents/explorer_m1_2/progress.md` — Heartbeat and progress tracking
-- `.agents/explorer_m1_2/handoff.md` — Comprehensive handoff report
+- `C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\explorer_m1_2\DISPATCH.md` — Log of incoming dispatches
+- `C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\explorer_m1_2\BRIEFING.md` — Working state briefing
+- `C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\explorer_m1_2\progress.md` — Liveness heartbeat log
+- `C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\explorer_m1_2\analysis.md` — Technical analysis & refactoring plans
+- `C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\explorer_m1_2\handoff.md` — 5-component handoff report

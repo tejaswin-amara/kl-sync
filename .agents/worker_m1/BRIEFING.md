@@ -1,56 +1,43 @@
-# BRIEFING — 2026-07-24T09:56:55Z
+# BRIEFING — 2026-08-08T08:56:00Z
 
 ## Mission
-Improve parseGenericTable and fetchTimetableData (and related module fetchers) in src/lib/scraper.ts and src/app/api/erp-proxy/[module]/route.ts for robust table parsing and candidate endpoint resilience.
+Refactor `src/lib/session.ts` to replace Node.js `crypto` (`createCipheriv`/`createDecipheriv`) with standard Web Crypto API (`crypto.subtle`), use `DEMO_SESSION` on error/fallback, update callers if async, and ensure tests pass.
 
 ## 🔒 My Identity
-- Archetype: worker_m1
+- Archetype: worker
 - Roles: implementer, qa, specialist
 - Working directory: C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m1
-- Original parent: cfa49052-43a6-4cd5-9629-a723e1246ccb
-- Milestone: M1 (R1. Robust Scraper Table Parsing & Candidate Endpoint Resilience)
+- Original parent: be50fe69-11ce-49ae-96de-9e997d80fc6d
+- Milestone: M1 Authentication & Session Simplification
 
 ## 🔒 Key Constraints
-- Genuine implementation, no cheating or hardcoded outputs.
-- Must handle 2D Grid Matrix for rowspan/colspan, text normalization, title banner skipping, garbage row filtering, link preservation.
-- Candidate endpoint resilience: timeouts, HTTP res.ok, fallback loop in try-catch, isLikelyTimetableData validation, session expiry 401 handling.
-- Verify with `npm run build`.
-
-## Current Parent
-- Conversation ID: cfa49052-43a6-4cd5-9629-a723e1246ccb
-- Updated: 2026-07-24T09:56:55Z
-
-## Task Summary
-- **What to build**: Robust Scraper Table Parsing & Candidate Endpoint Resilience.
-- **Success criteria**: All specified requirements implemented in `src/lib/scraper.ts` and `src/app/api/erp-proxy/[module]/route.ts`; `npm run build` succeeds with 0 errors.
-- **Interface contracts**: `parseGenericTable`, `fetchTimetableData`, `isLikelyTimetableData`, `erp-proxy` route handling session expiry.
-
-## Key Decisions Made
-- Implemented JSON detection and recursive/direct payload parsing in `parseGenericTable`.
-- Added tag space insertion across all block and inline elements (`br, div, p, span, a, b, i, strong, em, small, font, li, td, th, h1-h6`) in `getNodeText` to prevent word merging.
-- Upgraded table selection & scoring with direct row evaluation (`getDirectRows`) and layout/sidebar penalties.
-- Added comprehensive garbage row filtering (notice rows, empty rows, pagination controls).
-- Enhanced `isLikelyTimetableData` with sidebar rejection logic (`my profile`, `change password`, `logout`).
-- Enhanced `fetchTimetableData` candidate loop with `isSessionExpiredHtml` checking, individual strategy try-catches, HTTP status code validation, and early loop termination on valid data.
-- Upgraded `src/app/api/erp-proxy/[module]/route.ts` to extract parameters seamlessly from both POST body and query parameters.
-
-## Artifact Index
-- ORIGINAL_REQUEST.md — Original task prompt.
-- BRIEFING.md — Working briefing.
-- progress.md — Liveness heartbeat.
-- handoff.md — Final handoff report.
+- ZERO references to `crypto.createCipheriv` or `crypto.createDecipheriv` in `src/lib/session.ts`.
+- Standard Web Crypto API implementation (`crypto.subtle`).
+- Use `DEMO_SESSION` imported from `@/lib/fixtures` on error or fallback.
+- Update callers in API routes and test suites if signatures change.
+- Verify using `npm test`, `npx tsc --noEmit`, `npm run lint`.
+- Do not cheat or hardcode test results.
 
 ## Change Tracker
 - **Files modified**:
-  - `src/lib/scraper.ts`: Enhanced `parseGenericTable`, `getNodeText`, `isLikelyTimetableData`, `fetchTimetableData` with 2D matrix, tag spacing, JSON detection, session expiry checks, and candidate loop resilience.
-  - `src/app/api/erp-proxy/[module]/route.ts`: Enhanced request parameter extraction (POST body + query searchParams fallback) and HTTP 401 error propagation.
-- **Build status**: PASS (Next.js build succeeded in 7.1s, 0 errors)
+  - `src/lib/session.ts`: Replaced Node `crypto.createCipheriv`/`createDecipheriv` with Web Crypto API `crypto.subtle`.
+  - `src/lib/session.test.ts`: Updated unit tests to await async session methods.
+  - `src/app/api/ai/chat/route.ts`: Updated `decodeSession` call to use `await`.
+  - `src/app/api/captcha/route.ts`: Updated `encodeSession` call to use `await`.
+  - `src/app/api/erp-proxy/[module]/route.ts`: Updated `decodeSession` call to use `await`.
+  - `src/app/api/fetch-photo/route.ts`: Updated `decodeSession` call to use `await`.
+  - `src/app/api/login/route.ts`: Updated `decodeSession` and `encodeSession` calls to use `await`.
+  - `src/app/api/erp-proxy-errors.test.ts`: Updated `encodeSession` calls to use `await`.
+  - `src/e2e/tier1-feature-coverage.test.ts`: Updated `encodeSession`/`decodeSession` calls to use `await`.
+  - `src/e2e/tier2-boundary-corner-cases.test.ts`: Updated `encodeSession` call to use `await`.
+  - `src/e2e/tier3-cross-feature-combinations.test.ts`: Updated `encodeSession` calls to use `await`.
+- **Build status**: PASS (`npm test` 188/188 pass, `npx tsc --noEmit` 0 errors, `npm run lint` 0 errors)
 - **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: PASS (`npm run build`)
-- **Lint status**: Clean
-- **Tests added/modified**: Verified via Next.js compilation & static page generation.
+- **Build/test result**: All 188 unit/integration tests passing cleanly.
+- **Lint status**: Passed (0 errors, 1 existing unused variable warning in unrelated file).
+- **Tests added/modified**: Updated session unit tests to test async `crypto.subtle` roundtrip and fallback scenarios.
 
 ## Loaded Skills
 - None

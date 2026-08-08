@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Outfit } from 'next/font/google';
 import './globals.css';
+import { ToastProvider } from '@/components/ui/toast';
+import { AriaLiveRegion } from '@/components/ui/aria-live';
 
 const inter = Inter({
   variable: '--font-inter',
@@ -50,9 +52,11 @@ export default function RootLayout({
         <a href="#main-content" className="skip-nav">
           Skip to content
         </a>
-        <div id="main-content">
-          {children}
-        </div>
+        <AriaLiveRegion>
+          <ToastProvider>
+            {children}
+          </ToastProvider>
+        </AriaLiveRegion>
       </body>
     </html>
   );

@@ -1,27 +1,18 @@
-# Concrete Step-by-Step Orchestration Plan: KL Sync Frontend Redesign
+# Architectural Simplification Plan - KL Sync
 
-## Phase 0: Survey & Architecture Discovery
-- [ ] Dispatch 3 parallel survey subagents (`teamwork_preview_explorer` / `teamwork_preview_spec_miner`) to analyze existing codebase, project structure, component hierarchy, build/test scripts, styling framework, and exact feature requirements from `ORIGINAL_REQUEST.md`.
-- [ ] Aggregate survey findings into `PROJECT.md` at project root (`C:\Users\speed\Documents\antigravity\optimistic-pascal\PROJECT.md`).
+## Objectives
+1. **R1: Authentication & Session Simplification** (`src/lib/session.ts`)
+   Replace custom AES-256-GCM cipher logic (`crypto.createCipheriv`) with standard Web Crypto API / Next.js cookie handling or `iron-session`.
+2. **R2: Native AI Tool Calling** (`src/lib/ai/executor.ts`)
+   Replace regex-based string parser (`parseNaturalLanguageIntent`) with Vercel AI SDK `generateText` using strict Zod tool schemas.
+3. **R3: Dependency Purge** (`package.json`)
+   Remove `swr`, `clsx`, `tailwind-merge`.
+   - Refactor client components using SWR to native `fetch` / React 19 `use()`.
+   - Refactor `cn()` helper in `src/lib/utils.ts` and UI components to template literals.
+4. **R4: Mock Data Consolidation** (`src/lib/fixtures`)
+   Extract all hardcoded fallback data (`DEMO_TIMETABLE`, `DEMO_PROFILE`, etc.) into `src/lib/fixtures`.
 
-## Phase 1: Architecture & Milestone Decomposition (`PROJECT.md`)
-- [ ] Define feature inventory mapping R1 (Landing, Login, Dashboard modules: Attendance, Timetable, Marks, Fee, Profile, Circulars, Hostels, Library, Tools), R2 (Cap CAPTCHA & ERP image captcha, clear feedback, error alerts), and R3 (Dark-mode, micro-interactions, glassmorphism, typography).
-- [ ] Define modular milestones (3-7 milestones) with clear module boundaries and interface contracts.
-- [ ] Establish parallel Dual Track: Implementation Track + E2E / Unit Testing Track.
-
-## Phase 2: Milestone Execution & Quality Gates
-- [ ] Iterative execution per milestone using the standard cycle:
-  1. Explorer(s) analyze target files, dependencies, and fix strategy.
-  2. Worker implements changes, verifies local build and tests.
-  3. Reviewers (2) evaluate code quality, visual aesthetics, accessibility, and correctness.
-  4. Challengers (2) stress test and verify edge cases.
-  5. Forensic Auditor (`teamwork_preview_auditor`) verifies non-cheating, authentic implementations.
-  6. Gate Check (`GATE_STATUS.md`): ALL pass -> advance; ANY fail -> iteration loop back with failure report.
-
-## Phase 3: Final Acceptance & Quality Audit
-- [ ] Verify `npm run build` (0 TS errors).
-- [ ] Verify `npm run lint` (0 warnings/errors).
-- [ ] Verify `npm run test` (all 30 tests pass cleanly).
-- [ ] Verify responsive rendering across mobile (320px+), tablet, desktop, and ultra-wide viewports.
-- [ ] Perform final forensic audit.
-- [ ] Report victory to Sentinel & parent caller.
+## Execution Topology
+- **Survey Phase**: Dispatch 3 parallel Explorers to analyze R1, R2, R3, R4 and test setup.
+- **Implementation Phase**: Sequential / parallel milestone execution with Explorer -> Worker -> Reviewer -> Challenger -> Auditor cycles.
+- **Verification Phase**: Full static analysis (`npm run build`, `npm run lint`, `npx tsc --noEmit`) + Playwright E2E test suite validation.

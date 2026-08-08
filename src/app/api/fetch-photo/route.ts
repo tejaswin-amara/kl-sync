@@ -23,13 +23,25 @@ export async function GET(request: Request) {
   }
 
   const headerSessionId = request.headers.get('x-session-id');
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get('kl_erp_session')?.value;
+  let sessionCookie: string | undefined = undefined;
+  try {
+    const cookieStore = await cookies();
+    sessionCookie = cookieStore.get('kl_erp_session')?.value;
+  } catch {}
   const rawSession = headerSessionId || sessionCookie;
 
   if (!rawSession) return new NextResponse('Unauthorized', { status: 401 });
 
-  const session = decodeSession(rawSession);
+  const session = await decodeSession(rawSession);
+
+  // If this is the demo fallback session, return a dummy SVG
+  if (session.csrfToken?.includes('demo') || session.cookies.some((c) => c.value.includes('demo'))) {
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#ccc"/></svg>';
+    return new NextResponse(svg, {
+      status: 200,
+      headers: { 'Content-Type': 'image/svg+xml' },
+    });
+  }
 
   try {
     const base = 'https://newerp.kluniversity.in';

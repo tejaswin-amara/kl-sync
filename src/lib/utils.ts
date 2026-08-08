@@ -1,8 +1,5 @@
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+export function cn(...inputs: unknown[]) {
+  return inputs.filter(Boolean).map(String).join(' ');
 }
 
 export function exportTableToCSV(

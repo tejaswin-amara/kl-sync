@@ -1,73 +1,111 @@
-# Project: KL Sync Frontend Redesign
+# Project: KL Sync ERP Overhaul & Modernization
 
 ## Architecture
-KL Sync is a high-performance, dark-themed, responsive web application built with Next.js 16 (App Router), React 19, TailwindCSS v4, and Lucide React icons. It serves as an edge proxy for KL University's legacy ERP system.
-
-### Data Flow & Component Hierarchy
-- **Entry & Auth Flow**: `src/app/page.tsx` (Landing & Login) -> `/api/captcha` & `/api/captcha/redeem` (Cap CAPTCHA PoW & ERP OCR captcha) -> `/api/login` (ERP session & device registration) -> Session stored in encrypted cookie & `sessionStorage`.
-- **Navigation Shell**: `src/app/dashboard/layout.tsx` -> `src/components/Navigation.tsx` (Responsive Desktop Sidebar & Mobile Drawer) -> Sub-routes (`src/app/dashboard/*`).
-- **Core UI Primitives**: `src/components/ui/` (Button, Card, Input, Badge, Dialog/Modal, Tabs, Drawer/Sheet, Tooltip, Skeleton shimmer).
-- **ERP Scraper Edge Proxy**: `/api/erp-proxy/[module]/route.ts` -> `src/lib/scrapers/*` (http-jar, attendance, timetable, marks, fee, profile).
-- **Utility Calculators**: `src/lib/cgpa.ts`, `src/lib/fee-utils.ts`, `src/lib/timetable-parser.ts`, `src/components/attendance-calculator.tsx`.
+- Framework: Next.js 16.2.9 (App Router), React 19.2.4, TypeScript 5, Tailwind CSS v4 (@tailwindcss/postcss).
+- State & Data Layer: SWR client-side data fetching & caching hooks, Next.js serverless route handlers (`/api/*`), Cheerio HTML scraper engine (`src/lib/scrapers/*`), AES-256-GCM encrypted session cookies.
+- AI Integration Layer: Agent Toolkit JSON Schema function definitions (`src/lib/ai/tools.ts`), AI execution engine (`src/lib/ai/executor.ts`), chat API (`/api/ai/chat`), and Copilot UI (`src/components/ai/*`).
+- Quality & Verification: Native TS node test runner (`npx tsx --test`), ESLint 9, `npx tsc --noEmit`, automated agent-as-judge suite, and Lighthouse auditing harness.
 
 ## Feature Inventory
 | # | Feature | Description | Milestone | Source |
 |---|---------|-------------|-----------|--------|
-| 1 | Landing Page & Sign-In Form | Asymmetric split branding + login form with remember credentials option | M2 | Survey 2 |
-| 2 | Cap CAPTCHA Integration | Client-side PoW bot protection widget (`cap-widget`) with auto-solver | M2 | Survey 2 |
-| 3 | ERP Image Captcha & Auto-OCR | ERP visual security code fetch with automated OCR.space solving | M2 | Survey 2 |
-| 4 | ERP First-Time Device Registration | Handles device ID cookie registration for single-signon safety | M2 | Survey 2 |
-| 5 | Responsive Layout & Drawer | Desktop fixed sidebar + mobile backdrop drawer with active route highlights | M1 | Survey 2 |
-| 6 | Academic Session Hook | Custom hook managing academic year & semester selections across modules | M1 | Survey 2 |
-| 7 | Overview Hero & Quick Stats | Live summary of CGPA, attendance %, pending fee total, and completed credits | M3 | Survey 2 |
-| 8 | Today's Schedule Widget | Real-time daily timetable widget pre-enriched with course titles & faculty | M3 | Survey 2 |
-| 9 | Attendance Data Grid | Real-time course attendance table with threshold-based color coding | M3 | Survey 2 |
-| 10 | Class Projection Indicator | Calculates exact classes needed or safe to skip to hit 85%/75% policy | M3 | Survey 2 |
-| 11 | Universal Timetable Parser | Auto-detects matrix or list timetable HTML formats and normalizes sessions | M3 | Survey 2 |
-| 12 | Timetable View Modes | Toggleable Matrix Grid View (sticky day column) & List View with CSV export | M3 | Survey 2 |
-| 13 | Marks & Grades Viewer | Displays internal assessment marks and semester grade cards with search | M3 | Survey 2 |
-| 14 | CGPA & Weighted GPA Processor | Extracts official summary CGPA or computes weighted GPA from grade letters | M3 | Survey 2 |
-| 15 | Fee Orders & Payment Status | Parses fee orders, normalizes currency, and classifies paid vs. pending balance | M3 | Survey 2 |
-| 16 | Accounting Currency Parser | Handles currency symbols (₹,$), text (INR, Rs), commas, and accounting parens | M3 | Survey 2 |
-| 17 | Profile Demographics & Multi-Tab | Parses student photo, university ID, and extracts sub-tab data tables | M4 | Survey 2 |
-| 18 | Profile Photo Edge Proxy | Serves student profile images via `sharp` with edge cache control | M4 | Survey 2 |
-| 19 | Official Circulars List | Fetches registrar office announcements and visibility lists | M4 | Survey 2 |
-| 20 | Hostel Room Occupancy | Displays room allocation, block details, and occupancy status | M4 | Survey 2 |
-| 21 | Library Circulation History | Displays book borrowing history, due dates, and return status | M4 | Survey 2 |
-| 22 | Attendance Target Calculator | Pre-populated calculator evaluating classes to attend/miss for 75%/85% | M4 | Survey 2 |
-| 23 | CGPA Goal Predictor | Calculates required GPA in upcoming credits to achieve target CGPA goal | M4 | Survey 2 |
-| 24 | Exam Room & Seat Locator | Displays exam room allotments and seat numbers with highlight badges | M4 | Survey 2 |
+| 1 | SWR/Data Hooks Migration | Client-side SWR data fetching hooks with caching & revalidation for all dashboard modules | M1 | survey 1,2 |
+| 2 | Zod Schema Validation | Runtime Zod validation for API routes and scraper outputs | M1 | survey 1,2 |
+| 3 | Backend Scraper Resilience | Fix silent mock fallbacks (return explicit 502/504 errors on ERP failure) | M1 | survey 2 |
+| 4 | Profile Sub-tab Concurrency Queue | Concurrency pool for profile sub-tab fetching to eliminate IIS overload | M1 | survey 2 |
+| 5 | CAPTCHA OCR Optimization | Optimize dual external OCR timeouts for faster captcha resolution | M1 | survey 2 |
+| 6 | API Route & Security Tests | Add unit tests for `/api/login`, `/api/erp-proxy/*`, `/api/fetch-photo`, `session.ts`, `http-jar.ts` | M1 | survey 2 |
+| 7 | Glassmorphism & Token System | Refine design tokens, surface hierarchy, and glassmorphic UI styles in `globals.css` | M2 | survey 1 |
+| 8 | Expanded Component Primitives | Implement shadcn-style Tooltip, Toast, Sheet, Command Palette, Skeleton, Status Badge | M2 | survey 1 |
+| 9 | Mobile Data Card Views | Responsive card transformations for `<640px` viewports across all dashboard tables | M2 | survey 1 |
+| 10 | Interactive Analytics Charts | Interactive visual trend charts for attendance, GPA/marks, and fee breakdown | M2 | survey 1 |
+| 11 | WCAG 2.2 Accessibility Overhaul | ARIA live regions, skip nav, >=44px touch targets, focus rings, keyboard accessibility | M2 | survey 1,3 |
+| 12 | Agent Toolkit Registry | Typed JSON Schema function signatures wrapping all 7 ERP data tools & calculators | M3 | survey 3 |
+| 13 | AI Copilot Chat API | Route handler `/api/ai/chat` supporting tool calls, context, and error recovery | M3 | survey 3 |
+| 14 | AI Copilot UI & Widget | Floating Copilot chat widget and integrated sidebar drawer for AI interactions | M3 | survey 3 |
+| 15 | Natural Language Data Querying | Query ERP data in natural language ("What is my OS attendance?", "Show fee balance") | M3 | survey 3 |
+| 16 | Workflow Automation & Advice | Automated attendance risk warnings, target calculation, and CGPA improvement roadmaps | M3 | survey 3 |
+| 17 | E2E Opaque-Box Test Harness | Requirement-driven test runner and infrastructure for ERP client workflows | M4 | survey 3 |
+| 18 | Tier 1-4 Quality Test Cases | Complete Tier 1 (Feature), Tier 2 (Boundary), Tier 3 (Cross-feature), Tier 4 (Real-world) test suite | M4 | survey 3 |
+| 19 | Agent-as-Judge Test Suite | Programmatic test script verifying AI capabilities without crashing Node | M4 | survey 3 |
+| 20 | Static Analysis Baseline Check | Verify `npm run build`, `npm run lint`, `npx tsc --noEmit`, `npm run test` zero errors | M4 | survey 1,3 |
+| 21 | Performance & Asset Optimization | Dynamic imports, CSS/font optimization, photo caching, FCP/TBT optimization | M5 | survey 2,3 |
+| 22 | Automated Lighthouse Audit | Verify Lighthouse >95 score in Performance, Accessibility, and Best Practices | M5 | survey 3 |
+| 23 | Tier 5 Adversarial Hardening | White-box adversarial testing, edge case stress-testing, and final sign-off | M5 | survey 3 |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| M1 | Design System, UI Primitives & Responsive Layout Shell | `globals.css` theme tokens, glassmorphism utilities, micro-interactions, fonts cleanup, `src/components/ui/` primitives, responsive `Navigation.tsx` shell | None | DONE |
-| M2 | Landing Page, Login Modal & Dual CAPTCHA Integration (R2) | `src/app/page.tsx` redesign, login modal/form, error alerts, status banners, Cap CAPTCHA PoW feedback, ERP image captcha auto-OCR refresh, device registration retry UX | M1 | PLANNED |
-| M3 | Core Academic & Financial Dashboard Modules (Attendance, Timetable, Marks, Fee) | Overview Hero & Today's Schedule in `src/app/dashboard/page.tsx`, Attendance module, Timetable matrix grid & list views, Marks & Grades viewer, Fee payment & pending balance view | M1 | PLANNED |
-| M4 | Student Services, Calculator Tools & Final Acceptance Verification | Profile page & photo proxy, Circulars, Hostels, Library, Exam Seating, Tools page (Attendance Target & CGPA Goal Predictor), full verification (`npm run build`, `npm run lint`, `npm run test` all 30 pass) | M1, M2, M3 | PLANNED |
+| M1 | Architecture & Data Fetching Foundation | SWR hooks, Zod validation schemas, backend error handling, scraper concurrency queue, route unit tests | none | DONE |
+| M2 | UI/UX, Accessibility & Mobile Overhaul | Glassmorphic design system, expanded UI primitives, mobile card views, visual charts, ARIA live regions | M1 | DONE |
+| M3 | Agentic AI Capabilities & Tooling | Agent toolkit registry, `/api/ai/chat` handler, Copilot widget/UI, NL querying, workflow automation | M1, M2 | DONE |
+| M4 | E2E Testing Suite & Quality Verification | Opaque-box test harness, Tier 1-4 tests, Agent-as-Judge script, TEST_READY.md, verification pass | M1, M2, M3 | DONE |
+| M5 | Performance Hardening & Lighthouse Audit | Asset & cache optimization, automated Lighthouse >95 audit, Tier 5 adversarial hardening | M1, M2, M3, M4 | DONE |
+| M6 | WCAG 2.2 AAA Upgrade & Ponytail Audit | Audit M1-5, ponytail audit artifact, WCAG AAA 7:1 contrast, >=44px targets, accessible names | M1..M5 | IN_PROGRESS |
 
 ## Interface Contracts
-### UI Primitives Contract (`src/components/ui/`)
-- Exported components: `Button`, `Card`, `Input`, `Badge`, `Dialog`, `Tabs`, `Sheet` (Mobile Drawer), `Skeleton`, `Tooltip`.
-- All primitives must support Tailwind v4 class merging via `cn(...)` from `src/lib/utils.ts`.
-- All interactive primitives must meet WCAG 2.2 touch target standards (`min-h-[44px]` for inputs and buttons) and display explicit focus rings (`focus-visible:ring-2 focus-visible:ring-indigo-400`).
 
-### Navigation Shell Contract (`src/components/Navigation.tsx`)
-- Props: `{ children: React.ReactNode }`
-- Responsive viewports: Mobile (<640px) uses top bar + slide-over drawer (`w-[280px]`); Desktop (>=1024px) uses fixed left sidebar (`w-[280px]`).
-- Ultra-wide desktop (>=1536px): Content capped at `max-w-7xl mx-auto`.
+### 1. Data Fetching Hooks (M1 ↔ M2, M3)
+- `useAttendance()`: `{ data: AttendanceData | null, error: Error | null, isLoading: boolean, mutate: Function }`
+- `useTimetable()`: `{ data: TimetableData | null, error: Error | null, isLoading: boolean, mutate: Function }`
+- `useMarks()`: `{ data: MarksData | null, error: Error | null, isLoading: boolean, mutate: Function }`
+- `useFee()`: `{ data: FeeData | null, error: Error | null, isLoading: boolean, mutate: Function }`
+- `useProfile()`: `{ data: ProfileData | null, error: Error | null, isLoading: boolean, mutate: Function }`
 
-### Dual Captcha Integration Contract (`src/components/Captcha.tsx`, `src/app/page.tsx`)
-- Cap CAPTCHA: `<cap-widget>` invokes `onVerify(token: string)`.
-- ERP Image Captcha: Automatically fetched from `/api/captcha`, solved via OCR, exposed with manual refresh capability.
-- Error alerts: `bg-red-500/10 border-red-500/20 text-red-400` banner; Status alerts: `bg-blue-500/10 border-blue-500/20 text-blue-400` banner.
+### 2. AI Toolkit Function Registry (M1, M2 ↔ M3)
+- `getAttendance({ subject?: string })` -> Promise<{ success: true, attendance: AttendanceSubject[] }>
+- `getTimetable({ day?: string })` -> Promise<{ success: true, schedule: TimetableSlot[] }>
+- `getMarks({ semester?: string })` -> Promise<{ success: true, marks: MarksSubject[] }>
+- `getFeeDetails()` -> Promise<{ success: true, breakdown: FeeDetails }>
+- `getStudentProfile()` -> Promise<{ success: true, profile: ProfileInfo }>
+- `calculateAttendanceTarget({ currentAttended, currentTotal, targetPercent })` -> Promise<{ classesNeeded: number }>
+- `predictCGPA({ currentCGPA, completedCredits, newCourses })` -> Promise<{ predictedCGPA: number }>
+
+### 3. AI Chat Proxy Contract (M3 ↔ UI)
+- `POST /api/ai/chat`
+- Request: `{ messages: { role: 'user' | 'assistant' | 'system', content: string }[] }`
+- Response: `{ message: { role: 'assistant', content: string }, toolCalls?: { tool: string, args: object, result: object }[] }`
+
+### 4. E2E Test & Verification Interface (M4 ↔ System)
+- `TEST_READY.md`: Signal file containing test runner invocation and tier coverage table.
+- Agent-as-Judge script: `npx tsx scripts/agent-as-judge.ts` -> exits with code 0 on pass.
 
 ## Code Layout
-- `src/app/globals.css`: Centralized design tokens, `@theme inline`, glassmorphic utilities (`.glass-panel`, `.glass-card`, `.glass-input`), micro-interaction animations.
-- `src/app/layout.tsx`: Root layout with font configuration (clean Next.js font variables, no external `<link>`).
-- `src/app/page.tsx`: Redesigned Landing Page & Login Modal Form.
-- `src/components/ui/`: Modular UI component primitives.
-- `src/components/Navigation.tsx`: Responsive navigation shell.
-- `src/components/Captcha.tsx`: Dual CAPTCHA integration component.
-- `src/components/attendance-calculator.tsx`: Attendance calculator component.
-- `src/app/dashboard/`: Sub-routes for overview and all 10 modules.
+```
+src/
+├── app/
+│   ├── api/
+│   │   ├── ai/chat/route.ts       # AI Copilot API handler (M3)
+│   │   ├── captcha/route.ts       # Captcha verification route
+│   │   ├── erp-proxy/[module]/    # Proxy handler with resilient error statuses (M1)
+│   │   ├── fetch-photo/route.ts   # Cached photo fetcher (M1, M5)
+│   │   └── login/route.ts         # Authentication proxy handler
+│   ├── dashboard/                 # 12 Dashboard module pages with mobile card views (M2)
+│   ├── globals.css                # Glassmorphic tokens, themes, WCAG styles (M2)
+│   ├── layout.tsx                 # Root layout with Toast & Live region providers (M2)
+│   └── page.tsx                   # Modernized landing page & login dialog (M2)
+├── components/
+│   ├── ai/                        # AICopilot widget, AIChatSheet, AIChatDialog (M3)
+│   ├── ui/                        # Button, Card, Toast, Tooltip, Sheet, Skeleton, etc. (M2)
+│   └── Navigation.tsx             # Responsive layout navigation shell (M2)
+├── hooks/                         # Unified SWR data fetching hooks (M1)
+│   ├── useAttendance.ts
+│   ├── useFee.ts
+│   ├── useMarks.ts
+│   ├── useProfile.ts
+│   └── useTimetable.ts
+├── lib/
+│   ├── ai/                        # Agent toolkit registry & executor (M3)
+│   │   ├── executor.ts
+│   │   └── tools.ts
+│   ├── schemas/                   # Zod runtime validation schemas (M1)
+│   ├── scrapers/                  # Cheerio scraper modules (M1)
+│   ├── captcha.ts
+│   ├── cgpa.ts
+│   ├── fee-utils.ts
+│   ├── scraper.ts
+│   ├── session.ts
+│   └── timetable-parser.ts
+scripts/
+└── agent-as-judge.ts              # Programmatic AI capability verification script (M4)
+```

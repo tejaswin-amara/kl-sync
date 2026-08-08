@@ -1,0 +1,7 @@
+## 2026-08-08T06:11:41Z
+Audit all CSS, layouts, and React UI components in `src/app/` and `src/components/` for strict WCAG 2.2 Level AAA compliance:
+1. **Contrast Ratio (Enhanced):** Ensure a contrast ratio of at least 7:1 for normal text and 4.5:1 for large text across the entire application, INCLUDING dark mode! Examine Tailwind colors, CSS tokens in `src/app/globals.css`, slate/muted colors (`text-muted-foreground`, `text-slate-400`, `bg-muted`, etc.), badges, cards, buttons, and navigation text. Identify all instances failing 7:1 contrast.
+2. **Target Size (Enhanced):** Ensure all interactive pointer targets (buttons, links, inputs, icon buttons, tabs, select boxes, dialog closers/triggers, theme toggles, AI copilot chat buttons) have dimensions >= 44x44 CSS pixels (e.g., `min-w-[44px] min-h-[44px]`, `p-3`, or `h-11`). Identify all interactive elements smaller than 44x44px.
+3. **Accessible Names:** Ensure zero accessible name mismatches or missing labels. Audit all interactive controls, inputs, icon-only buttons, and links to verify they have explicit `aria-label`, `aria-labelledby`, or visible text matching their function.
+
+Write your findings and step-by-step remediation recommendations into `analysis.md` and `handoff.md` in your working directory (`C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\explorer_m6_wcag\handoff.md`). Include exact file paths, line numbers, and proposed CSS/Tailwind/React fixes. Then notify the parent orchestrator via send_message.

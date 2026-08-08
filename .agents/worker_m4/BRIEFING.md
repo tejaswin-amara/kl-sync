@@ -1,49 +1,54 @@
-# BRIEFING — 2026-07-24T09:56:00Z
+# BRIEFING — 2026-08-08T08:53:30Z
 
 ## Mission
-Implement Milestone M4 (R4. Timetable Page & Dashboard Widget Robustness) in kl-sync.
+Milestone M4: Mock Data Consolidation (R4) for KL Sync
 
 ## 🔒 My Identity
-- Archetype: worker_m4
+- Archetype: worker
 - Roles: implementer, qa, specialist
 - Working directory: C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m4
-- Original parent: cfa49052-43a6-4cd5-9629-a723e1246ccb
+- Original parent: d001f6ce-ed2c-4291-9348-4a740f85a8b7
 - Milestone: M4
 
 ## 🔒 Key Constraints
-- Update `src/lib/timetable-parser.ts` to export `parseTimetable`, `normalizeDay`, `isSameDay`, `parseCellContent`.
-- Support Matrix Days-as-Columns, Matrix Days-as-Rows, and List Timetables.
-- Support Day Name Variants (`Monday`, `Mon`, `1`, `Day 1`, `TUE`, `Tue`, `Wednesday`, etc.) without false-positives (e.g. "Common Electronics" matching "Mon").
-- Smart Cell Parsing handling multi-hyphen strings ("22-CS-1101", "C-101 - Lab").
-- Refactor `TodayScheduleWidget` in `src/app/dashboard/page.tsx` with client-side caching (`sessionStorage`), robust day matching, loading/empty/error states.
-- Refactor `src/app/dashboard/timetable/page.tsx` with Grid and List views, client-side caching, day filters, fallback UI.
-- Run `npm run build` to verify compilation. No cheating or hardcoding.
+- Genuine implementation only, no cheating or hardcoding test results.
+- Consolidate mock datasets in `src/lib/fixtures/index.ts`.
+- Refactor consumers (`src/lib/session.ts`, `src/lib/ai/executor.ts`, `src/app/api/captcha/route.ts`, `src/app/api/login/route.ts`, `src/app/api/erp-proxy/[module]/route.ts`, `src/app/api/ai/chat/route.ts`) to import from `@/lib/fixtures`.
+- Verify with `npm test`, `npx tsc --noEmit`, `npm run lint`.
 
 ## Current Parent
-- Conversation ID: cfa49052-43a6-4cd5-9629-a723e1246ccb
-- Updated: 2026-07-24T09:56:00Z
+- Conversation ID: d001f6ce-ed2c-4291-9348-4a740f85a8b7
+- Updated: 2026-08-08T08:53:30Z
 
 ## Task Summary
-- **What to build**: Robust timetable parser & rendering in `src/lib/timetable-parser.ts`, `src/app/dashboard/timetable/page.tsx`, `src/app/dashboard/page.tsx`.
-- **Success criteria**: Auto-detection of matrix days-as-cols, matrix days-as-rows, list layouts; robust day normalization; smart cell parsing; client caching; interactive Grid/List views; error/empty states; clean `npm run build` compilation.
+- **What to build**: Consolidated fixtures module `src/lib/fixtures/index.ts` containing `DEMO_SESSION`, `DEMO_ATTENDANCE`, `DEMO_TIMETABLE_RAW`, `DEMO_MARKS`, `DEMO_FEE_ITEMS`, `DEMO_PROFILE`, `DEMO_CGPA`, `DEMO_CAPTCHA_SVG`, and `DEMO_LOGIN_RESULT`.
+- **Success criteria**: Clean imports from `@/lib/fixtures`, zero duplicated inline mock datasets in target files, clean test/tsc/lint runs.
+
+## Key Decisions Made
+- Created `src/lib/fixtures/index.ts` exporting all 9 fallback datasets with explicit TypeScript types.
+- Refactored all 6 specified consumer files to import mock datasets directly from `@/lib/fixtures`.
+- Added unit test suite `src/lib/fixtures.test.ts`.
 
 ## Change Tracker
 - **Files modified**:
-  - `src/lib/timetable-parser.ts`: Enhanced layout auto-detection, day normalization, smart cell parsing for multi-hyphen strings.
-  - `src/app/dashboard/page.tsx`: Refactored TodayScheduleWidget to use `parseTimetable`, `isSameDay`, `sessionStorage` caching, loading/empty/error states with retry.
-  - `src/app/dashboard/timetable/page.tsx`: Refactored Timetable Page to support interactive Grid and List views, day filters, searchQuery, `sessionStorage` caching, and CSV export.
-- **Build status**: PASS (`npm run build` completed cleanly)
+  - `src/lib/fixtures/index.ts`: Created consolidated fixtures module.
+  - `src/lib/session.ts`: Updated `decodeSession` to return `DEMO_SESSION` from `@/lib/fixtures`.
+  - `src/lib/ai/executor.ts`: Removed inline duplicate fallback datasets and imported them from `@/lib/fixtures`.
+  - `src/app/api/captcha/route.ts`: Imported `DEMO_SESSION` and `DEMO_CAPTCHA_SVG` from `@/lib/fixtures`.
+  - `src/app/api/login/route.ts`: Imported `DEMO_LOGIN_RESULT` from `@/lib/fixtures`.
+  - `src/app/api/erp-proxy/[module]/route.ts`: Imported `DEMO_SESSION`, `DEMO_ATTENDANCE`, `DEMO_TIMETABLE_RAW`, `DEMO_MARKS`, `DEMO_FEE_ITEMS`, `DEMO_PROFILE`, `DEMO_CGPA` from `@/lib/fixtures`.
+  - `src/app/api/ai/chat/route.ts`: Imported `DEMO_SESSION` from `@/lib/fixtures`.
+  - `src/lib/fixtures.test.ts`: Created test suite for fixtures export verification.
+- **Build status**: Passed (`npm test`, `npx tsc --noEmit`, `npm run lint`)
 - **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: PASS
-- **Lint status**: 0 errors
-- **Tests added/modified**: Verified via Next.js compilation build
+- **Build/test result**: `npm test` 187/187 passed, `npx tsc --noEmit` 0 errors
+- **Lint status**: `npm run lint` 0 errors
+- **Tests added/modified**: `src/lib/fixtures.test.ts` added
 
 ## Loaded Skills
 - None
 
 ## Artifact Index
-- `.agents/worker_m4/ORIGINAL_REQUEST.md` — Original prompt
-- `.agents/worker_m4/BRIEFING.md` — Agent working state
-- `.agents/worker_m4/handoff.md` — Handoff report
+- `C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m4\handoff.md` — Final handoff report

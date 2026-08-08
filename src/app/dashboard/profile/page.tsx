@@ -1,64 +1,15 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useEffect, useState } from 'react';
-
+import { useState } from 'react';
+import { useProfile } from '@/hooks/useProfile';
 import { Loader2, AlertCircle } from 'lucide-react';
 
 export default function ProfilePage() {
-  const [data, setData] = useState<Record<string, unknown> | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cached: string | null = null;
-    queueMicrotask(() => {
-      cached = localStorage.getItem('kl_student_profile');
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          setData(parsed);
-          setLoading(false);
-        } catch {}
-      }
-    });
-
-    fetch(`/api/erp-proxy/profile?t=${Date.now()}`, { cache: 'no-store' })
-      .then((res) => {
-        const ct = res.headers.get('content-type') || '';
-        if (!ct.includes('application/json')) {
-          throw new Error(
-            'Session expired or server error. Please login again.'
-          );
-        }
-        return res.json();
-      })
-      .then((resData) => {
-        if (!resData.success) {
-          throw new Error(resData.error || 'Failed to fetch data');
-        }
-        setData(resData.data || {});
-        localStorage.setItem(
-          'kl_student_profile',
-          JSON.stringify(resData.data || {})
-        );
-      })
-      .catch((err) => {
-        if (
-          err.message.includes('Session expired') ||
-          err.message.includes('Unauthorized')
-        ) {
-          localStorage.removeItem('kl_student_profile');
-          // Dispatch a custom event to force sign out, or redirect directly
-          document.cookie = 'kl_erp_session=; Max-Age=-99999999; path=/;';
-          window.location.href = '/';
-        } else if (!cached) {
-          setError(err.message);
-        }
-      })
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: profileData, isLoading: loading, error: swrError } = useProfile();
+  const data = (profileData as Record<string, unknown>) || null;
+  const error = swrError ? swrError.message : null;
 
   return (
     <div className="flex flex-col gap-6 w-full">
@@ -84,7 +35,7 @@ export default function ProfilePage() {
             <AlertCircle className="w-10 h-10" />
           </div>
           <p className="text-xl font-semibold text-red-400">Failed to load profile</p>
-          <p className="text-sm text-zinc-500 text-gray-400 mt-2 max-w-md">
+          <p className="text-sm text-muted-foreground mt-2 max-w-md">
             {error}
           </p>
         </div>
@@ -125,7 +76,7 @@ export default function ProfilePage() {
                       {nameStr || 'Unknown Student'}
                     </h3>
                     <div className="inline-flex items-center gap-2 mt-3 px-3 py-1 bg-black/20 rounded">
-                      <span className="text-xs text-zinc-500 font-mono tracking-wider tracking-wider">
+                      <span className="text-xs text-muted-foreground font-mono tracking-wider">
                         ID: {uid || 'N/A'}
                       </span>
                     </div>
@@ -207,7 +158,7 @@ export default function ProfilePage() {
                           className="flex flex-col p-2.5 bg-[#2c2c2c] rounded border border-white/10 hover:border-[var(--color-primary)]/50 transition-colors"
                         >
                           <span
-                            className="text-[9px] font-bold tracking-widest uppercase text-zinc-500 text-gray-400 truncate"
+                            className="text-[9px] font-bold tracking-widest uppercase text-muted-foreground truncate"
                             title={k}
                           >
                             {k.replace(/([A-Z])/g, ' $1').trim()}
@@ -229,10 +180,10 @@ export default function ProfilePage() {
                             <button
                               key={k}
                               onClick={() => setActiveTab(k)}
-                              className={`px-4 py-2 text-xs font-semibold rounded-full transition-all ${
+                              className={`px-4 py-2 text-xs font-semibold rounded-full transition-all min-h-[44px] flex items-center ${
                                 currentTab === k
                                   ? 'bg-zinc-100 text-zinc-950'
-                                  : 'bg-zinc-900/50 text-zinc-400 hover:text-zinc-200 border border-white/10 hover:border-white/20'
+                                  : 'bg-zinc-900/50 text-zinc-300 hover:text-zinc-100 border border-white/10 hover:border-white/20'
                               }`}
                             >
                               {k.includes(' ') || k.toLowerCase() === k
@@ -261,6 +212,7 @@ export default function ProfilePage() {
                                     {Object.keys(rows[0]).map((header) => (
                                       <th
                                         key={header}
+                                        scope="col"
                                         className="p-3 text-[10px] uppercase tracking-wider text-zinc-400 font-semibold bg-[#2c2c2c]/50"
                                       >
                                         {header}

@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useAcademicSession } from '@/hooks/useAcademicSession';
 
 import { exportTableToCSV } from '@/lib/utils';
 import {
-  parseTimetable,
   isSameDay,
   normalizeSlotKey,
   ParsedTimetable,
@@ -22,6 +21,8 @@ import {
   RefreshCw,
   Filter,
 } from 'lucide-react';
+
+import { useTimetable } from '@/hooks/useTimetable';
 
 function parseTimeSlotToMinutes(slot: string): number {
   if (!slot) return 9999;
@@ -92,10 +93,6 @@ function getSlotsToRender(parsedTT: ParsedTimetable | null): string[] {
 }
 
 export default function TimetablePage() {
-  const [parsedTT, setParsedTT] = useState<ParsedTimetable | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedDayFilter, setSelectedDayFilter] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -110,252 +107,8 @@ export default function TimetablePage() {
     sessionError,
   } = useAcademicSession();
 
-  const displayError = error || sessionError;
-
-  const fetchData = useCallback(async () => {
-    if (!selectedYear || !selectedSem) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-
-    const cacheKey = `kl_timetable_${selectedYear}_${selectedSem}`;
-    let loadedFromCache = false;
-
-    // Load from cache first
-    try {
-      const cached = sessionStorage.getItem(cacheKey);
-      if (cached) {
-        const rawData = JSON.parse(cached);
-        if (Array.isArray(rawData) && rawData.length > 0) {
-          setParsedTT(parseTimetable(rawData));
-          loadedFromCache = true;
-          setLoading(false);
-        }
-      }
-    } catch {
-      // Ignore cache parse error
-    }
-
-    try {
-      let csrf =
-        sessionStorage.getItem('kl_erp_csrf_token') ||
-        localStorage.getItem('kl_erp_csrf_token') ||
-        '';
-      if (!csrf) {
-        try {
-          const profCheck = await fetch('/api/erp-proxy/profile');
-          if (profCheck.ok) {
-            const pData = await profCheck.json();
-            if (pData.csrfToken) {
-              csrf = pData.csrfToken;
-              sessionStorage.setItem('kl_erp_csrf_token', csrf);
-            }
-          }
-        } catch {
-          // Ignore
-        }
-      }
-
-      const courseLookup: Record<string, { title: string; faculty: string }> =
-        {};
-
-      const [ttRes, profRes, marksRes] = await Promise.allSettled([
-        fetch('/api/erp-proxy/timetable', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            academicYear: selectedYear,
-            semesterId: selectedSem,
-            csrfToken: csrf,
-          }),
-        }),
-        fetch('/api/erp-proxy/profile'),
-        fetch('/api/erp-proxy/marks', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            academicYear: selectedYear,
-            semesterId: selectedSem,
-            csrfToken: csrf,
-          }),
-        }),
-      ]);
-
-      if (ttRes.status === 'rejected') {
-        throw ttRes.reason || new Error('Failed to fetch timetable');
-      }
-
-      const res = ttRes.value;
-
-      try {
-        if (profRes.status === 'fulfilled') {
-          const pData = await profRes.value.json();
-          if (pData.success && Array.isArray(pData.data)) {
-            pData.data.forEach((row: Record<string, unknown>) => {
-              const keys = Object.keys(row);
-              const codeK =
-                keys.find((k) => k.toLowerCase().includes('code')) || '';
-              const descK =
-                keys.find(
-                  (k) =>
-                    k.toLowerCase().includes('desc') ||
-                    k.toLowerCase().includes('name') ||
-                    k.toLowerCase().includes('title')
-                ) || '';
-              const facK =
-                keys.find(
-                  (k) =>
-                    k.toLowerCase().includes('faculty') ||
-                    k.toLowerCase().includes('instructor')
-                ) || '';
-              const code = codeK ? String(row[codeK]).trim().toUpperCase() : '';
-              const desc = descK ? String(row[descK]).trim() : '';
-              const fac = facK ? String(row[facK]).trim() : '';
-              if (code && desc) {
-                const stripped = code.replace(/[-_][LTPSS]$/i, '').trim();
-                const item = { title: desc, faculty: fac };
-                courseLookup[code] = item;
-                if (stripped) courseLookup[stripped] = item;
-              }
-            });
-          }
-        }
-
-        if (marksRes.status === 'fulfilled') {
-          const mData = await marksRes.value.json();
-          if (mData.success && Array.isArray(mData.data)) {
-            mData.data.forEach((row: Record<string, unknown>) => {
-              const keys = Object.keys(row);
-              const codeK =
-                keys.find((k) => k.toLowerCase().includes('code')) || '';
-              const nameK =
-                keys.find(
-                  (k) =>
-                    k.toLowerCase().includes('name') ||
-                    k.toLowerCase().includes('title') ||
-                    k.toLowerCase().includes('desc')
-                ) || '';
-              const facK =
-                keys.find(
-                  (k) =>
-                    k.toLowerCase().includes('faculty') ||
-                    k.toLowerCase().includes('instructor')
-                ) || '';
-              const code = codeK ? String(row[codeK]).trim().toUpperCase() : '';
-              const name = nameK ? String(row[nameK]).trim() : '';
-              const fac = facK ? String(row[facK]).trim() : '';
-              if (code && name) {
-                const stripped = code.replace(/[-_][LTPSS]$/i, '').trim();
-                const item = { title: name, faculty: fac };
-                if (!courseLookup[code]) {
-                  courseLookup[code] = item;
-                } else if (fac && !courseLookup[code].faculty) {
-                  courseLookup[code].faculty = fac;
-                }
-                if (stripped) {
-                  if (!courseLookup[stripped]) {
-                    courseLookup[stripped] = item;
-                  } else if (fac && !courseLookup[stripped].faculty) {
-                    courseLookup[stripped].faculty = fac;
-                  }
-                }
-              }
-            });
-          }
-        }
-      } catch {
-        // Non-fatal lookup failure
-      }
-
-      const ct = res.headers.get('content-type') || '';
-      if (!ct.includes('application/json')) {
-        throw new Error('Session expired or server error.');
-      }
-
-      const resData = await res.json();
-      if (!resData.success) {
-        throw new Error(resData.error || 'Failed to fetch timetable');
-      }
-
-      let rawRows = resData.data || [];
-
-      // Auto-fallback: If selected year has 0 timetable rows, scan sibling academic years
-      if (rawRows.length === 0 && years.length > 1) {
-        for (const yOpt of years) {
-          if (yOpt.value === selectedYear) continue;
-          try {
-            const fbRes = await fetch('/api/erp-proxy/timetable', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                academicYear: yOpt.value,
-                semesterId: selectedSem,
-                csrfToken: csrf,
-              }),
-            });
-            if (fbRes.ok) {
-              const fbData = await fbRes.json();
-              if (fbData.success && Array.isArray(fbData.data) && fbData.data.length > 0) {
-                rawRows = fbData.data;
-                handleYearChange(yOpt.value);
-                break;
-              }
-            }
-          } catch {
-            // Continue scanning sibling years
-          }
-        }
-      }
-
-      sessionStorage.setItem(cacheKey, JSON.stringify(rawRows));
-      const parsed = parseTimetable(rawRows);
-      parsed.sessions.forEach((s) => {
-        const rawCode = (s.courseCode || '').trim().toUpperCase();
-        const strippedCode = rawCode.replace(/[-_][LTPSS]$/i, '').trim();
-        const baseCode = rawCode.replace(/[^A-Z0-9]/g, '');
-        const info =
-          courseLookup[rawCode] ||
-          courseLookup[strippedCode] ||
-          courseLookup[baseCode];
-        if (info) {
-          if (info.title) {
-            s.courseTitle = info.title;
-          }
-          if (info.faculty && !s.faculty) {
-            s.faculty = info.faculty;
-          }
-        }
-      });
-      setParsedTT(parsed);
-      setError(null);
-    } catch (err: unknown) {
-      if (!loadedFromCache) {
-        const msg =
-          err instanceof Error
-            ? err.message
-            : 'Failed to sync timetable with ERP';
-        setError(msg);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedYear, selectedSem, handleYearChange, years]);
-
-  useEffect(() => {
-    queueMicrotask(() => {
-      if (sessionError) {
-        setLoading(false);
-        return;
-      }
-      if (selectedYear && selectedSem) {
-        fetchData();
-      } else {
-        setLoading(false);
-      }
-    });
-  }, [fetchData, selectedYear, selectedSem, sessionError]);
+  const { data: parsedTT, isLoading: loading, error: swrError, mutate } = useTimetable(selectedYear, selectedSem);
+  const displayError = (swrError ? swrError.message : null) || sessionError;
 
   const daysList = [
     'All',
@@ -418,10 +171,10 @@ export default function TimetablePage() {
           <div className="flex items-center bg-zinc-900/50 backdrop-blur-xl border border-white/10 p-1 rounded-xl shadow-lg">
             <button
               onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all min-h-[44px] ${
                 viewMode === 'grid'
                   ? 'bg-indigo-600 text-white shadow-md'
-                  : 'text-zinc-400 hover:text-zinc-200'
+                  : 'text-zinc-300 hover:text-zinc-100'
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
@@ -429,10 +182,10 @@ export default function TimetablePage() {
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all min-h-[44px] ${
                 viewMode === 'list'
                   ? 'bg-indigo-600 text-white shadow-md'
-                  : 'text-zinc-400 hover:text-zinc-200'
+                  : 'text-zinc-300 hover:text-zinc-100'
               }`}
             >
               <List className="w-3.5 h-3.5" />
@@ -443,7 +196,8 @@ export default function TimetablePage() {
           <div className="flex flex-wrap items-center gap-2 bg-zinc-900/50 backdrop-blur-xl border border-white/10 p-1.5 rounded-xl shadow-lg">
             <div className="relative">
               <select
-                className="appearance-none bg-transparent border-none rounded-lg pl-3 pr-8 py-1 text-xs text-zinc-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                aria-label="Filter by year"
+                className="appearance-none bg-transparent border-none rounded-lg pl-3 pr-8 py-2 text-xs text-zinc-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer min-h-[44px]"
                 value={selectedYear}
                 onChange={(e) => handleYearChange(e.target.value)}
               >
@@ -457,12 +211,13 @@ export default function TimetablePage() {
                   </option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400 pointer-events-none" />
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-300 pointer-events-none" />
             </div>
             <div className="h-4 w-px bg-white/10"></div>
             <div className="relative">
               <select
-                className="appearance-none bg-transparent border-none rounded-lg pl-3 pr-8 py-1 text-xs text-zinc-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                aria-label="Filter by semester"
+                className="appearance-none bg-transparent border-none rounded-lg pl-3 pr-8 py-2 text-xs text-zinc-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer min-h-[44px]"
                 value={selectedSem}
                 onChange={(e) => handleSemChange(e.target.value)}
               >
@@ -476,14 +231,14 @@ export default function TimetablePage() {
                   </option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400 pointer-events-none" />
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-300 pointer-events-none" />
             </div>
           </div>
 
           <button
             onClick={handleExportCSV}
             disabled={!parsedTT || parsedTT.sessions.length === 0}
-            className="flex items-center gap-2 px-3.5 py-2 bg-zinc-900/60 hover:bg-zinc-800 border border-white/10 rounded-xl text-xs font-medium text-zinc-200 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-3.5 py-2.5 bg-zinc-900/60 hover:bg-zinc-800 border border-white/10 rounded-xl text-xs font-medium text-zinc-200 transition-colors disabled:opacity-50 min-h-[44px]"
           >
             <Download className="w-3.5 h-3.5 text-indigo-400" />
             Export CSV
@@ -495,15 +250,15 @@ export default function TimetablePage() {
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-zinc-950/40 border border-white/5 p-3 rounded-2xl backdrop-blur-md">
         {/* Day Filter Tabs */}
         <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
-          <Filter className="w-4 h-4 text-zinc-500 ml-2 mr-1 shrink-0" />
+          <Filter className="w-4 h-4 text-zinc-300 ml-2 mr-1 shrink-0" />
           {daysList.map((day) => (
             <button
               key={day}
               onClick={() => setSelectedDayFilter(day)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+              className={`px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all min-h-[44px] ${
                 selectedDayFilter === day
                   ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
+                  : 'text-zinc-300 hover:text-zinc-100 hover:bg-white/5'
               }`}
             >
               {day}
@@ -557,7 +312,7 @@ export default function TimetablePage() {
               {displayError}
             </p>
             <button
-              onClick={() => fetchData()}
+              onClick={() => mutate()}
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-xs font-medium text-white rounded-xl transition-all shadow-lg flex items-center gap-2"
             >
               <RefreshCw className="w-3.5 h-3.5" />

@@ -17,7 +17,7 @@ export interface CGPAResult {
  * F / FAIL / AB / ABSENT / DT -> 0
  * P / PASS / SATISFACTORY / NC -> null (excluded from GPA calculation)
  */
-function mapGradeToPoints(gradeStr: string): number | null {
+export function mapGradeToPoints(gradeStr: string): number | null {
   if (gradeStr === null || gradeStr === undefined) return null;
   const g = String(gradeStr).trim().toUpperCase();
   if (!g) return null;

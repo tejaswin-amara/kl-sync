@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { loginAndFetchSemesters, ScraperSession } from '@/lib/scraper';
 import { decodeSession, encodeSession } from '@/lib/session';
 import { verifyCaptchaToken } from '@/lib/captcha';
+import { DEMO_LOGIN_RESULT } from '@/lib/fixtures';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
     // Decode session
     let session: ScraperSession;
     try {
-      session = decodeSession(sessionId);
+      session = await decodeSession(sessionId);
     } catch (e) {
       const errMessage = e instanceof Error ? e.message : 'Invalid session';
       console.error('Session parsing failed:', errMessage);
@@ -90,25 +91,9 @@ export async function POST(request: NextRequest) {
         errMsg.includes('ERP login page structure')
       ) {
         console.warn('[AUTH] Using fallback login session for test/demo mode or ERP offline:', errMsg);
-        const demoSession: ScraperSession = {
-          cookies: [{ name: 'PHPSESSID', value: 'demo_phpsessid_123' }],
-          csrfToken: 'demo_csrf_token_123',
-          userAgent: 'Mozilla/5.0',
-        };
         result = {
-          success: true,
-          message: 'Login successful (Demo/Fallback Mode)',
-          session: demoSession,
-          csrfToken: 'demo_csrf_token_123',
-          academicYears: [
-            { value: '2025-2026', label: '2025-2026' },
-            { value: '2024-2025', label: '2024-2025' },
-          ],
-          semesters: [
-            { value: '1', label: 'Odd Semester' },
-            { value: '2', label: 'Even Semester' },
-          ],
-          deviceId: effectiveDeviceId || 'demo_device_123',
+          ...DEMO_LOGIN_RESULT,
+          deviceId: effectiveDeviceId || DEMO_LOGIN_RESULT.deviceId,
         };
       } else {
         throw e;
@@ -116,7 +101,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Encode (and encrypt, when SESSION_SECRET is set) the updated session with new cookies
-    const updatedSessionId = encodeSession(result.session);
+    const updatedSessionId = await encodeSession(result.session);
 
     // Persist any device id the ERP issued as an httpOnly cookie so the very
     // next login carries it automatically (no JS/localStorage races).

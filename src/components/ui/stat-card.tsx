@@ -13,7 +13,7 @@ interface StatCardProps extends React.HTMLAttributes<HTMLDivElement> {
 const accentMap = {
   primary: {
     iconBg: 'bg-primary/10',
-    iconText: 'text-primary',
+    iconText: 'text-indigo-300',
     hoverBorder: 'hover:border-primary/30',
   },
   success: {
@@ -28,7 +28,7 @@ const accentMap = {
   },
   danger: {
     iconBg: 'bg-destructive/10',
-    iconText: 'text-destructive',
+    iconText: 'text-red-300',
     hoverBorder: 'hover:border-destructive/30',
   },
   purple: {
@@ -78,7 +78,7 @@ function StatCard({
         {trend && (
           <p className={cn(
             'text-[11px] font-medium mt-0.5',
-            trend.positive ? 'text-success' : 'text-destructive'
+            trend.positive ? 'text-success' : 'text-red-300'
           )}>
             {trend.value}
           </p>

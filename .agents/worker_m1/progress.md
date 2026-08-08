@@ -1,11 +1,12 @@
-# Progress Log
+# Progress - Milestone M1
 
-Last visited: 2026-07-24T09:57:00Z
+Last visited: 2026-08-08T08:56:00Z
 
-- [x] Initialized workspace and briefing
-- [x] Inspect existing `src/lib/scraper.ts` and `src/app/api/erp-proxy/[module]/route.ts`
-- [x] Implement enhanced `parseGenericTable` in `src/lib/scraper.ts` (JSON detection, direct child rows/cells, 2D matrix, title banner skipping, tag spacing, garbage row filtering)
-- [x] Implement enhanced `fetchTimetableData` and candidate endpoint fetching logic (timeouts, res.ok check, strategy try-catches, `isLikelyTimetableData` sidebar validation, early loop exit)
-- [x] Implement session expiry handling and proxy route HTTP 401 response
-- [x] Verify with `npm run build` (Passed with 0 errors)
-- [x] Document in handoff.md and report to parent
+- [x] Initialize worker_m1 briefing and dispatch tracking
+- [x] Inspect ORIGINAL_REQUEST.md and explorer analysis.md
+- [x] Inspect current `src/lib/session.ts` and all dependent files / tests
+- [x] Formulate refactoring plan for Web Crypto API and async/sync session helpers
+- [x] Implement refactored session logic in `src/lib/session.ts`
+- [x] Update callers across API routes and test suites
+- [x] Execute test suite (`npm test`), TypeScript check (`npx tsc --noEmit`), and linter (`npm run lint`)
+- [x] Complete handoff.md and inform parent orchestrator

@@ -1,75 +1,85 @@
-# Handoff Report - Worker M4: Timetable Page & Dashboard Widget Robustness
+# Handoff Report: Milestone M4 — Mock Data Consolidation (R4)
 
 ## 1. Observation
 
-### 1.1 Source Code Target Files Modified
-- **`src/lib/timetable-parser.ts`**:
-  - Implemented `parseTimetable`, `normalizeDay`, `isSameDay`, `parseCellContent`.
-  - Added layout auto-detection for `matrix_days_columns`, `matrix_days_rows`, `list_rows`, and `unknown`.
-  - Added day normalization handling day variants (`Monday`, `Mon`, `1`, `Day 1`, `TUE`, `Tue`, `Wednesday`, etc.) while guarding against false-positive substring matches (e.g., `"Common Electronics"`).
-  - Enhanced smart cell parsing to cleanly split and extract course code, course title, room/venue, and faculty from multi-hyphen strings (`22-CS-1101`, `C-101 - Lab`, `22-CS-1101 - Data Structures - C-101 - Dr. Smith`).
-- **`src/app/dashboard/page.tsx`**:
-  - Refactored `TodayScheduleWidget` to use `parseTimetable` and `isSameDay`.
-  - Added `sessionStorage` caching (`kl_timetable_${activeYearId}_${activeSemId}`) for instant widget loading.
-  - Implemented resilient UI states: loading skeletons, clear empty state ("No classes scheduled for today"), error banner with interactive Retry button.
-- **`src/app/dashboard/timetable/page.tsx`**:
-  - Refactored student timetable page to support dual interactive views: **Grid View** (Weekly Matrix Grid) and **List View** (Sortable/Filterable session table).
-  - Added `sessionStorage` caching for instant page transitions.
-  - Added interactive Day Filter tabs (`All`, `Monday`, `Tuesday`, etc.), live text search filter, CSV export button, and error/empty state fallbacks.
+### File & Code State Observations
+1. **Created Consolidated Fixtures Module**:
+   - Location: `src/lib/fixtures/index.ts`
+   - Consolidated datasets: `DEMO_SESSION`, `DEMO_ATTENDANCE`, `DEMO_TIMETABLE_RAW`, `DEMO_MARKS`, `DEMO_FEE_ITEMS`, `DEMO_PROFILE`, `DEMO_CGPA`, `DEMO_CAPTCHA_SVG`, and `DEMO_LOGIN_RESULT`.
 
-### 1.2 Build & Verification Results
-- **Command**: `npm run build`
-- **Output**: Next.js production build compiled cleanly without errors or warnings.
-  - Compiled successfully in 5.1s
-  - Finished TypeScript in 3.8s
-  - Static page generation succeeded (19/19 routes)
+2. **Refactored Consumer Files**:
+   - `src/lib/session.ts`: Replaced hardcoded fallback session object in `decodeSession` with `DEMO_SESSION` imported from `@/lib/fixtures`.
+   - `src/lib/ai/executor.ts`: Removed inline duplicate definitions of `DEMO_ATTENDANCE`, `DEMO_TIMETABLE_RAW`, `DEMO_MARKS`, `DEMO_FEE_ITEMS`, `DEMO_PROFILE` and imported them from `@/lib/fixtures`.
+   - `src/app/api/captcha/route.ts`: Imported `DEMO_SESSION` and `DEMO_CAPTCHA_SVG` from `@/lib/fixtures` and replaced inline fallbacks.
+   - `src/app/api/login/route.ts`: Imported `DEMO_LOGIN_RESULT` from `@/lib/fixtures` and replaced inline fallback login response object.
+   - `src/app/api/erp-proxy/[module]/route.ts`: Imported `DEMO_SESSION`, `DEMO_ATTENDANCE`, `DEMO_TIMETABLE_RAW`, `DEMO_MARKS`, `DEMO_FEE_ITEMS`, `DEMO_PROFILE`, `DEMO_CGPA` from `@/lib/fixtures` and replaced duplicate inline mock responses.
+   - `src/app/api/ai/chat/route.ts`: Imported `DEMO_SESSION` from `@/lib/fixtures` and replaced inline fallback session object.
+
+3. **Created Test Suite**:
+   - Location: `src/lib/fixtures.test.ts`
+   - Validates that all 9 exported datasets are properly defined, typed, and accessible via `@/lib/fixtures`.
+
+4. **Verification Command Outputs**:
+   - Command: `npm test`
+     - Output: `ℹ tests 187`, `ℹ suites 32`, `ℹ pass 187`, `ℹ fail 0`, `ℹ duration_ms 5299.2397`
+   - Command: `npx tsc --noEmit`
+     - Output: `npm notice run kl-sync@0.1.0 npx`, `npm notice run tsc --noEmit` (Exit code 0, 0 errors).
+   - Command: `npm run lint`
+     - Output: `npm notice run kl-sync@0.1.0 lint`, `npm notice run eslint` (Exit code 0, 0 errors).
 
 ---
 
 ## 2. Logic Chain
 
-1. **Premise**: ERP outputs timetables in three main HTML structures depending on academic term or batch (Days as Columns, Days as Rows, or List of Rows). Previous implementation used rigid key indexing (`Object.keys(resData.data[0])`) and naive substring searching (`val.includes('mon')`), which failed whenever ERP formats shifted or when course titles contained substrings matching day abbreviations.
-
-2. **Step 1 - Universal Parsing (`src/lib/timetable-parser.ts`)**:
-   - `normalizeDay` maps day variations (`Monday`, `Mon`, `1`, `Day 1`, `TUE`, `Tue`, etc.) to a canonical `{ full, short, index }` object using token boundaries so strings like `"Common Electronics"` return `null` instead of triggering false positives.
-   - `parseCellContent` uses pattern matching and hyphen-reassembly logic to parse multi-hyphen course codes (`22-CS-1101`), venues (`C-101`), course names, and instructor names.
-   - `parseTimetable` checks row/header metadata to classify table layout (`matrix_days_columns`, `matrix_days_rows`, `list_rows`) and emits standardized `NormalizedClassSession[]` objects.
-
-3. **Step 2 - Dashboard Widget (`src/app/dashboard/page.tsx`)**:
-   - `TodayScheduleWidget` uses `sessionStorage` to instantly render cached schedule data.
-   - Matches today's classes using `isSameDay(session.day, currentDayName)`.
-   - Replaces freezing spinners with skeleton loaders and error state UI featuring a Retry trigger.
-
-4. **Step 3 - Timetable Page (`src/app/dashboard/timetable/page.tsx`)**:
-   - Dual view toggle (Grid vs List view).
-   - Filter bar with Day tabs and Search input.
-   - Export CSV button (`exportTableToCSV`).
-   - Skeletons, empty state graphics, and error banners.
+1. **Observation 1 & 2**: Previously, mock and fallback datasets (`DEMO_ATTENDANCE`, `DEMO_TIMETABLE_RAW`, `DEMO_SESSION`, `DEMO_PROFILE`, etc.) were declared independently across multiple routes (`captcha/route.ts`, `login/route.ts`, `erp-proxy/[module]/route.ts`, `ai/chat/route.ts`, `executor.ts`, and `session.ts`).
+2. **Logic Step**: To satisfy requirement R4 and provide a single source of truth for all mock datasets, all 9 fallback datasets (`DEMO_SESSION`, `DEMO_ATTENDANCE`, `DEMO_TIMETABLE_RAW`, `DEMO_MARKS`, `DEMO_FEE_ITEMS`, `DEMO_PROFILE`, `DEMO_CGPA`, `DEMO_CAPTCHA_SVG`, `DEMO_LOGIN_RESULT`) were centralized in `src/lib/fixtures/index.ts`.
+3. **Logic Step**: All 6 target consumer files were refactored to import their required mock datasets from `@/lib/fixtures`, eliminating duplicate inline data declarations.
+4. **Observation 3 & 4**: Running unit tests (`npm test`), static type checking (`npx tsc --noEmit`), and linting (`npm run lint`) confirmed that all 187 tests pass with 0 failures, TypeScript compiles cleanly with 0 errors, and ESLint succeeds with 0 violations.
 
 ---
 
 ## 3. Caveats
 
-- **No Caveats**: All requirements implemented, verified, and compiled with clean Next.js build output.
+No caveats. All mock datasets specified in requirement R4 have been fully consolidated and verified across all target consumers.
 
 ---
 
 ## 4. Conclusion
 
-Milestone M4 (R4. Timetable Page & Dashboard Widget Robustness) is fully implemented and verified. Timetable parsing, day matching, cell parsing, client caching, dashboard widget, and timetable page views are robust, freeze-free, and fully responsive.
+Milestone M4 (Mock Data Consolidation - R4) is complete and verified:
+- Consolidated fallback datasets are centrally exported at `src/lib/fixtures/index.ts`.
+- All consumers (`session.ts`, `executor.ts`, `captcha/route.ts`, `login/route.ts`, `erp-proxy/[module]/route.ts`, `ai/chat/route.ts`) use `@/lib/fixtures`.
+- Full test suite, TypeScript type-checker, and linter pass with 100% success.
 
 ---
 
 ## 5. Verification Method
 
-### 1. Independent Build Verification
-Run the following build command in `C:\Users\speed\Documents\antigravity\optimistic-pascal`:
-```bash
-npm run build
-```
-Verify that Next.js compilation completes successfully with 0 errors.
+To independently verify the implementation:
 
-### 2. Layout & Parsing Verification
-- Test `parseTimetable` with Matrix Days-as-Columns, Matrix Days-as-Rows, and List payloads.
-- Test `isSameDay` with day variants (`"Mon"`, `"Monday"`, `"1"`, `"Day 1"` vs `"Common Electronics"`).
-- Test `parseCellContent` with multi-hyphen strings (`"22-CS-1101"`, `"C-101 - Lab"`).
+1. **Run Unit Tests**:
+   ```bash
+   npm test
+   ```
+   *Expected output*: 187 tests passed, 0 failed.
+
+2. **Run TypeScript Type-Checker**:
+   ```bash
+   npx tsc --noEmit
+   ```
+   *Expected output*: Clean completion with exit code 0.
+
+3. **Run Linter**:
+   ```bash
+   npm run lint
+   ```
+   *Expected output*: Clean completion with exit code 0.
+
+4. **Inspect Files**:
+   - `src/lib/fixtures/index.ts`
+   - `src/lib/session.ts`
+   - `src/lib/ai/executor.ts`
+   - `src/app/api/captcha/route.ts`
+   - `src/app/api/login/route.ts`
+   - `src/app/api/erp-proxy/[module]/route.ts`
+   - `src/app/api/ai/chat/route.ts`
