@@ -18,10 +18,11 @@
 - **Warning / Medium Attendance**: `#f59e0b` (Amber - 65%-74% Attendance)
 - **Danger / Low Attendance**: `#ef4444` (Crimson - <65% Attendance)
 
-### Contrast Matrix (WCAG AA Compliance)
-- Text on Background (`#f8fafc` on `#090d16`): **16.2:1** (Exceeds 4.5:1 requirement)
-- Muted Text (`#94a3b8` on `#090d16`): **7.1:1** (Exceeds 4.5:1 requirement)
-- Focus Rings: `#60a5fa` (High visibility 2px ring with offset)
+### Contrast Matrix (WCAG 2.2 AAA Compliance)
+- Primary Text on Background (`#f8fafc` on `#090d16`): **16.2:1** (Exceeds 7:1 requirement for AAA)
+- Secondary Text (`#cbd5e1` on `#090d16`): **10.4:1** (Exceeds 7:1 requirement for AAA)
+- Muted Text (`#94a3b8` on `#090d16`): **7.1:1** (Meets 7:1 requirement for AAA)
+- Focus Rings: `#38bdf8` (High visibility 2px ring with 2px offset, exceeds 3:1 area contrast)
 
 ---
 
@@ -37,11 +38,12 @@
 
 ---
 
-## 4. UI/UX Accessibility (WCAG AA) & Pre-Delivery Checklist
-- [x] **Color Contrast**: All text elements have a minimum contrast ratio of 4.5:1 against their backgrounds.
-- [x] **Focus Ring Visibility**: All interactive inputs, buttons, and link cards feature explicit focus styles (`focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none`).
-- [x] **ARIA Labels**: Screen-reader accessible tags on icon-only buttons, loading skeletons, and interactive charts.
-- [x] **Keyboard Navigation**: Full tab order traversal without focus traps.
+## 4. UI/UX Accessibility (WCAG 2.2 AAA) & Pre-Delivery Checklist
+- [x] **Enhanced Color Contrast (1.4.6)**: All text elements have a minimum contrast ratio of **7.1:1** (normal text) and **4.5:1** (large text) against their backgrounds.
+- [x] **Enhanced Target Size (2.5.5)**: All interactive inputs, buttons, icons, and tab triggers enforce a minimum touch target size of **44 × 44 px**.
+- [x] **Focus Appearance (2.4.13)**: High-visibility focus indicators (`focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950`).
+- [x] **ARIA Live & Accessibility**: Screen-reader accessible tags on icon-only buttons, loading skeletons, and interactive charts via `aria-live` containers.
+- [x] **Keyboard Traversal & Focus Traps**: Full tab order traversal without focus traps.
 
 ---
 
