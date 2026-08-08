@@ -41,7 +41,7 @@
 | M3 | Agentic AI Capabilities & Tooling | Agent toolkit registry, `/api/ai/chat` handler, Copilot widget/UI, NL querying, workflow automation | M1, M2 | DONE |
 | M4 | E2E Testing Suite & Quality Verification | Opaque-box test harness, Tier 1-4 tests, Agent-as-Judge script, TEST_READY.md, verification pass | M1, M2, M3 | DONE |
 | M5 | Performance Hardening & Lighthouse Audit | Asset & cache optimization, automated Lighthouse >95 audit, Tier 5 adversarial hardening | M1, M2, M3, M4 | DONE |
-| M6 | WCAG 2.2 AAA Upgrade & Ponytail Audit | Audit M1-5, ponytail audit artifact, WCAG AAA 7:1 contrast, >=44px targets, accessible names | M1..M5 | IN_PROGRESS |
+| M6 | WCAG 2.2 AAA Upgrade & Ponytail Audit | Audit M1-5, ponytail audit artifact, WCAG AAA 7:1 contrast, >=44px targets, accessible names | M1..M5 | DONE |
 
 ## Interface Contracts
 

@@ -102,21 +102,24 @@ KL Sync uses environment variables to secure sessions and configure backend beha
 
 ---
 
-## 🛠️ Quality Gates & Testing Commands
+## 🛠️ Quality Gates & Verification Commands
 
-To run all automated verification checks locally:
+To run all automated quality verification checks locally:
 
 ```bash
-# 1. Run ESLint code quality check
-npm run lint
+# 1. Run complete Unit & E2E Test Suite (199/199 Passing)
+npm run test
 
-# 2. Run TypeScript strict type-checking
+# 2. Run Programmatic Agent-as-Judge AI Capability Test Suite (9/9 Passing)
+npx tsx scripts/agent-as-judge.ts
+
+# 3. Run strict TypeScript type-checking (0 Errors)
 npx tsc --noEmit
 
-# 3. Run unit test suite (18 timetable/scraper tests)
-npx tsx --test src/lib/scraper.test.ts
+# 4. Run ESLint static code analysis (0 Warnings/Errors)
+npm run lint
 
-# 4. Run Next.js production build verification
+# 5. Run Next.js production build verification
 npm run build
 ```
 

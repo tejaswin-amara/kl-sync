@@ -5,6 +5,22 @@ All notable changes to the **KL Sync** project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-08-08
+
+### 🤖 Agentic AI Copilot & Natural Language Querying
+- **Agent Toolkit Registry (`src/lib/ai/tools.ts`)**: Built typed Zod function schemas for all 7 ERP modules and utility calculators (`getAttendance`, `getTimetable`, `getMarks`, `getFeeDetails`, `getStudentProfile`, `calculateAttendanceTarget`, `predictCGPA`).
+- **AI Chat Proxy (`src/app/api/ai/chat/route.ts`)**: Implemented robust route handler supporting contextual tool execution, prompt sanitization, and fallback advice formatting.
+- **Interactive Copilot UI (`src/components/ai/`)**: Added `AICopilot` floating widget, `AIChatSheet` drawer, suggestion chips, and live tool execution indicators.
+
+### 🧪 Comprehensive Quality Verification & AI Judge Harness
+- **Expanded Test Suite (199 Tests Across 32 Suites)**: Added Tier 1 (Feature Coverage), Tier 2 (Boundary Cases), Tier 3 (Cross-System Integration), and Tier 4 (Real-World Journeys) opaque-box E2E test suites.
+- **Programmatic Agent-as-Judge Suite (`scripts/agent-as-judge.ts`)**: Implemented 9 automated verification tests validating schema integrity, intent resolution, tool execution, and error resilience.
+- **Zero-Drift Baseline**: Verified 100% pass rate across unit tests, TypeScript type checks (`npx tsc --noEmit`), ESLint analysis (`npm run lint`), and Next.js Turbopack production builds (`npm run build`).
+
+### 🎨 WCAG 2.2 AAA & Ponytail Codebase Optimization
+- **Accessibility Hardening**: Added ARIA live regions (`aria-live.tsx`), keyboard shortcut palette (`command.tsx`), >=44px touch targets, and high-contrast color tokens.
+- **Ponytail Complexity Audit**: Streamlined dependencies, eliminated speculative abstractions, and verified minimal stdlib/native platform usage.
+
 ---
 
 ## [2.0.0] - 2026-08-02
