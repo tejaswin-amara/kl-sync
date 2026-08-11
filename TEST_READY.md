@@ -32,9 +32,9 @@ npm run build
 | **Tier 2** | Boundary & Corner Cases | 12 | Edge conditions: empty inputs, missing params, invalid schemas, error code status mapping (400, 401, 404, 502, 504) | **PASS** (100%) |
 | **Tier 3** | Cross-Feature Combinations | 6 | Multi-system integration (Attendance -> Target Calc, Marks -> CGPA Predictor, Encrypted Session -> Proxy -> Zod, Chat Multi-Tool) | **PASS** (100%) |
 | **Tier 4** | Real-World Scenarios | 4 | Complete student user journeys: Login simulation -> ERP Data Sync -> At-Risk Warning -> CGPA Goal Setting -> Financial Dues Audit | **PASS** (100%) |
-| **Unit Suite** | Base Unit & Module Tests | 148 | Core scrapers, captcha OCR, CGPA math, fee utils, timetable parsers, SWR hooks, UI primitives, and security tests | **PASS** (100%) |
+| **Unit Suite** | Base Unit & Module Tests | 168 | Core scrapers, captcha OCR, CGPA math, fee utils, timetable parsers, native data hooks, UI primitives, cn() helper, and security tests | **PASS** (100%) |
 | **Agent-as-Judge** | AI Capability Harness | 9 | Programmatic verification of AI tools, schema parsing, intent matcher, `/api/ai/chat` handler, and error resilience | **PASS** (100%) |
-| **TOTAL** | **Full Verification Suite** | **195** | **Combined test suite running cleanly with zero failures** | **PASS** (100%) |
+| **TOTAL** | **Full Verification Suite** | **219** | **Combined test suite running cleanly with zero failures** | **PASS** (100%) |
 
 ---
 

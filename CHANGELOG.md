@@ -5,6 +5,22 @@ All notable changes to the **KL Sync** project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-08-11
+
+### 🧹 Dependency Purge & Zero-Dep Utilities (M3)
+- **Removed `swr`, `clsx`, `tailwind-merge`**: Replaced with zero-dependency native implementations. The `cn()` class-name utility in `src/lib/utils.ts` now handles strings, objects, arrays, and conditional classes natively without any third-party imports.
+- **Variable Rename Cleanup**: Renamed all `swrError` references to `fetchError` across dashboard pages for consistency with the native data fetching layer.
+
+### 🧪 Expanded Test Suite (219 Tests Across 33 Suites)
+- **20 new tests**: Added `src/lib/utils.test.ts` (cn() helper), `src/lib/ai/empirical-m2-stress.test.ts` (AI tool calling stress tests), and `src/lib/ai/challenger-executor-adversarial.test.ts` (adversarial executor tests).
+- **Zero-Drift Baseline**: 219/219 tests pass, 9/9 Agent-as-Judge tests pass, 0 TypeScript errors, 0 ESLint errors, clean Turbopack production build.
+
+### 🔒 Security Updates
+- **Dependabot PR #63 merged**: Bumped `undici`, `sharp`, and 5 other transitive dependencies to patch 4 high/medium severity CVEs (CRLF injection, cache directive bypass, cookie attribute injection, retry content-length mismatch).
+- **PR #64 closed**: Leaked API key file (`profile_dump.html`) no longer exists in the working tree; key should be rotated in Google Cloud Console.
+
+---
+
 ## [2.1.0] - 2026-08-08
 
 ### 🤖 Agentic AI Copilot & Natural Language Querying

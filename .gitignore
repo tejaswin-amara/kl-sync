@@ -52,3 +52,6 @@ generate_full_docs.js
 .env*
 playwright-report/
 test-results/
+build.log
+build_log.txt
+build_output.txt

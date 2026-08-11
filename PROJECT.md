@@ -2,14 +2,14 @@
 
 ## Architecture
 - Framework: Next.js 16.2.9 (App Router), React 19.2.4, TypeScript 5, Tailwind CSS v4 (@tailwindcss/postcss).
-- State & Data Layer: SWR client-side data fetching & caching hooks, Next.js serverless route handlers (`/api/*`), Cheerio HTML scraper engine (`src/lib/scrapers/*`), AES-256-GCM encrypted session cookies.
+- State & Data Layer: Native React client-side data fetching hooks with caching, Next.js serverless route handlers (`/api/*`), Cheerio HTML scraper engine (`src/lib/scrapers/*`), AES-256-GCM encrypted session cookies.
 - AI Integration Layer: Agent Toolkit JSON Schema function definitions (`src/lib/ai/tools.ts`), AI execution engine (`src/lib/ai/executor.ts`), chat API (`/api/ai/chat`), and Copilot UI (`src/components/ai/*`).
 - Quality & Verification: Native TS node test runner (`npx tsx --test`), ESLint 9, `npx tsc --noEmit`, automated agent-as-judge suite, and Lighthouse auditing harness.
 
 ## Feature Inventory
 | # | Feature | Description | Milestone | Source |
 |---|---------|-------------|-----------|--------|
-| 1 | SWR/Data Hooks Migration | Client-side SWR data fetching hooks with caching & revalidation for all dashboard modules | M1 | survey 1,2 |
+| 1 | Native Data Hooks Migration | Client-side native data fetching hooks with caching & revalidation for all dashboard modules | M1 | survey 1,2 |
 | 2 | Zod Schema Validation | Runtime Zod validation for API routes and scraper outputs | M1 | survey 1,2 |
 | 3 | Backend Scraper Resilience | Fix silent mock fallbacks (return explicit 502/504 errors on ERP failure) | M1 | survey 2 |
 | 4 | Profile Sub-tab Concurrency Queue | Concurrency pool for profile sub-tab fetching to eliminate IIS overload | M1 | survey 2 |
@@ -88,7 +88,7 @@ src/
 │   ├── ai/                        # AICopilot widget, AIChatSheet, AIChatDialog (M3)
 │   ├── ui/                        # Button, Card, Toast, Tooltip, Sheet, Skeleton, etc. (M2)
 │   └── Navigation.tsx             # Responsive layout navigation shell (M2)
-├── hooks/                         # Unified SWR data fetching hooks (M1)
+├── hooks/                         # Native data fetching hooks (M1)
 │   ├── useAttendance.ts
 │   ├── useFee.ts
 │   ├── useMarks.ts

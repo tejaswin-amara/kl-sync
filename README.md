@@ -107,7 +107,7 @@ KL Sync uses environment variables to secure sessions and configure backend beha
 To run all automated quality verification checks locally:
 
 ```bash
-# 1. Run complete Unit & E2E Test Suite (199/199 Passing)
+# 1. Run complete Unit & E2E Test Suite (219/219 Passing)
 npm run test
 
 # 2. Run Programmatic Agent-as-Judge AI Capability Test Suite (9/9 Passing)
