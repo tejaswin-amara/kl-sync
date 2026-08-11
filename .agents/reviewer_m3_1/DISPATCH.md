@@ -1,19 +1,21 @@
-## 2026-08-07T15:07:44Z
+## 2026-08-08T16:33:03Z
 <USER_REQUEST>
-Your working directory is: C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\reviewer_m3_1
-Your role: M3 AI Toolkit & API Reviewer
+You are reviewer_m3_1 (teamwork_preview_reviewer) conducting code review for Milestone M3 (Dependency Purge - R3).
 
-Path to ORIGINAL_REQUEST.md: C:\Users\speed\Documents\antigravity\optimistic-pascal\ORIGINAL_REQUEST.md
-Path to PROJECT.md: C:\Users\speed\Documents\antigravity\optimistic-pascal\PROJECT.md
-Path to Worker handoff: C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m3_1\handoff.md
+Working directory: C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\reviewer_m3_1
+Repository root: C:\Users\speed\Documents\antigravity\optimistic-pascal
 
-Review Milestone 3 AI Toolkit Registry & API Route implementation:
-1. Inspect `src/lib/ai/tools.ts` and `src/lib/ai/executor.ts` (JSON Schema definitions, tool execution dispatcher for all 7 ERP tools).
-2. Inspect `src/app/api/ai/chat/route.ts` (POST route handler, session cookie propagation, tool call execution loop, Interface Contract 3 response format).
-3. Run verification suite: `npm run build`, `npm run lint`, `npx tsc --noEmit`, `npm run test`.
-4. State explicit verdict: `APPROVE` or `REQUEST_CHANGES`.
+MANDATORY READ FIRST:
+1. C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\ORIGINAL_REQUEST.md
+2. C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\orchestrator\PROJECT.md
+3. C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m3_1\handoff.md
 
-Do NOT modify code.
-Write review report to `C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\reviewer_m3_1\handoff.md`.
-Send a message to the orchestrator when complete.
+Your task:
+- Review changes in `package.json`, `src/lib/utils.ts`, `src/lib/utils.test.ts`, and client components.
+- Verify `package.json` contains ZERO references to `swr`, `clsx`, `tailwind-merge`.
+- Verify clean refactoring of `cn()` and data fetching hooks.
+- Execute build & test verification: `npx tsc --noEmit`, `npm run build`, `npm test`, `npm run lint`.
+- Document your findings in `C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\reviewer_m3_1\handoff.md`.
+- Include a clear Verdict line: `Verdict: APPROVE` or `Verdict: REQUEST_CHANGES`.
+- Send a message to parent when complete.
 </USER_REQUEST>

@@ -74,9 +74,9 @@ function FeeMobileCard({ row }: { row: Record<string, unknown> }) {
 }
 
 export default function FeePage() {
-  const { data: rawData, totalPending, totalPaid, isLoading: loading, error: swrError, mutate } = useFee();
+  const { data: rawData, totalPending, totalPaid, isLoading: loading, error: fetchError, mutate } = useFee();
   const data = (rawData as Record<string, unknown>[]) || [];
-  const error = swrError ? swrError.message : null;
+  const error = fetchError ? fetchError.message : null;
 
   return (
     <div className="flex flex-col gap-5 w-full animate-up">

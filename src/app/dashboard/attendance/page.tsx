@@ -104,11 +104,11 @@ export default function AttendanceDashboard() {
     totalAttended: overallAttended,
     totalConducted: overallConducted,
     isLoading: loading,
-    error: swrError,
+    error: fetchError,
     mutate,
   } = useAttendance(selectedYear, selectedSem);
 
-  const error = swrError ? swrError.message : null;
+  const error = fetchError ? fetchError.message : null;
   const data = dataRaw || [];
 
   return (

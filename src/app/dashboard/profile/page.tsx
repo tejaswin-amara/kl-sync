@@ -7,9 +7,9 @@ import { Loader2, AlertCircle } from 'lucide-react';
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<string | null>(null);
-  const { data: profileData, isLoading: loading, error: swrError } = useProfile();
+  const { data: profileData, isLoading: loading, error: fetchError } = useProfile();
   const data = (profileData as Record<string, unknown>) || null;
-  const error = swrError ? swrError.message : null;
+  const error = fetchError ? fetchError.message : null;
 
   return (
     <div className="flex flex-col gap-6 w-full">

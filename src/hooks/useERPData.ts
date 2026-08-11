@@ -1,2 +1,2 @@
-// Deprecated: SWR data hooks (useAttendance, useFee, useMarks, etc.) handle data fetching.
+// Deprecated: Native data hooks (useAttendance, useFee, useMarks, etc.) handle data fetching.
 export {};

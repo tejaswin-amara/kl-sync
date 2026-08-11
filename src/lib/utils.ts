@@ -1,5 +1,31 @@
-export function cn(...inputs: unknown[]) {
-  return inputs.filter(Boolean).map(String).join(' ');
+export type ClassValue = string | number | bigint | boolean | undefined | null | ClassValue[] | { [key: string]: unknown };
+
+export function cn(...inputs: ClassValue[]): string {
+  const classes: string[] = [];
+
+  function parseInput(input: ClassValue) {
+    if (!input) return;
+
+    if (typeof input === 'string' || typeof input === 'number' || typeof input === 'bigint') {
+      classes.push(String(input));
+    } else if (Array.isArray(input)) {
+      for (const item of input) {
+        parseInput(item);
+      }
+    } else if (typeof input === 'object') {
+      for (const [key, value] of Object.entries(input)) {
+        if (value) {
+          classes.push(key);
+        }
+      }
+    }
+  }
+
+  for (const input of inputs) {
+    parseInput(input);
+  }
+
+  return classes.join(' ');
 }
 
 export function exportTableToCSV(

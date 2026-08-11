@@ -1,65 +1,57 @@
-# BRIEFING — 2026-08-07T15:08:00Z
+# BRIEFING — 2026-08-08T16:35:00Z
 
 ## Mission
-Implement Milestone 3 (M3: Agentic AI Capabilities & Tooling) including Agent Toolkit Registry, AI Execution Engine, AI Chat Route Handler, Copilot UI components, Natural Language Querying, Workflow Automation, and comprehensive unit tests.
+Purge swr, clsx, and tailwind-merge dependencies and refactor code to pure JS/React implementations.
 
 ## 🔒 My Identity
-- Archetype: M3 Worker
+- Archetype: teamwork_preview_worker
 - Roles: implementer, qa, specialist
 - Working directory: C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m3_1
-- Original parent: 410aea0e-292f-49f2-8394-a5515516e72e
-- Milestone: M3
+- Original parent: b8ff5c3d-3d42-40a5-b1d1-6283643278fe
+- Milestone: M3 (Dependency Purge)
 
 ## 🔒 Key Constraints
-- Pure implementation without hardcoding test results or creating dummy facades.
-- All tests (npm run build, npm run lint, npx tsc --noEmit, npm run test) must pass with zero errors.
-- Session cookie propagation with `kl_erp_session`.
-- Zero-crash fallback execution engine when offline or demo session.
+- Remove `swr`, `clsx`, and `tailwind-merge` from `package.json`
+- Refactor `src/lib/utils.ts` `cn()` to pure JS without `clsx` or `tailwind-merge`
+- Replace SWR hooks with native fetch + useState/useEffect or custom hooks
+- Pass tsc, build, test, lint
+- No cheating, fake tests, or hardcoded strings
 
 ## Current Parent
-- Conversation ID: 410aea0e-292f-49f2-8394-a5515516e72e
-- Updated: 2026-08-07T15:08:00Z
+- Conversation ID: b8ff5c3d-3d42-40a5-b1d1-6283643278fe
+- Updated: 2026-08-08T16:35:00Z
 
 ## Task Summary
-- **What to build**: Agent Toolkit Registry (`src/lib/ai/tools.ts`), Executor Engine (`src/lib/ai/executor.ts`), AI Chat Route Handler (`src/app/api/ai/chat/route.ts`), Copilot UI (`src/components/ai/*`), UI integration, unit tests.
-- **Success criteria**: All 7 tools functional, route handler conforming to Contract 3, Copilot widget integrated with global hotkey, NL querying & workflow advice functional, 100% test pass rate.
-- **Interface contracts**: PROJECT.md Interface Contracts 2 & 3.
-- **Code layout**: PROJECT.md Code Layout.
+- **What to build**: Dependency purge of `swr`, `clsx`, `tailwind-merge`
+- **Success criteria**: package.json clean, zero imports of swr/clsx/tailwind-merge in src, all verification commands pass.
+
+## Key Decisions Made
+- Confirmed `package.json` contains ZERO references to `swr`, `clsx`, or `tailwind-merge`.
+- Refactored `src/lib/utils.ts`: implemented a zero-dependency, recursive flattener for `cn()` supporting string, number, bigint, boolean, undefined, null, arrays, and objects without external imports.
+- Created `src/lib/utils.test.ts` to thoroughly verify `cn()` behavior across all input types and edge cases.
+- Purged all residual references and variable naming (`swrError`) from dashboard pages and test files (`challenger-swr.test.ts`, `tier1-feature-coverage.test.ts`).
+- Executed static analysis and test suites: `npx tsc --noEmit` (0 errors), `npm run build` (15/15 static routes compiled cleanly), `npm test` (219/219 unit tests passing), `npm run lint` (0 ESLint warnings/errors).
+
+## Artifact Index
+- C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m3_1\handoff.md — Handoff report
 
 ## Change Tracker
 - **Files modified**:
-  - `src/lib/ai/tools.ts`: Agent toolkit definitions for 7 ERP tools & Zod schemas
-  - `src/lib/ai/executor.ts`: Tool execution engine & intent matcher fallback
-  - `src/app/api/ai/chat/route.ts`: AI chat API route handler
-  - `src/components/ai/AICopilot.tsx`: Floating action Copilot widget with hotkey
-  - `src/components/ai/AIChatSheet.tsx`: Slide-over drawer view
-  - `src/components/ai/AIChatDialog.tsx`: Modal dialog view
-  - `src/components/ai/AIChatMessageList.tsx`: Chat history & tool result cards
-  - `src/components/ai/AIChatSuggestionChips.tsx`: Suggestion pills
-  - `src/components/ai/AIToolExecutionIndicator.tsx`: Tool execution status indicator
-  - `src/components/ai/AIChatInput.tsx`: Chat query textarea input
-  - `src/components/Navigation.tsx`: Mounted `<AICopilot />` into root layout shell
-  - `src/lib/cgpa.ts`: Exported `mapGradeToPoints`
-  - `src/lib/ai/tools.test.ts`: Unit test suite for tools & executor
-  - `src/app/api/ai-chat.test.ts`: Unit test suite for AI chat route handler
-  - `src/components/ai/copilot.test.ts`: Unit test suite for Copilot UI integration
-- **Build status**: PASS (Next.js build succeeded in 5.2s)
+  - `src/lib/utils.ts`: zero-dependency recursive `cn()` flattener
+  - `src/lib/utils.test.ts`: comprehensive unit tests for `cn()`
+  - `src/hooks/useERPData.ts`: updated deprecation comment
+  - `src/hooks/challenger-swr.test.ts`: updated test suite descriptions to native hook fetcher
+  - `src/e2e/tier1-feature-coverage.test.ts`: updated test description to native data hooks
+  - `src/app/dashboard/attendance/page.tsx`: renamed `swrError` variable to `fetchError`
+  - `src/app/dashboard/fee/page.tsx`: renamed `swrError` variable to `fetchError`
+  - `src/app/dashboard/marks/page.tsx`: renamed `swrError` variable to `fetchError`
+  - `src/app/dashboard/profile/page.tsx`: renamed `swrError` variable to `fetchError`
+  - `src/app/dashboard/timetable/page.tsx`: renamed `swrError` variable to `fetchError`
+  - `src/components/ERPTablePage.tsx`: renamed `swrError` variable to `fetchError`
+- **Build status**: PASS
 - **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: PASS (131/131 unit tests pass)
-- **Lint status**: PASS (0 errors)
-- **TypeScript status**: PASS (0 errors)
-- **Tests added/modified**: `tools.test.ts`, `ai-chat.test.ts`, `copilot.test.ts`
-
-## Loaded Skills
-- None explicitly loaded
-
-## Key Decisions Made
-- Implemented resilient local intent matcher and execution engine in `src/lib/ai/executor.ts` that can run deterministically without external LLM API keys while supporting standard OpenAI function calling schemas when keys are present.
-
-## Artifact Index
-- `C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m3_1\DISPATCH.md` — Dispatch assignment
-- `C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m3_1\BRIEFING.md` — Persistent briefing state
-- `C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m3_1\changes.md` — Detailed changes report
-- `C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m3_1\handoff.md` — Handoff report with verification outputs
+- **Build/test result**: PASS (219/219 tests pass, Next.js build clean)
+- **Lint status**: PASS (0 errors, 0 warnings)
+- **Tests added/modified**: `src/lib/utils.test.ts` added with 5 test cases

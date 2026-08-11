@@ -42,7 +42,7 @@ import { mapGradeToPoints } from '@/lib/cgpa';
 // Tier 1: Feature Coverage (Features 1-16 Happy Path & Fundamental Contracts)
 // ============================================================================
 
-test('Tier 1 - Feature 1: SWR Data Hooks Migration Data Models & Default Structures', async () => {
+test('Tier 1 - Feature 1: Native Data Hooks Migration Data Models & Default Structures', async () => {
   // Verify data shape definitions for attendance, timetable, marks, fee, profile
   const demoAttendance = [
     {

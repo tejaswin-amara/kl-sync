@@ -17,8 +17,8 @@ Next.js (React 19) web application providing timetable and profile sync features
 |---|------|-------|-------------|--------|
 | M4 | Mock Data Consolidation | Extract fallback datasets into `src/lib/fixtures` and update consumers | none | DONE |
 | M1 | Session Simplification | Refactor `src/lib/session.ts` to Web Crypto API | M4 | DONE |
-| M2 | AI Tool Calling | Add `ai` package, refactor `executor.ts` and AI route to native tool calling | M4 | PLANNED |
-| M3 | Dependency Purge | Remove `swr`, `clsx`, `tailwind-merge`, refactor hooks and `cn()` helper | none | PLANNED |
+| M2 | AI Tool Calling | Add `ai` package, refactor `executor.ts` and AI route to native tool calling | M4 | DONE |
+| M3 | Dependency Purge | Remove `swr`, `clsx`, `tailwind-merge`, refactor hooks and `cn()` helper | none | DONE |
 | M5 | E2E & Static Verification | Run static analysis, test suite, Playwright E2E, and forensic audit | M1, M2, M3, M4 | PLANNED |
 
 ## Code Layout

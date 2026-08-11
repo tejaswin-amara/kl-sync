@@ -1,18 +1,19 @@
-## 2026-08-07T15:07:44Z
-<USER_REQUEST>
-Your working directory is: C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\auditor_m3_1
-Your role: M3 Forensic Integrity Auditor
+## 2026-08-08T22:03:04Z
 
-Path to ORIGINAL_REQUEST.md: C:\Users\speed\Documents\antigravity\optimistic-pascal\ORIGINAL_REQUEST.md
-Path to PROJECT.md: C:\Users\speed\Documents\antigravity\optimistic-pascal\PROJECT.md
-Path to Worker handoff: C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m3_1\handoff.md
+You are auditor_m3_1 (teamwork_preview_auditor) conducting forensic integrity audit for Milestone M3 (Dependency Purge - R3).
 
-Perform a forensic integrity audit on Milestone 3 AI changes:
-1. Inspect all added and modified files (`src/lib/ai/tools.ts`, `src/lib/ai/executor.ts`, `src/app/api/ai/chat/route.ts`, `src/components/ai/*`, `src/components/Navigation.tsx`, test files).
-2. Verify integrity: Check for hardcoded AI responses, fake tool execution, facade logic, suppressed errors, or pre-canned chat outputs.
-3. Confirm genuine tool execution against real scrapers/calculators and real route handling.
-4. State explicit verdict: `CLEAN` or `INTEGRITY VIOLATION`.
+Working directory: C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\auditor_m3_1
+Repository root: C:\Users\speed\Documents\antigravity\optimistic-pascal
 
-Write audit report to `C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\auditor_m3_1\handoff.md`.
-Send a message to the orchestrator when complete.
-</USER_REQUEST>
+MANDATORY READ FIRST:
+1. C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\ORIGINAL_REQUEST.md
+2. C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\worker_m3_1\handoff.md
+
+Your task:
+- Perform forensic integrity audit of Milestone M3 changes.
+- Verify zero cheating: ensure `cn()` is a genuine pure JS implementation without facade wrappers, mock dependencies, or hidden npm packages.
+- Confirm `package.json` has 0 references to `swr`, `clsx`, `tailwind-merge`.
+- Execute full build and test verification: `npx tsc --noEmit`, `npm run build`, `npm run lint`, `npm test`.
+- Document your findings in `C:\Users\speed\Documents\antigravity\optimistic-pascal\.agents\auditor_m3_1\handoff.md`.
+- Include a clear Verdict line: `Verdict: CLEAN` or `Verdict: INTEGRITY VIOLATION`.
+- Send a message to parent when complete.

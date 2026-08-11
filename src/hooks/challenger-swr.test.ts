@@ -2,7 +2,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert';
 import { attendanceResponseSchema } from '../lib/schemas/attendance';
 
-describe('Challenger M1 SWR Hook Fetcher & Calculation Suite', () => {
+describe('Challenger M1 Native Hook Fetcher & Calculation Suite', () => {
   test('attendanceFetcher validation logic throws on non-JSON or success: false', () => {
     // 1. Non-JSON response
     const mockHeadersNonJson = new Headers({ 'content-type': 'text/html' });
@@ -92,7 +92,7 @@ describe('Challenger M1 SWR Hook Fetcher & Calculation Suite', () => {
     assert.strictEqual(totalPaid, 150000);
   });
 
-  test('Conditional SWR keys for academic modules', () => {
+  test('Conditional query keys for academic modules', () => {
     const getAttendanceKey = (academicYear?: string, semesterId?: string) =>
       academicYear && semesterId ? (['/api/erp-proxy/attendance', academicYear, semesterId] as const) : null;
 

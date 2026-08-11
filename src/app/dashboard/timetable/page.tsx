@@ -107,8 +107,8 @@ export default function TimetablePage() {
     sessionError,
   } = useAcademicSession();
 
-  const { data: parsedTT, isLoading: loading, error: swrError, mutate } = useTimetable(selectedYear, selectedSem);
-  const displayError = (swrError ? swrError.message : null) || sessionError;
+  const { data: parsedTT, isLoading: loading, error: fetchError, mutate } = useTimetable(selectedYear, selectedSem);
+  const displayError = (fetchError ? fetchError.message : null) || sessionError;
 
   const daysList = [
     'All',

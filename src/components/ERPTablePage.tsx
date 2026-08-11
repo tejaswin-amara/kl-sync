@@ -93,9 +93,9 @@ export default function ERPTablePage({
   emptyTitle,
   emptyDescription,
 }: ERPTablePageProps) {
-  const { data: rawData, isLoading: loading, error: swrError, mutate } = useNativeQuery(`/api/erp-proxy/${module}`, fetcher);
+  const { data: rawData, isLoading: loading, error: fetchError, mutate } = useNativeQuery(`/api/erp-proxy/${module}`, fetcher);
   const data = rawData || [];
-  const error = swrError ? swrError.message : null;
+  const error = fetchError ? fetchError.message : null;
 
   return (
     <div className="flex flex-col gap-5 w-full animate-up">

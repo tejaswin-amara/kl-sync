@@ -1,105 +1,76 @@
-# Forensic Audit Report — Milestone 3 (M3: Agentic AI Capabilities & Tooling)
+# Forensic Audit Handoff Report: Milestone M3 (Dependency Purge - R3)
 
-**Work Product**: Milestone 3 AI changes (`src/lib/ai/*`, `src/app/api/ai/chat/route.ts`, `src/components/ai/*`, `src/components/Navigation.tsx`, test files)  
+**Work Product**: Milestone M3 Implementation (`cn()` utility refactoring, `package.json` purge, SWR removal)  
 **Profile**: General Project (Integrity Forensics)  
-**Integrity Mode**: Development (per `ORIGINAL_REQUEST.md`)  
-**Verdict**: CLEAN  
+**Verdict: CLEAN**
 
 ---
 
 ## 1. Observation
 
-Direct observations and evidence collected during forensic verification:
+- **Package Manifest Audit**:
+  - `package.json` contains **0** references to `swr`, `clsx`, or `tailwind-merge` in both `dependencies` and `devDependencies`.
+  - Searched `src/` directory with case-insensitive regex for `swr`, `clsx`, `tailwind-merge` imports and occurrences: **0** matches found across all TypeScript/JavaScript source files.
 
-### Source Code Inspection
-- **`src/lib/ai/tools.ts`**:
-  - Defines `TOOLS_REGISTRY` containing all 7 ERP tools (`getAttendance`, `getTimetable`, `getMarks`, `getFeeDetails`, `getStudentProfile`, `calculateAttendanceTarget`, `predictCGPA`).
-  - Exports Zod validation schemas (`getAttendanceArgsSchema`, `getTimetableArgsSchema`, `getMarksArgsSchema`, `getFeeDetailsArgsSchema`, `getStudentProfileArgsSchema`, `calculateAttendanceTargetArgsSchema`, `predictCGPAArgsSchema`, `newCourseItemSchema`).
-  - Implements Interface Contract 2 with typed function signatures.
+- **`cn()` Pure JS Verification (`src/lib/utils.ts`)**:
+  - `cn()` is implemented as a genuine, zero-dependency, pure JS/TS recursive flattener.
+  - Type definition `ClassValue` explicitly supports strings, numbers, bigints, booleans, undefined, null, arrays, and record objects (`{ [key: string]: unknown }`).
+  - Implements recursive `parseInput()` logic to evaluate truthy object keys, flatten nested arrays, coerce primitives to strings, and filter falsy values without importing external libraries (`clsx`, `tailwind-merge`), facade wrappers, or dynamic evaluation tricks.
+  - Accompanied by unit test suite in `src/lib/utils.test.ts` with 5 test cases covering string joining, falsy filtering, object conditionals, nested arrays, and mixed type inputs.
 
-- **`src/lib/ai/executor.ts`**:
-  - `executeGetAttendance`: Dispatches to `fetchAttendanceData()` in `src/lib/scraper.ts` when a valid session cookie exists; falls back to structured demo data if unauthenticated/offline.
-  - `executeGetTimetable`: Dispatches to `fetchTimetableData()` and parses results via `parseTimetable()`.
-  - `executeGetMarks`: Dispatches to `fetchMarksData()`.
-  - `executeGetFeeDetails`: Dispatches to `fetchFeeData()` and calculates totals via `parseCurrency()` and `calculatePendingFee()`.
-  - `executeGetStudentProfile`: Dispatches to `fetchProfileData()`.
-  - `executeCalculateAttendanceTarget`: Implements genuine mathematical formula: `classesNeeded = Math.ceil((target * T - 100 * A) / (100 - target))` and `maxBunkable = Math.floor((100 * A - target * T) / target)`.
-  - `executePredictCGPA`: Implements genuine weighted grade point calculation via `mapGradeToPoints()`.
-  - `parseNaturalLanguageIntent`: Natural language query intent parser supporting natural queries without hardcoding outputs.
+- **Data Fetching & Component Variable Naming**:
+  - Data fetching across `src/hooks/` (`useAttendance.ts`, `useFee.ts`, `useMarks.ts`, `useProfile.ts`, `useTimetable.ts`) relies exclusively on `useNativeQuery` (`useState` + `useEffect` + native `fetch`).
+  - Variable destructuring of `swrError` has been updated to `fetchError` in `src/app/dashboard/attendance/page.tsx`, `fee/page.tsx`, `marks/page.tsx`, `profile/page.tsx`, `timetable/page.tsx`, and `src/components/ERPTablePage.tsx`.
 
-- **`src/app/api/ai/chat/route.ts`**:
-  - App Router POST endpoint at `/api/ai/chat`.
-  - Validates request payload JSON and `messages` array presence (returns 400 Bad Request on invalid payloads).
-  - Decodes `kl_erp_session` cookie via `decodeSession()`.
-  - Executes tools dynamically and formats response matching Interface Contract 3 (`{ success: true, message: { role: 'assistant', content }, toolCalls?: [...] }`).
-
-- **`src/components/ai/` & `src/components/Navigation.tsx`**:
-  - Created `<AICopilot />`, `<AIChatSheet />`, `<AIChatDialog />`, `<AIChatMessageList />`, `<AIChatSuggestionChips />`, `<AIToolExecutionIndicator />`, `<AIChatInput />`.
-  - Mounted `<AICopilot />` globally inside `src/components/Navigation.tsx` (line 506).
-  - Supports keyboard shortcut (`Cmd+K` / `Ctrl+Shift+A`).
-
-- **Test Suite**:
-  - Unit tests in `src/lib/ai/tools.test.ts`, `src/app/api/ai-chat.test.ts`, `src/components/ai/copilot.test.ts`.
-
----
-
-### Empirical Verification Commands & Tool Outputs
-
-1. **TypeScript Type Verification (`npx tsc --noEmit`)**:
-   - Exit Code: `0`
-   - Output: 0 compilation errors across entire codebase.
-
-2. **Unit Test Suite Execution (`npm run test`)**:
-   - Exit Code: `0`
-   - Output: 131 tests passed across 30 test suites (0 failed).
-   - AI unit tests in `tools.test.ts` (11 tests), `ai-chat.test.ts` (5 tests), `copilot.test.ts` (2 tests) all passed cleanly.
-
-3. **Production Build Verification (`npm run build`)**:
-   - Exit Code: `0`
-   - Output: Turbopack Next.js build compiled successfully in 16.5s. All 18 static/dynamic routes generated without errors.
-
-4. **Lint Check (`npm run lint`)**:
-   - Exit Code: `0` for all production source files in `src/`.
-   - Note: `.agents/challenger_m3_1/verify_m3.ts` contained agent scratch script lint warnings; core production code in `src/` passed cleanly.
+- **Empirical Execution & Build Verification**:
+  1. **TypeScript Type Check** (`npx tsc --noEmit`): Exit code **0** (0 compilation errors).
+  2. **Production Next.js Build** (`npm run build`): Exit code **0** (15/15 static app routes compiled successfully via Turbopack).
+  3. **ESLint Verification** (`npm run lint`): Exit code **0** (0 warnings or errors).
+  4. **Unit Test Suite Execution** (`npm test`): Exit code **0** (219/219 tests passing across 33 test suites).
 
 ---
 
 ## 2. Logic Chain
 
-1. **Hardcoded Test Results Check**: PASS. No hardcoded output strings or pre-canned AI answers exist in `src/lib/ai/` or `/api/ai/chat`. Responses are dynamically constructed based on runtime tool execution output.
-2. **Facade Implementation Check**: PASS. All 7 tools in `src/lib/ai/executor.ts` execute real underlying Cheerio web scrapers (`fetchAttendanceData`, `fetchTimetableData`, `fetchMarksData`, `fetchFeeData`, `fetchProfileData`) or calculate genuine math (`calculateAttendanceTarget`, `predictCGPA`).
-3. **Fabricated Verification Output Check**: PASS. All verification test outputs were generated live during auditor tool execution.
-4. **Self-Certifying Tests Check**: PASS. Unit tests independently verify inputs/outputs of tools, intent matcher, and API route handlers.
-5. **Execution Delegation / Library Check**: PASS. Standard Next.js, Zod, and existing Cheerio scrapers are used without unauthorized third-party blackbox AI dependencies.
+1. **Purge Verification**: Audited `package.json` and all files under `src/` to confirm complete removal of `swr`, `clsx`, and `tailwind-merge`. Zero references remain.
+2. **Authenticity of `cn()` Implementation**: Code inspection of `src/lib/utils.ts` confirmed `cn()` is a clean, authentic TS implementation. It contains no facade delegation, no mock imports, no hardcoded returns, and no dynamic evaluation.
+3. **Data Layer Integrity**: Verified that all data fetching hooks use native `fetch` wrappers (`useNativeQuery`) and that UI components use standard state management without reliance on SWR or legacy error naming.
+4. **Empirical Verification**: Independently executed `tsc`, `next build`, `eslint`, and `npm test` on the repository root. All build, type checking, linting, and test suites passed cleanly with exit code 0.
 
 ---
 
 ## 3. Caveats
 
-- In unauthenticated or offline environments, tool execution falls back to local demo datasets to prevent unhandled 500 runtime errors, which is valid resilience behavior for an ERP client demo.
-- ESLint checks flagged `any` types in `.agents/challenger_m3_1/verify_m3.ts`, which is an agent workspace metadata/verification file outside production source tree.
+No caveats. All purged dependencies (`swr`, `clsx`, `tailwind-merge`) have been 100% removed, `cn()` is pure TypeScript, and all verification checks passed cleanly.
 
 ---
 
 ## 4. Conclusion
 
-**Verdict**: `CLEAN`
+Milestone M3 (Dependency Purge - R3) passes forensic integrity audit with zero integrity violations. The implementation is authentic, free of external dependency shortcuts, and satisfies all user requirements and build/test gates.
 
-Milestone 3 (M3: Agentic AI Capabilities & Tooling) implementation is authentic, fully functional, and contains zero integrity violations. All 7 ERP tools, AI chat route handler, Copilot UI components, natural language querying, and unit tests execute genuine logic and pass all build and test requirements.
+**Verdict: CLEAN**
 
 ---
 
 ## 5. Verification Method
 
-To independently verify this forensic audit:
+To independently verify:
 
 ```bash
-# 1. Type Check
+# 1. Confirm 0 references to swr, clsx, tailwind-merge in package.json and src/
+grep -iE "(swr|clsx|tailwind-merge)" package.json
+grep -rn -iE "from ['\"](swr|clsx|tailwind-merge)['\"]" src/
+
+# 2. Verify TypeScript static compilation
 npx tsc --noEmit
 
-# 2. Test Suite (131 tests)
-npm run test
-
-# 3. Next.js Production Build
+# 3. Verify Next.js production build
 npm run build
+
+# 4. Verify ESLint compliance
+npm run lint
+
+# 5. Verify unit test suite (219 tests across 33 suites)
+npm test
 ```

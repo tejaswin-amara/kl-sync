@@ -75,9 +75,9 @@ function MarksMobileCard({ row }: { row: Record<string, unknown> }) {
 export default function MarksPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const { years, semesters, selectedYear, selectedSem, handleYearChange, handleSemChange } = useAcademicSession();
-  const { data: rawData, isLoading: loading, error: swrError, mutate } = useMarks(selectedYear, selectedSem);
+  const { data: rawData, isLoading: loading, error: fetchError, mutate } = useMarks(selectedYear, selectedSem);
   const data = (rawData as Record<string, unknown>[]) || [];
-  const error = swrError ? swrError.message : null;
+  const error = fetchError ? fetchError.message : null;
 
   const filteredData = data.filter((row) =>
     Object.values(row).some((val) => String(val).toLowerCase().includes(searchQuery.toLowerCase()))
