@@ -21,7 +21,7 @@
                |  Next.js Serverless Route Handlers (/api/*)       |
                |  - Session Manager (AES-256-GCM Encrypted Token)  |
                |  - Cheerio HTML Scraper & Parser Engine           |
-               |  - Sharp Image Processor (/api/fetch-photo)       |
+               |  - Photo Proxy (native fetch streaming)             |
                +---------------------------------------------------+
                                          |
                                          | HTTPS (Legacy Form Data & Cookies)
@@ -42,11 +42,11 @@
 - **Client Session Token**: Session data (including ASP.NET ERP cookies) is encrypted server-side using **AES-256-GCM** with SHA-256 key derivation from `SESSION_SECRET` and returned to the client in an HttpOnly cookie or secure request header.
 
 ### Caching Strategy
-1. **Client-Side Caching (SWR / Memory)**:
-   - Dashboard data (attendance, timetable, CGPA, marks) is cached in client-side memory using SWR / React state.
-   - Re-validation happens asynchronously on tab focus or manual refresh button click.
+1. **Client-Side Caching (Native Fetch + React State)**:
+   - Dashboard data (attendance, timetable, CGPA, marks) is cached in client-side memory using native `fetch` with React state hooks (`useNativeQuery`).
+   - Re-validation happens asynchronously on manual refresh button click.
 2. **Edge Asset Caching (Photo Proxy)**:
-   - Profile images processed via `sharp` in `/api/fetch-photo` use `Cache-Control: public, max-age=86400, immutable` headers for browser edge caching.
+   - Profile images proxied via native `fetch` streaming in `/api/fetch-photo` use `Cache-Control: public, max-age=86400, immutable` headers for browser edge caching.
 
 ---
 

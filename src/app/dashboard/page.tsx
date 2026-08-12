@@ -133,9 +133,9 @@ export default function DashboardOverview() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-6 w-full animate-up">
+    <div className="flex flex-col gap-6 w-full">
       {/* Welcome Banner */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 animate-up">
         <div className="lg:col-span-2 rounded-[--radius-xl] bg-surface-1 border border-border p-6 sm:p-8 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-6 opacity-[0.04] pointer-events-none transition-transform duration-700 group-hover:scale-110">
             <GraduationCap className="w-40 h-40 text-primary" />
@@ -155,7 +155,7 @@ export default function DashboardOverview() {
         </div>
 
         {/* CGPA Card */}
-        <div className="rounded-[--radius-xl] bg-surface-1 border border-border p-6 flex flex-col items-center justify-center text-center relative overflow-hidden">
+        <div className="rounded-[--radius-xl] bg-surface-1 border border-border p-6 flex flex-col items-center justify-center text-center relative overflow-hidden group hover:border-primary/20 transition-all duration-300 hover:shadow-[0_0_32px_rgba(99,102,241,0.08)]">
           <Award className="w-10 h-10 text-primary mb-3 opacity-60" />
           <p className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase mb-1">
             Cumulative GPA
@@ -167,7 +167,7 @@ export default function DashboardOverview() {
       </section>
 
       {/* Quick Stats */}
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-up animate-up-1">
         <Link href="/dashboard/attendance" className="group">
           <StatCard
             label="Attendance"
@@ -195,7 +195,7 @@ export default function DashboardOverview() {
       </section>
 
       {/* Main Content Grid */}
-      <section className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+      <section className="grid grid-cols-1 xl:grid-cols-2 gap-4 animate-up animate-up-2">
         <TodayScheduleWidget activeYearId={activeYearId} activeSemId={activeSemId} />
         <CurrentCoursesWidget activeYearId={activeYearId} activeSemId={activeSemId} />
       </section>

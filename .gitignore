@@ -55,3 +55,7 @@ test-results/
 build.log
 build_log.txt
 build_output.txt
+
+# agent working files
+.agents/
+ponytail_audit_detailed.md

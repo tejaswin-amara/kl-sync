@@ -15,26 +15,31 @@ const accentMap = {
     iconBg: 'bg-primary/10',
     iconText: 'text-indigo-300',
     hoverBorder: 'hover:border-primary/30',
+    glowColor: 'hover:shadow-[0_0_24px_rgba(99,102,241,0.12)]',
   },
   success: {
     iconBg: 'bg-success/10',
     iconText: 'text-success',
     hoverBorder: 'hover:border-success/30',
+    glowColor: 'hover:shadow-[0_0_24px_rgba(16,185,129,0.12)]',
   },
   warning: {
     iconBg: 'bg-warning/10',
     iconText: 'text-warning',
     hoverBorder: 'hover:border-warning/30',
+    glowColor: 'hover:shadow-[0_0_24px_rgba(252,211,77,0.12)]',
   },
   danger: {
     iconBg: 'bg-destructive/10',
     iconText: 'text-red-300',
     hoverBorder: 'hover:border-destructive/30',
+    glowColor: 'hover:shadow-[0_0_24px_rgba(239,68,68,0.12)]',
   },
   purple: {
     iconBg: 'bg-purple-500/10',
     iconText: 'text-purple-400',
     hoverBorder: 'hover:border-purple-500/30',
+    glowColor: 'hover:shadow-[0_0_24px_rgba(139,92,246,0.12)]',
   },
 };
 
@@ -54,7 +59,10 @@ function StatCard({
       className={cn(
         'flex items-center gap-4 p-5 rounded-[--radius-lg]',
         'bg-surface-1 border border-border shadow-sm',
-        'hover:bg-surface-2/50',
+        'hover:bg-surface-2/50 active-press',
+        'transition-all duration-200',
+        colors.hoverBorder,
+        colors.glowColor,
         className
       )}
       {...props}

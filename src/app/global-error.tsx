@@ -16,20 +16,20 @@ export default function GlobalError({
 
   return (
     <html lang="en" className="h-full antialiased dark">
-      <body className="min-h-full flex flex-col font-sans text-zinc-50 bg-zinc-950 items-center justify-center p-6">
-        <div className="max-w-md w-full p-8 rounded-2xl bg-zinc-900 border border-zinc-800 text-center shadow-xl">
-          <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="w-6 h-6" />
+      <body className="min-h-full flex flex-col font-sans text-foreground bg-background items-center justify-center p-6">
+        <div className="max-w-md w-full p-8 rounded-2xl bg-surface-1 border border-border text-center shadow-xl animate-up">
+          <div className="w-14 h-14 rounded-full bg-destructive/10 border border-destructive/20 text-red-400 flex items-center justify-center mx-auto mb-5">
+            <AlertCircle className="w-7 h-7" />
           </div>
-          <h2 className="text-xl font-semibold text-white mb-2">
+          <h2 className="text-xl font-semibold text-foreground mb-2 font-heading">
             Something went wrong!
           </h2>
-          <p className="text-sm text-zinc-400 mb-6">
+          <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
             An unforeseen application error occurred. You can attempt to reload the view.
           </p>
           <button
             onClick={() => reset()}
-            className="w-full min-h-[44px] py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium flex items-center justify-center gap-2 focus:ring-4 focus:ring-indigo-400 focus:outline-none transition-colors"
+            className="w-full min-h-[44px] py-2.5 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-medium flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none transition-colors active-press"
           >
             <RefreshCw className="w-4 h-4" /> Try again
           </button>
