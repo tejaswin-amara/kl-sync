@@ -2,14 +2,19 @@ name: CI Quality Gates
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
-    branches: [main]
+    branches: [master]
+
+permissions:
+  contents: read
 
 jobs:
   verify:
     name: Lint, Test & Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout repository
@@ -30,8 +35,8 @@ jobs:
       - name: Run TypeScript Typecheck
         run: npx tsc --noEmit
 
-      - name: Run Scraper Unit Tests
-        run: npx tsx --test src/lib/scraper.test.ts
+      - name: Run Unit Tests
+        run: npm test
 
       - name: Build Next.js Production Bundle
         run: npm run build
