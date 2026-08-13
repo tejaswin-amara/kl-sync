@@ -36,19 +36,24 @@ function ProfileAvatar({
   size?: 'sm' | 'md';
 }) {
   const dims = size === 'sm' ? 'w-7 h-7 text-[10px]' : 'w-8 h-8 text-xs';
+  const computedPhotoSrc = React.useMemo(() => {
+    if (!user.photoUrl) {
+      return `/api/fetch-photo?id=${encodeURIComponent(user.id)}`;
+    }
+    if (/^data:image\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+$/i.test(user.photoUrl)) {
+      return user.photoUrl;
+    }
+    const cleanPath = user.photoUrl.startsWith('/') ? user.photoUrl : '/' + user.photoUrl;
+    return `/api/fetch-photo?path=${encodeURIComponent(cleanPath)}`;
+  }, [user.photoUrl, user.id]);
+
   return (
     <div
       className={`${dims} rounded-full bg-surface-2 flex items-center justify-center font-bold shadow-xs overflow-hidden border border-border relative ${className}`}
     >
       {user.id !== 'Student ID' && user.id !== 'Loading...' && (
         <img
-          src={
-            user.photoUrl
-              ? user.photoUrl.startsWith('data:image/')
-                ? user.photoUrl
-                : `/api/fetch-photo?path=${encodeURIComponent(user.photoUrl)}`
-              : `/api/fetch-photo?id=${user.id}`
-          }
+          src={computedPhotoSrc}
           alt="Profile"
           className="w-full h-full object-cover absolute inset-0 z-10"
           onError={(e) => {

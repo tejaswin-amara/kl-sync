@@ -69,8 +69,9 @@ test('ERP_ENDPOINTS dictionary completeness and valid URLs', () => {
 
   for (const mod of requiredModules) {
     assert.ok(mod in ERP_ENDPOINTS, `ERP_ENDPOINTS must include key '${mod}'`);
-    assert.ok(
-      ERP_ENDPOINTS[mod].startsWith('https://newerp.kluniversity.in'),
+    assert.strictEqual(
+      new URL(ERP_ENDPOINTS[mod]).hostname,
+      'newerp.kluniversity.in',
       `Endpoint for '${mod}' must point to newerp.kluniversity.in`
     );
   }
