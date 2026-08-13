@@ -1,7 +1,8 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -36,7 +37,7 @@ function ProfileAvatar({
   size?: 'sm' | 'md';
 }) {
   const dims = size === 'sm' ? 'w-7 h-7 text-[10px]' : 'w-8 h-8 text-xs';
-  const computedPhotoSrc = React.useMemo(() => {
+  const computedPhotoSrc = useMemo(() => {
     if (!user.photoUrl) {
       return `/api/fetch-photo?id=${encodeURIComponent(user.id)}`;
     }
