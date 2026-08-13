@@ -169,10 +169,9 @@ export function parseGenericTable(
     }
   }
 
-  const cleanHtml = html.replace(
-    /<(script|style|noscript)[\s\S]*?<\/\1>|<!--[\s\S]*?-->/gi,
-    ''
-  );
+  const $clean = cheerio.load(html);
+  $clean('script, style, noscript').remove();
+  const cleanHtml = $clean.html() || '';
 
   if (cleanHtml.trim() === '') {
     return [];

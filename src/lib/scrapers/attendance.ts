@@ -150,11 +150,10 @@ export async function loginAndFetchSemesters(
       .get()
       .filter(Boolean);
     const errText = fieldErrors.join(' | ');
-    const rendered = (loginText || '').replace(
-      /<script[\s\S]*?<\/script>/gi,
-      ''
-    );
-    const signal = (errText + ' ' + rendered).toLowerCase();
+    const $rendered = cheerio.load(loginText || '');
+    $rendered('script, style, noscript').remove();
+    const renderedText = $rendered.text();
+    const signal = (errText + ' ' + renderedText).toLowerCase();
     const crashBody = (loginText || '').toLowerCase();
 
     const harvested = jar[DEVICE_COOKIE];
