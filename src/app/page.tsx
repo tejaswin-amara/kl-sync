@@ -77,10 +77,8 @@ export default function LoginPage() {
       } catch {}
 
       const savedUser = localStorage.getItem('remember_username');
-      const savedPass = localStorage.getItem('remember_password');
-      if (savedUser && savedPass) {
+      if (savedUser) {
         setUsername(savedUser);
-        setPassword(savedPass);
         setRememberMe(true);
       }
     });
@@ -130,11 +128,10 @@ export default function LoginPage() {
 
       if (rememberMe) {
         localStorage.setItem('remember_username', username);
-        localStorage.setItem('remember_password', password);
       } else {
         localStorage.removeItem('remember_username');
-        localStorage.removeItem('remember_password');
       }
+      localStorage.removeItem('remember_password');
 
       if (data.sessionId) setSessionId(data.sessionId);
 

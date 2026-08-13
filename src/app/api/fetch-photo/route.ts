@@ -68,8 +68,8 @@ export async function GET(request: Request) {
       targetRelativePaths = [sanitizedPath];
     } else if (id) {
       targetRelativePaths = [
-        `/uploads/studentphotos/${id}.jpg`,
-        `/uploads/StudentPhotos/${id}.jpg`,
+        `/uploads/studentphotos/${encodeURIComponent(id)}.jpg`,
+        `/uploads/StudentPhotos/${encodeURIComponent(id)}.jpg`,
       ];
     }
 
@@ -77,13 +77,15 @@ export async function GET(request: Request) {
       Cookie: session.cookies
         .map((c: { name: string; value: string }) => `${c.name}=${c.value}`)
         .join('; '),
-      Referer: `${ERP_BASE_ORIGIN}/`,
+      Referer: 'https://newerp.kluniversity.in/',
       'User-Agent': 'Mozilla/5.0',
     };
 
     let res: Response | undefined;
     for (const relPath of targetRelativePaths) {
-      const targetUrl = new URL(relPath, ERP_BASE_ORIGIN).toString();
+      const fetchHost = 'newerp.kluniversity.in';
+      const fetchProtocol = 'https:';
+      const targetUrl = `${fetchProtocol}//${fetchHost}${relPath}`;
       res = await fetch(targetUrl, { headers });
       if (res.ok) break;
     }
