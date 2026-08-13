@@ -1,0 +1,43 @@
+name: Jules Automation
+
+on:
+  issues:
+    types: [labeled]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  jules:
+    name: Execute Jules Task
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.label.name == 'jules' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Quality Verification
+        run: |
+          npx tsc --noEmit
+          npm run lint
+          npm test
+          npm run build
+        env:
+          SESSION_SECRET: 'jules-secret-key-testing-minimum-32-bytes-long'

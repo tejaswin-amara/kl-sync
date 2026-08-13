@@ -77,15 +77,13 @@ export async function GET(request: Request) {
       Cookie: session.cookies
         .map((c: { name: string; value: string }) => `${c.name}=${c.value}`)
         .join('; '),
-      Referer: 'https://newerp.kluniversity.in/',
+      Referer: `${ERP_BASE_ORIGIN}/`,
       'User-Agent': 'Mozilla/5.0',
     };
 
     let res: Response | undefined;
     for (const relPath of targetRelativePaths) {
-      const fetchHost = 'newerp.kluniversity.in';
-      const fetchProtocol = 'https:';
-      const targetUrl = `${fetchProtocol}//${fetchHost}${relPath}`;
+      const targetUrl = `${ERP_BASE_ORIGIN}${relPath}`;
       res = await fetch(targetUrl, { headers });
       if (res.ok) break;
     }
