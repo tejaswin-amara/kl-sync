@@ -1,6 +1,10 @@
 # Jules by Google Configuration
 # https://jules.google.com
 
+target_branch: master
+auto_pr: false
+direct_commit: true
+
 setup:
   commands:
     - npm ci

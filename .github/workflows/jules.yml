@@ -3,17 +3,19 @@ name: Jules Automation
 on:
   issues:
     types: [labeled]
+  push:
+    branches: [master]
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   issues: write
   pull-requests: write
 
 jobs:
   jules:
-    name: Execute Jules Task
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.label.name == 'jules' }}
+    name: Execute Jules Direct Master Automation
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'issues' && github.event.label.name == 'jules') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -21,8 +23,10 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repository (master branch)
         uses: actions/checkout@v4
+        with:
+          ref: master
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -33,11 +37,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run Quality Verification
+      - name: Run Jules Quality Verification
         run: |
           npx tsc --noEmit
           npm run lint
           npm test
           npm run build
         env:
+          JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
           SESSION_SECRET: 'jules-secret-key-testing-minimum-32-bytes-long'
+
+      - name: Direct Commit to Master (if changes present)
+        run: |
+          git config user.name "Jules (Google AI)"
+          git config user.email "jules-bot@google.com"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git commit -m "chore(jules): automated update applied directly to master"
+            git push origin master
+          else
+            echo "No changes to commit."
+          fi
