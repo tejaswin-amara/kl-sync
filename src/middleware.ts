@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export default function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const isDashboard = request.nextUrl.pathname.startsWith('/dashboard');
 
   if (isDashboard) {
@@ -14,6 +14,8 @@ export default function proxy(request: NextRequest) {
 
   return NextResponse.next();
 }
+
+export default middleware;
 
 export const config = {
   matcher: ['/dashboard/:path*', '/dashboard'],
