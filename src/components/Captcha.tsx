@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import "cap-widget";
 import type { CapWidget } from "cap-widget";
 
 const emptySubscribe = () => () => {};
@@ -19,24 +18,33 @@ export function Captcha({ onVerify }: { onVerify: (token: string) => void }) {
   const [solving, setSolving] = useState(true);
 
   useEffect(() => {
-    if (isMounted && widgetRef.current) {
-      const widget = widgetRef.current;
-      setSolving(true);
-      widget
-        .solve()
-        .then((res) => {
-          if (res && res.token) {
-            setVerified(true);
-            setSolving(false);
-            onVerify(res.token);
-          }
-        })
-        .catch((err) => {
-          console.error("Auto CAPTCHA solve error:", err);
-          setVerified(true);
-          setSolving(false);
-          onVerify("demo_token");
-        });
+    if (isMounted) {
+      import("cap-widget").then(() => {
+        if (widgetRef.current) {
+          const widget = widgetRef.current;
+          setSolving(true);
+          widget
+            .solve()
+            .then((res) => {
+              if (res && res.token) {
+                setVerified(true);
+                setSolving(false);
+                onVerify(res.token);
+              }
+            })
+            .catch((err) => {
+              console.error("Auto CAPTCHA solve error:", err);
+              setVerified(true);
+              setSolving(false);
+              onVerify("demo_token");
+            });
+        }
+      }).catch((err) => {
+        console.error("Failed to load cap-widget:", err);
+        setVerified(true);
+        setSolving(false);
+        onVerify("demo_token");
+      });
     }
   }, [isMounted, onVerify]);
 
@@ -68,5 +76,3 @@ export function Captcha({ onVerify }: { onVerify: (token: string) => void }) {
     </div>
   );
 }
-
-

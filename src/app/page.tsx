@@ -4,8 +4,12 @@
 import { useState, useEffect } from 'react';
 import { RefreshCw, LogIn, AlertCircle, ShieldCheck, User, Lock, HelpCircle, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Captcha } from '@/components/Captcha';
+import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
+
+const Captcha = dynamic(() => import('@/components/Captcha').then((m) => m.Captcha), {
+  ssr: false,
+});
 import { Card, CardHeader, CardDescription, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
