@@ -1,5 +1,6 @@
 import { useNativeQuery } from './useNativeQuery';
 import { MarksSubject, marksResponseSchema } from '@/lib/schemas/marks';
+import { registerCourseTitles } from '@/lib/course-utils';
 
 export interface UseMarksResult {
   data: MarksSubject[] | null;
@@ -31,6 +32,10 @@ async function marksFetcher(key: unknown) {
 export function useMarks(academicYear?: string, semesterId?: string): UseMarksResult {
   const key = academicYear && semesterId ? (['/api/erp-proxy/marks', academicYear, semesterId] as const) : null;
   const { data, error, isLoading, mutate } = useNativeQuery<MarksSubject[]>(key, marksFetcher);
+
+  if (data && Array.isArray(data)) {
+    registerCourseTitles(data);
+  }
 
   return {
     data: data || null,

@@ -344,9 +344,35 @@ export function parseCellContent(text: string): {
     }
   }
 
+  // 5. Extract Course Title from raw parts if present
+  let courseTitle = '';
+  const rawParts = raw
+    .split(/[-|\n]/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  for (const part of rawParts) {
+    const clean = part.trim();
+    const upper = clean.toUpperCase();
+
+    if (courseCode && upper.includes(courseCode)) continue;
+    if (section && upper === section.toUpperCase()) continue;
+    if (room && upper === room.toUpperCase()) continue;
+    if (faculty && upper === faculty.toUpperCase()) continue;
+    if (/^(L|P|S|T|LECTURE|PRACTICAL|SKILL|TUTORIAL|ROOMNO|ROOM|HALL|LAB|VENUE|FREE|N\/A|PERIOD|DAY)/i.test(upper)) continue;
+    if (/^(MON|TUE|WED|THU|FRI|SAT|SUN|MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY)$/i.test(upper)) continue;
+    if (/^[0-9]{2}[A-Z]{2,5}[0-9]{3,4}[A-Z]?[-_][LTPSS]$/i.test(upper)) continue;
+    if (/^S-\d+$/i.test(upper)) continue;
+
+    if (/[a-zA-Z]{3,}/.test(clean)) {
+      courseTitle = clean;
+      break;
+    }
+  }
+
   return {
     courseCode: courseCode || raw,
-    courseTitle: courseCode || raw,
+    courseTitle: courseTitle || courseCode || raw,
     component,
     section,
     room,

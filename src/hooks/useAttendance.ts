@@ -1,5 +1,6 @@
 import { useNativeQuery } from './useNativeQuery';
 import { AttendanceSubject, attendanceResponseSchema } from '@/lib/schemas/attendance';
+import { registerCourseTitles } from '@/lib/course-utils';
 
 export interface UseAttendanceResult {
   data: AttendanceSubject[] | null;
@@ -42,6 +43,7 @@ export function useAttendance(academicYear?: string, semesterId?: string): UseAt
   let totalConducted = 0;
 
   if (data && Array.isArray(data)) {
+    registerCourseTitles(data);
     data.forEach((row) => {
       const condKey = Object.keys(row).find((k) => {
         const kl = k.toLowerCase();
