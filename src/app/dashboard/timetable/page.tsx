@@ -9,6 +9,7 @@ import {
   normalizeSlotKey,
   ParsedTimetable,
 } from '@/lib/timetable-parser';
+import { getSubjectTitle, getSubjectCode } from '@/lib/course-utils';
 import {
   LayoutGrid,
   List,
@@ -417,10 +418,14 @@ export default function TimetablePage() {
                                     {matchingSessions.length > 0 ? (
                                       <div className="flex flex-col gap-2 h-full">
                                         {matchingSessions.map((session, sIdx) => {
-                                          const hasDistinctTitle =
-                                            session.courseTitle &&
-                                            session.courseTitle.trim().toUpperCase() !==
-                                              session.courseCode.trim().toUpperCase();
+                                          const subjectTitle = getSubjectTitle(
+                                            session.courseCode,
+                                            session.courseTitle
+                                          );
+                                          const subjectCode = getSubjectCode(
+                                            session.courseCode,
+                                            session.rawText
+                                          );
 
                                           return (
                                             <div
@@ -451,12 +456,12 @@ export default function TimetablePage() {
                                               </div>
 
                                               <h5 className="text-xs font-semibold text-zinc-100 group-hover:text-indigo-300 transition-colors leading-snug line-clamp-2 overflow-hidden">
-                                                {hasDistinctTitle ? session.courseTitle : session.courseCode}
+                                                {subjectTitle}
                                               </h5>
 
                                               <div className="flex items-center justify-between gap-1 text-[10px] text-zinc-400 pt-1.5 border-t border-white/5 mt-auto">
-                                                <span className="font-mono text-zinc-400 truncate">
-                                                  {hasDistinctTitle ? session.courseCode : ''}
+                                                <span className="font-mono text-zinc-400 font-medium truncate">
+                                                  {subjectCode}
                                                 </span>
                                                 {session.room && (
                                                   <span className="text-emerald-400 font-medium flex items-center gap-0.5 shrink-0 ml-auto">
@@ -539,12 +544,10 @@ export default function TimetablePage() {
                         </span>
                       </td>
                       <td className="px-4 py-3.5 text-xs font-mono text-zinc-300 border-y border-transparent">
-                        {session.courseCode || 'N/A'}
+                        {getSubjectCode(session.courseCode, session.rawText) || 'N/A'}
                       </td>
                       <td className="px-4 py-3.5 text-sm font-medium text-zinc-100 border-y border-transparent max-w-xs truncate">
-                        {session.courseTitle ||
-                          session.courseCode ||
-                          'Class Session'}
+                        {getSubjectTitle(session.courseCode, session.courseTitle)}
                       </td>
                       <td className="px-4 py-3.5 text-xs border-y border-transparent">
                         <div className="flex items-center gap-1.5">

@@ -10,6 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AttendanceChart } from './AttendanceChart';
 import { ChevronDown, ChevronUp, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
+import { getSubjectTitle, getSubjectCode } from '@/lib/course-utils';
 
 function AttendanceMobileCard({ row }: { row: Record<string, unknown> }) {
   const [expanded, setExpanded] = useState(false);
@@ -38,15 +39,21 @@ function AttendanceMobileCard({ row }: { row: Record<string, unknown> }) {
     code = String(entries[0][1]);
   }
 
-  const mainHeader = code ? `${code}${title ? ` — ${title}` : ''}` : title;
+  const subjectName = getSubjectTitle(code, title);
+  const subjectCode = getSubjectCode(code);
 
   return (
     <div className="p-4 rounded-xl border border-border/80 bg-surface-1/90 glass-card space-y-3">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="text-sm font-semibold text-foreground truncate">
-            {mainHeader}
+            {subjectName}
           </div>
+          {subjectCode && (
+            <div className="text-[11px] font-mono text-muted-foreground mt-0.5">
+              {subjectCode}
+            </div>
+          )}
           {pctVal !== null && (
             <div className="mt-1 flex items-center gap-2">
               <span
@@ -75,7 +82,7 @@ function AttendanceMobileCard({ row }: { row: Record<string, unknown> }) {
           type="button"
           onClick={() => setExpanded(!expanded)}
           aria-expanded={expanded}
-          aria-label={`Toggle details for ${mainHeader}`}
+          aria-label={`Toggle details for ${subjectName}`}
           className="p-2.5 rounded-lg hover:bg-surface-2 text-muted-foreground hover:text-foreground transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-1 -mt-1"
         >
           {expanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}

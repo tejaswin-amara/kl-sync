@@ -23,6 +23,7 @@ import { Badge } from '@/components/ui/badge';
 
 import { calculatePendingFee } from '@/lib/fee-utils';
 import { processERPDataForCGPA } from '@/lib/cgpa';
+import { getSubjectTitle, getSubjectCode } from '@/lib/course-utils';
 import {
   parseTimetable,
   isSameDay,
@@ -368,10 +369,10 @@ function TodayScheduleWidget({
                 )}
               </div>
               <h4 className="text-sm font-medium text-foreground group-hover:text-primary transition-colors leading-snug line-clamp-2">
-                {s.courseTitle || s.courseCode || 'Class Session'}
+                {getSubjectTitle(s.courseCode, s.courseTitle)}
               </h4>
               <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-0.5 border-t border-border/30">
-                <span className="font-mono">{s.courseCode}</span>
+                <span className="font-mono">{getSubjectCode(s.courseCode, s.rawText)}</span>
                 {s.faculty && (
                   <span className="flex items-center gap-1 truncate max-w-[160px]">
                     <User className="w-3 h-3 text-purple-400 shrink-0" />{s.faculty}

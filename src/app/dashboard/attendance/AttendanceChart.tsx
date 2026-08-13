@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { getSubjectTitle, getSubjectCode } from '@/lib/course-utils';
 
 export interface AttendanceChartProps {
   data: Record<string, unknown>[];
@@ -9,17 +10,25 @@ export interface AttendanceChartProps {
 export function AttendanceChart({ data }: AttendanceChartProps) {
   if (!data || data.length === 0) return null;
 
-  // Extract course code/name and percentage from row
+  // Extract course code, subject title, and percentage from row
   const items = data
     .map((row) => {
-      let label = '';
+      let rawCode = '';
+      let rawTitle = '';
       let pct = 0;
 
       for (const [key, val] of Object.entries(row)) {
         const k = key.toLowerCase();
-        if (k.includes('code') || k.includes('subject') || k.includes('title') || k.includes('course')) {
-          if (!label) label = String(val);
+        const strVal = String(val ?? '').trim();
+
+        if (k.includes('code') || k.includes('coursecode')) {
+          if (!rawCode) rawCode = strVal;
+        } else if (k.includes('title') || k.includes('subject') || k.includes('coursename') || k.includes('coursedesc')) {
+          if (!rawTitle) rawTitle = strVal;
+        } else if (!rawCode && !rawTitle && /^[0-9]{2}[A-Z]{2,5}[0-9]{3,4}[A-Z]?$/i.test(strVal)) {
+          rawCode = strVal;
         }
+
         if (typeof val === 'string' && val.includes('%')) {
           const num = parseFloat(val);
           if (!isNaN(num)) pct = num;
@@ -29,24 +38,44 @@ export function AttendanceChart({ data }: AttendanceChartProps) {
         }
       }
 
-      if (!label) label = String(Object.values(row)[0] || 'Subject');
-      return { label: label.length > 12 ? label.substring(0, 10) + '…' : label, fullLabel: label, pct };
+      if (!rawCode && !rawTitle) {
+        rawTitle = String(Object.values(row)[0] || 'Subject');
+      }
+
+      const subjectName = getSubjectTitle(rawCode, rawTitle);
+      const subjectCode = getSubjectCode(rawCode, rawTitle);
+
+      // Create a clean short name for X-axis label (10 chars max + ellipsis)
+      let shortName = subjectName;
+      if (shortName.length > 11) {
+        shortName = shortName.substring(0, 10).trim() + '…';
+      }
+
+      return {
+        subjectName,
+        shortName,
+        subjectCode,
+        pct,
+      };
     })
     .filter((item) => item.pct >= 0);
 
   if (items.length === 0) return null;
 
-  const chartHeight = 220;
-  const paddingLeft = 40;
-  const paddingBottom = 40;
-  const paddingTop = 20;
-  const paddingRight = 20;
-  const svgWidth = 600;
+  const chartHeight = 260;
+  const paddingLeft = 45;
+  const paddingBottom = 65;
+  const paddingTop = 25;
+  const paddingRight = 25;
+
+  // Dynamically expand SVG width according to item count to ensure zero text collision
+  const minItemWidth = 65;
+  const svgWidth = Math.max(680, paddingLeft + paddingRight + items.length * minItemWidth);
   const innerWidth = svgWidth - paddingLeft - paddingRight;
   const innerHeight = chartHeight - paddingTop - paddingBottom;
 
-  const barWidth = Math.min(36, Math.max(16, (innerWidth / items.length) * 0.6));
   const step = innerWidth / items.length;
+  const barWidth = Math.min(36, Math.max(18, step * 0.55));
 
   return (
     <div className="rounded-xl border border-border/80 bg-surface-1 p-5 space-y-4 glass-card">
@@ -62,14 +91,14 @@ export function AttendanceChart({ data }: AttendanceChartProps) {
         </div>
       </div>
 
-      <div className="w-full overflow-x-auto">
+      <div className="w-full overflow-x-auto custom-scrollbar">
         <svg
           viewBox={`0 0 ${svgWidth} ${chartHeight}`}
-          className="w-full h-auto min-w-[500px]"
+          className="w-full h-auto min-w-[650px]"
           role="img"
           aria-label="Attendance Bar Chart"
         >
-          {/* Grid lines (0%, 50%, 75%, 100%) */}
+          {/* Grid lines (0%, 25%, 50%, 75%, 100%) */}
           {[0, 25, 50, 75, 100].map((val) => {
             const y = paddingTop + innerHeight - (val / 100) * innerHeight;
             return (
@@ -107,9 +136,11 @@ export function AttendanceChart({ data }: AttendanceChartProps) {
                 ? 'var(--color-warning, #f59e0b)'
                 : 'var(--color-error, #ef4444)';
 
+            const labelX = x + barWidth / 2;
+
             return (
               <g key={idx} className="group">
-                <title>{`${item.fullLabel}: ${item.pct}%`}</title>
+                <title>{`${item.subjectName} (${item.subjectCode || 'No Code'}): ${item.pct}%`}</title>
                 {/* Bar */}
                 <rect
                   x={x}
@@ -119,26 +150,39 @@ export function AttendanceChart({ data }: AttendanceChartProps) {
                   rx={4}
                   fill={color}
                   opacity={0.85}
-                  className="transition-opacity group-hover:opacity-100"
+                  className="transition-opacity group-hover:opacity-100 cursor-pointer"
                 />
                 {/* Value text above bar */}
                 <text
-                  x={x + barWidth / 2}
+                  x={labelX}
                   y={y - 6}
                   textAnchor="middle"
                   className="fill-foreground text-[10px] font-bold font-mono"
                 >
                   {Math.round(item.pct)}%
                 </text>
-                {/* Label text under bar */}
+
+                {/* Subject Name as Title under bar */}
                 <text
-                  x={x + barWidth / 2}
-                  y={chartHeight - 12}
+                  x={labelX}
+                  y={chartHeight - 32}
                   textAnchor="middle"
-                  className="fill-muted-foreground text-[9px] font-medium"
+                  className="fill-foreground text-[10px] font-semibold tracking-tight"
                 >
-                  {item.label}
+                  {item.shortName}
                 </text>
+
+                {/* Subject Code under Subject Name */}
+                {item.subjectCode && (
+                  <text
+                    x={labelX}
+                    y={chartHeight - 16}
+                    textAnchor="middle"
+                    className="fill-muted-foreground text-[9px] font-mono font-medium"
+                  >
+                    {item.subjectCode}
+                  </text>
+                )}
               </g>
             );
           })}
