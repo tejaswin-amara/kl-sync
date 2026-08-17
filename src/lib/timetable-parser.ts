@@ -1,4 +1,4 @@
-import { getSubjectTitle } from './course-utils';
+import { getSubjectTitle, isValidSubjectTitle } from './course-utils';
 
 export interface NormalizedClassSession {
   id: string;
@@ -320,7 +320,7 @@ export function parseCellContent(text: string): {
     faculty = facultyPrefixMatch[1].trim();
   } else {
     const parts = raw
-      .split(/[-|\n]/)
+      .split(/\n|\|\||\s+-\s+|\s+\/\s+/)
       .map((p) => p.trim())
       .filter(Boolean);
     for (const part of parts) {
@@ -337,6 +337,7 @@ export function parseCellContent(text: string): {
           upperPart !== courseCode &&
           upperPart !== section &&
           upperPart !== room &&
+          !isValidSubjectTitle(cleanPart, courseCode) &&
           !/^(MON|TUE|WED|THU|FRI|SAT|SUN|DAY|PERIOD)/i.test(cleanPart)
         ) {
           faculty = cleanPart;
@@ -348,27 +349,28 @@ export function parseCellContent(text: string): {
 
   // 5. Extract Course Title from raw parts if present
   let courseTitle = '';
-  const rawParts = raw
-    .split(/[-|\n]/)
-    .map((p) => p.trim())
-    .filter(Boolean);
+  const parenMatch = raw.match(/\(([^)]+)\)/);
+  if (parenMatch && isValidSubjectTitle(parenMatch[1], courseCode)) {
+    courseTitle = parenMatch[1].trim();
+  } else {
+    const structuredParts = raw
+      .split(/\n|\|\||\s+-\s+|\s+\/\s+/)
+      .map((p) => p.trim())
+      .filter(Boolean);
 
-  for (const part of rawParts) {
-    const clean = part.trim();
-    const upper = clean.toUpperCase();
+    for (const part of structuredParts) {
+      const clean = part.trim();
+      const upper = clean.toUpperCase();
 
-    if (courseCode && upper.includes(courseCode)) continue;
-    if (section && upper === section.toUpperCase()) continue;
-    if (room && upper === room.toUpperCase()) continue;
-    if (faculty && upper === faculty.toUpperCase()) continue;
-    if (/^(L|P|S|T|LECTURE|PRACTICAL|SKILL|TUTORIAL|ROOMNO|ROOM|HALL|LAB|VENUE|FREE|N\/A|PERIOD|DAY)/i.test(upper)) continue;
-    if (/^(MON|TUE|WED|THU|FRI|SAT|SUN|MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY)$/i.test(upper)) continue;
-    if (/^[0-9]{2}[A-Z]{2,5}[0-9]{3,4}[A-Z]?[-_][LTPSS]$/i.test(upper)) continue;
-    if (/^S-\d+$/i.test(upper)) continue;
+      if (courseCode && upper.includes(courseCode)) continue;
+      if (section && upper === section.toUpperCase()) continue;
+      if (room && upper === room.toUpperCase()) continue;
+      if (faculty && upper === faculty.toUpperCase()) continue;
 
-    if (/[a-zA-Z]{3,}/.test(clean)) {
-      courseTitle = clean;
-      break;
+      if (isValidSubjectTitle(clean, courseCode)) {
+        courseTitle = clean;
+        break;
+      }
     }
   }
 
