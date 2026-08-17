@@ -2,6 +2,7 @@
   "name": "kl-sync",
   "version": "2.2.1",
   "private": true,
+  "license": "UNLICENSED",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

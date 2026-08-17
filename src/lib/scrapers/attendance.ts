@@ -103,7 +103,7 @@ export async function loginAndFetchSemesters(
   params.append('_csrf', session.csrfToken);
   params.append('LoginForm[username]', username);
   params.append('LoginForm[password]', pass);
-  params.append('LoginForm[captcha]', captcha);
+  params.append('LoginForm[captcha]', captcha.trim().toLowerCase());
   params.append('LoginForm[qr_code]', '');
   params.append('LoginForm[rememberMe]', '1');
   params.append('login-button', '');

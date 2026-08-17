@@ -21,7 +21,7 @@ export async function GET() {
     }
 
     const sessionId = await encodeSession(session);
-    let solvedCaptcha = session.csrfToken.includes('demo_csrf_token_123') ? '8888' : '';
+    let solvedCaptcha = session.csrfToken.includes('demo_csrf_token_123') ? 'abcd' : '';
 
     if (captchaImage && !session.csrfToken.includes('demo_csrf_token_123')) {
       try {
@@ -51,7 +51,8 @@ export async function GET() {
           if (!res.ok) return '';
           const ocrData = await res.json();
           const parsedText = ocrData?.ParsedResults?.[0]?.ParsedText || '';
-          return parsedText.trim().replace(/[^a-zA-Z0-9]/g, '');
+          // KL University ERP captchas strictly contain only lowercase English letters (a-z)
+          return parsedText.trim().toLowerCase().replace(/[^a-z]/g, '');
         };
 
         const results = await Promise.allSettled([
@@ -62,7 +63,7 @@ export async function GET() {
 
         for (const res of results) {
           if (res.status === 'fulfilled' && res.value && res.value.length >= 3) {
-            solvedCaptcha = res.value;
+            solvedCaptcha = res.value.toLowerCase().replace(/[^a-z]/g, '');
             break;
           }
         }
@@ -77,6 +78,7 @@ export async function GET() {
         captchaImage,
         solvedCaptcha,
         sessionId,
+        rule: 'lowercase_letters_only',
       },
       {
         headers: {

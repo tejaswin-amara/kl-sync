@@ -148,14 +148,16 @@ npm run build
 - **[ARCHITECTURE.md](ARCHITECTURE.md)**: Deep dive into the edge proxy, Cheerio parsers, and data flow.
 - **[DESIGN.md](DESIGN.md)**: Design system tokens, color contrast matrix, and WCAG 2.2 AAA specifications.
 - **[SECURITY.md](SECURITY.md)**: Responsible disclosure policy, threat model, and cryptographic guarantees.
+- **[LICENSE](LICENSE)**: Strict proprietary source-available license (Personal educational use only, zero public re-hosting).
 - **[AGENTS.md](AGENTS.md)**: Coding rules and verification sequence for AI agents and contributors.
 - **[CHANGELOG.md](CHANGELOG.md)**: Version history, dependency removals, and release notes.
 
 ---
 
-## ⚖️ Disclaimer
+## ⚖️ License & Disclaimer
 
-KL Sync is an independent, open-source project created by students for KL University students. It is **not** affiliated with, endorsed by, or supported by KL University. Student credentials are used strictly for in-flight authentication and are never stored or logged.
+- **License**: Copyright © 2026–present Tejaswin Amara. All rights reserved. This software is provided under a **Strict Proprietary & Source-Available License** for personal educational study and local execution only. Third-party public cloud hosting, commercial distribution, and uncredited mirroring are strictly forbidden. See [LICENSE](LICENSE) for terms.
+- **Affiliation**: KL Sync is an independent project created for KL University students. It is **not** affiliated with, endorsed by, or supported by KL University. Student credentials are used strictly for in-flight authentication and are never stored or logged.
 
 <p align="center">
   Crafted with ❤️ by <a href="https://github.com/tejaswin-amara">Tejaswin</a> for KLU students.

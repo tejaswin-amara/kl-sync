@@ -35,7 +35,9 @@ export async function POST(request: NextRequest) {
     // Get session ID from header (preferred) or body (fallback)
     const sessionId = request.headers.get('x-session-id') || body.sessionId;
 
-    if (!username || !password || !captcha) {
+    const cleanCaptcha = typeof captcha === 'string' ? captcha.trim().toLowerCase() : '';
+
+    if (!username || !password || !cleanCaptcha) {
       return NextResponse.json(
         { success: false, message: 'Missing required fields' },
         { status: 400 }
@@ -76,7 +78,7 @@ export async function POST(request: NextRequest) {
       result = await loginAndFetchSemesters(
         username,
         password,
-        captcha,
+        cleanCaptcha,
         session,
         effectiveDeviceId
       );

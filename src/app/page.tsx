@@ -58,16 +58,16 @@ export default function LoginPage() {
     } catch (err) {
       console.warn('[CAPTCHA] Client fetch timed out or failed, using instant fallback:', err);
       const fallbackSvg =
-        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCAxMjAgNDAiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNMCwyMCBRMzAsNSA2MCwyMCBUMTIwLDIwIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTAsMTAgUTQwLDMwIDgwLDEwIFQxMjAsMzAiIHN0cm9rZT0iI2Q1ZDVkNSIgc3Ryb2tlLXdpZHRoPSIxLjUiIGZpbGw9Im5vbmUiLz48dGV4dCB4PSI5MCUiIHk9IjU1JSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9Im1vbm9zcGFjZSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMxMTExMTEiIGxldHRlci1zcGFjaW5nPSIzIj48ODg4PC90ZXh0Pjwvc3ZnPg==';
+        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCAxMjAgNDAiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNMCwyMCBRMzAsNSA2MCwyMCBUMTIwLDIwIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTAsMTAgUTQwLDMwIDgwLDEwIFQxMjAsMzAiIHN0cm9rZT0iI2Q1ZDVkNSIgc3Ryb2tlLXdpZHRoPSIxLjUiIGZpbGw9Im5vbmUiLz48dGV4dCB4PSI1MCUiIHk9IjU1JSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9Im1vbm9zcGFjZSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMxMTExMTEiIGxldHRlci1zcGFjaW5nPSIzIj5hYmNkPC90ZXh0Pjwvc3ZnPg==';
       setCaptchaImage(fallbackSvg);
-      setCaptcha('8888');
+      setCaptcha('abcd');
       const fallbackSid =
         'b64.eyJjb29raWVzIjpbIHsgIm5hbWUiOiAiUEhQU0VTU0lEIiwgInZhbHVlIjogImRlbW9fcGhwc2Vzc2lkXzEyMyIgfSBdLCAiY3NyZlRva2VuIjogImRlbW9fY3NyZlRva2VuXzEyMyIsICJ1c2VyQWdlbnQiOiAiTW96aWxsYS81LjAiIH0=';
       setSessionId(fallbackSid);
       try {
         sessionStorage.setItem('kl_erp_session_id', fallbackSid);
       } catch {}
-      return '8888';
+      return 'abcd';
     } finally {
       setCaptchaLoading(false);
     }
@@ -98,8 +98,9 @@ export default function LoginPage() {
 
   const handleLogin = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!username || !password || !captcha) {
-      setError('Please fill in all fields');
+    const cleanCaptcha = captcha.toLowerCase().trim().replace(/[^a-z]/g, '');
+    if (!username || !password || !cleanCaptcha) {
+      setError('Please fill in all fields (Security code: lowercase letters a–z only)');
       return;
     }
     setLoading(true);
@@ -118,9 +119,9 @@ export default function LoginPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-session-id': effectiveSessionId },
         body: JSON.stringify({
-          username,
+          username: username.trim(),
           password,
-          captcha,
+          captcha: cleanCaptcha,
           captchaToken,
           sessionId: effectiveSessionId,
           deviceId: deviceId || (typeof localStorage !== 'undefined' ? localStorage.getItem('kl_erp_device_id') : '') || '',
@@ -334,18 +335,26 @@ export default function LoginPage() {
               </div>
 
               <div className="space-y-1">
-                <label htmlFor="captcha-field" className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground">
-                  Security Code
-                </label>
+                <div className="flex items-center justify-between">
+                  <label htmlFor="captcha-field" className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground">
+                    Security Code
+                  </label>
+                  <span className="text-[10px] text-primary/80 font-mono tracking-tight">
+                    lowercase only (a–z)
+                  </span>
+                </div>
                 <div className="flex gap-2.5 items-center">
                   <Input
                     id="captcha-field"
                     type="text"
                     value={captcha}
-                    onChange={(e) => setCaptcha(e.target.value)}
-                    placeholder="Enter code"
+                    onChange={(e) => setCaptcha(e.target.value.toLowerCase().replace(/[^a-z]/g, ''))}
+                    placeholder="e.g. abcd"
                     aria-required="true"
-                    className="flex-1 font-mono"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    className="flex-1 font-mono tracking-widest lowercase"
                   />
                   <div className="flex items-center gap-1.5 shrink-0">
                     <div className="h-[44px] w-[100px] rounded-[--radius-md] overflow-hidden flex items-center justify-center bg-white border border-border shadow-xs">
@@ -358,7 +367,7 @@ export default function LoginPage() {
                           className="h-full w-full object-contain mix-blend-multiply scale-105 contrast-150"
                           onError={(e) => {
                             (e.target as HTMLImageElement).src =
-                              'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCAxMjAgNDAiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNMCwyMCBRMzAsNSA2MCwyMCBUMTIwLDIwIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTAsMTAgUTQwLDMwIDgwLDEwIFQxMjAsMzAiIHN0cm9rZT0iI2Q1ZDVkNSIgc3Ryb2tlLXdpZHRoPSIxLjUiIGZpbGw9Im5vbmUiLz48dGV4dCB4PSI5MCUiIHk9IjU1JSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgdGV4dC1mYW1pbHk9Im1vbm9zcGFjZSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMxMTExMTEiIGxldHRlci1zcGFjaW5nPSIzIj48ODg4PC90ZXh0Pjwvc3ZnPg==';
+                              'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCAxMjAgNDAiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNMCwyMCBRMzAsNSA2MCwyMCBUMTIwLDIwIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTAsMTAgUTQwLDMwIDgwLDEwIFQxMjAsMzAiIHN0cm9rZT0iI2Q1ZDVkNSIgc3Ryb2tlLXdpZHRoPSIxLjUiIGZpbGw9Im5vbmUiLz48dGV4dCB4PSI1MCUiIHk9IjU1JSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9Im1vbm9zcGFjZSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMxMTExMTEiIGxldHRlci1zcGFjaW5nPSIzIj5hYmNkPC90ZXh0Pjwvc3ZnPg==';
                           }}
                         />
                       ) : null}
