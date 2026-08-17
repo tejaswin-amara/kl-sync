@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/logo.png" alt="KL Sync Logo" width="180" />
   <h1>⚡ KL Sync</h1>
-  <p><strong>An ultra-fast, stateless, dark-cyber minimalist ERP client and edge proxy for KL University students.</strong></p>
+  <p><strong>An ultra-fast, stateless, Apple-inspired ERP client and edge proxy for KL University students.</strong></p>
 
   <p>
     <a href="https://klhb.vercel.app"><img alt="Production Deployment" src="https://img.shields.io/badge/Vercel-klhb.vercel.app-10B981?style=for-the-badge&logo=vercel&logoColor=white" /></a>
@@ -19,10 +19,11 @@
 
 - 🚀 **Zero-DB Edge Proxy**: Stateless serverless architecture. Credentials and sessions are never persisted in any database.
 - 🔐 **Military-Grade Session Encryption**: Sessions are sealed server-side using **AES-256-GCM** encryption with Web Crypto API.
+- 🍏 **Apple Design, Open Design & UI/UX Pro Max**: WWDC fluid spring physics (damping 1.0 default, damping 0.82 momentum, iOS sheet curve), velocity projection $\text{project}(v, 0.998)$, UIKit rubber-banding $\text{rubberband}(x, \text{dim}, 0.55)$, optical typography, specular elevation, translucent glassmorphism (`blur(24px) saturate(180%)`), and multimodal Web Vibration haptics.
 - 🪮 **Ponytail Philosophy (Zero-Bloat)**: Pruned heavyweight dependencies (`lucide-react`, `swr`, `clsx`, `tailwind-merge`) in favor of native standard library primitives and a custom zero-runtime 55-component SVG engine.
-- 🎨 **Dark Cyber Minimalist UI**: High-density, WCAG 2.2 AAA compliant (contrast ≥ 7.1:1, interactive touch targets ≥ 44px) built on Tailwind CSS v4 and native CSS tokens.
+- ♿ **WCAG 2.2 AAA Compliance**: Contrast $\ge 7.1:1$, interactive touch targets $\ge 44\text{px}$, custom `:focus-visible` rings, and triple accessibility gate (`prefers-reduced-motion`, `prefers-reduced-transparency`, `prefers-contrast`).
 - 🤖 **Agentic AI Copilot**: Context-aware natural language assistant with typed Zod tool calling for calculating attendance goals, marks predictions, and schedule queries.
-- 🛡️ **Exhaustive Test Verification**: Over **312 automated unit/integration tests (52 suites)**, **13 Playwright E2E tests**, **15 Challenger stress suites**, and **9 Agent-as-Judge AI evaluations**.
+- 🛡️ **Exhaustive Test Verification**: Over **318 automated unit/integration tests (53 suites)**, **13 Playwright E2E tests**, **15 Challenger stress suites**, and **9 Agent-as-Judge AI evaluations**.
 
 ---
 
@@ -30,7 +31,7 @@
 
 ```mermaid
 graph TD
-    Client["📱 Student Browser / Mobile PWA<br/>(React 19, Tailwind v4, Native SVGs)"]
+    Client["📱 Student Browser / Mobile PWA<br/>(React 19, Tailwind v4, Fluid Physics, Native SVGs)"]
     
     subgraph EdgeProxy ["⚡ Next.js 16 Edge Proxy Layer (Vercel)"]
         AuthRoute["/api/login<br/>(AES-256-GCM Session Sealer)"]
@@ -57,11 +58,11 @@ KL Sync provides full coverage across all 11 core academic services:
 | Module | Route | Icon | Key Features |
 |:---|:---|:---:|:---|
 | **Overview** | `/dashboard` | 📊 | Hero CGPA banner, real-time stat cards, today's schedule widget, quick navigation pills. |
-| **Attendance** | `/dashboard/attendance` | ⏱️ | Overall percentage gauge, circular progress charts, attendance trend graph, class projection simulator. |
+| **Attendance** | `/dashboard/attendance` | ⏱️ | Overall percentage gauge, circular progress charts, dynamic attendance breakdown graph, class projection simulator. |
 | **Timetable** | `/dashboard/timetable` | 📅 | Dual view (Interactive matrix grid & chronological list), day filters (`Mon`-`Sun`), period slot highlighter, CSV export. |
 | **Marks & CGPA** | `/dashboard/marks` | 📝 | Internal components, semester end exams, dynamic GPA trend graphs, search filters, course analytics. |
 | **Profile** | `/dashboard/profile` | 👤 | Dynamic student ID card, academic demographics, photo streamer, multi-table university records. |
-| **Fee Management** | `/dashboard/fee` | 💳 | Total paid vs pending balances, fee breakdown breakdown charts, receipt download status. |
+| **Fee Management** | `/dashboard/fee` | 💳 | Total paid vs pending balances, fee breakdown donut charts, receipt download status. |
 | **Tools & Calculators** | `/dashboard/tools` | 🧮 | Attendance Target Calculator (synced with real data) + CGPA Goal Feasibility Predictor. |
 | **Circulars** | `/dashboard/circulars` | 📢 | Academic notices, exam schedules, and department announcements with empty state handling. |
 | **Hostel Allocation** | `/dashboard/hostels` | 🏢 | Room numbers, block allocation details, bed type, and occupancy verification. |
@@ -128,7 +129,7 @@ npx tsc --noEmit
 # 2. ESLint code standard analysis (0 errors)
 npm run lint
 
-# 3. Comprehensive Unit & Integration Test Suite (310 / 310 Passing)
+# 3. Comprehensive Unit & Integration Test Suite (318 / 318 Passing across 53 suites)
 npm test
 
 # 4. Programmatic Agent-as-Judge AI Suite (9 / 9 Passing)
@@ -146,7 +147,7 @@ npm run build
 ## 📜 Documentation Links
 
 - **[ARCHITECTURE.md](ARCHITECTURE.md)**: Deep dive into the edge proxy, Cheerio parsers, and data flow.
-- **[DESIGN.md](DESIGN.md)**: Design system tokens, color contrast matrix, and WCAG 2.2 AAA specifications.
+- **[DESIGN.md](DESIGN.md)**: Design system tokens, fluid physics equations, color contrast matrix, and WCAG 2.2 AAA specifications.
 - **[SECURITY.md](SECURITY.md)**: Responsible disclosure policy, threat model, and cryptographic guarantees.
 - **[LICENSE](LICENSE)**: Strict proprietary source-available license (Personal educational use only, zero public re-hosting).
 - **[AGENTS.md](AGENTS.md)**: Coding rules and verification sequence for AI agents and contributors.
@@ -160,5 +161,5 @@ npm run build
 - **Affiliation**: KL Sync is an independent project created for KL University students. It is **not** affiliated with, endorsed by, or supported by KL University. Student credentials are used strictly for in-flight authentication and are never stored or logged.
 
 <p align="center">
-  Crafted by <a href="https://github.com/tejaswin-amara">Tejaswin</a> for KLU students.
+  Crafted with ❤️ by <a href="https://github.com/tejaswin-amara">Tejaswin</a> for KLU students.
 </p>
