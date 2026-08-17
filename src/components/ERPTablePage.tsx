@@ -6,7 +6,7 @@ import { type ReactNode } from 'react';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp } from '@/components/ui/icons';
 
 interface ERPTablePageProps {
   module: string;

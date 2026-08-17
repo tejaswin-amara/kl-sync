@@ -1,12 +1,12 @@
 import { generateChallenge } from "capjs-core";
 import { NextResponse } from "next/server";
+import { getCapSecret } from "@/lib/captcha";
 
 export const dynamic = 'force-dynamic';
 
 export async function POST() {
   try {
-    const secret =
-      process.env.CAP_SECRET || "kl-sync-cap-secret-key-2026-production-fallback";
+    const secret = getCapSecret();
     const challenge = await generateChallenge(secret, {
       scope: "login",
       expiresMs: 600_000, // 10 min to solve

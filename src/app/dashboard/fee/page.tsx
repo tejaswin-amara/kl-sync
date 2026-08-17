@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatCard } from '@/components/ui/stat-card';
-import { CheckCircle, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle, Clock, ChevronDown, ChevronUp } from '@/components/ui/icons';
 import {
   findStatusKey,
   isRowUnpaid,

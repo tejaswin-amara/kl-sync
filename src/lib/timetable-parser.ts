@@ -1,3 +1,5 @@
+import { getSubjectTitle } from './course-utils';
+
 export interface NormalizedClassSession {
   id: string;
   day: string; // Normalized day name e.g. 'Monday'
@@ -370,9 +372,12 @@ export function parseCellContent(text: string): {
     }
   }
 
+  const code = courseCode || raw;
+  const resolvedTitle = getSubjectTitle(code, courseTitle);
+
   return {
-    courseCode: courseCode || raw,
-    courseTitle: courseTitle || courseCode || raw,
+    courseCode: code,
+    courseTitle: resolvedTitle,
     component,
     section,
     room,

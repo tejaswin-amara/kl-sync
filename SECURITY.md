@@ -48,9 +48,8 @@ Due to the nature of proxying a legacy ERP, KL Sync has specific inherent archit
 
 **The Risk**: If this cookie is stored as plaintext, anyone with access to the user's browser or network intercept could steal the cookie and impersonate the student on the actual ERP.
 
-**The Mitigation**: KL Sync uses **AES-256-GCM** encryption to encrypt the cookie payload before sending it to the browser. However, this *strictly requires* the `SESSION_SECRET` environment variable to be set. 
-- If `SESSION_SECRET` is missing, the application falls back to base64 encoding, providing **zero cryptographic security**.
-- **Mandate**: You MUST set a strong, 32+ character `SESSION_SECRET` in `.env.local` for any network-accessible deployment.
+**The Mitigation**: KL Sync uses **AES-256-GCM** encryption to encrypt the cookie payload before sending it to the browser.
+- **Mandate**: In production (`NODE_ENV=production`), omitting `SESSION_SECRET` triggers an explicit `[SECURITY FATAL]` exception at startup/invocation, preventing insecure deployments. You MUST set a strong 32+ character `SESSION_SECRET` in your environment. In development mode, a local fallback key is used with console warnings.
 
 ### 2. Ephemeral Credentials in Memory
 **The Flow**: Your ERP username and password are submitted to `/api/login`, used exactly **once** to authenticate against `newerp.kluniversity.in`, and immediately discarded.

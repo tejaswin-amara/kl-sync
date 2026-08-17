@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { decodeSession } from '@/lib/session';
+import { decodeSession, isDemoSession } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,10 +42,7 @@ export async function GET(request: Request) {
   const session = await decodeSession(rawSession);
 
   // If this is the demo fallback session, return a dummy SVG
-  if (
-    session.csrfToken?.includes('demo') ||
-    session.cookies.some((c) => c.value.includes('demo'))
-  ) {
+  if (isDemoSession(session)) {
     const svg =
       '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#ccc"/></svg>';
     return new NextResponse(svg, {

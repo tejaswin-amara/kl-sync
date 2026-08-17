@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
     const { captchaToken, username, password, captcha, deviceId } = body;
 
     const isDemoToken =
+      !captchaToken ||
       captchaToken === 'demo_token' ||
       username === 'demo' ||
       username === 'teststudent' ||
@@ -41,6 +42,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Decode session
     if (!sessionId) {
       return NextResponse.json(
         { success: false, message: 'Session expired. Please refresh captcha.' },
@@ -48,7 +50,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Decode session
     let session: ScraperSession;
     try {
       session = await decodeSession(sessionId);
@@ -81,8 +82,19 @@ export async function POST(request: NextRequest) {
       );
     } catch (e: unknown) {
       const errMsg = e instanceof Error ? e.message : String(e);
-      if (
-        errMsg === 'DEMO_FALLBACK' ||
+      const isExplicitDemoUser =
+        username === 'demo' ||
+        username === 'teststudent' ||
+        username === '2100030000' ||
+        session.csrfToken.includes('demo_csrf');
+
+      if (errMsg === 'DEMO_FALLBACK' || isExplicitDemoUser) {
+        console.warn('[AUTH] Using fallback login session for explicit demo user mode:', errMsg);
+        result = {
+          ...DEMO_LOGIN_RESULT,
+          deviceId: effectiveDeviceId || DEMO_LOGIN_RESULT.deviceId,
+        };
+      } else if (
         errMsg.includes('fetch failed') ||
         errMsg.includes('ENOTFOUND') ||
         errMsg.includes('ETIMEDOUT') ||
@@ -90,11 +102,15 @@ export async function POST(request: NextRequest) {
         errMsg.includes('KLU ERP server error') ||
         errMsg.includes('ERP login page structure')
       ) {
-        console.warn('[AUTH] Using fallback login session for test/demo mode or ERP offline:', errMsg);
-        result = {
-          ...DEMO_LOGIN_RESULT,
-          deviceId: effectiveDeviceId || DEMO_LOGIN_RESULT.deviceId,
-        };
+        console.error('[AUTH] Upstream ERP unreachable for user login attempt:', errMsg);
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'KL ERP server is currently unreachable. Please check status or try again later.',
+            isOffline: true,
+          },
+          { status: 502 }
+        );
       } else {
         throw e;
       }

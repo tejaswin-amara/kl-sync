@@ -1,3 +1,4 @@
+import { registerCourseTitles } from '../course-utils';
 import {
   ERP_URL,
   ERP_ENDPOINTS,
@@ -17,8 +18,8 @@ export async function fetchMarksData(
   const params = new URLSearchParams();
   params.append('_csrf', csrfToken);
   params.append('DynamicModel[academicyear]', academicYear);
-  // ponytail: ERP uses 'semester' (not 'semesterid') for marks endpoint
   params.append('DynamicModel[semester]', semesterId);
+  params.append('DynamicModel[semesterid]', semesterId);
 
   const res = await fetchWithJar(ERP_ENDPOINTS['marks'], jar, {
     method: 'POST',
@@ -40,7 +41,9 @@ export async function fetchMarksData(
   if (html.includes('id="login-form"')) {
     throw new Error('Session expired or invalid ERP route.');
   }
-  return { success: true, data: parseGenericTable(html) };
+  const data = parseGenericTable(html);
+  registerCourseTitles(data);
+  return { success: true, data };
 }
 
 export async function fetchEndExamResults(
@@ -54,6 +57,7 @@ export async function fetchEndExamResults(
   params.append('_csrf', csrfToken);
   params.append('DynamicModel[academicyear]', academicYear);
   params.append('DynamicModel[semester]', semesterId);
+  params.append('DynamicModel[semesterid]', semesterId);
 
   const res = await fetchWithJar(ERP_ENDPOINTS['end-exam'], jar, {
     method: 'POST',
@@ -88,7 +92,10 @@ export async function fetchCGPAData(
   const params = new URLSearchParams();
   if (csrfToken) params.append('_csrf', csrfToken);
   if (academicYear) params.append('DynamicModel[academicyear]', academicYear);
-  if (semesterId) params.append('DynamicModel[semester]', semesterId);
+  if (semesterId) {
+    params.append('DynamicModel[semester]', semesterId);
+    params.append('DynamicModel[semesterid]', semesterId);
+  }
 
   // Strategy 1: POST
   try {

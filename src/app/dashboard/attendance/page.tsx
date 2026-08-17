@@ -9,7 +9,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AttendanceChart } from './AttendanceChart';
-import { ChevronDown, ChevronUp, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
+import { ChevronDown, ChevronUp, TrendingUp, TrendingDown, AlertTriangle } from '@/components/ui/icons';
 import { getSubjectTitle, getSubjectCode } from '@/lib/course-utils';
 
 function AttendanceMobileCard({ row }: { row: Record<string, unknown> }) {

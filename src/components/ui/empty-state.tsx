@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { AlertCircle, Inbox, RefreshCw, Loader2 } from 'lucide-react';
+import { AlertCircle, Inbox, RefreshCw, Loader2 } from '@/components/ui/icons';
 import { Button } from './button';
 
 interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {

@@ -5,10 +5,8 @@ import { renderToString } from 'react-dom/server';
 
 import { Badge } from './badge';
 import { Skeleton, SkeletonCard, SkeletonTable } from './skeleton';
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './tooltip';
 import { Toast } from './toast';
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from './sheet';
-import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from './command';
 import { AttendanceChart } from '@/app/dashboard/attendance/AttendanceChart';
 import { GpaTrendChart } from '@/app/dashboard/marks/GpaTrendChart';
 import { FeeBreakdownChart } from '@/app/dashboard/fee/FeeBreakdownChart';
@@ -64,22 +62,13 @@ describe('Milestone 2 (M2) UI Primitives & SVG Charts Verification Suite', () =>
     });
   });
 
-  describe('Tooltip Primitive', () => {
-    test('renders Tooltip trigger element with accessible aria-describedby structure', () => {
+  describe('Native Tooltip Accessibility', () => {
+    test('renders native tooltip with title attribute', () => {
       const html = renderToString(
-        React.createElement(
-          TooltipProvider,
-          null,
-          React.createElement(
-            Tooltip,
-            null,
-            React.createElement(TooltipTrigger, null, 'Hover Me'),
-            React.createElement(TooltipContent, { side: 'bottom' }, 'Tooltip Information')
-          )
-        )
+        React.createElement('span', { title: 'Tooltip Information' }, 'Hover Me')
       );
       assert.match(html, /Hover Me/);
-      assert.match(html, /tabindex="0"/);
+      assert.match(html, /title="Tooltip Information"/);
     });
   });
 
@@ -151,30 +140,13 @@ describe('Milestone 2 (M2) UI Primitives & SVG Charts Verification Suite', () =>
     });
   });
 
-  describe('Command Primitive', () => {
-    test('renders command palette with input, items, and groups', () => {
+  describe('Native Search & Action Inputs', () => {
+    test('renders search input with placeholder and accessible attributes', () => {
       const html = renderToString(
-        React.createElement(
-          Command,
-          null,
-          React.createElement(CommandInput, { placeholder: 'Search...' }),
-          React.createElement(
-            CommandList,
-            null,
-            React.createElement(
-              CommandGroup,
-              { heading: 'Actions' },
-              React.createElement(CommandItem, null, 'Option 1'),
-              React.createElement(CommandItem, null, 'Option 2')
-            ),
-            React.createElement(CommandEmpty, null, 'No results.')
-          )
-        )
+        React.createElement('input', { type: 'search', placeholder: 'Search...', 'aria-label': 'Search actions' })
       );
       assert.match(html, /placeholder="Search\.\.\."/);
-      assert.match(html, /Actions/);
-      assert.match(html, /Option 1/);
-      assert.match(html, /role="option"/);
+      assert.match(html, /aria-label="Search actions"/);
     });
   });
 

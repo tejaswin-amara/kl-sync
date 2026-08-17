@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useToast, ToastItem } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { X, CheckCircle2, AlertTriangle, AlertCircle, Info } from 'lucide-react';
+import { X, CheckCircle2, AlertTriangle, AlertCircle, Info } from '@/components/ui/icons';
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (

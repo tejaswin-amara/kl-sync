@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { decodeSession } from '@/lib/session';
+import { decodeSession, isDemoSession } from '@/lib/session';
+import { resolveSessionToken, checkRateLimit, getClientIP } from '@/lib/request-utils';
 import {
   fetchAttendanceData,
   fetchTimetableData,
@@ -32,6 +33,15 @@ async function handleProxy(
     const resolvedParams = await params;
     const moduleName = resolvedParams.module;
 
+    const clientIP = getClientIP(request);
+    const rl = checkRateLimit(`erp-proxy:${clientIP}`, 1000, 60_000);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'Too many requests. Please slow down.' },
+        { status: 429 }
+      );
+    }
+
     // Extract parameter payload from POST body or query parameters
     let body: Record<string, string> = {};
     if (request.method === 'POST') {
@@ -43,13 +53,7 @@ async function handleProxy(
     const searchParams = request.nextUrl.searchParams;
 
     let session: ScraperSession;
-    const sessionCookie = request.cookies.get('kl_erp_session');
-    const sessionValue =
-      sessionCookie?.value ||
-      request.headers.get('x-session-id') ||
-      body.sessionId ||
-      searchParams.get('sessionId') ||
-      searchParams.get('session_id');
+    const sessionValue = resolveSessionToken(request, body);
 
     if (sessionValue) {
       try {
@@ -113,6 +117,11 @@ async function handleProxy(
       'profile',
       'cgpa',
       'fee',
+      'hostels',
+      'hostel',
+      'exam-seating',
+      'circulars',
+      'library',
     ];
     if (!knownModules.includes(moduleName) && !ERP_ENDPOINTS[moduleName]) {
       return NextResponse.json(
@@ -121,14 +130,7 @@ async function handleProxy(
       );
     }
 
-    const isDemoSession =
-      resolvedCsrf?.includes('demo_csrf') ||
-      session.csrfToken?.includes('demo_csrf') ||
-      session.cookies?.some((c) => c.value?.includes('demo')) ||
-      !session.cookies ||
-      session.cookies.length === 0;
-
-    if (isDemoSession) {
+    if (isDemoSession(session)) {
       if (moduleName === 'attendance') {
         return NextResponse.json({
           success: true,
@@ -171,6 +173,67 @@ async function handleProxy(
         return NextResponse.json({
           success: true,
           data: DEMO_FEE_ITEMS,
+        });
+      }
+      if (moduleName === 'circulars') {
+        return NextResponse.json({
+          success: true,
+          data: [
+            {
+              'Circular No': 'CIR/2026/08',
+              Subject: 'Commencement of Even Semester Registration',
+              Date: '2026-08-10',
+              Department: 'Academic Affairs',
+            },
+            {
+              'Circular No': 'CIR/2026/07',
+              Subject: 'Mid-Semester Examination Schedule Notification',
+              Date: '2026-08-01',
+              Department: 'Examination Cell',
+            },
+          ],
+        });
+      }
+      if (moduleName === 'hostels') {
+        return NextResponse.json({
+          success: true,
+          data: [
+            {
+              'Hostel Name': 'Tulasi Block',
+              'Room No': 'T-402',
+              'Bed Type': 'Non-AC Attached',
+              Status: 'Occupied',
+            },
+          ],
+        });
+      }
+      if (moduleName === 'library') {
+        return NextResponse.json({
+          success: true,
+          data: [
+            {
+              'Book Title': 'Introduction to Algorithms (CLRS)',
+              'Accession No': 'LIB-94820',
+              'Issue Date': '2026-08-01',
+              'Due Date': '2026-08-25',
+              Fine: '₹0.00',
+            },
+          ],
+        });
+      }
+      if (moduleName === 'exam-seating') {
+        return NextResponse.json({
+          success: true,
+          data: [
+            {
+              'Subject Code': '23CS2101R',
+              'Subject Name': 'Data Structures & Algorithms',
+              'Exam Date': '2026-09-02',
+              Session: 'FN (09:30 AM - 12:30 PM)',
+              'Room No': 'R-301',
+              'Desk No': 'D-14',
+            },
+          ],
         });
       }
     }

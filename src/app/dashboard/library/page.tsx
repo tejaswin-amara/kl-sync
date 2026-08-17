@@ -1,7 +1,7 @@
 'use client';
 
 import ERPTablePage from '@/components/ERPTablePage';
-import { BookOpen } from 'lucide-react';
+import { BookOpen } from '@/components/ui/icons';
 
 export default function LibraryPage() {
   return (

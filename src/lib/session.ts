@@ -7,12 +7,28 @@ const ENC_PREFIX = 'enc.';
 const B64_PREFIX = 'b64.';
 
 function getSecret(): string {
-  return (
-    process.env.SESSION_SECRET ||
-    process.env.NEXTAUTH_SECRET ||
-    process.env.VERCEL_URL ||
-    'kl-sync-production-session-fallback-secret-key-2026'
-  );
+  if (process.env.SESSION_SECRET) return process.env.SESSION_SECRET;
+  if (process.env.NEXTAUTH_SECRET) return process.env.NEXTAUTH_SECRET;
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('[SECURITY FATAL] SESSION_SECRET environment variable is missing in production!');
+  }
+
+  return 'kl-sync-dev-fallback-secret-do-not-use-in-prod';
+}
+
+export class SessionDecodeError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'SessionDecodeError';
+  }
+}
+
+export function isDemoSession(session: ScraperSession | null | undefined): boolean {
+  if (!session) return true;
+  if (!session.csrfToken || session.csrfToken.includes('demo')) return true;
+  if (!session.cookies || session.cookies.length === 0) return true;
+  return session.cookies.some((c) => c.value?.includes('demo'));
 }
 
 async function getCryptoKey(): Promise<CryptoKey> {
@@ -45,6 +61,9 @@ export async function encodeSession(session: ScraperSession): Promise<string> {
 
     return ENC_PREFIX + Buffer.from(combined).toString('base64');
   } catch (err) {
+    if (err instanceof Error && err.message.includes('[SECURITY FATAL]')) {
+      throw err;
+    }
     console.error('[SESSION] Failed to encode session, fallback to b64:', err);
     return B64_PREFIX + Buffer.from(JSON.stringify(session), 'utf-8').toString('base64');
   }

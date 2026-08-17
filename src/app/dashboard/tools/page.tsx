@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { Loader2, Wrench, AlertCircle, Percent, Target } from 'lucide-react';
+import { Loader2, Wrench, AlertCircle, Percent, Target } from '@/components/ui/icons';
 import { SimpleCalculator } from '@/components/attendance-calculator';
 
 import { processERPDataForCGPA } from '@/lib/cgpa';

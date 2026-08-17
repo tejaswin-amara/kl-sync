@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
-import {
-  LS_ERP_YEAR,
-  LS_ERP_SEM,
-  LS_ACADEMIC_YEARS,
-  LS_SEMESTERS,
-  SS_ACADEMIC_YEARS,
-  SS_SEMESTERS,
-} from '@/lib/constants';
+
+const LS_ERP_YEAR = 'kl_erp_year';
+const LS_ERP_SEM = 'kl_erp_sem';
+const LS_ACADEMIC_YEARS = 'kl_erp_academic_years';
+const LS_SEMESTERS = 'kl_erp_semesters';
+const SS_ACADEMIC_YEARS = 'kl_erp_academic_years';
+const SS_SEMESTERS = 'kl_erp_semesters';
 
 export interface SemesterOption {
   value: string;

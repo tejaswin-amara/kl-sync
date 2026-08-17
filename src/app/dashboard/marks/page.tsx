@@ -9,7 +9,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { exportTableToCSV } from '@/lib/utils';
-import { Search, Download, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Download, ChevronDown, ChevronUp } from '@/components/ui/icons';
 import { Input } from '@/components/ui/input';
 import { GpaTrendChart } from './GpaTrendChart';
 

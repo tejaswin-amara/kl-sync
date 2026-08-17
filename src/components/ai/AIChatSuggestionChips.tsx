@@ -1,6 +1,6 @@
 'use client';
 
-import { Calendar, DollarSign, Award, Target, BookOpen } from 'lucide-react';
+import { Calendar, DollarSign, Award, Target, BookOpen } from '@/components/ui/icons';
 
 interface SuggestionChip {
   label: string;

@@ -1,7 +1,7 @@
 'use client';
 
 import ERPTablePage from '@/components/ERPTablePage';
-import { Megaphone } from 'lucide-react';
+import { Megaphone } from '@/components/ui/icons';
 
 export default function CircularsPage() {
   return (

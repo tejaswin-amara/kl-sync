@@ -1,6 +1,6 @@
 'use client';
 
-import { Sparkles, User, AlertTriangle, CheckCircle2, DollarSign, Target, Award, BookOpen } from 'lucide-react';
+import { Sparkles, User, AlertTriangle, CheckCircle2, DollarSign, Target, Award, BookOpen } from '@/components/ui/icons';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 

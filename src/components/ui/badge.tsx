@@ -8,6 +8,7 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
     | 'success'
     | 'warning'
     | 'danger'
+    | 'destructive'
     | 'info'
     | 'outline'
     | 'emerald'
@@ -22,36 +23,51 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   icon?: React.ReactNode;
 }
 
-const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
+const variantStyles: Record<string, string> = {
+  default: 'bg-surface-2 text-zinc-300 border-border',
+  secondary: 'bg-secondary text-secondary-foreground border-border',
+  success: 'bg-success/10 text-success border-success/20',
+  warning: 'bg-warning/10 text-amber-300 border-warning/20',
+  danger: 'bg-destructive/10 text-red-300 border-destructive/20',
+  destructive: 'bg-destructive/10 text-red-300 border-destructive/20',
+  info: 'bg-primary/10 text-indigo-300 border-primary/20',
+  outline: 'bg-transparent text-zinc-300 border-border',
+  emerald: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  present: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+  absent: 'bg-rose-500/15 text-rose-300 border-rose-500/30',
+  pending: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+  neutral: 'bg-zinc-800 text-zinc-300 border-zinc-700',
+  glass: 'glass-card text-foreground border-white/10 shadow-xs',
+};
+
+const sizeStyles: Record<string, string> = {
+  sm: 'text-[10px] px-2 py-0.5',
+  md: 'text-[11px] px-2.5 py-1',
+  lg: 'text-xs px-3 py-1.5',
+};
+
+const dotColorStyles: Record<string, string> = {
+  success: 'bg-success',
+  emerald: 'bg-success',
+  present: 'bg-success',
+  warning: 'bg-warning',
+  pending: 'bg-warning',
+  danger: 'bg-destructive',
+  destructive: 'bg-destructive',
+  absent: 'bg-destructive',
+  info: 'bg-primary',
+};
+
+export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
   ({ className, variant = 'default', size = 'md', dot, pulse, icon, children, ...props }, ref) => {
     return (
       <span
         ref={ref}
         className={cn(
           'inline-flex items-center gap-1.5 font-semibold tracking-wide rounded-full border transition-all select-none',
-          // Size scale
-          size === 'sm' && 'text-[10px] px-2 py-0.5',
-          size === 'md' && 'text-[11px] px-2.5 py-1',
-          size === 'lg' && 'text-xs px-3 py-1.5',
-
-          // Variants
-          variant === 'default' && 'bg-surface-2 text-zinc-300 border-border',
-          variant === 'secondary' && 'bg-secondary text-secondary-foreground border-border',
-          variant === 'success' && 'bg-success/10 text-success border-success/20',
-          variant === 'warning' && 'bg-warning/10 text-amber-300 border-warning/20',
-          variant === 'danger' && 'bg-destructive/10 text-red-300 border-destructive/20',
-          variant === 'info' && 'bg-primary/10 text-indigo-300 border-primary/20',
-          variant === 'outline' && 'bg-transparent text-zinc-300 border-border',
-          variant === 'emerald' && 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-          variant === 'present' && 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
-          variant === 'absent' && 'bg-rose-500/15 text-rose-300 border-rose-500/30',
-          variant === 'pending' && 'bg-amber-500/15 text-amber-300 border-amber-500/30',
-          variant === 'neutral' && 'bg-zinc-800 text-zinc-300 border-zinc-700',
-          variant === 'glass' && 'glass-card text-foreground border-white/10 shadow-xs',
-
-          // Pulse animation container
+          sizeStyles[size],
+          variantStyles[variant],
           pulse && 'animate-pulse',
-
           className
         )}
         {...props}
@@ -61,11 +77,7 @@ const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
             className={cn(
               'w-1.5 h-1.5 rounded-full shrink-0',
               pulse && 'animate-ping',
-              variant === 'success' || variant === 'emerald' || variant === 'present' ? 'bg-success' :
-              variant === 'warning' || variant === 'pending' ? 'bg-warning' :
-              variant === 'danger' || variant === 'absent' ? 'bg-destructive' :
-              variant === 'info' ? 'bg-primary' :
-              'bg-muted-foreground'
+              dotColorStyles[variant] || 'bg-muted-foreground'
             )}
           />
         )}
@@ -76,5 +88,3 @@ const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
   }
 );
 Badge.displayName = 'Badge';
-
-export { Badge };

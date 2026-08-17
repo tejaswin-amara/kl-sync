@@ -1,40 +1,70 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
-export function useNativeQuery<T>(key: string | null | readonly (string | null)[], fetcher: (key: unknown) => Promise<T>) {
+const inFlightDedupeMap = new Map<string, Promise<unknown>>();
+
+function fetchWithDedupe<T>(keyStr: string, fetcherFn: () => Promise<T>): Promise<T> {
+  const existing = inFlightDedupeMap.get(keyStr);
+  if (existing) return existing as Promise<T>;
+
+  const promise = fetcherFn().finally(() => {
+    inFlightDedupeMap.delete(keyStr);
+  });
+  inFlightDedupeMap.set(keyStr, promise);
+  return promise;
+}
+
+export function useNativeQuery<T>(
+  key: string | null | readonly (string | null)[],
+  fetcher: (key: unknown) => Promise<T>
+) {
   const [data, setData] = useState<T | undefined>(undefined);
   const [error, setError] = useState<Error | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const url = Array.isArray(key) ? key[0] : key;
-  const shouldFetch = key !== null && url !== null && (Array.isArray(key) ? key.every(Boolean) : true);
-  
-  // stringify key for dependency array
+  const shouldFetch =
+    key !== null && url !== null && (Array.isArray(key) ? key.every(Boolean) : true);
+
   const keyStr = JSON.stringify(key);
+  const mountedRef = useRef(true);
+  const keyRef = useRef(key);
+
+  useEffect(() => {
+    keyRef.current = key;
+  });
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const mutate = useCallback(async () => {
     if (!shouldFetch || !url) return;
-    setIsLoading(true);
+    if (mountedRef.current) setIsLoading(true);
+
     try {
-      const result = await fetcher(key);
-      setData(result);
-      setError(null);
+      const result = await fetchWithDedupe(keyStr, () => fetcher(keyRef.current));
+      if (mountedRef.current) {
+        setData(result);
+        setError(null);
+      }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err : new Error(String(err)));
+      if (mountedRef.current) {
+        setError(err instanceof Error ? err : new Error(String(err)));
+      }
     } finally {
-      setIsLoading(false);
+      if (mountedRef.current) {
+        setIsLoading(false);
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [keyStr, shouldFetch, url, fetcher]);
 
   useEffect(() => {
-    let mounted = true;
-    if (mounted && shouldFetch) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (shouldFetch) {
       void mutate();
     }
-    return () => {
-      mounted = false;
-    };
   }, [mutate, shouldFetch]);
 
   return { data, error, isLoading, mutate };

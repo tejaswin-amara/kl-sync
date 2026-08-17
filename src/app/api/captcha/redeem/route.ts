@@ -1,14 +1,13 @@
 import { validateChallenge } from "capjs-core";
 import { NextResponse } from "next/server";
-import { consumeNonce, storeRedeemedToken } from "@/lib/captcha";
+import { consumeNonce, storeRedeemedToken, getCapSecret } from "@/lib/captcha";
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const secret =
-      process.env.CAP_SECRET || "kl-sync-cap-secret-key-2026-production-fallback";
+    const secret = getCapSecret();
 
     const result = await validateChallenge(secret, body, {
       scope: "login",

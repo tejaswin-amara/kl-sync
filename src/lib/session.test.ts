@@ -62,3 +62,49 @@ test('decodeSession returns demo fallback on null, undefined, or empty input', a
   assert.strictEqual((await decodeSession('')).csrfToken, 'demo_csrf_token_123');
 });
 
+test('isDemoSession correctly identifies demo vs real sessions', async () => {
+  const { isDemoSession } = await import('./session');
+  assert.strictEqual(isDemoSession(null), true);
+  assert.strictEqual(isDemoSession(undefined), true);
+
+  const demoSess: ScraperSession = {
+    cookies: [{ name: 'PHPSESSID', value: 'demo_session' }],
+    csrfToken: 'demo_csrf_token_123',
+  };
+  assert.strictEqual(isDemoSession(demoSess), true);
+
+  const realSess: ScraperSession = {
+    cookies: [{ name: 'PHPSESSID', value: 'real_php_session_999' }],
+    csrfToken: 'real_csrf_abc',
+  };
+  assert.strictEqual(isDemoSession(realSess), false);
+});
+
+test('encodeSession throws [SECURITY FATAL] in production when SESSION_SECRET is missing', async () => {
+  const origNodeEnv = process.env.NODE_ENV;
+  const origSecret = process.env.SESSION_SECRET;
+  const origNextAuthSecret = process.env.NEXTAUTH_SECRET;
+
+  try {
+    delete process.env.SESSION_SECRET;
+    delete process.env.NEXTAUTH_SECRET;
+    (process.env as Record<string, string | undefined>).NODE_ENV = 'production';
+
+    const sampleSession: ScraperSession = {
+      cookies: [{ name: 'PHPSESSID', value: 'val' }],
+      csrfToken: 'csrf',
+    };
+
+    await assert.rejects(
+      async () => {
+        await encodeSession(sampleSession);
+      },
+      (err: Error) => err.message.includes('[SECURITY FATAL]')
+    );
+  } finally {
+    (process.env as Record<string, string | undefined>).NODE_ENV = origNodeEnv;
+    if (origSecret) process.env.SESSION_SECRET = origSecret;
+    if (origNextAuthSecret) process.env.NEXTAUTH_SECRET = origNextAuthSecret;
+  }
+});
+

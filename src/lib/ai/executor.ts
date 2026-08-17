@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { tool, generateText } from 'ai';
 import { openai } from '@ai-sdk/openai';
-import { MockLanguageModelV4 } from 'ai/test';
+import { matchOfflineQuery } from './fallback-matcher';
 import type { ScraperSession } from '@/lib/session';
 import {
   fetchAttendanceData,
@@ -592,162 +592,6 @@ export function createErpTools(context?: ToolExecutionContext) {
   };
 }
 
-export function getMockLanguageModel(userQuery: string) {
-  const q = userQuery.toLowerCase().trim();
-  let toolCall: { toolName: string; args: Record<string, unknown> } | null = null;
-
-  if (
-    q.includes('target') ||
-    q.includes('how many classes') ||
-    q.includes('bunk') ||
-    q.includes('need for') ||
-    q.includes('need to attend') ||
-    q.includes('classes needed') ||
-    q.includes('need to reach') ||
-    q.includes('miss')
-  ) {
-    toolCall = {
-      toolName: 'calculateAttendanceTarget',
-      args: { currentAttended: 33, currentTotal: 40, targetPercent: 75 },
-    };
-  } else if (
-    q.includes('cgpa') ||
-    q.includes('sgpa') ||
-    q.includes('gpa') ||
-    q.includes('predict') ||
-    q.includes('grade roadmap')
-  ) {
-    toolCall = {
-      toolName: 'predictCGPA',
-      args: {
-        currentCGPA: 8.42,
-        completedCredits: 72,
-        newCourses: [
-          { credits: 4, expectedGrade: 'O' },
-          { credits: 3, expectedGrade: 'A+' },
-        ],
-      },
-    };
-  } else if (
-    q.includes('attendance') ||
-    q.includes('present') ||
-    q.includes('absent') ||
-    q.includes('conducted')
-  ) {
-    let subject: string | undefined = undefined;
-    if (q.includes('os') || q.includes('operating system')) subject = 'OS';
-    else if (q.includes('dsa') || q.includes('data structure')) subject = '23CS2101R';
-    else if (q.includes('dbms') || q.includes('database')) subject = '23CS2103R';
-    else if (q.includes('coa') || q.includes('architecture')) subject = '23CS2102R';
-
-    toolCall = {
-      toolName: 'getAttendance',
-      args: subject ? { subject } : {},
-    };
-  } else if (
-    q.includes('timetable') ||
-    q.includes('schedule') ||
-    q.includes('class') ||
-    q.includes('classes today') ||
-    q.includes('tomorrow') ||
-    q.includes('period') ||
-    q.includes('room')
-  ) {
-    let day = 'Today';
-    if (q.includes('tomorrow')) day = 'Tomorrow';
-    else if (q.includes('monday') || q.includes('mon')) day = 'Monday';
-    else if (q.includes('tuesday') || q.includes('tue')) day = 'Tuesday';
-    else if (q.includes('wednesday') || q.includes('wed')) day = 'Wednesday';
-    else if (q.includes('thursday') || q.includes('thu')) day = 'Thursday';
-    else if (q.includes('friday') || q.includes('fri')) day = 'Friday';
-
-    toolCall = {
-      toolName: 'getTimetable',
-      args: { day },
-    };
-  } else if (
-    q.includes('fee') ||
-    q.includes('dues') ||
-    q.includes('payment') ||
-    q.includes('balance') ||
-    q.includes('tuition') ||
-    q.includes('pending')
-  ) {
-    toolCall = {
-      toolName: 'getFeeDetails',
-      args: {},
-    };
-  } else if (
-    q.includes('mark') ||
-    q.includes('score') ||
-    q.includes('internal') ||
-    q.includes('exam') ||
-    q.includes('assignment')
-  ) {
-    toolCall = {
-      toolName: 'getMarks',
-      args: {},
-    };
-  } else if (
-    q.includes('profile') ||
-    q.includes('student info') ||
-    q.includes('roll number') ||
-    q.includes('university id') ||
-    q.includes('who am i') ||
-    q.includes('my details')
-  ) {
-    toolCall = {
-      toolName: 'getStudentProfile',
-      args: {},
-    };
-  }
-
-  return new MockLanguageModelV4({
-    doGenerate: (async () => {
-      if (toolCall) {
-        return {
-          rawCall: { rawPrompt: null, rawSettings: {} },
-          finishReason: 'tool-calls' as const,
-          usage: {
-            inputTokens: { total: 10 },
-            outputTokens: { total: 10 },
-          },
-          content: [
-            {
-              type: 'tool-call' as const,
-              toolCallId: 'call_' + Date.now(),
-              toolName: toolCall.toolName,
-              input: JSON.stringify(toolCall.args),
-            },
-          ],
-          warnings: [],
-        };
-      }
-      return {
-        rawCall: { rawPrompt: null, rawSettings: {} },
-        finishReason: 'stop' as const,
-        usage: {
-          inputTokens: { total: 10 },
-          outputTokens: { total: 10 },
-        },
-        content: [
-          {
-            type: 'text' as const,
-            text:
-              'I am KL Sync Copilot, your AI assistant for KL University. You can ask me about:\n\n' +
-              '- 🎯 **Attendance**: *"What is my attendance in OS?"* or *"How many classes can I miss?"*\n' +
-              '- 📅 **Timetable**: *"Show my classes today"* or *"What is my schedule for tomorrow?"*\n' +
-              '- 📝 **Marks**: *"Show internal exam marks"* or *"What are my scores?"*\n' +
-              '- 💳 **Fee Details**: *"Show fee balance"* or *"How much fee do I owe?"*\n' +
-              '- 🎓 **CGPA**: *"Predict CGPA"* or *"Generate grade roadmap"*',
-          },
-        ],
-        warnings: [],
-      };
-    }) as unknown as MockLanguageModelV4['doGenerate'],
-  });
-}
-
 export async function processAIChat(
   messages: Array<{ role: string; content: string }>,
   context?: ToolExecutionContext
@@ -755,16 +599,24 @@ export async function processAIChat(
   const lastMessage = messages[messages.length - 1];
   const userQuery = lastMessage?.content || '';
 
+  if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.trim() === '') {
+    const offlineResult = await matchOfflineQuery(userQuery, context);
+    return {
+      assistantResponseText: offlineResult.text,
+      toolCalls: offlineResult.toolCalls,
+    };
+  }
+
   const tools = createErpTools(context);
-  const model =
-    process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim() !== ''
-      ? openai('gpt-4o')
-      : getMockLanguageModel(userQuery);
+  const formattedMessages = messages.map((m) => ({
+    role: (m.role === 'assistant' || m.role === 'system' ? m.role : 'user') as 'user' | 'assistant' | 'system',
+    content: m.content,
+  }));
 
   const sdkResult = await generateText({
-    model,
+    model: openai('gpt-4o'),
     tools,
-    prompt: userQuery,
+    messages: formattedMessages,
   });
 
   const toolCalls: Array<{

@@ -76,10 +76,12 @@ export async function GET() {
       {
         captchaImage,
         solvedCaptcha,
+        sessionId,
       },
       {
         headers: {
           'x-session-id': sessionId,
+          'Access-Control-Expose-Headers': 'x-session-id',
           'Cache-Control': 'no-store, max-age=0',
         },
       }

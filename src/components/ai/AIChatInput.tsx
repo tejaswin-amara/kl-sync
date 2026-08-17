@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, KeyboardEvent } from 'react';
-import { Send, Sparkles } from 'lucide-react';
+import { Send, Sparkles } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
 
 interface AIChatInputProps {

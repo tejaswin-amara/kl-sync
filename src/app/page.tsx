@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { useState, useEffect } from 'react';
-import { RefreshCw, LogIn, AlertCircle, ShieldCheck, User, Lock, HelpCircle, Loader2 } from 'lucide-react';
+import { RefreshCw, LogIn, AlertCircle, ShieldCheck, User, Lock, HelpCircle, Loader2 } from '@/components/ui/icons';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
@@ -42,10 +42,12 @@ export default function LoginPage() {
     if (!preserveError) setError(null);
     try {
       const response = await fetch('/api/captcha', { signal: AbortSignal.timeout(4500) });
-      if (!response.ok) throw new Error('Failed to load captcha');
-      const sid = response.headers.get('x-session-id');
-      if (sid) setSessionId(sid);
       const data = await response.json();
+      const sid = response.headers.get('x-session-id') || data.sessionId;
+      if (sid) {
+        setSessionId(sid);
+        try { sessionStorage.setItem('kl_erp_session_id', sid); } catch {}
+      }
       setCaptchaImage(data.captchaImage);
       if (data.solvedCaptcha) {
         setCaptcha(data.solvedCaptcha);
@@ -59,6 +61,12 @@ export default function LoginPage() {
         'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCAxMjAgNDAiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNMCwyMCBRMzAsNSA2MCwyMCBUMTIwLDIwIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTAsMTAgUTQwLDMwIDgwLDEwIFQxMjAsMzAiIHN0cm9rZT0iI2Q1ZDVkNSIgc3Ryb2tlLXdpZHRoPSIxLjUiIGZpbGw9Im5vbmUiLz48dGV4dCB4PSI5MCUiIHk9IjU1JSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9Im1vbm9zcGFjZSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMxMTExMTEiIGxldHRlci1zcGFjaW5nPSIzIj48ODg4PC90ZXh0Pjwvc3ZnPg==';
       setCaptchaImage(fallbackSvg);
       setCaptcha('8888');
+      const fallbackSid =
+        'b64.eyJjb29raWVzIjpbIHsgIm5hbWUiOiAiUEhQU0VTU0lEIiwgInZhbHVlIjogImRlbW9fcGhwc2Vzc2lkXzEyMyIgfSBdLCAiY3NyZlRva2VuIjogImRlbW9fY3NyZlRva2VuXzEyMyIsICJ1c2VyQWdlbnQiOiAiTW96aWxsYS81LjAiIH0=';
+      setSessionId(fallbackSid);
+      try {
+        sessionStorage.setItem('kl_erp_session_id', fallbackSid);
+      } catch {}
       return '8888';
     } finally {
       setCaptchaLoading(false);
@@ -99,14 +107,22 @@ export default function LoginPage() {
     setStatus(null);
 
     try {
+      const demoFallback =
+        'b64.eyJjb29raWVzIjpbIHsgIm5hbWUiOiAiUEhQU0VTU0lEIiwgInZhbHVlIjogImRlbW9fcGhwc2Vzc2lkXzEyMyIgfSBdLCAiY3NyZlRva2VuIjogImRlbW9fY3NyZlRva2VuXzEyMyIsICJ1c2VyQWdlbnQiOiAiTW96aWxsYS81LjAiIH0=';
+      const effectiveSessionId =
+        sessionId ||
+        (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('kl_erp_session_id') : '') ||
+        (username === '2100030000' || username === 'demo' ? demoFallback : '');
+
       const response = await fetch('/api/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-session-id': sessionId },
+        headers: { 'Content-Type': 'application/json', 'x-session-id': effectiveSessionId },
         body: JSON.stringify({
           username,
           password,
           captcha,
           captchaToken,
+          sessionId: effectiveSessionId,
           deviceId: deviceId || (typeof localStorage !== 'undefined' ? localStorage.getItem('kl_erp_device_id') : '') || '',
         }),
       });
@@ -371,7 +387,7 @@ export default function LoginPage() {
                 type="submit"
                 size="lg"
                 isLoading={loading}
-                disabled={loading || !captchaToken}
+                disabled={loading || !captcha}
                 className="w-full mt-3 min-h-[44px]"
               >
                 <LogIn className="w-4 h-4" />

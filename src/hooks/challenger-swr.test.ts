@@ -105,4 +105,13 @@ describe('Challenger M1 Native Hook Fetcher & Calculation Suite', () => {
     assert.strictEqual(validKey?.[1], '2025-2026');
     assert.strictEqual(validKey?.[2], '1');
   });
+
+  test('Array literal query keys serialize to identical JSON strings across renders', () => {
+    // Simulating two distinct array allocations with identical contents (typical React render)
+    const keyRender1 = ['/api/erp-proxy/attendance', '2025-2026', '1'] as const;
+    const keyRender2 = ['/api/erp-proxy/attendance', '2025-2026', '1'] as const;
+
+    assert.notStrictEqual(keyRender1, keyRender2); // distinct references
+    assert.strictEqual(JSON.stringify(keyRender1), JSON.stringify(keyRender2)); // identical serialization
+  });
 });

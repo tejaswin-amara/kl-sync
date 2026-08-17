@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useProfile } from '@/hooks/useProfile';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle } from '@/components/ui/icons';
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<string | null>(null);

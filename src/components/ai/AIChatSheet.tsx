@@ -1,6 +1,6 @@
 'use client';
 
-import { Sparkles, Maximize2, Trash2 } from 'lucide-react';
+import { Sparkles, Maximize2, Trash2 } from '@/components/ui/icons';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { AIChatMessageList, ChatMessage } from './AIChatMessageList';

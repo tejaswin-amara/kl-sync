@@ -35,8 +35,14 @@ jobs:
       - name: Run TypeScript Typecheck
         run: npx tsc --noEmit
 
+      - name: Run Security Audit
+        run: npm audit --audit-level=high
+
       - name: Run Unit Tests
         run: npm test
+
+      - name: Run Agent-as-Judge AI Evaluation
+        run: npx tsx scripts/agent-as-judge.ts
 
       - name: Build Next.js Production Bundle
         run: npm run build

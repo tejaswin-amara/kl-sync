@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, AlertCircle, Armchair, ChevronDown, ChevronUp } from 'lucide-react';
+import { Loader2, AlertCircle, Armchair, ChevronDown, ChevronUp } from '@/components/ui/icons';
 
 function ExamSeatingMobileCard({ row }: { row: Record<string, unknown> }) {
   const [expanded, setExpanded] = useState(false);

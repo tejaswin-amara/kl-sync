@@ -21,7 +21,7 @@ import {
   MapPin,
   RefreshCw,
   Filter,
-} from 'lucide-react';
+} from '@/components/ui/icons';
 
 import { useTimetable } from '@/hooks/useTimetable';
 

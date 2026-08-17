@@ -1,23 +1,19 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Sparkles } from '@/components/ui/icons';
 import { useAriaAnnounce } from '@/components/ui/aria-live';
 import { AIChatSheet } from './AIChatSheet';
-import { AIChatDialog } from './AIChatDialog';
 import type { ChatMessage } from './AIChatMessageList';
 
 export interface AICopilotProps {
   initialOpen?: boolean;
-  defaultMode?: 'sheet' | 'dialog';
 }
 
 export function AICopilot({
   initialOpen = false,
-  defaultMode = 'sheet',
 }: AICopilotProps) {
   const [isOpen, setIsOpen] = useState(initialOpen);
-  const [mode, setMode] = useState<'sheet' | 'dialog'>(defaultMode);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [status, setStatus] = useState<'idle' | 'thinking' | 'executing_tool' | 'error'>('idle');
   const [activeTool, setActiveTool] = useState<string | undefined>(undefined);
@@ -143,30 +139,16 @@ export function AICopilot({
         </kbd>
       </button>
 
-      {/* Render Sheet or Dialog based on mode */}
-      {mode === 'sheet' ? (
-        <AIChatSheet
-          open={isOpen}
-          onOpenChange={setIsOpen}
-          messages={messages}
-          status={status}
-          activeTool={activeTool}
-          onSendMessage={handleSendMessage}
-          onClearChat={handleClearChat}
-          onToggleDialogMode={() => setMode('dialog')}
-        />
-      ) : (
-        <AIChatDialog
-          open={isOpen}
-          onOpenChange={setIsOpen}
-          messages={messages}
-          status={status}
-          activeTool={activeTool}
-          onSendMessage={handleSendMessage}
-          onClearChat={handleClearChat}
-          onToggleSheetMode={() => setMode('sheet')}
-        />
-      )}
+      {/* Render AIChatSheet directly */}
+      <AIChatSheet
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        messages={messages}
+        status={status}
+        activeTool={activeTool}
+        onSendMessage={handleSendMessage}
+        onClearChat={handleClearChat}
+      />
     </>
   );
 }

@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio';
+import { registerCourseTitles } from '../course-utils';
 import {
   ERP_URL,
   LOGIN_URL,
@@ -328,6 +329,7 @@ export async function fetchAttendanceData(
   }
 
   const attendanceData = parseGenericTable(courseListHtml || text);
+  registerCourseTitles(attendanceData);
   return {
     success: true,
     data: attendanceData,

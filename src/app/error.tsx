@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw } from '@/components/ui/icons';
 
 export default function RootError({
   error,
@@ -14,6 +14,11 @@ export default function RootError({
     console.error('Root error caught:', error);
   }, [error]);
 
+  const isDev = process.env.NODE_ENV === 'development';
+  const displayMessage = isDev && error?.message
+    ? error.message
+    : 'An unexpected application error occurred. Please try refreshing or logging in again.';
+
   return (
     <div className="min-h-[50vh] flex flex-col items-center justify-center p-6 text-center animate-up">
       <div className="max-w-md w-full p-8 rounded-[--radius-xl] bg-surface-1 border border-border shadow-xl">
@@ -24,7 +29,7 @@ export default function RootError({
           Application Error
         </h2>
         <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-          {error?.message || 'An unexpected error occurred while rendering this page.'}
+          {displayMessage}
         </p>
         <button
           onClick={() => reset()}

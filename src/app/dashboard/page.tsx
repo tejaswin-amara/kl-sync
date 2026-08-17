@@ -15,7 +15,7 @@ import {
   MapPin,
   User,
   RefreshCw,
-} from 'lucide-react';
+} from '@/components/ui/icons';
 
 import { StatCard } from '@/components/ui/stat-card';
 import { EmptyState } from '@/components/ui/empty-state';

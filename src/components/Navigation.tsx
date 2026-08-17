@@ -21,7 +21,7 @@ import {
   MoreHorizontal,
   X,
   ChevronLeft,
-} from 'lucide-react';
+} from '@/components/ui/icons';
 
 import { Badge } from '@/components/ui/badge';
 import { AICopilot } from '@/components/ai/AICopilot';

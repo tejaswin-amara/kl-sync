@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { decodeSession, ScraperSession } from '@/lib/session';
+import { decodeSession, isDemoSession, ScraperSession } from '@/lib/session';
+import { resolveSessionToken, checkRateLimit, getClientIP } from '@/lib/request-utils';
 import { processAIChat, ToolExecutionContext } from '@/lib/ai/executor';
 import { DEMO_SESSION } from '@/lib/fixtures';
 
@@ -12,6 +13,15 @@ interface ChatMessageInput {
 
 export async function POST(request: NextRequest) {
   try {
+    const clientIP = getClientIP(request);
+    const rl = checkRateLimit(`ai-chat:${clientIP}`, 500, 60_000);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'Rate limit exceeded. Please wait a moment before sending more messages.' },
+        { status: 429 }
+      );
+    }
+
     let body: Record<string, unknown> = {};
     try {
       body = await request.json();
@@ -39,15 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Session resolution
-    const sessionCookie = request.cookies.get('kl_erp_session')?.value;
-    const sessionToken =
-      sessionCookie ||
-      request.headers.get('x-session-id') ||
-      (typeof body.sessionId === 'string' ? body.sessionId : undefined) ||
-      (typeof body.session_id === 'string' ? body.session_id : undefined) ||
-      request.nextUrl.searchParams.get('sessionId') ||
-      request.nextUrl.searchParams.get('session_id') ||
-      undefined;
+    const sessionToken = resolveSessionToken(request);
 
     let session: ScraperSession;
     if (sessionToken) {
@@ -69,11 +71,7 @@ export async function POST(request: NextRequest) {
       request.nextUrl.searchParams.get('semesterId') ||
       '1';
 
-    const isDemo =
-      !session.cookies ||
-      session.cookies.length === 0 ||
-      session.csrfToken?.includes('demo') ||
-      session.cookies.some((c) => c.value?.includes('demo'));
+    const isDemo = isDemoSession(session);
 
     const executionContext: ToolExecutionContext = {
       session,
@@ -97,12 +95,11 @@ export async function POST(request: NextRequest) {
     });
   } catch (err: unknown) {
     console.error('[AI CHAT API] Unexpected handler error:', err);
-    const errorMsg = err instanceof Error ? err.message : String(err);
     return NextResponse.json({
       success: true,
       message: {
         role: 'assistant',
-        content: `I encountered an issue processing your request: ${errorMsg}. Please try asking again or refresh your session.`,
+        content: 'I encountered an issue processing your request. Please try asking again or refresh your session.',
       },
     });
   }
