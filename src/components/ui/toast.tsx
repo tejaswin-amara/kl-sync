@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useToast, ToastItem } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { X, CheckCircle2, AlertTriangle, AlertCircle, Info } from '@/components/ui/icons';
+import { triggerHaptic } from '@/lib/fluid-motion';
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
@@ -35,17 +36,24 @@ export function Toaster() {
 function ToastSingle({ toast, onDismiss }: { toast: ToastItem; onDismiss: () => void }) {
   const { variant = 'default', title, description, action } = toast;
 
+  React.useEffect(() => {
+    if (variant === 'success') triggerHaptic('success');
+    else if (variant === 'destructive') triggerHaptic('error');
+    else if (variant === 'warning') triggerHaptic('warning');
+    else triggerHaptic('light');
+  }, [variant]);
+
   return (
     <div
       role={variant === 'destructive' ? 'alert' : 'status'}
       aria-live={variant === 'destructive' ? 'assertive' : 'polite'}
       className={cn(
-        'pointer-events-auto flex items-start gap-3 p-4 rounded-xl border shadow-lg animate-slide-in-right glass-panel transition-all',
-        variant === 'default' && 'border-border bg-surface-2/95 text-foreground',
-        variant === 'destructive' && 'border-destructive/30 bg-destructive/10 text-destructive-foreground',
-        variant === 'success' && 'border-success/30 bg-success/10 text-emerald-300',
-        variant === 'warning' && 'border-warning/30 bg-warning/10 text-amber-300',
-        variant === 'info' && 'border-primary/30 bg-primary/10 text-indigo-300'
+        'pointer-events-auto flex items-start gap-3 p-4 rounded-[--radius-xl] border shadow-2xl animate-spring-up apple-modal transition-all duration-[--duration-normal] ease-[--ease-spring-default]',
+        variant === 'default' && 'border-border/80 bg-surface-2/95 text-foreground',
+        variant === 'destructive' && 'border-destructive/35 bg-destructive/15 text-foreground',
+        variant === 'success' && 'border-success/35 bg-success/15 text-foreground',
+        variant === 'warning' && 'border-warning/35 bg-warning/15 text-foreground',
+        variant === 'info' && 'border-primary/35 bg-primary/15 text-foreground'
       )}
     >
       <div className="shrink-0 mt-0.5">
@@ -55,14 +63,17 @@ function ToastSingle({ toast, onDismiss }: { toast: ToastItem; onDismiss: () => 
         {variant === 'info' && <Info className="w-5 h-5 text-primary" />}
       </div>
       <div className="flex-1 min-w-0">
-        {title && <div className="text-sm font-semibold tracking-tight">{title}</div>}
-        {description && <div className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{description}</div>}
+        {title && <div className="text-sm font-semibold tracking-[-0.012em] font-heading">{title}</div>}
+        {description && <div className="text-xs text-muted-foreground mt-0.5 leading-relaxed font-normal">{description}</div>}
         {action && <div className="mt-2">{action}</div>}
       </div>
       <button
-        onClick={onDismiss}
+        onClick={() => {
+          triggerHaptic('light');
+          onDismiss();
+        }}
         aria-label="Close notification"
-        className="shrink-0 p-1 rounded-md text-muted-foreground hover:text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2 -mt-2"
+        className="shrink-0 p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-white/10 active:scale-90 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2 -mt-2 cursor-pointer"
       >
         <X className="w-4 h-4" />
       </button>

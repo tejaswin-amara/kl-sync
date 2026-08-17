@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { AttendanceChart } from './AttendanceChart';
 import { ChevronDown, ChevronUp, TrendingUp, TrendingDown, AlertTriangle } from '@/components/ui/icons';
 import { getSubjectTitle, getSubjectCode } from '@/lib/course-utils';
+import { triggerHaptic } from '@/lib/fluid-motion';
 
 function AttendanceMobileCard({ row }: { row: Record<string, unknown> }) {
   const [expanded, setExpanded] = useState(false);
@@ -42,11 +43,16 @@ function AttendanceMobileCard({ row }: { row: Record<string, unknown> }) {
   const subjectName = getSubjectTitle(code, title);
   const subjectCode = getSubjectCode(code);
 
+  const toggleExpand = () => {
+    triggerHaptic('selection');
+    setExpanded(!expanded);
+  };
+
   return (
-    <div className="p-4 rounded-xl border border-border/80 bg-surface-1/90 glass-card space-y-3">
+    <div className="p-4 rounded-[--radius-xl] border border-white/8 apple-card space-y-3 transition-all duration-[--duration-normal] ease-[--ease-spring-default]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-semibold text-foreground truncate">
+          <div className="text-sm font-semibold text-foreground truncate tracking-tight">
             {subjectName}
           </div>
           {subjectCode && (
@@ -55,14 +61,14 @@ function AttendanceMobileCard({ row }: { row: Record<string, unknown> }) {
             </div>
           )}
           {pctVal !== null && (
-            <div className="mt-1 flex items-center gap-2">
+            <div className="mt-1.5 flex items-center gap-2">
               <span
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold ${
+                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold tabular-numbers apple-pill ${
                   pctVal >= 85
-                    ? 'bg-success/10 text-success'
+                    ? 'bg-success/15 text-success border border-success/25'
                     : pctVal >= 75
-                    ? 'bg-warning/10 text-warning'
-                    : 'bg-destructive/10 text-destructive'
+                    ? 'bg-warning/15 text-warning border border-warning/25'
+                    : 'bg-destructive/15 text-destructive border border-destructive/25'
                 }`}
               >
                 {pctVal >= 85 ? (
@@ -80,21 +86,21 @@ function AttendanceMobileCard({ row }: { row: Record<string, unknown> }) {
 
         <button
           type="button"
-          onClick={() => setExpanded(!expanded)}
+          onClick={toggleExpand}
           aria-expanded={expanded}
           aria-label={`Toggle details for ${subjectName}`}
-          className="p-2.5 rounded-lg hover:bg-surface-2 text-muted-foreground hover:text-foreground transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-1 -mt-1"
+          className="p-2 rounded-full hover:bg-white/8 text-muted-foreground hover:text-foreground transition-all min-w-[44px] min-h-[44px] flex items-center justify-center -mr-1 -mt-1 touch-manipulation active:scale-90 cursor-pointer"
         >
-          {expanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
       </div>
 
       {expanded && (
-        <div className="pt-3 border-t border-border/60 space-y-2 animate-up">
+        <div className="pt-3 border-t border-white/8 space-y-2 animate-spring-scale">
           {entries.map(([key, val]) => (
-            <div key={key} className="flex justify-between items-center text-xs py-1 border-b border-border/30 last:border-0">
+            <div key={key} className="flex justify-between items-center text-xs py-1 border-b border-white/4 last:border-0">
               <span className="text-muted-foreground font-medium">{key}</span>
-              <span className="text-foreground font-semibold text-right max-w-[60%] truncate">{String(val)}</span>
+              <span className="text-foreground font-semibold text-right max-w-[60%] truncate tabular-numbers">{String(val)}</span>
             </div>
           ))}
         </div>
@@ -119,7 +125,7 @@ export default function AttendanceDashboard() {
   const data = dataRaw || [];
 
   return (
-    <div className="flex flex-col gap-5 w-full animate-up">
+    <div className="flex flex-col gap-6 w-full animate-spring-up">
       <PageHeader
         title="Attendance"
         description="Real-time attendance synced from ERP"
@@ -143,21 +149,21 @@ export default function AttendanceDashboard() {
 
       {/* Overall Stats */}
       {!loading && !error && data.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-up animate-up-1">
-          <div className="rounded-[--radius-lg] bg-surface-1 border border-border p-5 flex items-center gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="rounded-[--radius-2xl] apple-card p-5 flex items-center gap-4 shadow-xl border border-white/10">
             <Progress value={overallPct} max={100} variant="circular" size="lg" showLabel colorByValue />
             <div>
-              <p className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">Overall</p>
-              <p className="text-xl font-bold text-foreground">{overallPct}%</p>
+              <p className="caption-label text-muted-foreground/80">Overall</p>
+              <p className="text-2xl font-bold text-foreground tabular-numbers tracking-tight font-heading">{overallPct}%</p>
             </div>
           </div>
-          <div className="rounded-[--radius-lg] bg-surface-1 border border-border p-5">
-            <p className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase mb-1">Classes Attended</p>
-            <p className="text-2xl font-bold text-foreground tabular-nums">{overallAttended}</p>
+          <div className="rounded-[--radius-2xl] apple-card p-5 shadow-xl border border-white/10">
+            <p className="caption-label text-muted-foreground/80 mb-1">Classes Attended</p>
+            <p className="text-3xl font-bold text-foreground tabular-numbers tracking-tight font-heading">{overallAttended}</p>
           </div>
-          <div className="rounded-[--radius-lg] bg-surface-1 border border-border p-5">
-            <p className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase mb-1">Classes Held</p>
-            <p className="text-2xl font-bold text-foreground tabular-nums">{overallConducted}</p>
+          <div className="rounded-[--radius-2xl] apple-card p-5 shadow-xl border border-white/10">
+            <p className="caption-label text-muted-foreground/80 mb-1">Classes Held</p>
+            <p className="text-3xl font-bold text-foreground tabular-numbers tracking-tight font-heading">{overallConducted}</p>
           </div>
         </div>
       )}
@@ -166,10 +172,10 @@ export default function AttendanceDashboard() {
       {!loading && !error && data.length > 0 && <AttendanceChart data={data} />}
 
       {/* Data Table & Mobile Cards */}
-      <div className="rounded-[--radius-xl] bg-surface-1 border border-border overflow-hidden">
+      <div className="rounded-[--radius-2xl] apple-card overflow-hidden shadow-xl border border-white/10">
         {loading ? (
-          <div className="p-5 space-y-3">
-            {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+          <div className="p-6 space-y-3">
+            {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-12 w-full rounded-[--radius-lg]" />)}
           </div>
         ) : error ? (
           <EmptyState variant="error" description={error} action={{ label: 'Retry', onClick: () => mutate() }} />
@@ -178,24 +184,24 @@ export default function AttendanceDashboard() {
         ) : (
           <>
             {/* Desktop Table (>=640px) */}
-            <div className="hidden sm:block overflow-x-auto">
+            <div className="hidden sm:block overflow-x-auto custom-scrollbar">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-border bg-surface-1 sticky top-0 z-10">
+                  <tr className="border-b border-white/8 bg-surface-2/40 sticky top-0 z-10 backdrop-blur-md">
                     {Object.keys(data[0] || {}).map((key, i) => (
                       <th
                         key={i}
                         scope="col"
-                        className="px-4 py-3 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground whitespace-nowrap text-left"
+                        className="px-5 py-3.5 caption-label text-muted-foreground whitespace-nowrap text-left"
                       >
                         {key}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border/50">
+                <tbody className="divide-y divide-white/6">
                   {data.map((row, idx) => (
-                    <tr key={idx} className="hover:bg-surface-2/30 transition-colors">
+                    <tr key={idx} className="hover:bg-white/4 transition-colors">
                       {Object.values(row).map((val: unknown, j: number) => {
                         let displayVal: React.ReactNode = String(val);
 
@@ -213,19 +219,19 @@ export default function AttendanceDashboard() {
                             if (total > 0) {
                               if (num < 85) {
                                 const needed = Math.ceil((0.85 * total - attended) / 0.15);
-                                if (needed > 0) projection = <span className="block mt-1 text-[10px] text-muted-foreground font-mono">Need {needed} classes</span>;
+                                if (needed > 0) projection = <span className="block mt-1 text-[10px] text-muted-foreground font-mono tabular-numbers">Need {needed} classes</span>;
                               } else {
                                 const skip = Math.floor((attended - 0.85 * total) / 0.85);
-                                projection = <span className="block mt-1 text-[10px] text-muted-foreground font-mono">{skip > 0 ? `Can skip ${skip}` : 'On track'}</span>;
+                                projection = <span className="block mt-1 text-[10px] text-muted-foreground font-mono tabular-numbers">{skip > 0 ? `Can skip ${skip}` : 'On track'}</span>;
                               }
                             }
 
                             const Icon = num >= 85 ? TrendingUp : num >= 75 ? AlertTriangle : TrendingDown;
-                            const colorClass = num >= 85 ? 'bg-success/10 text-success' : num >= 75 ? 'bg-warning/10 text-warning' : 'bg-destructive/10 text-destructive';
+                            const colorClass = num >= 85 ? 'bg-success/15 text-success border border-success/25' : num >= 75 ? 'bg-warning/15 text-warning border border-warning/25' : 'bg-destructive/15 text-destructive border border-destructive/25';
 
                             displayVal = (
                               <div>
-                                <span className={`inline-flex items-center gap-1 ${colorClass} px-2 py-1 rounded text-xs font-bold`}>
+                                <span className={`inline-flex items-center gap-1 ${colorClass} px-2.5 py-0.5 rounded-full text-xs font-bold tabular-numbers apple-pill`}>
                                   <Icon className="w-3 h-3" />{val}
                                 </span>
                                 {projection}
@@ -235,7 +241,7 @@ export default function AttendanceDashboard() {
                         }
 
                         return (
-                          <td key={j} className="px-4 py-3.5 text-sm text-foreground">
+                          <td key={j} className="px-5 py-3.5 text-sm text-foreground tabular-numbers font-medium">
                             {displayVal}
                           </td>
                         );

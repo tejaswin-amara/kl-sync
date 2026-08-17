@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/icons';
 
 import { useTimetable } from '@/hooks/useTimetable';
+import { triggerHaptic } from '@/lib/fluid-motion';
 
 function parseTimeSlotToMinutes(slot: string): number {
   if (!slot) return 9999;
@@ -139,6 +140,7 @@ export default function TimetablePage() {
   });
 
   const handleExportCSV = () => {
+    triggerHaptic('light');
     if (!parsedTT || parsedTT.sessions.length === 0) return;
     const exportData = filteredSessions.map((s) => ({
       Day: s.day,
@@ -155,111 +157,126 @@ export default function TimetablePage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 w-full animate-in fade-in duration-500">
+    <div className="flex flex-col gap-6 w-full animate-spring-up">
       {/* Header Bar */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground font-heading">
+          <h2 className="text-3xl font-semibold tracking-[-0.025em] text-foreground font-heading">
             Student Timetable
           </h2>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground/90 mt-1 font-normal">
             Interactive weekly schedule synced securely from the ERP.
           </p>
         </div>
 
         {/* Controls: Year, Semester, View Toggle, Export */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center bg-zinc-900/50 backdrop-blur-xl border border-white/10 p-1 rounded-xl shadow-lg">
+          <div className="flex items-center apple-card p-1 rounded-[--radius-lg] shadow-md border border-white/10">
             <button
-              onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all min-h-[44px] ${
+              onClick={() => {
+                triggerHaptic('selection');
+                setViewMode('grid');
+              }}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-[--radius-md] text-xs font-semibold transition-all duration-[--duration-fast] ease-[--ease-spring-default] min-h-[44px] touch-manipulation cursor-pointer ${
                 viewMode === 'grid'
-                  ? 'bg-indigo-600 text-white shadow-md'
-                  : 'text-zinc-300 hover:text-zinc-100'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <LayoutGrid className="w-3.5 h-3.5" />
+              <LayoutGrid className="w-4 h-4" />
               Grid
             </button>
             <button
-              onClick={() => setViewMode('list')}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all min-h-[44px] ${
+              onClick={() => {
+                triggerHaptic('selection');
+                setViewMode('list');
+              }}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-[--radius-md] text-xs font-semibold transition-all duration-[--duration-fast] ease-[--ease-spring-default] min-h-[44px] touch-manipulation cursor-pointer ${
                 viewMode === 'list'
-                  ? 'bg-indigo-600 text-white shadow-md'
-                  : 'text-zinc-300 hover:text-zinc-100'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <List className="w-3.5 h-3.5" />
+              <List className="w-4 h-4" />
               List
             </button>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 bg-zinc-900/50 backdrop-blur-xl border border-white/10 p-1.5 rounded-xl shadow-lg">
+          <div className="flex flex-wrap items-center gap-2 apple-card p-1.5 rounded-[--radius-lg] shadow-md border border-white/10">
             <div className="relative">
               <select
                 aria-label="Filter by year"
-                className="appearance-none bg-transparent border-none rounded-lg pl-3 pr-8 py-2 text-xs text-zinc-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer min-h-[44px]"
+                className="appearance-none bg-transparent border-none rounded-[--radius-md] pl-3 pr-8 py-2 text-xs font-semibold text-foreground focus:outline-hidden cursor-pointer min-h-[44px]"
                 value={selectedYear}
-                onChange={(e) => handleYearChange(e.target.value)}
+                onChange={(e) => {
+                  triggerHaptic('selection');
+                  handleYearChange(e.target.value);
+                }}
               >
                 {years.map((y) => (
                   <option
                     key={y.value}
                     value={y.value}
-                    className="bg-zinc-900 text-zinc-100"
+                    className="bg-surface-2 text-foreground"
                   >
                     {y.label}
                   </option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-300 pointer-events-none" />
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
             </div>
             <div className="h-4 w-px bg-white/10"></div>
             <div className="relative">
               <select
                 aria-label="Filter by semester"
-                className="appearance-none bg-transparent border-none rounded-lg pl-3 pr-8 py-2 text-xs text-zinc-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer min-h-[44px]"
+                className="appearance-none bg-transparent border-none rounded-[--radius-md] pl-3 pr-8 py-2 text-xs font-semibold text-foreground focus:outline-hidden cursor-pointer min-h-[44px]"
                 value={selectedSem}
-                onChange={(e) => handleSemChange(e.target.value)}
+                onChange={(e) => {
+                  triggerHaptic('selection');
+                  handleSemChange(e.target.value);
+                }}
               >
                 {semesters.map((s) => (
                   <option
                     key={s.value}
                     value={s.value}
-                    className="bg-zinc-900 text-zinc-100"
+                    className="bg-surface-2 text-foreground"
                   >
                     {s.label}
                   </option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-300 pointer-events-none" />
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
             </div>
           </div>
 
           <button
             onClick={handleExportCSV}
             disabled={!parsedTT || parsedTT.sessions.length === 0}
-            className="flex items-center gap-2 px-3.5 py-2.5 bg-zinc-900/60 hover:bg-zinc-800 border border-white/10 rounded-xl text-xs font-medium text-zinc-200 transition-colors disabled:opacity-50 min-h-[44px]"
+            className="flex items-center gap-2 px-4 py-2.5 apple-card hover:bg-white/8 rounded-[--radius-lg] text-xs font-semibold text-foreground transition-all disabled:opacity-40 min-h-[44px] cursor-pointer touch-manipulation active:scale-95 border border-white/10"
           >
-            <Download className="w-3.5 h-3.5 text-indigo-400" />
+            <Download className="w-4 h-4 text-indigo-300" />
             Export CSV
           </button>
         </div>
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-zinc-950/40 border border-white/5 p-3 rounded-2xl backdrop-blur-md">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 apple-card p-3 rounded-[--radius-2xl] shadow-lg border border-white/8">
         {/* Day Filter Tabs */}
-        <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
-          <Filter className="w-4 h-4 text-zinc-300 ml-2 mr-1 shrink-0" />
+        <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
+          <Filter className="w-4 h-4 text-muted-foreground ml-2 mr-1 shrink-0" />
           {daysList.map((day) => (
             <button
               key={day}
-              onClick={() => setSelectedDayFilter(day)}
-              className={`px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all min-h-[44px] ${
+              onClick={() => {
+                triggerHaptic('selection');
+                setSelectedDayFilter(day);
+              }}
+              className={`px-3 py-1.5 rounded-[--radius-md] text-xs font-medium whitespace-nowrap transition-all duration-[--duration-fast] ease-[--ease-spring-default] min-h-[44px] touch-manipulation cursor-pointer active:scale-95 ${
                 selectedDayFilter === day
-                  ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-                  : 'text-zinc-300 hover:text-zinc-100 hover:bg-white/5'
+                  ? 'bg-primary/25 text-primary border border-primary/35 font-semibold shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-white/6'
               }`}
             >
               {day}
@@ -269,11 +286,11 @@ export default function TimetablePage() {
 
         {/* Search Input */}
         <div className="relative w-full sm:w-64 shrink-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           <input
             type="text"
             placeholder="Search course, room, faculty..."
-            className="w-full bg-zinc-900/60 border border-white/10 rounded-xl pl-9 pr-3 py-1.5 text-xs text-zinc-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-zinc-500"
+            className="w-full bg-surface-2/60 border border-white/8 rounded-[--radius-lg] pl-9 pr-3 py-2 text-xs text-foreground focus:outline-hidden focus:border-primary/50 transition-all placeholder:text-zinc-400 font-normal"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -281,14 +298,14 @@ export default function TimetablePage() {
       </div>
 
       {/* Main Content Card */}
-      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-2xl overflow-hidden min-h-[450px] flex flex-col">
+      <div className="rounded-[--radius-2xl] border border-white/10 apple-card shadow-2xl overflow-hidden min-h-[450px] flex flex-col">
         {loading ? (
           <div className="p-8 flex flex-col gap-6">
             <div className="flex gap-4">
               {[...Array(5)].map((_, i) => (
                 <div
                   key={i}
-                  className="h-8 w-24 bg-zinc-800/40 rounded-lg animate-pulse"
+                  className="h-8 w-24 bg-surface-2/40 rounded-[--radius-md] shimmer"
                 ></div>
               ))}
             </div>
@@ -296,25 +313,28 @@ export default function TimetablePage() {
               {[...Array(5)].map((_, i) => (
                 <div
                   key={i}
-                  className="h-16 w-full bg-zinc-800/30 rounded-xl animate-pulse"
+                  className="h-16 w-full bg-surface-2/30 rounded-[--radius-lg] shimmer"
                 ></div>
               ))}
             </div>
           </div>
         ) : displayError ? (
           <div className="flex flex-col items-center justify-center flex-1 p-12 text-center my-auto">
-            <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 mb-4 shadow-inner">
+            <div className="w-16 h-16 rounded-[--radius-2xl] bg-destructive/15 border border-destructive/25 flex items-center justify-center text-destructive mb-4 shadow-inner">
               <AlertCircle className="w-8 h-8" />
             </div>
-            <h3 className="text-lg font-semibold text-zinc-200 mb-2">
+            <h3 className="text-lg font-semibold text-foreground mb-2 tracking-tight">
               Failed to Sync Timetable
             </h3>
-            <p className="text-xs text-zinc-400 max-w-md leading-relaxed mb-6">
+            <p className="text-xs text-muted-foreground max-w-md leading-relaxed mb-6 font-normal">
               {displayError}
             </p>
             <button
-              onClick={() => mutate()}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-xs font-medium text-white rounded-xl transition-all shadow-lg flex items-center gap-2"
+              onClick={() => {
+                triggerHaptic('light');
+                mutate();
+              }}
+              className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-xs font-semibold text-white rounded-[--radius-lg] transition-all shadow-lg flex items-center gap-2 cursor-pointer touch-manipulation active:scale-95"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               Retry Sync
@@ -322,33 +342,32 @@ export default function TimetablePage() {
           </div>
         ) : !parsedTT || parsedTT.sessions.length === 0 ? (
           <div className="flex flex-col items-center justify-center flex-1 p-12 text-center my-auto">
-            <div className="w-16 h-16 rounded-2xl bg-zinc-900/60 border border-white/10 flex items-center justify-center text-zinc-500 mb-4">
-              <CalendarOff className="w-8 h-8 text-zinc-400" />
+            <div className="w-16 h-16 rounded-[--radius-2xl] bg-surface-2/60 border border-white/8 flex items-center justify-center text-muted-foreground mb-4">
+              <CalendarOff className="w-8 h-8 text-muted-foreground/50" />
             </div>
-            <h3 className="text-base font-semibold text-zinc-200 mb-1">
+            <h3 className="text-base font-semibold text-foreground mb-1 tracking-tight">
               No Timetable Data Found
             </h3>
-            <p className="text-xs text-zinc-500 max-w-sm">
-              There are no class sessions available for the selected academic
-              term.
+            <p className="text-xs text-muted-foreground max-w-sm font-normal">
+              There are no class sessions available for the selected academic term.
             </p>
           </div>
         ) : viewMode === 'grid' ? (
           /* Horizontal Academic Matrix Grid View Mode */
           <div className="p-4 sm:p-6 overflow-x-auto custom-scrollbar flex-1 w-full">
             {parsedTT.daysPresent.length === 0 ? (
-              <div className="text-center py-12 text-zinc-400 text-sm">
+              <div className="text-center py-12 text-muted-foreground text-sm">
                 No matching sessions for the selected day filter.
               </div>
             ) : (
               <div className="w-full min-w-max flex flex-col gap-6">
-                <div className="bg-zinc-950/40 border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+                <div className="bg-surface-2/30 border border-white/8 rounded-[--radius-2xl] overflow-hidden shadow-xl">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-zinc-900/80 border-b border-white/10 text-[11px] font-bold uppercase tracking-wider text-zinc-300">
+                      <tr className="bg-surface-2/60 border-b border-white/8 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                         <th
                           scope="col"
-                          className="p-4 sticky left-0 z-20 bg-zinc-900/95 backdrop-blur-md min-w-[120px] border-r border-white/10 text-indigo-400 text-center"
+                          className="p-4 sticky left-0 z-20 bg-surface-2/95 backdrop-blur-md min-w-[120px] border-r border-white/8 text-indigo-300 text-center"
                         >
                           Day / Period
                         </th>
@@ -356,7 +375,7 @@ export default function TimetablePage() {
                           <th
                             scope="col"
                             key={periodNum}
-                            className="p-3.5 text-center min-w-[170px] border-r border-white/5 last:border-r-0 text-zinc-200"
+                            className="p-3.5 text-center min-w-[170px] border-r border-white/6 last:border-r-0 text-foreground font-semibold"
                           >
                             {periodNum.length < 3 &&
                             !periodNum.toLowerCase().includes('p')
@@ -366,7 +385,7 @@ export default function TimetablePage() {
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="divide-y divide-white/6">
                       {(() => {
                         const allDays = [
                           'Monday',
@@ -395,12 +414,12 @@ export default function TimetablePage() {
                           return (
                             <tr
                               key={day}
-                              className="hover:bg-white/[0.02] transition-colors"
+                              className="hover:bg-white/2 transition-colors"
                             >
                               {/* Sticky Day Column */}
                               <th
                                 scope="row"
-                                className="p-4 sticky left-0 z-10 bg-zinc-950/90 backdrop-blur-md font-bold text-xs text-zinc-200 border-r border-white/10 text-center whitespace-nowrap"
+                                className="p-4 sticky left-0 z-10 bg-surface-2/90 backdrop-blur-md font-bold text-xs text-foreground border-r border-white/8 text-center whitespace-nowrap"
                               >
                                 {day}
                               </th>
@@ -413,7 +432,7 @@ export default function TimetablePage() {
                                 return (
                                   <td
                                     key={periodNum}
-                                    className="p-2 border-r border-white/5 last:border-r-0 align-top min-w-[170px]"
+                                    className="p-2 border-r border-white/6 last:border-r-0 align-top min-w-[170px]"
                                   >
                                     {matchingSessions.length > 0 ? (
                                       <div className="flex flex-col gap-2 h-full">
@@ -430,12 +449,12 @@ export default function TimetablePage() {
                                           return (
                                             <div
                                               key={session.id || `${session.courseCode}-${sIdx}`}
-                                              className="bg-zinc-900/80 border border-white/10 hover:border-indigo-500/50 p-3 rounded-xl flex flex-col justify-between gap-2 shadow-md transition-all overflow-hidden min-h-[96px] group"
+                                              className="bg-surface-2/60 border border-white/8 hover:border-primary/40 p-3 rounded-[--radius-lg] flex flex-col justify-between gap-2 shadow-md transition-all overflow-hidden min-h-[96px] group touch-manipulation active:scale-[0.98]"
                                             >
                                               <div className="flex items-center justify-between gap-1">
                                                 {session.component && (
                                                   <span
-                                                    className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider ${
+                                                    className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider ${
                                                       session.component === 'Lecture'
                                                         ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
                                                         : session.component === 'Practical'
@@ -449,22 +468,22 @@ export default function TimetablePage() {
                                                   </span>
                                                 )}
                                                 {session.section && (
-                                                  <span className="text-[9px] font-mono bg-white/10 text-zinc-300 px-1 py-0.5 rounded">
+                                                  <span className="text-[9px] font-mono bg-white/10 text-muted-foreground px-1.5 py-0.5 rounded-full">
                                                     {session.section}
                                                   </span>
                                                 )}
                                               </div>
 
-                                              <h5 className="text-xs font-semibold text-zinc-100 group-hover:text-indigo-300 transition-colors leading-snug line-clamp-2 overflow-hidden">
+                                              <h5 className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors leading-snug line-clamp-2 overflow-hidden tracking-tight">
                                                 {subjectTitle}
                                               </h5>
 
-                                              <div className="flex items-center justify-between gap-1 text-[10px] text-zinc-400 pt-1.5 border-t border-white/5 mt-auto">
-                                                <span className="font-mono text-zinc-400 font-medium truncate">
+                                              <div className="flex items-center justify-between gap-1 text-[10px] text-muted-foreground pt-1.5 border-t border-white/6 mt-auto">
+                                                <span className="font-mono text-muted-foreground font-medium truncate">
                                                   {subjectCode}
                                                 </span>
                                                 {session.room && (
-                                                  <span className="text-emerald-400 font-medium flex items-center gap-0.5 shrink-0 ml-auto">
+                                                  <span className="text-success font-semibold flex items-center gap-0.5 shrink-0 ml-auto">
                                                     <MapPin className="w-2.5 h-2.5" />
                                                     {session.room}
                                                   </span>
@@ -475,7 +494,7 @@ export default function TimetablePage() {
                                         })}
                                       </div>
                                     ) : (
-                                      <div className="h-24 rounded-xl border border-dashed border-white/5 flex items-center justify-center text-zinc-700 text-xs">
+                                      <div className="h-24 rounded-[--radius-lg] border border-dashed border-white/6 flex items-center justify-center text-muted-foreground/30 text-xs">
                                         -
                                       </div>
                                     )}
@@ -496,32 +515,32 @@ export default function TimetablePage() {
           /* List View Mode */
           <div className="p-6 overflow-x-auto custom-scrollbar flex-1">
             {filteredSessions.length === 0 ? (
-              <div className="text-center py-12 text-zinc-400 text-sm">
+              <div className="text-center py-12 text-muted-foreground text-sm">
                 No matching sessions found for your filter/search criteria.
               </div>
             ) : (
               <table className="w-full text-left whitespace-nowrap border-separate border-spacing-y-2">
                 <thead>
                   <tr>
-                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-white/5">
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-white/8">
                       Day
                     </th>
-                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-white/5">
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-white/8">
                       Period / Slot
                     </th>
-                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-white/5">
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-white/8">
                       Course Code
                     </th>
-                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-white/5">
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-white/8">
                       Course Title
                     </th>
-                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-white/5">
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-white/8">
                       Component & Section
                     </th>
-                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-white/5">
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-white/8">
                       Venue / Room
                     </th>
-                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-white/5">
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-white/8">
                       Faculty
                     </th>
                   </tr>
@@ -530,40 +549,40 @@ export default function TimetablePage() {
                   {filteredSessions.map((session, idx) => (
                     <tr
                       key={session.id || idx}
-                      className="group bg-zinc-950/40 hover:bg-zinc-900/60 transition-colors"
+                      className="group bg-surface-2/40 hover:bg-surface-2/70 transition-colors"
                     >
-                      <td className="px-4 py-3.5 text-xs font-semibold text-indigo-400 first:rounded-l-xl border-y border-transparent">
+                      <td className="px-4 py-3.5 text-xs font-semibold text-indigo-300 first:rounded-l-[--radius-lg] border-y border-transparent">
                         {session.day}
                       </td>
-                      <td className="px-4 py-3.5 text-xs font-mono text-zinc-300 border-y border-transparent">
-                        <span className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded">
+                      <td className="px-4 py-3.5 text-xs font-mono text-muted-foreground border-y border-transparent">
+                        <span className="bg-primary/15 border border-primary/25 text-indigo-300 px-2 py-0.5 rounded-full">
                           Period{' '}
                           {String(session.timeSlot || '')
                             .replace(/^Period\s*/i, '')
                             .trim()}
                         </span>
                       </td>
-                      <td className="px-4 py-3.5 text-xs font-mono text-zinc-300 border-y border-transparent">
+                      <td className="px-4 py-3.5 text-xs font-mono text-muted-foreground border-y border-transparent">
                         {getSubjectCode(session.courseCode, session.rawText) || 'N/A'}
                       </td>
-                      <td className="px-4 py-3.5 text-sm font-medium text-zinc-100 border-y border-transparent max-w-xs truncate">
+                      <td className="px-4 py-3.5 text-sm font-semibold text-foreground border-y border-transparent max-w-xs truncate tracking-tight">
                         {getSubjectTitle(session.courseCode, session.courseTitle)}
                       </td>
                       <td className="px-4 py-3.5 text-xs border-y border-transparent">
                         <div className="flex items-center gap-1.5">
                           {session.component && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/20 text-primary">
                               {session.component}
                             </span>
                           )}
                           {session.section && (
-                            <span className="text-[10px] font-mono bg-white/10 text-zinc-300 px-1.5 py-0.5 rounded">
+                            <span className="text-[10px] font-mono bg-white/10 text-muted-foreground px-1.5 py-0.5 rounded-full">
                               {session.section}
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-3.5 text-xs font-medium text-emerald-400 border-y border-transparent">
+                      <td className="px-4 py-3.5 text-xs font-semibold text-success border-y border-transparent">
                         {session.room ? (
                           <span className="flex items-center gap-1">
                             <MapPin className="w-3.5 h-3.5" />
@@ -573,7 +592,7 @@ export default function TimetablePage() {
                           'N/A'
                         )}
                       </td>
-                      <td className="px-4 py-3.5 text-xs text-zinc-400 border-y border-transparent last:rounded-r-xl">
+                      <td className="px-4 py-3.5 text-xs text-muted-foreground border-y border-transparent last:rounded-r-[--radius-lg]">
                         {session.faculty || 'N/A'}
                       </td>
                     </tr>

@@ -1,12 +1,16 @@
+'use client';
+
 import * as React from 'react';
 import { Loader2 } from '@/components/ui/icons';
 import { cn } from '@/lib/utils';
+import { triggerHaptic } from '@/lib/fluid-motion';
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'primary' | 'secondary' | 'ghost' | 'outline' | 'destructive';
+  variant?: 'default' | 'primary' | 'secondary' | 'ghost' | 'outline' | 'destructive' | 'glass';
   size?: 'default' | 'sm' | 'lg' | 'icon';
   isLoading?: boolean;
+  haptic?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -16,41 +20,55 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       variant = 'default',
       size = 'default',
       isLoading = false,
+      haptic = true,
       disabled,
       children,
       type = 'button',
+      onClick,
+      onPointerDown,
       ...props
     },
     ref
   ) => {
+    const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+      if (!disabled && !isLoading && haptic) {
+        triggerHaptic('light');
+      }
+      onPointerDown?.(e);
+    };
+
     return (
       <button
         ref={ref}
         type={type}
         disabled={disabled || isLoading}
         data-loading={isLoading || undefined}
+        onPointerDown={handlePointerDown}
+        onClick={onClick}
         className={cn(
-          // Base
-          'inline-flex items-center justify-center font-medium transition-all',
+          // Apple Base Touch & Physicality
+          'inline-flex items-center justify-center font-medium tracking-tight touch-manipulation select-none cursor-pointer',
+          'transition-all duration-[--duration-fast] ease-[--ease-spring-default]',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-          'disabled:opacity-50 disabled:pointer-events-none active:scale-[0.97] cursor-pointer',
-          'duration-[--duration-normal]',
+          'disabled:opacity-40 disabled:pointer-events-none active:scale-[0.965] active:brightness-110',
           // Variants
           variant === 'default' &&
-            'bg-primary hover:bg-primary/90 text-primary-foreground shadow-md shadow-primary/20 border border-primary/30',
+            'bg-primary hover:bg-primary/90 text-primary-foreground shadow-md shadow-primary/25 border border-primary/40',
           variant === 'primary' &&
-            'bg-primary hover:bg-primary/90 text-primary-foreground shadow-md shadow-primary/20 border border-primary/30',
+            'bg-primary hover:bg-primary/90 text-primary-foreground shadow-md shadow-primary/25 border border-primary/40',
           variant === 'secondary' &&
-            'bg-surface-2 hover:bg-surface-3 text-foreground border border-border shadow-xs',
+            'bg-surface-2 hover:bg-surface-3 text-foreground border border-border shadow-xs hover:border-white/15',
+          variant === 'glass' &&
+            'apple-pill text-foreground hover:text-white',
           variant === 'ghost' &&
             'hover:bg-white/8 text-muted-foreground hover:text-foreground',
           variant === 'outline' &&
-            'border border-border bg-transparent hover:bg-surface-2 text-muted-foreground hover:text-foreground',
+            'border border-border bg-transparent hover:bg-surface-2 text-muted-foreground hover:text-foreground hover:border-white/20',
           variant === 'destructive' &&
-            'bg-destructive/90 hover:bg-destructive text-destructive-foreground shadow-md shadow-destructive/20 border border-destructive/30',
-          // Sizes
+            'bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-md shadow-destructive/25 border border-destructive/40',
+          // Sizes (WCAG AAA Touch targets ≥ 44px)
           size === 'default' && 'min-h-[44px] px-4 py-2.5 text-sm rounded-[--radius-md] gap-2',
-          size === 'sm' && 'min-h-[44px] px-3 py-1.5 text-xs rounded-[--radius-sm] gap-1.5',
+          size === 'sm' && 'min-h-[44px] px-3.5 py-1.5 text-xs rounded-[--radius-sm] gap-1.5',
           size === 'lg' && 'min-h-[48px] px-6 py-3 text-[0.9375rem] rounded-[--radius-lg] gap-2.5',
           size === 'icon' && 'min-h-[44px] min-w-[44px] p-2.5 rounded-[--radius-md] justify-center',
           className

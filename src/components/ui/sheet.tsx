@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { X } from '@/components/ui/icons';
+import { project, rubberband, createVelocityTracker, triggerHaptic } from '@/lib/fluid-motion';
 
 interface SheetContextType {
   open: boolean;
@@ -38,6 +39,9 @@ export function Sheet({ open: controlledOpen, onOpenChange, children }: SheetPro
         setUncontrolledOpen(value);
       }
       onOpenChange?.(value);
+      if (value) {
+        triggerHaptic('light');
+      }
     },
     [isControlled, onOpenChange]
   );
@@ -67,7 +71,7 @@ export const SheetTrigger = React.forwardRef<
         onClick?.(e);
         setOpen(!open);
       }}
-      className={cn('inline-flex items-center justify-center min-w-[44px] min-h-[44px]', className)}
+      className={cn('inline-flex items-center justify-center min-w-[44px] min-h-[44px] touch-manipulation active:scale-95 transition-transform duration-[--duration-fast]', className)}
       {...props}
     >
       {children}
@@ -83,6 +87,11 @@ export interface SheetContentProps extends React.HTMLAttributes<HTMLDivElement> 
 export const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
   ({ className, side = 'right', children, ...props }, ref) => {
     const { open, setOpen, titleId, descriptionId } = useSheetContext();
+    const sheetRef = React.useRef<HTMLDivElement | null>(null);
+    const [dragOffset, setDragOffset] = React.useState(0);
+    const [isDragging, setIsDragging] = React.useState(false);
+    const velocityTrackerRef = React.useRef(createVelocityTracker());
+    const startPosRef = React.useRef(0);
 
     React.useEffect(() => {
       const handleKeyDown = (e: KeyboardEvent) => {
@@ -100,50 +109,117 @@ export const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
       };
     }, [open, setOpen]);
 
+    // Handle gesture dragging on bottom sheets
+    const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+      if (side !== 'bottom') return;
+      // Only initiate gesture drag if grabbed near top header / handle
+      const target = e.target as HTMLElement;
+      if (target.closest('button') || target.closest('input') || target.closest('select')) return;
+
+      const rect = sheetRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      setIsDragging(true);
+      startPosRef.current = e.clientY;
+      velocityTrackerRef.current.reset();
+      velocityTrackerRef.current.addPoint(e.clientX, e.clientY);
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    };
+
+    const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!isDragging || side !== 'bottom') return;
+      velocityTrackerRef.current.addPoint(e.clientX, e.clientY);
+      const deltaY = e.clientY - startPosRef.current;
+
+      if (deltaY < 0) {
+        // Dragging upward past natural height: apply Apple rubber-band resistance
+        const dampened = rubberband(deltaY, 400, 0.45);
+        setDragOffset(dampened);
+      } else {
+        // 1:1 direct finger tracking downward
+        setDragOffset(deltaY);
+      }
+    };
+
+    const handlePointerUp = () => {
+      if (!isDragging || side !== 'bottom') return;
+      setIsDragging(false);
+
+      const vel = velocityTrackerRef.current.getVelocity();
+      const projectedDelta = dragOffset + project(vel.vy, 0.998);
+
+      // Dismiss if pulled down > 120px or flicked downward > 350px/s
+      if (dragOffset > 120 || vel.vy > 350 || projectedDelta > 200) {
+        triggerHaptic('light');
+        setOpen(false);
+      }
+      setDragOffset(0);
+    };
+
     if (!open) return null;
+
+    const dragStyle = isDragging
+      ? { transform: `translateY(${Math.max(dragOffset, -40)}px)`, transition: 'none' }
+      : { transform: undefined };
 
     return (
       <div className="fixed inset-0 z-50 flex">
-        {/* Backdrop Overlay */}
+        {/* Apple Translucent Dimming Scrim */}
         <div
           role="button"
           tabIndex={0}
           aria-label="Close drawer backdrop"
-          onClick={() => setOpen(false)}
+          onClick={() => {
+            triggerHaptic('light');
+            setOpen(false);
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
               setOpen(false);
             }
           }}
-          className="fixed inset-0 bg-[var(--surface-overlay)] backdrop-blur-xs transition-opacity animate-in"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-[--duration-normal] ease-[--ease-spring-default] animate-in"
         />
 
-        {/* Drawer Body */}
+        {/* Apple Sheet Container */}
         <div
-          ref={ref}
+          ref={(node) => {
+            sheetRef.current = node;
+            if (typeof ref === 'function') ref(node);
+            else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+          }}
           role="dialog"
           aria-modal="true"
           aria-labelledby={titleId}
           aria-describedby={descriptionId}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          style={dragStyle}
           className={cn(
-            'fixed z-50 gap-4 glass-panel p-6 shadow-2xl transition ease-in-out flex flex-col',
-            side === 'right' && 'inset-y-0 right-0 h-full w-3/4 max-w-sm border-l border-border animate-slide-in-right',
-            side === 'left' && 'inset-y-0 left-0 h-full w-3/4 max-w-sm border-r border-border animate-slide-in-left',
-            side === 'top' && 'inset-x-0 top-0 w-full border-b border-border animate-slide-in-top',
-            side === 'bottom' && 'inset-x-0 bottom-0 w-full border-t border-border animate-slide-in-bottom rounded-t-2xl',
+            'fixed z-50 gap-4 apple-sheet p-6 shadow-2xl transition-all duration-[--duration-spring] ease-[--ease-spring-sheet] flex flex-col',
+            side === 'right' && 'inset-y-0 right-0 h-full w-3/4 max-w-sm border-l border-white/10 animate-slide-in-right rounded-l-2xl',
+            side === 'left' && 'inset-y-0 left-0 h-full w-3/4 max-w-sm border-r border-white/10 animate-slide-in-left rounded-r-2xl',
+            side === 'top' && 'inset-x-0 top-0 w-full border-b border-white/10 animate-slide-in-top rounded-b-2xl',
+            side === 'bottom' && 'inset-x-0 bottom-0 w-full border-t border-white/15 animate-sheet-enter rounded-t-[28px] max-h-[92vh]',
             className
           )}
           {...props}
         >
+          {side === 'bottom' && <div className="drag-handle" aria-hidden="true" />}
           {children}
           <button
             type="button"
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              triggerHaptic('light');
+              setOpen(false);
+            }}
             aria-label="Close drawer"
-            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-primary min-w-[44px] min-h-[44px] flex items-center justify-center"
+            className="absolute right-4 top-4 rounded-full p-2 bg-white/6 hover:bg-white/12 text-muted-foreground hover:text-foreground transition-all duration-[--duration-fast] active:scale-90 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
       </div>
@@ -153,13 +229,13 @@ export const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
 SheetContent.displayName = 'SheetContent';
 
 export function SheetHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('flex flex-col space-y-2 text-left', className)} {...props} />;
+  return <div className={cn('flex flex-col space-y-1.5 text-left', className)} {...props} />;
 }
 
 export function SheetTitle({ className, children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
   const { titleId } = useSheetContext();
   return (
-    <h2 id={titleId} className={cn('text-lg font-semibold text-foreground tracking-tight', className)} {...props}>
+    <h2 id={titleId} className={cn('text-lg font-semibold text-foreground tracking-[-0.015em] font-heading', className)} {...props}>
       {children}
     </h2>
   );
@@ -168,14 +244,14 @@ export function SheetTitle({ className, children, ...props }: React.HTMLAttribut
 export function SheetDescription({ className, children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
   const { descriptionId } = useSheetContext();
   return (
-    <p id={descriptionId} className={cn('text-sm text-muted-foreground leading-relaxed', className)} {...props}>
+    <p id={descriptionId} className={cn('text-xs text-muted-foreground/90 leading-relaxed font-normal', className)} {...props}>
       {children}
     </p>
   );
 }
 
 export function SheetFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 mt-auto pt-4', className)} {...props} />;
+  return <div className={cn('flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 mt-auto pt-4 border-t border-border/40', className)} {...props} />;
 }
 
 export function SheetClose({ className, children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
@@ -183,8 +259,11 @@ export function SheetClose({ className, children, ...props }: React.ButtonHTMLAt
   return (
     <button
       type="button"
-      onClick={() => setOpen(false)}
-      className={cn('inline-flex items-center justify-center min-w-[44px] min-h-[44px]', className)}
+      onClick={() => {
+        triggerHaptic('light');
+        setOpen(false);
+      }}
+      className={cn('inline-flex items-center justify-center min-w-[44px] min-h-[44px] touch-manipulation active:scale-95 transition-transform duration-[--duration-fast]', className)}
       {...props}
     >
       {children}

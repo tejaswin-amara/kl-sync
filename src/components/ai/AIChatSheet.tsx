@@ -7,6 +7,7 @@ import { AIChatMessageList, ChatMessage } from './AIChatMessageList';
 import { AIChatSuggestionChips } from './AIChatSuggestionChips';
 import { AIToolExecutionIndicator } from './AIToolExecutionIndicator';
 import { AIChatInput } from './AIChatInput';
+import { triggerHaptic } from '@/lib/fluid-motion';
 
 export interface AIChatSheetProps {
   open: boolean;
@@ -35,33 +36,36 @@ export function AIChatSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-md h-full flex flex-col p-0 bg-background/95 backdrop-blur-xl border-l border-border shadow-2xl"
+        className="w-full sm:max-w-md h-full flex flex-col p-0 apple-sheet border-l border-white/12 shadow-2xl"
       >
         {/* Drawer Header */}
-        <SheetHeader className="p-4 border-b border-border/60 flex flex-row items-center justify-between space-y-0">
+        <SheetHeader className="p-4 border-b border-white/8 flex flex-row items-center justify-between space-y-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary">
+            <div className="w-8 h-8 rounded-[--radius-lg] bg-primary/20 border border-primary/30 flex items-center justify-center text-primary">
               <Sparkles className="w-4.5 h-4.5" />
             </div>
             <div>
-              <SheetTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+              <SheetTitle className="text-base font-semibold text-foreground flex items-center gap-2 tracking-tight">
                 <span>AI Copilot</span>
-                <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-mono">
+                <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-mono apple-pill">
                   Agentic v1.0
                 </Badge>
               </SheetTitle>
-              <SheetDescription className="text-xs text-muted-foreground">
+              <SheetDescription className="text-xs text-muted-foreground font-normal">
                 KL Sync ERP Intelligence
               </SheetDescription>
             </div>
           </div>
 
-          <div className="flex items-center gap-1 mr-6">
+          <div className="flex items-center gap-1 mr-8">
             {messages.length > 0 && (
               <button
-                onClick={onClearChat}
+                onClick={() => {
+                  triggerHaptic('warning');
+                  onClearChat();
+                }}
                 title="Clear Chat History"
-                className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="p-2 rounded-full hover:bg-white/8 text-muted-foreground hover:text-foreground transition-all min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation active:scale-90 cursor-pointer"
                 aria-label="Clear chat"
               >
                 <Trash2 className="w-4 h-4" />
@@ -70,9 +74,12 @@ export function AIChatSheet({
 
             {onToggleDialogMode && (
               <button
-                onClick={onToggleDialogMode}
+                onClick={() => {
+                  triggerHaptic('light');
+                  onToggleDialogMode();
+                }}
                 title="Expand to Modal"
-                className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="p-2 rounded-full hover:bg-white/8 text-muted-foreground hover:text-foreground transition-all min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation active:scale-90 cursor-pointer"
                 aria-label="Expand to dialog"
               >
                 <Maximize2 className="w-4 h-4" />
@@ -82,13 +89,13 @@ export function AIChatSheet({
         </SheetHeader>
 
         {/* Message Container */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+        <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
           <AIChatMessageList messages={messages} onSelectSuggestion={onSendMessage} />
           {isBusy && <AIToolExecutionIndicator status={status} toolName={activeTool} />}
         </div>
 
         {/* Suggestions & Input Footer */}
-        <div className="p-3 border-t border-border/60 bg-card/40 space-y-2">
+        <div className="p-3 border-t border-white/8 bg-surface-2/40 backdrop-blur-md space-y-2">
           <AIChatSuggestionChips onSelectSuggestion={onSendMessage} disabled={isBusy} />
           <AIChatInput onSendMessage={onSendMessage} disabled={isBusy} />
         </div>

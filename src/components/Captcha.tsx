@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Loader2 } from '@/components/ui/icons';
 import { Badge } from "@/components/ui/badge";
 import type { CapWidget } from "cap-widget";
+import { triggerHaptic } from "@/lib/fluid-motion";
 
 const emptySubscribe = () => () => {};
 
@@ -33,6 +34,7 @@ export function Captcha({ onVerify }: { onVerify: (token: string) => void }) {
           if (token) {
             setVerified(true);
             setSolving(false);
+            triggerHaptic('success');
             onVerify(token);
           }
         };
@@ -59,6 +61,7 @@ export function Captcha({ onVerify }: { onVerify: (token: string) => void }) {
             if (res && res.token) {
               setVerified(true);
               setSolving(false);
+              triggerHaptic('success');
               onVerify(res.token);
             }
           })
@@ -91,7 +94,7 @@ export function Captcha({ onVerify }: { onVerify: (token: string) => void }) {
       />
       <div className="flex items-center justify-between px-1">
         {verified ? (
-          <Badge variant="emerald" dot className="px-2.5 py-1 text-[11px] font-medium tracking-wide">
+          <Badge variant="emerald" dot className="px-2.5 py-1 text-[11px] font-medium tracking-wide apple-pill">
             PoW Bot Protection Active
           </Badge>
         ) : solving ? (

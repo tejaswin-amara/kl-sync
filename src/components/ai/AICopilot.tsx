@@ -5,6 +5,7 @@ import { Sparkles } from '@/components/ui/icons';
 import { useAriaAnnounce } from '@/components/ui/aria-live';
 import { AIChatSheet } from './AIChatSheet';
 import type { ChatMessage } from './AIChatMessageList';
+import { triggerHaptic } from '@/lib/fluid-motion';
 
 export interface AICopilotProps {
   initialOpen?: boolean;
@@ -28,6 +29,7 @@ export function AICopilot({
 
       if (isCmdK || isCtrlShiftA) {
         e.preventDefault();
+        triggerHaptic('selection');
         setIsOpen((prev) => !prev);
       }
     };
@@ -40,6 +42,7 @@ export function AICopilot({
     async (queryText: string) => {
       if (!queryText.trim() || status === 'thinking' || status === 'executing_tool') return;
 
+      triggerHaptic('light');
       const userMsg: ChatMessage = {
         id: `user-${Date.now()}`,
         role: 'user',
@@ -87,6 +90,7 @@ export function AICopilot({
           setMessages((prev) => [...prev, assistantMsg]);
           setStatus('idle');
           setActiveTool(undefined);
+          triggerHaptic('success');
           announce('AI Copilot responded.', 'polite');
         } else {
           throw new Error(data.error || 'Failed to receive AI response');
@@ -105,6 +109,7 @@ export function AICopilot({
         setMessages((prev) => [...prev, errorMsg]);
         setStatus('error');
         setActiveTool(undefined);
+        triggerHaptic('error');
         announce('AI Copilot encountered an error.', 'assertive');
       }
     },
@@ -112,6 +117,7 @@ export function AICopilot({
   );
 
   const handleClearChat = useCallback(() => {
+    triggerHaptic('warning');
     setMessages([]);
     setStatus('idle');
     setActiveTool(undefined);
@@ -120,10 +126,13 @@ export function AICopilot({
 
   return (
     <>
-      {/* Floating Action Trigger Button (FAB) */}
+      {/* Floating Action Trigger Button (FAB with Apple Spring & Specular Highlight) */}
       <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-20 right-4 lg:bottom-6 lg:right-6 z-40 group flex items-center gap-2.5 px-4 py-3 rounded-full bg-primary text-primary-foreground shadow-[0_8px_30px_rgb(99,102,241,0.4)] hover:shadow-[0_12px_40px_rgb(99,102,241,0.6)] hover:scale-105 active:scale-95 transition-all duration-200"
+        onClick={() => {
+          triggerHaptic('selection');
+          setIsOpen(true);
+        }}
+        className="fixed bottom-20 right-4 lg:bottom-6 lg:right-6 z-40 group flex items-center gap-2.5 px-4 py-3 rounded-full bg-primary text-primary-foreground shadow-[0_8px_30px_rgb(99,102,241,0.4)] hover:shadow-[0_12px_40px_rgb(99,102,241,0.6)] touch-manipulation hover:scale-105 active:scale-95 transition-all duration-[--duration-normal] ease-[--ease-spring-default] cursor-pointer"
         aria-label="AI Copilot ⌘K (Ctrl+Shift+A)"
         aria-expanded={isOpen}
       >

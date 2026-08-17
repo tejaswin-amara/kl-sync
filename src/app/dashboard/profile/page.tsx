@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { useProfile } from '@/hooks/useProfile';
 import { Loader2, AlertCircle } from '@/components/ui/icons';
+import { triggerHaptic } from '@/lib/fluid-motion';
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<string | null>(null);
@@ -12,35 +13,35 @@ export default function ProfilePage() {
   const error = fetchError ? fetchError.message : null;
 
   return (
-    <div className="flex flex-col gap-6 w-full">
+    <div className="flex flex-col gap-6 w-full animate-spring-up">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight text-zinc-100">
+        <h2 className="text-3xl font-semibold tracking-[-0.025em] text-foreground font-heading">
           Profile
         </h2>
-        <p className="text-base text-zinc-400 text-gray-400 mt-1">
-          Manage your academic profile details.
+        <p className="text-xs text-muted-foreground/90 mt-1 font-normal">
+          Manage your academic profile details synced from the ERP.
         </p>
       </div>
 
       {loading ? (
-        <div className="card bg-zinc-900/40 backdrop-blur-xl border border-white/5 min-h-[400px] flex flex-col items-center justify-center">
-          <Loader2 className="w-10 h-10 text-indigo-400 animate-spin mb-4" />
-          <span className="text-base text-zinc-400 text-gray-400">
+        <div className="apple-card rounded-[--radius-2xl] min-h-[400px] flex flex-col items-center justify-center p-8 shadow-xl border border-white/10">
+          <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
+          <span className="text-xs text-muted-foreground font-medium">
             Syncing your profile...
           </span>
         </div>
       ) : error ? (
-        <div className="card bg-zinc-900/40 backdrop-blur-xl border border-white/5 min-h-[400px] flex flex-col items-center justify-center p-8 text-center">
-          <div className="w-16 h-16 rounded bg-red-500/10 flex items-center justify-center text-red-400 mb-4">
-            <AlertCircle className="w-10 h-10" />
+        <div className="apple-card rounded-[--radius-2xl] min-h-[400px] flex flex-col items-center justify-center p-8 text-center shadow-xl border border-white/10">
+          <div className="w-16 h-16 rounded-[--radius-2xl] bg-destructive/15 border border-destructive/25 flex items-center justify-center text-destructive mb-4 shadow-inner">
+            <AlertCircle className="w-8 h-8" />
           </div>
-          <p className="text-xl font-semibold text-red-400">Failed to load profile</p>
-          <p className="text-sm text-muted-foreground mt-2 max-w-md">
+          <p className="text-lg font-semibold text-destructive tracking-tight">Failed to load profile</p>
+          <p className="text-xs text-muted-foreground mt-2 max-w-md font-normal leading-relaxed">
             {error}
           </p>
         </div>
       ) : data ? (
-        <div className="card bg-zinc-900/40 backdrop-blur-xl border border-white/5 overflow-hidden">
+        <div className="apple-card rounded-[--radius-2xl] shadow-2xl border border-white/10 overflow-hidden">
           {/* Profile Header */}
           {(() => {
             const uid = String(data.universityId || '');
@@ -48,9 +49,9 @@ export default function ProfilePage() {
             const nameStr = String(data.name || '');
 
             return (
-              <div className="bg-zinc-900 p-4 sm:p-6 relative">
-                <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-end gap-4">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded bg-zinc-950/50 backdrop-blur-md border-2 border-[var(--color-primary)] shadow-md flex items-center justify-center text-zinc-100 text-3xl overflow-hidden relative">
+              <div className="p-6 sm:p-8 border-b border-white/8 bg-surface-2/30 relative">
+                <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-end gap-5">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-surface-2 border-2 border-primary/40 shadow-xl flex items-center justify-center text-foreground text-3xl font-bold overflow-hidden relative">
                     {uid ? (
                       <img
                         src={
@@ -71,11 +72,11 @@ export default function ProfilePage() {
                       {nameStr ? nameStr.charAt(0).toUpperCase() : 'U'}
                     </span>
                   </div>
-                  <div className="text-center sm:text-left text-zinc-100 pb-1 z-20">
-                    <h3 className="text-3xl font-bold tracking-tight">
+                  <div className="text-center sm:text-left text-foreground pb-1 z-20">
+                    <h3 className="text-2xl sm:text-3xl font-bold tracking-tight font-heading">
                       {nameStr || 'Unknown Student'}
                     </h3>
-                    <div className="inline-flex items-center gap-2 mt-3 px-3 py-1 bg-black/20 rounded">
+                    <div className="inline-flex items-center gap-2 mt-2 px-3 py-1 bg-white/6 border border-white/8 rounded-full">
                       <span className="text-xs text-muted-foreground font-mono tracking-wider">
                         ID: {uid || 'N/A'}
                       </span>
@@ -87,8 +88,8 @@ export default function ProfilePage() {
           })()}
 
           {/* Profile Details Grid */}
-          <div className="p-4 sm:p-6 bg-zinc-950/50 backdrop-blur-md">
-            <h4 className="text-sm font-semibold text-zinc-100 mb-4 flex items-center gap-2">
+          <div className="p-6 sm:p-8">
+            <h4 className="caption-label text-muted-foreground/90 mb-4">
               All Information
             </h4>
 
@@ -155,16 +156,16 @@ export default function ProfilePage() {
                       {scalarEntries.map(([k, v]) => (
                         <div
                           key={k}
-                          className="flex flex-col p-2.5 bg-[#2c2c2c] rounded border border-white/10 hover:border-[var(--color-primary)]/50 transition-colors"
+                          className="flex flex-col p-3 bg-surface-2/40 rounded-[--radius-lg] border border-white/6 hover:border-primary/30 transition-all touch-manipulation"
                         >
                           <span
-                            className="text-[9px] font-bold tracking-widest uppercase text-muted-foreground truncate"
+                            className="text-[9px] font-bold tracking-widest uppercase text-muted-foreground truncate mb-0.5"
                             title={k}
                           >
                             {k.replace(/([A-Z])/g, ' $1').trim()}
                           </span>
                           <span
-                            className="text-xs text-zinc-100 truncate"
+                            className="text-xs font-semibold text-foreground truncate tracking-tight"
                             title={String(v)}
                           >
                             {String(v) || 'Not Provided'}
@@ -174,16 +175,19 @@ export default function ProfilePage() {
                     </div>
 
                     {arrayEntries.length > 0 && (
-                      <div className="mt-8">
+                      <div className="mt-8 pt-6 border-t border-white/8">
                         <div className="flex flex-wrap gap-2 mb-6">
                           {arrayEntries.map(([k]) => (
                             <button
                               key={k}
-                              onClick={() => setActiveTab(k)}
-                              className={`px-4 py-2 text-xs font-semibold rounded-full transition-all min-h-[44px] flex items-center ${
+                              onClick={() => {
+                                triggerHaptic('selection');
+                                setActiveTab(k);
+                              }}
+                              className={`px-4 py-2 text-xs font-semibold rounded-full transition-all duration-[--duration-fast] ease-[--ease-spring-default] min-h-[44px] flex items-center cursor-pointer touch-manipulation active:scale-95 ${
                                 currentTab === k
-                                  ? 'bg-zinc-100 text-zinc-950'
-                                  : 'bg-zinc-900/50 text-zinc-300 hover:text-zinc-100 border border-white/10 hover:border-white/20'
+                                  ? 'bg-primary text-primary-foreground shadow-md'
+                                  : 'bg-surface-2/50 text-muted-foreground hover:text-foreground border border-white/8 hover:border-white/16'
                               }`}
                             >
                               {k.includes(' ') || k.toLowerCase() === k
@@ -204,33 +208,33 @@ export default function ProfilePage() {
                           return (
                             <div
                               key={k}
-                              className="overflow-x-auto rounded-xl border border-white/10"
+                              className="overflow-x-auto rounded-[--radius-xl] border border-white/8 apple-card shadow-xl custom-scrollbar"
                             >
                               <table className="w-full text-left border-collapse">
                                 <thead>
-                                  <tr className="border-b border-white/10">
+                                  <tr className="border-b border-white/8 bg-surface-2/50">
                                     {Object.keys(rows[0]).map((header) => (
                                       <th
                                         key={header}
                                         scope="col"
-                                        className="p-3 text-[10px] uppercase tracking-wider text-zinc-400 font-semibold bg-[#2c2c2c]/50"
+                                        className="px-4 py-3 caption-label text-muted-foreground whitespace-nowrap"
                                       >
                                         {header}
                                       </th>
                                     ))}
                                   </tr>
                                 </thead>
-                                <tbody className="divide-y divide-white/5 bg-black/20">
+                                <tbody className="divide-y divide-white/6">
                                   {rows.map((row, idx) => (
                                     <tr
                                       key={idx}
-                                      className="hover:bg-white/[0.02] transition-colors"
+                                      className="hover:bg-white/4 transition-colors"
                                     >
                                       {Object.values(row).map(
                                         (val: unknown, cellIdx) => (
                                           <td
                                             key={cellIdx}
-                                            className="p-3 text-xs text-zinc-300"
+                                            className="px-4 py-3 text-xs text-foreground font-medium whitespace-nowrap tabular-numbers"
                                           >
                                             {typeof val === 'object' &&
                                             val !== null &&
@@ -242,7 +246,7 @@ export default function ProfilePage() {
                                                 }
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="text-[var(--color-primary)] hover:underline"
+                                                className="text-primary hover:underline font-semibold"
                                               >
                                                 {
                                                   (val as { text?: string })

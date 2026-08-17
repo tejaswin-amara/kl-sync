@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { X } from '@/components/ui/icons';
 import { cn } from '@/lib/utils';
+import { triggerHaptic } from '@/lib/fluid-motion';
 
 interface DialogContextType {
   open: boolean;
@@ -36,6 +37,9 @@ export function Dialog({ open: controlledOpen, onOpenChange, children }: DialogP
         setUncontrolledOpen(value);
       }
       onOpenChange?.(value);
+      if (value) {
+        triggerHaptic('light');
+      }
     },
     [isControlled, onOpenChange]
   );
@@ -56,7 +60,7 @@ export function DialogTrigger({
   return (
     <button
       type="button"
-      className={className}
+      className={cn('touch-manipulation active:scale-95 transition-transform duration-[--duration-fast]', className)}
       onClick={() => setOpen(true)}
       {...props}
     >
@@ -92,27 +96,35 @@ export function DialogContent({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Apple Translucent Dimming Scrim */}
       <div
-        className="fixed inset-0 bg-black/70 backdrop-blur-md transition-opacity animate-in fade-in-0 duration-200"
-        onClick={() => setOpen(false)}
+        className="fixed inset-0 bg-black/65 backdrop-blur-md transition-opacity duration-[--duration-normal] ease-[--ease-spring-default] animate-in"
+        onClick={() => {
+          triggerHaptic('light');
+          setOpen(false);
+        }}
         aria-hidden="true"
       />
+      {/* Apple Modal Body with Specular Highlight */}
       <div
         role="dialog"
         aria-modal="true"
         className={cn(
-          'relative z-50 w-full max-w-lg glass-panel rounded-2xl p-6 border border-white/10 shadow-2xl animate-in fade-in-0 zoom-in-95 duration-200',
+          'relative z-50 w-full max-w-lg apple-modal rounded-[--radius-2xl] p-6 shadow-2xl animate-spring-scale duration-[--duration-spring] ease-[--ease-spring-default]',
           className
         )}
         {...props}
       >
         <button
           type="button"
-          onClick={() => setOpen(false)}
-          className="absolute right-4 top-4 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+          onClick={() => {
+            triggerHaptic('light');
+            setOpen(false);
+          }}
+          className="absolute right-4 top-4 rounded-full p-2 bg-white/6 hover:bg-white/12 text-muted-foreground hover:text-foreground transition-all duration-[--duration-fast] active:scale-90 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
           aria-label="Close dialog"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
         {children}
       </div>
@@ -125,17 +137,17 @@ export function DialogHeader({ className, ...props }: React.HTMLAttributes<HTMLD
 }
 
 export function DialogTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
-  return <h2 className={cn('text-lg font-semibold leading-none tracking-tight text-white font-heading', className)} {...props} />;
+  return <h2 className={cn('text-lg font-semibold leading-tight tracking-[-0.015em] text-foreground font-heading', className)} {...props} />;
 }
 
 export function DialogDescription({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
-  return <p className={cn('text-sm text-zinc-400 leading-relaxed', className)} {...props} />;
+  return <p className={cn('text-xs text-muted-foreground/90 leading-relaxed font-normal', className)} {...props} />;
 }
 
 export function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn('flex flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-6 pt-4 border-t border-white/5', className)}
+      className={cn('flex flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-6 pt-4 border-t border-border/40', className)}
       {...props}
     />
   );
@@ -144,7 +156,15 @@ export function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLD
 export function DialogClose({ children, className, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   const { setOpen } = useDialog();
   return (
-    <button type="button" className={className} onClick={() => setOpen(false)} {...props}>
+    <button
+      type="button"
+      className={cn('touch-manipulation active:scale-95 transition-transform duration-[--duration-fast]', className)}
+      onClick={() => {
+        triggerHaptic('light');
+        setOpen(false);
+      }}
+      {...props}
+    >
       {children}
     </button>
   );

@@ -1,9 +1,10 @@
 'use client';
+
 import { useEffect, useState, useCallback } from 'react';
 import { Loader2, Wrench, AlertCircle, Percent, Target } from '@/components/ui/icons';
 import { SimpleCalculator } from '@/components/attendance-calculator';
-
 import { processERPDataForCGPA } from '@/lib/cgpa';
+import { triggerHaptic } from '@/lib/fluid-motion';
 
 export default function ToolsPage() {
   const [totalClasses, setTotalClasses] = useState(0);
@@ -106,69 +107,73 @@ export default function ToolsPage() {
   const reqGpa = calculateRequiredGpa();
 
   return (
-    <div className="flex flex-col gap-6 w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="flex flex-col gap-6 w-full animate-spring-up">
       <div className="flex flex-col md:flex-row justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-zinc-100 flex items-center gap-3">
+          <h2 className="text-3xl font-semibold tracking-[-0.025em] text-foreground font-heading flex items-center gap-3">
             <Wrench className="w-8 h-8 text-indigo-400" />
             Tools & Calculators
           </h2>
-          <p className="text-base text-zinc-400 mt-1">
+          <p className="text-xs text-muted-foreground/90 mt-1 font-normal">
             Smart offline tools pre-populated with your live ERP data.
           </p>
         </div>
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center h-64 border border-white/10 rounded-2xl bg-zinc-900/50 backdrop-blur-md">
-          <Loader2 className="w-10 h-10 text-indigo-400 animate-spin mb-4" />
-          <p className="text-zinc-400">Loading your data...</p>
+        <div className="flex flex-col items-center justify-center h-64 border border-white/10 rounded-[--radius-2xl] apple-card shadow-xl">
+          <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
+          <p className="text-xs text-muted-foreground font-medium">Loading your data...</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="rounded-xl border border-white/10 bg-zinc-950/50 p-6 shadow-sm relative overflow-hidden transition-all duration-300 flex flex-col h-full">
-            <div className="p-5 border-b border-white/5 flex items-center gap-3 bg-zinc-950/30">
+          {/* Attendance Target Card */}
+          <div className="rounded-[--radius-2xl] border border-white/10 apple-card p-6 shadow-2xl relative overflow-hidden flex flex-col h-full">
+            <div className="p-4 border-b border-white/8 flex items-center gap-3 bg-surface-2/30 rounded-t-[--radius-xl] -mx-6 -mt-6 mb-6">
               <Percent className="w-5 h-5 text-emerald-400" />
-              <h3 className="text-lg font-semibold text-zinc-100">
+              <h3 className="text-base font-semibold text-foreground font-heading tracking-tight">
                 Attendance Target
               </h3>
             </div>
-            <div className="p-6 flex-1 flex flex-col gap-6">
-              <p className="text-sm text-zinc-400">
-                Your total classes conducted and attended have been synced
-                automatically.
+            <div className="flex-1 flex flex-col gap-6">
+              <p className="text-xs text-muted-foreground font-normal leading-relaxed">
+                Your total classes conducted and attended have been synced automatically from the ERP.
               </p>
 
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label htmlFor="total-classes-input" className="text-xs font-bold text-zinc-300 uppercase tracking-wider block mb-2">
+                  <label htmlFor="total-classes-input" className="caption-label text-muted-foreground/90 block mb-2">
                     Total Classes
                   </label>
                   <input
                     id="total-classes-input"
                     type="number"
-                    className="w-full bg-zinc-950/50 border border-white/10 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                    className="w-full bg-surface-2/60 border border-white/10 rounded-[--radius-lg] px-4 py-2.5 text-foreground text-sm font-semibold tabular-numbers focus:outline-hidden focus:border-emerald-500/50 transition-all"
                     value={totalClasses}
-                    onChange={(e) =>
-                      setTotalClasses(parseInt(e.target.value) || 0)
-                    }
+                    onChange={(e) => {
+                      triggerHaptic('selection');
+                      setTotalClasses(parseInt(e.target.value) || 0);
+                    }}
                   />
                 </div>
                 <div className="flex-1">
-                  <label htmlFor="classes-attended-input" className="text-xs font-bold text-zinc-300 uppercase tracking-wider block mb-2">
+                  <label htmlFor="classes-attended-input" className="caption-label text-muted-foreground/90 block mb-2">
                     Classes Attended
                   </label>
                   <input
                     id="classes-attended-input"
                     type="number"
-                    className="w-full bg-zinc-950/50 border border-white/10 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                    className="w-full bg-surface-2/60 border border-white/10 rounded-[--radius-lg] px-4 py-2.5 text-foreground text-sm font-semibold tabular-numbers focus:outline-hidden focus:border-emerald-500/50 transition-all"
                     value={presents}
-                    onChange={(e) => setPresents(parseInt(e.target.value) || 0)}
+                    onChange={(e) => {
+                      triggerHaptic('selection');
+                      setPresents(parseInt(e.target.value) || 0);
+                    }}
                   />
                 </div>
               </div>
 
-              <div className="bg-zinc-950/80 rounded-xl overflow-hidden mt-4 shadow-xl border border-white/5">
+              <div className="overflow-hidden mt-4">
                 <SimpleCalculator
                   totalClasses={totalClasses}
                   presents={presents}
@@ -177,29 +182,30 @@ export default function ToolsPage() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-white/10 bg-zinc-950/50 p-6 shadow-sm relative overflow-hidden transition-all duration-300 flex flex-col h-full">
-            <div className="p-5 border-b border-white/5 flex items-center gap-3 bg-zinc-950/30">
+          {/* CGPA Goal Predictor */}
+          <div className="rounded-[--radius-2xl] border border-white/10 apple-card p-6 shadow-2xl relative overflow-hidden flex flex-col h-full">
+            <div className="p-4 border-b border-white/8 flex items-center gap-3 bg-surface-2/30 rounded-t-[--radius-xl] -mx-6 -mt-6 mb-6">
               <Target className="w-5 h-5 text-purple-400" />
-              <h3 className="text-lg font-semibold text-zinc-100">
+              <h3 className="text-base font-semibold text-foreground font-heading tracking-tight">
                 CGPA Goal Predictor
               </h3>
             </div>
-            <div className="p-6 flex-1 flex flex-col gap-6">
-              <div className="flex items-center gap-6 p-4 bg-purple-500/10 border border-purple-500/20 rounded-xl">
+            <div className="flex-1 flex flex-col gap-6">
+              <div className="flex items-center gap-6 p-4 bg-purple-500/15 border border-purple-500/25 rounded-[--radius-xl]">
                 <div className="flex-1 text-center">
-                  <p className="text-xs font-bold text-purple-400/80 tracking-widest uppercase mb-1">
+                  <p className="caption-label text-purple-300 mb-1">
                     Current CGPA
                   </p>
-                  <p className="text-3xl font-black text-purple-100">
+                  <p className="text-3xl font-extrabold text-purple-100 tabular-numbers font-heading">
                     {cgpa.toFixed(2)}
                   </p>
                 </div>
-                <div className="w-px h-12 bg-purple-500/20"></div>
+                <div className="w-px h-10 bg-purple-500/25"></div>
                 <div className="flex-1 text-center">
-                  <p className="text-xs font-bold text-purple-400/80 tracking-widest uppercase mb-1">
+                  <p className="caption-label text-purple-300 mb-1">
                     Earned Credits
                   </p>
-                  <p className="text-3xl font-black text-purple-100">
+                  <p className="text-3xl font-extrabold text-purple-100 tabular-numbers font-heading">
                     {completedCredits}
                   </p>
                 </div>
@@ -207,57 +213,63 @@ export default function ToolsPage() {
 
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label htmlFor="target-cgpa-input" className="text-xs font-bold text-zinc-300 uppercase tracking-wider block mb-2">
+                  <label htmlFor="target-cgpa-input" className="caption-label text-muted-foreground/90 block mb-2">
                     Target CGPA Goal
                   </label>
                   <input
                     id="target-cgpa-input"
                     type="number"
                     step="0.1"
-                    className="w-full bg-zinc-950/50 border border-white/10 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                    className="w-full bg-surface-2/60 border border-white/10 rounded-[--radius-lg] px-4 py-2.5 text-foreground text-sm font-semibold tabular-numbers focus:outline-hidden focus:border-purple-500/50 transition-all"
                     value={targetCgpa}
-                    onChange={(e) => setTargetCgpa(e.target.value)}
+                    onChange={(e) => {
+                      triggerHaptic('selection');
+                      setTargetCgpa(e.target.value);
+                    }}
                   />
                 </div>
                 <div className="flex-1">
-                  <label htmlFor="upcoming-credits-input" className="text-xs font-bold text-zinc-300 uppercase tracking-wider block mb-2">
+                  <label htmlFor="upcoming-credits-input" className="caption-label text-muted-foreground/90 block mb-2">
                     Upcoming Credits
                   </label>
                   <input
                     id="upcoming-credits-input"
                     type="number"
-                    className="w-full bg-zinc-950/50 border border-white/10 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                    className="w-full bg-surface-2/60 border border-white/10 rounded-[--radius-lg] px-4 py-2.5 text-foreground text-sm font-semibold tabular-numbers focus:outline-hidden focus:border-purple-500/50 transition-all"
                     value={newCredits}
-                    onChange={(e) => setNewCredits(e.target.value)}
+                    onChange={(e) => {
+                      triggerHaptic('selection');
+                      setNewCredits(e.target.value);
+                    }}
                   />
                 </div>
               </div>
 
-              <div className="mt-4 p-5 bg-zinc-950/80 border border-white/5 rounded-xl text-center">
+              <div className="mt-auto p-5 bg-surface-2/40 border border-white/8 rounded-[--radius-xl] text-center">
                 {reqGpa === null ? (
-                  <p className="text-zinc-500 text-sm">Enter valid numbers.</p>
+                  <p className="text-muted-foreground text-xs font-normal">Enter valid numbers.</p>
                 ) : parseFloat(reqGpa) > 10 ? (
                   <div>
-                    <p className="text-red-400 font-semibold mb-1 flex items-center justify-center gap-2">
+                    <p className="text-destructive font-semibold mb-1 flex items-center justify-center gap-2 text-sm tracking-tight">
                       <AlertCircle className="w-4 h-4" /> Unreachable Goal
                     </p>
-                    <p className="text-zinc-400 text-sm">
-                      You would need a GPA of{' '}
-                      <strong className="text-red-300">{reqGpa}</strong>.
+                    <p className="text-muted-foreground text-xs leading-relaxed font-normal">
+                      You would need an upcoming GPA of{' '}
+                      <strong className="text-destructive tabular-numbers font-semibold">{reqGpa}</strong>.
                     </p>
                   </div>
                 ) : parseFloat(reqGpa) < 0 ? (
                   <div>
-                    <p className="text-emerald-400 font-semibold mb-1 flex items-center justify-center gap-2">
+                    <p className="text-success font-semibold mb-1 flex items-center justify-center gap-2 text-sm tracking-tight">
                       <Target className="w-4 h-4" /> Easily Achievable
                     </p>
                   </div>
                 ) : (
                   <div>
-                    <p className="text-zinc-300 text-sm mb-2">
+                    <p className="text-muted-foreground text-xs mb-1 font-normal">
                       Required upcoming GPA to hit {targetCgpa}
                     </p>
-                    <p className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">
+                    <p className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400 tabular-numbers font-heading tracking-tight">
                       {reqGpa}
                     </p>
                   </div>
