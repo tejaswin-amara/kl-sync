@@ -73,7 +73,7 @@ export function cleanTitleString(title: string, code?: string): string {
   if (code) {
     const cleanCode = code.trim();
     if (cleanCode) {
-      const escaped = cleanCode.replace(/[-[\]{}()*+?.:^$|]/g, '\\$&');
+      const escaped = cleanCode.replace(/[\\^$*+?.()|[\]{}]/g, '\\$&');
       str = str.replace(new RegExp(`^${escaped}\\s*[-:_\\/\\s]*`, 'i'), '');
       str = str.replace(new RegExp(`\\s*[-:_\\/\\s]*${escaped}$`, 'i'), '');
     }

@@ -161,8 +161,8 @@ function parseProfileData(pages: { name: string; html: string }[]) {
     );
     if (imgMatch && !imgMatch[1].toLowerCase().endsWith('.js')) {
       let photoSrc = imgMatch[1];
-      if (photoSrc.replace(/\\s/g, '').toLowerCase().startsWith('data:image')) {
-        photoSrc = photoSrc.replace(/\\s/g, '');
+      if (photoSrc.replace(/\s/g, '').toLowerCase().startsWith('data:image')) {
+        photoSrc = photoSrc.replace(/\s/g, '');
       }
       data.photoUrl = photoSrc;
     }
