@@ -5,6 +5,21 @@ All notable changes to the **KL Sync** project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1] - 2026-08-17
+
+### 🪮 System-Wide Ponytail Architecture & Native Icon Migration
+- **Pruned `lucide-react`**: Removed heavyweight 500KB+ external icon dependency in favor of a native zero-runtime SVG library (`src/components/ui/icons.tsx` — 55 primitives with standardized `viewBox`, `strokeWidth`, and ARIA compliance).
+- **Stabilized `useNativeQuery`**: Implemented `useRef` memoization on query keys to eliminate re-render/fetch loops during rapid student navigation and tab remounting.
+- **Dual-Binding Scraper Mapping**: Enhanced `src/lib/scrapers/marks.ts` to automatically bind both `DynamicModel[semester]` and `DynamicModel[semesterid]` parameters against ERP endpoints.
+- **Dead Code Pruning**: Removed legacy uncalled dialogs and wrappers (`AIChatDialog.tsx`, `useERPData.ts`, `command.tsx`, `tooltip.tsx`).
+
+### 🧪 Quality & Test Suite Expansion (310 Tests Across 52 Suites)
+- **91 New Test Suites**: Added comprehensive icon adversarial tests (`src/components/ui/icons.test.ts`, `challenger-icons-adversarial.test.ts`), layout stability checks, and marks scraper edge case suites.
+- **End-to-End Browser Audit**: 11/11 dashboard routes verified with live session hydration and 0 console errors.
+- **Challenger Browser Stress Suite**: 15/15 adversarial checks passed across multi-tab concurrency, history hopping, and WCAG 2.2 AAA touch target audits.
+
+---
+
 ## [2.2.0] - 2026-08-11
 
 ### 🧹 Dependency Purge & Zero-Dep Utilities (M3)
