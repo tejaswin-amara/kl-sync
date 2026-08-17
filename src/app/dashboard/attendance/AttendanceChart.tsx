@@ -78,16 +78,16 @@ export function AttendanceChart({ data }: AttendanceChartProps) {
   const barWidth = Math.min(36, Math.max(18, step * 0.55));
 
   return (
-    <div className="rounded-xl border border-border/80 bg-surface-1 p-5 space-y-4 glass-card">
+    <div className="rounded-[--radius-2xl] border border-white/10 apple-card p-6 space-y-4 shadow-xl overflow-hidden">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-foreground tracking-tight">Subject Attendance Breakdown</h3>
-          <p className="text-xs text-muted-foreground">Percentage overview per subject</p>
+          <h3 className="text-sm font-semibold text-foreground font-heading tracking-tight">Subject Attendance Breakdown</h3>
+          <p className="text-xs text-muted-foreground/80 font-normal">Percentage overview per subject</p>
         </div>
-        <div className="flex items-center gap-3 text-[11px] font-medium">
-          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-success inline-block" /> ≥85%</span>
-          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-warning inline-block" /> 75-84%</span>
-          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-destructive inline-block" /> &lt;75%</span>
+        <div className="flex items-center gap-3 text-[11px] font-semibold">
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-success inline-block shadow-xs" /> ≥85%</span>
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-warning inline-block shadow-xs" /> 75-84%</span>
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-destructive inline-block shadow-xs" /> &lt;75%</span>
         </div>
       </div>
 
@@ -147,17 +147,17 @@ export function AttendanceChart({ data }: AttendanceChartProps) {
                   y={y}
                   width={barWidth}
                   height={barH}
-                  rx={4}
+                  rx={6}
                   fill={color}
-                  opacity={0.85}
-                  className="transition-opacity group-hover:opacity-100 cursor-pointer"
+                  opacity={0.88}
+                  className="transition-all duration-[--duration-normal] group-hover:opacity-100 cursor-pointer"
                 />
                 {/* Value text above bar */}
                 <text
                   x={labelX}
                   y={y - 6}
                   textAnchor="middle"
-                  className="fill-foreground text-[10px] font-bold font-mono"
+                  className="fill-foreground text-[10px] font-bold font-mono tabular-numbers"
                 >
                   {Math.round(item.pct)}%
                 </text>

@@ -24,20 +24,20 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 }
 
 const variantStyles: Record<string, string> = {
-  default: 'bg-surface-2 text-zinc-300 border-border',
-  secondary: 'bg-secondary text-secondary-foreground border-border',
-  success: 'bg-success/10 text-success border-success/20',
-  warning: 'bg-warning/10 text-amber-300 border-warning/20',
-  danger: 'bg-destructive/10 text-red-300 border-destructive/20',
-  destructive: 'bg-destructive/10 text-red-300 border-destructive/20',
-  info: 'bg-primary/10 text-indigo-300 border-primary/20',
-  outline: 'bg-transparent text-zinc-300 border-border',
-  emerald: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  present: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
-  absent: 'bg-rose-500/15 text-rose-300 border-rose-500/30',
-  pending: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
-  neutral: 'bg-zinc-800 text-zinc-300 border-zinc-700',
-  glass: 'glass-card text-foreground border-white/10 shadow-xs',
+  default: 'bg-surface-2 text-zinc-300 border-border apple-pill',
+  secondary: 'bg-secondary text-secondary-foreground border-border apple-pill',
+  success: 'bg-success/15 text-success border-success/30 apple-pill',
+  warning: 'bg-warning/15 text-amber-300 border-warning/30 apple-pill',
+  danger: 'bg-destructive/15 text-red-300 border-destructive/30 apple-pill',
+  destructive: 'bg-destructive/15 text-red-300 border-destructive/30 apple-pill',
+  info: 'bg-primary/15 text-indigo-300 border-primary/30 apple-pill',
+  outline: 'bg-transparent text-zinc-300 border-border apple-pill',
+  emerald: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 apple-pill',
+  present: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/35 apple-pill',
+  absent: 'bg-rose-500/20 text-rose-300 border-rose-500/35 apple-pill',
+  pending: 'bg-amber-500/20 text-amber-300 border-amber-500/35 apple-pill',
+  neutral: 'bg-surface-2 text-zinc-300 border-white/8 apple-pill',
+  glass: 'apple-card text-foreground border-white/10 shadow-xs apple-pill',
 };
 
 const sizeStyles: Record<string, string> = {

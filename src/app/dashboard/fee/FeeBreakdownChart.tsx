@@ -50,7 +50,7 @@ export function FeeBreakdownChart({ data, totalFee: propTotal, pendingFee: propP
 
   // Donut chart calculations
   const size = 160;
-  const strokeWidth = 20;
+  const strokeWidth = 18;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
 
@@ -58,13 +58,13 @@ export function FeeBreakdownChart({ data, totalFee: propTotal, pendingFee: propP
   const pendingDash = circumference - paidDash;
 
   return (
-    <div className="rounded-xl border border-border/80 bg-surface-1 p-5 glass-card space-y-4">
+    <div className="rounded-[--radius-2xl] border border-white/10 apple-card p-6 space-y-4 shadow-xl overflow-hidden">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-foreground tracking-tight">Fee Summary</h3>
-          <p className="text-xs text-muted-foreground">Payment distribution status</p>
+          <h3 className="text-sm font-semibold text-foreground font-heading tracking-tight">Fee Summary</h3>
+          <p className="text-xs text-muted-foreground/80 font-normal">Payment distribution status</p>
         </div>
-        <div className="text-xs font-mono font-bold text-emerald-400">
+        <div className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full apple-pill">
           {paidPct}% Paid
         </div>
       </div>
@@ -111,27 +111,27 @@ export function FeeBreakdownChart({ data, totalFee: propTotal, pendingFee: propP
             )}
           </svg>
           <div className="absolute flex flex-col items-center justify-center text-center">
-            <span className="text-xs text-muted-foreground font-medium">Total</span>
-            <span className="text-sm font-bold text-foreground font-mono">₹{total.toLocaleString()}</span>
+            <span className="caption-label text-muted-foreground">Total</span>
+            <span className="text-sm font-bold text-foreground font-mono tabular-numbers mt-0.5">₹{total.toLocaleString()}</span>
           </div>
         </div>
 
         {/* Legend stats */}
         <div className="space-y-3 w-full sm:w-auto">
-          <div className="flex items-center justify-between sm:justify-start gap-4 p-2.5 rounded-lg bg-surface-2/60 border border-border/40">
+          <div className="flex items-center justify-between sm:justify-start gap-4 p-3 rounded-[--radius-lg] bg-surface-2/40 border border-white/6">
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-success inline-block" />
-              <span className="text-xs font-medium text-muted-foreground">Paid Amount</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-success inline-block shadow-xs" />
+              <span className="text-xs font-semibold text-muted-foreground">Paid Amount</span>
             </div>
-            <span className="text-xs font-bold text-emerald-400 font-mono">₹{paid.toLocaleString()}</span>
+            <span className="text-xs font-bold text-emerald-400 font-mono tabular-numbers">₹{paid.toLocaleString()}</span>
           </div>
 
-          <div className="flex items-center justify-between sm:justify-start gap-4 p-2.5 rounded-lg bg-surface-2/60 border border-border/40">
+          <div className="flex items-center justify-between sm:justify-start gap-4 p-3 rounded-[--radius-lg] bg-surface-2/40 border border-white/6">
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-destructive inline-block" />
-              <span className="text-xs font-medium text-muted-foreground">Pending Due</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-destructive inline-block shadow-xs" />
+              <span className="text-xs font-semibold text-muted-foreground">Pending Due</span>
             </div>
-            <span className="text-xs font-bold text-rose-400 font-mono">₹{pending.toLocaleString()}</span>
+            <span className="text-xs font-bold text-rose-400 font-mono tabular-numbers">₹{pending.toLocaleString()}</span>
           </div>
         </div>
       </div>

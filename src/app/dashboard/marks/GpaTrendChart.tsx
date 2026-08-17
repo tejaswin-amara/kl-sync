@@ -61,18 +61,18 @@ export function GpaTrendChart({ data }: GpaTrendChartProps) {
       : '';
 
   return (
-    <div className="rounded-xl border border-border/80 bg-surface-1 p-5 space-y-4 glass-card">
+    <div className="rounded-[--radius-2xl] border border-white/10 apple-card p-6 space-y-4 shadow-xl overflow-hidden">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-foreground tracking-tight">Performance Trend</h3>
-          <p className="text-xs text-muted-foreground">Subject performance scores</p>
+          <h3 className="text-sm font-semibold text-foreground font-heading tracking-tight">Performance Trend</h3>
+          <p className="text-xs text-muted-foreground/80 font-normal">Subject performance scores</p>
         </div>
-        <div className="text-xs font-mono font-bold text-primary">
+        <div className="text-xs font-mono font-bold text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full apple-pill">
           Max: {maxScore}
         </div>
       </div>
 
-      <div className="w-full overflow-x-auto">
+      <div className="w-full overflow-x-auto custom-scrollbar">
         <svg
           viewBox={`0 0 ${svgWidth} ${chartHeight}`}
           className="w-full h-auto min-w-[500px]"
@@ -81,7 +81,7 @@ export function GpaTrendChart({ data }: GpaTrendChartProps) {
         >
           <defs>
             <linearGradient id="gpaGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#6366f1" stopOpacity="0.4" />
+              <stop offset="0%" stopColor="#6366f1" stopOpacity="0.45" />
               <stop offset="100%" stopColor="#6366f1" stopOpacity="0.0" />
             </linearGradient>
           </defs>

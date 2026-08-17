@@ -1,6 +1,7 @@
 'use client';
 
 import { Calendar, DollarSign, Award, Target, BookOpen } from '@/components/ui/icons';
+import { triggerHaptic } from '@/lib/fluid-motion';
 
 interface SuggestionChip {
   label: string;
@@ -12,7 +13,7 @@ const SUGGESTIONS: SuggestionChip[] = [
   {
     label: 'OS Attendance',
     query: 'What is my attendance in OS?',
-    icon: <BookOpen className="w-3.5 h-3.5 text-blue-400" />,
+    icon: <BookOpen className="w-3.5 h-3.5 text-indigo-300" />,
   },
   {
     label: 'Fee Balance',
@@ -22,17 +23,17 @@ const SUGGESTIONS: SuggestionChip[] = [
   {
     label: 'Today Schedule',
     query: 'What classes do I have today?',
-    icon: <Calendar className="w-3.5 h-3.5 text-purple-400" />,
+    icon: <Calendar className="w-3.5 h-3.5 text-purple-300" />,
   },
   {
     label: 'Target 75%',
     query: 'How many classes can I miss in OS?',
-    icon: <Target className="w-3.5 h-3.5 text-amber-400" />,
+    icon: <Target className="w-3.5 h-3.5 text-amber-300" />,
   },
   {
     label: 'Predict CGPA',
     query: 'Predict CGPA with upcoming courses',
-    icon: <Award className="w-3.5 h-3.5 text-pink-400" />,
+    icon: <Award className="w-3.5 h-3.5 text-pink-300" />,
   },
 ];
 
@@ -46,15 +47,18 @@ export function AIChatSuggestionChips({
   disabled = false,
 }: AIChatSuggestionChipsProps) {
   return (
-    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar scroll-smooth">
+    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar scroll-smooth">
       <div className="flex items-center gap-1.5 shrink-0 px-0.5">
         {SUGGESTIONS.map((chip, idx) => (
           <button
             key={idx}
             type="button"
             disabled={disabled}
-            onClick={() => onSelectSuggestion(chip.query)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium bg-secondary/60 hover:bg-secondary text-secondary-foreground border border-border/50 backdrop-blur-sm transition-all hover:scale-105 active:scale-95 disabled:opacity-50 shrink-0 min-h-[44px]"
+            onClick={() => {
+              triggerHaptic('selection');
+              onSelectSuggestion(chip.query);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-surface-2/60 hover:bg-surface-2 text-foreground border border-white/8 apple-pill transition-all touch-manipulation active:scale-95 disabled:opacity-40 shrink-0 min-h-[44px] cursor-pointer"
           >
             {chip.icon}
             <span>{chip.label}</span>

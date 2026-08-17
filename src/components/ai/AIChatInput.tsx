@@ -3,6 +3,7 @@
 import { useState, useRef, KeyboardEvent } from 'react';
 import { Send, Sparkles } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
+import { triggerHaptic } from '@/lib/fluid-motion';
 
 interface AIChatInputProps {
   onSendMessage: (text: string) => void;
@@ -21,6 +22,7 @@ export function AIChatInput({
   const handleSend = () => {
     const trimmed = input.trim();
     if (!trimmed || disabled) return;
+    triggerHaptic('medium');
     onSendMessage(trimmed);
     setInput('');
     if (textareaRef.current) {
@@ -44,7 +46,7 @@ export function AIChatInput({
   };
 
   return (
-    <div className="relative flex items-end gap-2 p-3 bg-card/60 backdrop-blur-md border border-border rounded-xl shadow-lg">
+    <div className="relative flex items-end gap-2 p-2 bg-surface-2/70 backdrop-blur-xl border border-white/10 rounded-[--radius-xl] shadow-xl focus-within:border-primary/50 transition-all">
       <div className="flex-1 min-w-0">
         <textarea
           ref={textareaRef}
@@ -54,7 +56,7 @@ export function AIChatInput({
           placeholder={placeholder}
           disabled={disabled}
           rows={1}
-          className="w-full resize-none bg-transparent border-0 focus:outline-hidden text-sm text-foreground placeholder:text-muted-foreground max-h-[120px] py-1.5 px-2"
+          className="w-full resize-none bg-transparent border-0 focus:outline-hidden text-xs text-foreground placeholder:text-zinc-400 max-h-[120px] py-2 px-3 font-normal leading-relaxed"
           aria-label="Ask AI Copilot"
         />
       </div>
@@ -62,7 +64,7 @@ export function AIChatInput({
         size="icon"
         onClick={handleSend}
         disabled={disabled || !input.trim()}
-        className="rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center transition-all"
+        className="rounded-[--radius-lg] bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center transition-all touch-manipulation active:scale-95 cursor-pointer shadow-md"
         aria-label="Send query"
       >
         {disabled ? (

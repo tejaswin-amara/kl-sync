@@ -25,12 +25,12 @@ export function AIChatMessageList({ messages }: AIChatMessageListProps) {
   if (messages.length === 0) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-3 text-muted-foreground">
-        <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+        <div className="w-12 h-12 rounded-[--radius-xl] bg-primary/15 border border-primary/25 flex items-center justify-center text-primary shadow-lg">
           <Sparkles className="w-6 h-6 animate-pulse" />
         </div>
         <div>
-          <h3 className="font-semibold text-foreground text-sm">KL Sync AI Copilot</h3>
-          <p className="text-xs text-muted-foreground max-w-[260px] mt-1">
+          <h3 className="font-semibold text-foreground text-sm font-heading tracking-tight">KL Sync AI Copilot</h3>
+          <p className="text-xs text-muted-foreground/80 max-w-[260px] mt-1 font-normal leading-relaxed">
             Ask natural language questions about your attendance, fees, marks, timetable, or target CGPA.
           </p>
         </div>
@@ -45,29 +45,29 @@ export function AIChatMessageList({ messages }: AIChatMessageListProps) {
         return (
           <div
             key={msg.id}
-            className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}
+            className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start'} animate-spring-up`}
           >
             {!isUser && (
-              <div className="w-7 h-7 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary shrink-0 mt-0.5 shadow-xs">
+              <div className="w-7 h-7 rounded-[--radius-md] bg-primary/20 border border-primary/30 flex items-center justify-center text-primary shrink-0 mt-0.5 shadow-xs">
                 <Sparkles className="w-4 h-4" />
               </div>
             )}
 
             <div
-              className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-xs ${
+              className={`max-w-[85%] rounded-[--radius-2xl] px-4 py-3 text-sm shadow-md transition-all ${
                 isUser
-                  ? 'bg-primary text-primary-foreground rounded-br-xs'
-                  : 'bg-card/80 border border-border backdrop-blur-md text-foreground rounded-bl-xs'
+                  ? 'bg-primary text-primary-foreground rounded-br-xs font-medium'
+                  : 'apple-card border border-white/10 text-foreground rounded-bl-xs font-normal'
               }`}
             >
               {/* Message text content */}
-              <div className="whitespace-pre-wrap leading-relaxed">
+              <div className="whitespace-pre-wrap leading-relaxed tracking-tight">
                 {renderFormattedText(msg.content)}
               </div>
 
               {/* Tool Execution Result Cards */}
               {msg.toolCalls && msg.toolCalls.length > 0 && (
-                <div className="mt-3 space-y-2 pt-2 border-t border-border/40">
+                <div className="mt-3 space-y-2 pt-2 border-t border-white/8">
                   {msg.toolCalls.map((tc, idx) => (
                     <ToolResultCard key={idx} toolCall={tc} />
                   ))}
@@ -76,7 +76,7 @@ export function AIChatMessageList({ messages }: AIChatMessageListProps) {
             </div>
 
             {isUser && (
-              <div className="w-7 h-7 rounded-xl bg-secondary flex items-center justify-center text-secondary-foreground shrink-0 mt-0.5">
+              <div className="w-7 h-7 rounded-[--radius-md] bg-surface-2 border border-white/10 flex items-center justify-center text-foreground shrink-0 mt-0.5 shadow-xs">
                 <User className="w-4 h-4" />
               </div>
             )}
@@ -125,8 +125,8 @@ function ToolResultCard({
       'Conducted Hours': string;
     }>;
     return (
-      <div className="p-3 rounded-xl bg-background/60 border border-border/60 space-y-2 text-xs">
-        <div className="flex items-center gap-1.5 font-medium text-foreground">
+      <div className="p-3 rounded-[--radius-xl] bg-surface-2/60 border border-white/8 space-y-2 text-xs">
+        <div className="flex items-center gap-1.5 font-semibold text-foreground font-heading">
           <BookOpen className="w-3.5 h-3.5 text-primary" />
           <span>Attendance Breakdown</span>
         </div>
@@ -135,15 +135,15 @@ function ToolResultCard({
             const pct = parseFloat(String(item['Attendance Percentage'] || '0').replace('%', ''));
             const isLow = pct < 75;
             return (
-              <div key={i} className="p-2 rounded-lg bg-card/40 border border-border/30 space-y-1">
-                <div className="flex items-center justify-between text-foreground font-medium">
-                  <span className="truncate max-w-[180px]">{item['Course Title'] || item['Course Code']}</span>
-                  <Badge variant={isLow ? 'danger' : pct >= 85 ? 'success' : 'warning'}>
+              <div key={i} className="p-2.5 rounded-[--radius-lg] bg-surface-2/40 border border-white/6 space-y-1.5">
+                <div className="flex items-center justify-between text-foreground font-semibold">
+                  <span className="truncate max-w-[180px] tracking-tight">{item['Course Title'] || item['Course Code']}</span>
+                  <Badge variant={isLow ? 'danger' : pct >= 85 ? 'success' : 'warning'} className="tabular-numbers">
                     {item['Attendance Percentage']}
                   </Badge>
                 </div>
                 <Progress value={Math.min(100, pct)} className="h-1.5" />
-                <div className="text-[10px] text-muted-foreground">
+                <div className="text-[10px] text-muted-foreground tabular-numbers font-medium">
                   Attended: {item['Attended Hours']} / {item['Conducted Hours']} hours
                 </div>
               </div>
@@ -162,24 +162,24 @@ function ToolResultCard({
       hasPendingDue: boolean;
     };
     return (
-      <div className="p-3 rounded-xl bg-background/60 border border-border/60 space-y-2 text-xs">
+      <div className="p-3 rounded-[--radius-xl] bg-surface-2/60 border border-white/8 space-y-2 text-xs">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 font-medium text-foreground">
+          <div className="flex items-center gap-1.5 font-semibold text-foreground font-heading">
             <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
             <span>Fee Overview</span>
           </div>
-          <Badge variant={b.hasPendingDue ? 'danger' : 'success'}>
+          <Badge variant={b.hasPendingDue ? 'danger' : 'success'} className="tabular-numbers">
             {b.hasPendingDue ? `Pending: ₹${b.totalPending.toLocaleString('en-IN')}` : 'All Paid'}
           </Badge>
         </div>
         <div className="grid grid-cols-2 gap-2 text-center pt-1">
-          <div className="p-2 rounded-lg bg-card/40 border border-border/30">
-            <span className="text-[10px] text-muted-foreground block">Paid Amount</span>
-            <span className="font-semibold text-emerald-400">₹{b.totalPaid.toLocaleString('en-IN')}</span>
+          <div className="p-2.5 rounded-[--radius-lg] bg-surface-2/40 border border-white/6">
+            <span className="caption-label text-muted-foreground block mb-0.5">Paid Amount</span>
+            <span className="font-bold text-emerald-400 font-mono tabular-numbers">₹{b.totalPaid.toLocaleString('en-IN')}</span>
           </div>
-          <div className="p-2 rounded-lg bg-card/40 border border-border/30">
-            <span className="text-[10px] text-muted-foreground block">Total Amount</span>
-            <span className="font-semibold text-foreground">₹{b.totalAmount.toLocaleString('en-IN')}</span>
+          <div className="p-2.5 rounded-[--radius-lg] bg-surface-2/40 border border-white/6">
+            <span className="caption-label text-muted-foreground block mb-0.5">Total Amount</span>
+            <span className="font-bold text-foreground font-mono tabular-numbers">₹{b.totalAmount.toLocaleString('en-IN')}</span>
           </div>
         </div>
       </div>
@@ -196,24 +196,24 @@ function ToolResultCard({
     };
     const isBelow = r.status === 'below_target';
     return (
-      <div className="p-3 rounded-xl bg-background/60 border border-border/60 space-y-2 text-xs">
+      <div className="p-3 rounded-[--radius-xl] bg-surface-2/60 border border-white/8 space-y-2 text-xs">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 font-medium text-foreground">
+          <div className="flex items-center gap-1.5 font-semibold text-foreground font-heading">
             <Target className="w-3.5 h-3.5 text-amber-400" />
             <span>Attendance Roadmap</span>
           </div>
-          <Badge variant={isBelow ? 'danger' : 'success'}>
+          <Badge variant={isBelow ? 'danger' : 'success'} className="tabular-numbers">
             {isBelow ? `Needed: +${r.classesNeeded} classes` : `Bunkable: ${r.maxBunkable} classes`}
           </Badge>
         </div>
         <div className="text-[11px] text-muted-foreground">
           {isBelow ? (
-            <div className="flex items-center gap-1 text-red-400">
+            <div className="flex items-center gap-1 text-destructive font-medium">
               <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
               <span>Attend next {r.classesNeeded} consecutive classes to reach {r.targetPercent}%.</span>
             </div>
           ) : (
-            <div className="flex items-center gap-1 text-emerald-400">
+            <div className="flex items-center gap-1 text-success font-medium">
               <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
               <span>You have met the {r.targetPercent}% target. You can skip up to {r.maxBunkable} classes.</span>
             </div>
@@ -231,24 +231,24 @@ function ToolResultCard({
       totalCredits: number;
     };
     return (
-      <div className="p-3 rounded-xl bg-background/60 border border-border/60 space-y-2 text-xs">
+      <div className="p-3 rounded-[--radius-xl] bg-surface-2/60 border border-white/8 space-y-2 text-xs">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 font-medium text-foreground">
+          <div className="flex items-center gap-1.5 font-semibold text-foreground font-heading">
             <Award className="w-3.5 h-3.5 text-pink-400" />
             <span>CGPA Forecast Roadmap</span>
           </div>
-          <Badge variant={r.gpaDelta >= 0 ? 'success' : 'danger'}>
+          <Badge variant={r.gpaDelta >= 0 ? 'success' : 'danger'} className="tabular-numbers">
             {r.gpaDelta >= 0 ? `+${r.gpaDelta} GPA` : `${r.gpaDelta} GPA`}
           </Badge>
         </div>
         <div className="grid grid-cols-2 gap-2 text-center pt-1">
-          <div className="p-2 rounded-lg bg-card/40 border border-border/30">
-            <span className="text-[10px] text-muted-foreground block">Current CGPA</span>
-            <span className="font-semibold text-foreground">{r.currentCGPA}</span>
+          <div className="p-2.5 rounded-[--radius-lg] bg-surface-2/40 border border-white/6">
+            <span className="caption-label text-muted-foreground block mb-0.5">Current CGPA</span>
+            <span className="font-bold text-foreground font-mono tabular-numbers">{r.currentCGPA}</span>
           </div>
-          <div className="p-2 rounded-lg bg-card/40 border border-border/30">
-            <span className="text-[10px] text-muted-foreground block">Predicted CGPA</span>
-            <span className="font-semibold text-primary">{r.predictedCGPA}</span>
+          <div className="p-2.5 rounded-[--radius-lg] bg-surface-2/40 border border-white/6">
+            <span className="caption-label text-muted-foreground block mb-0.5">Predicted CGPA</span>
+            <span className="font-bold text-primary font-mono tabular-numbers">{r.predictedCGPA}</span>
           </div>
         </div>
       </div>
