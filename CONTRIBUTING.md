@@ -68,21 +68,23 @@ Before committing, you **must** verify that your changes do not break the build 
    npm run dev
    ```
    Open http://localhost:3000 and verify your feature visually on both desktop and mobile viewports.
-2. **Run the Linter**:
-   Ensure your code matches our ESLint standards.
+2. **Run TypeScript Check & Linter**:
+   Ensure zero type errors and zero ESLint warnings:
    ```bash
+   npx tsc --noEmit
    npm run lint
    ```
-   To automatically fix simple formatting issues:
+3. **Run Automated Test Suites**:
+   Run the 312-test unit/integration suite and 9-test AI benchmark:
    ```bash
-   npm run lint -- --fix
+   npm test
+   npx tsx scripts/agent-as-judge.ts
    ```
-3. **Verify the Production Build**:
-   Next.js static typing and page compilation MUST pass.
+4. **Verify the Production Build**:
+   Next.js Turbopack compilation and static generation MUST pass:
    ```bash
    npm run build
    ```
-   If this command fails, your PR will be automatically rejected by the CI pipeline.
 
 ### 5. Commit & Push
 - Write clear, imperative commit messages (e.g., `fix: correct attendance calculation edge case` or `feat: add hostel fee parser`).
@@ -104,13 +106,13 @@ Before committing, you **must** verify that your changes do not break the build 
 
 If you discover a vulnerability while reading the codebase (e.g., a CSRF flaw or an encryption bypass), **do not open a public issue or PR**. 
 
-Please follow our strict disclosure guidelines detailed in [SECURITY.md](SECURITY.md) and report it privately via email.
+Please follow our strict disclosure guidelines detailed in [SECURITY.md](SECURITY.md) and report it privately via email to `tejaswinamara@gmail.com`.
 
 ---
 
 ## 📄 License Agreement
 
-By contributing to KL Sync, you agree that your contributions will be licensed under the project's existing open-source terms. See the [`LICENSE`](LICENSE) file for complete legal details.
+By contributing to KL Sync, you agree that your contributions will be licensed under the project's strict proprietary and source-available license. See the [`LICENSE`](LICENSE) file for complete legal details.
 
 ---
 

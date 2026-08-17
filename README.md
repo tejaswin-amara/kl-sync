@@ -4,7 +4,7 @@
   <p><strong>An ultra-fast, stateless, dark-cyber minimalist ERP client and edge proxy for KL University students.</strong></p>
 
   <p>
-    <a href="https://optimistic-pascal-2j9gt73ln-tejaswinamara-3890s-projects.vercel.app"><img alt="Production Deployment" src="https://img.shields.io/badge/Vercel-Live%20Production-10B981?style=for-the-badge&logo=vercel&logoColor=white" /></a>
+    <a href="https://klhb.vercel.app"><img alt="Production Deployment" src="https://img.shields.io/badge/Vercel-klhb.vercel.app-10B981?style=for-the-badge&logo=vercel&logoColor=white" /></a>
     <a href="https://nextjs.org/"><img alt="Next.js" src="https://img.shields.io/badge/Next.js-16.3%20(Turbopack)-black?style=for-the-badge&logo=next.js" /></a>
     <a href="https://react.dev/"><img alt="React" src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black" /></a>
     <a href="https://www.typescriptlang.org/"><img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white" /></a>
@@ -22,7 +22,7 @@
 - 🪮 **Ponytail Philosophy (Zero-Bloat)**: Pruned heavyweight dependencies (`lucide-react`, `swr`, `clsx`, `tailwind-merge`) in favor of native standard library primitives and a custom zero-runtime 55-component SVG engine.
 - 🎨 **Dark Cyber Minimalist UI**: High-density, WCAG 2.2 AAA compliant (contrast ≥ 7.1:1, interactive touch targets ≥ 44px) built on Tailwind CSS v4 and native CSS tokens.
 - 🤖 **Agentic AI Copilot**: Context-aware natural language assistant with typed Zod tool calling for calculating attendance goals, marks predictions, and schedule queries.
-- 🛡️ **Exhaustive Test Verification**: Over **310 automated unit/integration tests**, **13 Playwright E2E tests**, **15 Challenger stress suites**, and **9 Agent-as-Judge AI evaluations**.
+- 🛡️ **Exhaustive Test Verification**: Over **312 automated unit/integration tests (52 suites)**, **13 Playwright E2E tests**, **15 Challenger stress suites**, and **9 Agent-as-Judge AI evaluations**.
 
 ---
 

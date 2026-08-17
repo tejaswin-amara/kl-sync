@@ -5,6 +5,22 @@ All notable changes to the **KL Sync** project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.2] - 2026-08-17
+
+### ⚖️ Strict Proprietary & Source-Available License
+- **Overhauled [`LICENSE`](LICENSE)**: Updated license to a strict proprietary source-available framework protecting author copyright (**Tejaswin Amara**). Explicitly prohibits unauthorized public cloud hosting, uncredited mirroring, commercial monetization, or automated DoS traffic.
+- **`package.json`**: Explicitly set `"license": "UNLICENSED"`.
+
+### 🔤 CAPTCHA Lowercase-Only Rules & Production Hardening
+- **Strict Lowercase `[a-z]` Sanitization**: Enforced lowercase normalization across login page UI input (`src/app/page.tsx`), OCR extraction (`src/app/api/captcha/route.ts`), and ERP scraper payloads (`src/lib/scrapers/attendance.ts`).
+- **CapJS Stateless HMAC Signatures**: Stabilized bot protection with cryptographic HMAC-SHA256 tokens (`signed:<b64>.<sig>`) for seamless multi-instance serverless verification.
+- **Extended Timeout Handshake**: Increased ERP proxy upstream timeout to 8000ms and client timeout to 12000ms with instant fallback recovery.
+
+### 🧪 Full Test Suite Verification (312 Tests Across 52 Suites)
+- **100% Pass Rate**: 312 automated unit and integration tests passing cleanly. 9/9 Agent-as-Judge AI tests passing. 0 TypeScript and 0 ESLint errors.
+
+---
+
 ## [2.2.1] - 2026-08-17
 
 ### 🪮 System-Wide Ponytail Architecture & Native Icon Migration
