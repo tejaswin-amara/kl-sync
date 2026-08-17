@@ -47,7 +47,6 @@ export default function LoginPage() {
       const sid = response.headers.get('x-session-id') || data.sessionId;
       if (sid) {
         setSessionId(sid);
-        try { sessionStorage.setItem('kl_erp_session_id', sid); } catch {}
       }
       setCaptchaImage(data.captchaImage);
       if (data.solvedCaptcha) {
@@ -65,9 +64,6 @@ export default function LoginPage() {
       const fallbackSid =
         'b64.eyJjb29raWVzIjpbIHsgIm5hbWUiOiAiUEhQU0VTU0lEIiwgInZhbHVlIjogImRlbW9fcGhwc2Vzc2lkXzEyMyIgfSBdLCAiY3NyZlRva2VuIjogImRlbW9fY3NyZlRva2VuXzEyMyIsICJ1c2VyQWdlbnQiOiAiTW96aWxsYS81LjAiIH0=';
       setSessionId(fallbackSid);
-      try {
-        sessionStorage.setItem('kl_erp_session_id', fallbackSid);
-      } catch {}
       return 'abcd';
     } finally {
       setCaptchaLoading(false);
@@ -78,7 +74,9 @@ export default function LoginPage() {
     queueMicrotask(() => {
       try {
         const storedSession = sessionStorage.getItem('kl_erp_session_id');
-        if (storedSession) {
+        const storedCsrf = sessionStorage.getItem('kl_erp_csrf_token');
+        // Only auto-redirect if an authenticated session with valid CSRF token is present
+        if (storedSession && storedCsrf) {
           setSessionId(storedSession);
           router.push('/dashboard');
           return;
@@ -87,7 +85,9 @@ export default function LoginPage() {
         }
         const savedDevice = localStorage.getItem('kl_erp_device_id');
         if (savedDevice) setDeviceId(savedDevice);
-      } catch {}
+      } catch {
+        fetchCaptcha();
+      }
 
       const savedUser = localStorage.getItem('remember_username');
       if (savedUser) {

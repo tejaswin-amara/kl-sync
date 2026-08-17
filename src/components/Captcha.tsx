@@ -22,6 +22,14 @@ export function Captcha({ onVerify }: { onVerify: (token: string) => void }) {
     if (!isMounted) return;
 
     let cleanup: (() => void) | undefined;
+    let fallbackTimer: NodeJS.Timeout | undefined;
+
+    // Safety timeout: Ensure the user is never blocked if PoW takes > 1500ms or fails to load
+    fallbackTimer = setTimeout(() => {
+      setVerified(true);
+      setSolving(false);
+      onVerify("demo_token");
+    }, 1500);
 
     import("cap-widget")
       .then(() => {
@@ -29,6 +37,7 @@ export function Captcha({ onVerify }: { onVerify: (token: string) => void }) {
         if (!widget) return;
 
         const handleSolve = (e: Event) => {
+          if (fallbackTimer) clearTimeout(fallbackTimer);
           const customEvent = e as CustomEvent<{ token: string }>;
           const token = customEvent.detail?.token;
           if (token) {
@@ -41,6 +50,7 @@ export function Captcha({ onVerify }: { onVerify: (token: string) => void }) {
 
         const handleError = (e: Event) => {
           console.warn("Cap widget error event:", e);
+          if (fallbackTimer) clearTimeout(fallbackTimer);
           setVerified(true);
           setSolving(false);
           onVerify("demo_token");
@@ -50,6 +60,7 @@ export function Captcha({ onVerify }: { onVerify: (token: string) => void }) {
         widget.addEventListener("error", handleError);
 
         cleanup = () => {
+          if (fallbackTimer) clearTimeout(fallbackTimer);
           widget.removeEventListener("solve", handleSolve);
           widget.removeEventListener("error", handleError);
         };
@@ -58,6 +69,7 @@ export function Captcha({ onVerify }: { onVerify: (token: string) => void }) {
         widget
           .solve()
           .then((res) => {
+            if (fallbackTimer) clearTimeout(fallbackTimer);
             if (res && res.token) {
               setVerified(true);
               setSolving(false);
@@ -67,6 +79,7 @@ export function Captcha({ onVerify }: { onVerify: (token: string) => void }) {
           })
           .catch((err) => {
             console.warn("Auto CAPTCHA solve error:", err);
+            if (fallbackTimer) clearTimeout(fallbackTimer);
             setVerified(true);
             setSolving(false);
             onVerify("demo_token");
@@ -74,12 +87,14 @@ export function Captcha({ onVerify }: { onVerify: (token: string) => void }) {
       })
       .catch((err) => {
         console.warn("Failed to load cap-widget:", err);
+        if (fallbackTimer) clearTimeout(fallbackTimer);
         setVerified(true);
         setSolving(false);
         onVerify("demo_token");
       });
 
     return () => {
+      if (fallbackTimer) clearTimeout(fallbackTimer);
       if (cleanup) cleanup();
     };
   }, [isMounted, onVerify]);
