@@ -11,7 +11,7 @@ export async function GET() {
     let session;
 
     try {
-      const captchaRes = await getCaptcha({ signal: AbortSignal.timeout(3000) });
+      const captchaRes = await getCaptcha({ signal: AbortSignal.timeout(8000) });
       captchaImage = captchaRes.captchaImage;
       session = captchaRes.session;
     } catch (e) {

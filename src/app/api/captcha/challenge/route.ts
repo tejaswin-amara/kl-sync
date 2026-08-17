@@ -4,7 +4,7 @@ import { getCapSecret } from "@/lib/captcha";
 
 export const dynamic = 'force-dynamic';
 
-export async function POST() {
+async function handleChallenge() {
   try {
     const secret = getCapSecret();
     const challenge = await generateChallenge(secret, {
@@ -12,7 +12,11 @@ export async function POST() {
       expiresMs: 600_000, // 10 min to solve
     });
 
-    return NextResponse.json(challenge);
+    return NextResponse.json(challenge, {
+      headers: {
+        'Cache-Control': 'no-store, max-age=0',
+      },
+    });
   } catch (error) {
     console.error("Captcha challenge generation failed:", error);
     return NextResponse.json(
@@ -20,4 +24,12 @@ export async function POST() {
       { status: 500 }
     );
   }
+}
+
+export async function GET() {
+  return handleChallenge();
+}
+
+export async function POST() {
+  return handleChallenge();
 }

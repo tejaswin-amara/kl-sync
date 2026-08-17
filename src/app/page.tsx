@@ -41,7 +41,7 @@ export default function LoginPage() {
     setCaptchaLoading(true);
     if (!preserveError) setError(null);
     try {
-      const response = await fetch('/api/captcha', { signal: AbortSignal.timeout(4500) });
+      const response = await fetch('/api/captcha', { signal: AbortSignal.timeout(12000) });
       const data = await response.json();
       const sid = response.headers.get('x-session-id') || data.sessionId;
       if (sid) {

@@ -23,7 +23,7 @@ export interface CaptchaResponse {
 export async function getCaptcha(options?: { signal?: AbortSignal }): Promise<CaptchaResponse> {
   try {
     const jar: CookieJar = {};
-    const signal = options?.signal || AbortSignal.timeout(3000);
+    const signal = options?.signal || AbortSignal.timeout(8000);
     const loginRes = await fetchWithJar(LOGIN_URL, jar, { signal });
     const html = await loginRes.text();
     const $ = cheerio.load(html);

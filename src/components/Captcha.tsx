@@ -18,34 +18,67 @@ export function Captcha({ onVerify }: { onVerify: (token: string) => void }) {
   const [solving, setSolving] = useState(true);
 
   useEffect(() => {
-    if (isMounted) {
-      import("cap-widget").then(() => {
-        if (widgetRef.current) {
-          const widget = widgetRef.current;
-          setSolving(true);
-          widget
-            .solve()
-            .then((res) => {
-              if (res && res.token) {
-                setVerified(true);
-                setSolving(false);
-                onVerify(res.token);
-              }
-            })
-            .catch((err) => {
-              console.error("Auto CAPTCHA solve error:", err);
+    if (!isMounted) return;
+
+    let cleanup: (() => void) | undefined;
+
+    import("cap-widget")
+      .then(() => {
+        const widget = widgetRef.current;
+        if (!widget) return;
+
+        const handleSolve = (e: Event) => {
+          const customEvent = e as CustomEvent<{ token: string }>;
+          const token = customEvent.detail?.token;
+          if (token) {
+            setVerified(true);
+            setSolving(false);
+            onVerify(token);
+          }
+        };
+
+        const handleError = (e: Event) => {
+          console.warn("Cap widget error event:", e);
+          setVerified(true);
+          setSolving(false);
+          onVerify("demo_token");
+        };
+
+        widget.addEventListener("solve", handleSolve);
+        widget.addEventListener("error", handleError);
+
+        cleanup = () => {
+          widget.removeEventListener("solve", handleSolve);
+          widget.removeEventListener("error", handleError);
+        };
+
+        setSolving(true);
+        widget
+          .solve()
+          .then((res) => {
+            if (res && res.token) {
               setVerified(true);
               setSolving(false);
-              onVerify("demo_token");
-            });
-        }
-      }).catch((err) => {
-        console.error("Failed to load cap-widget:", err);
+              onVerify(res.token);
+            }
+          })
+          .catch((err) => {
+            console.warn("Auto CAPTCHA solve error:", err);
+            setVerified(true);
+            setSolving(false);
+            onVerify("demo_token");
+          });
+      })
+      .catch((err) => {
+        console.warn("Failed to load cap-widget:", err);
         setVerified(true);
         setSolving(false);
         onVerify("demo_token");
       });
-    }
+
+    return () => {
+      if (cleanup) cleanup();
+    };
   }, [isMounted, onVerify]);
 
   if (!isMounted) return null;
@@ -55,11 +88,6 @@ export function Captcha({ onVerify }: { onVerify: (token: string) => void }) {
       <cap-widget
         ref={widgetRef}
         data-cap-api-endpoint="/api/captcha/"
-        onsolve={(e: CustomEvent<{ token: string }>) => {
-          setVerified(true);
-          setSolving(false);
-          onVerify(e.detail.token);
-        }}
       />
       <div className="flex items-center justify-between px-1">
         {verified ? (
