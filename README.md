@@ -160,5 +160,5 @@ npm run build
 - **Affiliation**: KL Sync is an independent project created for KL University students. It is **not** affiliated with, endorsed by, or supported by KL University. Student credentials are used strictly for in-flight authentication and are never stored or logged.
 
 <p align="center">
-  Crafted with ❤️ by <a href="https://github.com/tejaswin-amara">Tejaswin</a> for KLU students.
+  Crafted by <a href="https://github.com/tejaswin-amara">Tejaswin</a> for KLU students.
 </p>
