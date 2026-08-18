@@ -336,7 +336,7 @@ function TodayScheduleWidget({
       </div>
 
       {/* Content */}
-      <div className="flex-1 p-4 flex flex-col gap-2.5 overflow-y-auto max-h-[400px] custom-scrollbar">
+      <div className="flex-1 p-4 flex flex-col gap-2.5">
         {loading ? (
           <div className="flex flex-col gap-2.5">
             {[...Array(3)].map((_, i) => (

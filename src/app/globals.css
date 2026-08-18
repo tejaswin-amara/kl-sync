@@ -80,8 +80,8 @@
   --radius-2xl-value: 30px;
   --sidebar-width: 248px;
   --sidebar-collapsed: 72px;
-  --header-height: 68px;
-  --bottom-bar-height: 72px;
+  --header-height: 60px;
+  --bottom-bar-height: 64px;
   --content-max-width: 1320px;
   --ease-spring-default: cubic-bezier(0.2, 0.9, 0.3, 1);
   --ease-spring-sheet: cubic-bezier(0.32, 0.72, 0, 1);

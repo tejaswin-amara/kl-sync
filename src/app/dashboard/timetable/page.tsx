@@ -298,7 +298,7 @@ export default function TimetablePage() {
       </div>
 
       {/* Main Content Card */}
-      <div className="rounded-[--radius-2xl] border border-border apple-card shadow-2xl overflow-hidden min-h-[450px] flex flex-col">
+      <div className="rounded-[--radius-2xl] border border-border apple-card shadow-2xl overflow-hidden min-h-[320px] flex flex-col">
         {loading ? (
           <div className="p-8 flex flex-col gap-6">
             <div className="flex gap-4">

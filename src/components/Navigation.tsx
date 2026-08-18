@@ -121,7 +121,7 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <div className="min-h-[100dvh] overflow-hidden bg-background text-foreground">
+    <div className="h-[100dvh] overflow-hidden bg-background text-foreground">
       <header className="apple-chrome fixed inset-x-0 top-0 z-40 flex h-[--header-height] items-center justify-between border-b px-4 lg:hidden">
         <div className="flex items-center gap-3">
           <button onClick={() => { triggerHaptic('selection'); setSidebarOpen(true); }} className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-muted-foreground hover:bg-surface-2 hover:text-foreground" aria-label="Open navigation menu" aria-expanded={sidebarOpen}>
@@ -148,7 +148,7 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
           </div>
           <div className="flex items-center gap-3 border-b py-4"><ProfileAvatar user={user} /><div className="min-w-0"><p className="truncate text-sm font-bold">{user.name}</p><p className="truncate font-mono text-[11px] text-muted-foreground">{user.id}</p></div></div>
           <nav className="custom-scrollbar flex-1 space-y-1 overflow-y-auto py-4">{allNavItems.map((item) => renderNavLink(item, false, () => setSidebarOpen(false)))}<button type="button" onClick={() => { setSidebarOpen(false); setComplianceOpen(true); }} className="flex min-h-[44px] w-full items-center gap-3 rounded-[--radius-md] px-3 text-sm font-semibold text-success hover:bg-surface-2"><ShieldCheck className="h-[18px] w-[18px]" />{t('compliance', 'Privacy & compliance')}</button></nav>
-          <div className="border-t pt-3"><button onClick={handleSignOut} className="flex min-h-[44px] w-full items-center gap-3 rounded-[--radius-md] px-3 text-sm font-semibold text-destructive hover:bg-red-50"><LogOut className="h-[18px] w-[18px]" />{t('logout', 'Sign out')}</button></div>
+          <div className="border-t pt-3"><button onClick={handleSignOut} className="flex min-h-[44px] w-full items-center gap-3 rounded-[--radius-md] px-3 text-sm font-semibold text-destructive hover:bg-error/10"><LogOut className="h-[18px] w-[18px]" />{t('logout', 'Sign out')}</button></div>
         </aside>
       </>}
 
@@ -162,7 +162,7 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
           {allNavItems.map((item) => renderNavLink(item, collapsed))}
           <button type="button" onClick={() => setComplianceOpen(true)} title={collapsed ? 'Privacy & compliance' : undefined} className={`flex min-h-[44px] w-full items-center gap-3 rounded-[--radius-md] text-sm font-semibold text-success hover:bg-surface-2 ${collapsed ? 'mx-1 justify-center' : 'px-3'}`}><ShieldCheck className="h-[18px] w-[18px] shrink-0" />{!collapsed && <span>Privacy & compliance</span>}</button>
         </nav>
-        <div className="space-y-2 border-t p-3">{collapsed ? <div className="flex justify-center"><ProfileAvatar user={user} size="sm" /></div> : <div className="flex items-center gap-3 px-1"><ProfileAvatar user={user} /><div className="min-w-0"><p className="truncate text-sm font-bold">{user.name}</p><p className="truncate font-mono text-[11px] text-muted-foreground">{user.id}</p></div></div>}<button onClick={handleSignOut} className={`flex min-h-[44px] w-full items-center gap-3 rounded-[--radius-md] text-sm font-semibold text-destructive hover:bg-red-50 ${collapsed ? 'justify-center' : 'px-3'}`} aria-label="Sign out"><LogOut className="h-[18px] w-[18px]" />{!collapsed && <span>{t('logout', 'Sign out')}</span>}</button></div>
+        <div className="space-y-2 border-t p-3">{collapsed ? <div className="flex justify-center"><ProfileAvatar user={user} size="sm" /></div> : <div className="flex items-center gap-3 px-1"><ProfileAvatar user={user} /><div className="min-w-0"><p className="truncate text-sm font-bold">{user.name}</p><p className="truncate font-mono text-[11px] text-muted-foreground">{user.id}</p></div></div>}<button onClick={handleSignOut} className={`flex min-h-[44px] w-full items-center gap-3 rounded-[--radius-md] text-sm font-semibold text-destructive hover:bg-error/10 ${collapsed ? 'justify-center' : 'px-3'}`} aria-label="Sign out"><LogOut className="h-[18px] w-[18px]" />{!collapsed && <span>{t('logout', 'Sign out')}</span>}</button></div>
       </aside>
 
       <nav className="apple-chrome-bottom fixed inset-x-0 bottom-0 z-40 lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
@@ -170,12 +170,12 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
         {moreOpen && <><div className="fixed inset-0 z-30" onClick={() => setMoreOpen(false)} /><div id="more-overflow-menu" className="apple-sheet animate-sheet-enter absolute bottom-full inset-x-0 z-40 p-4"><div className="drag-handle" /><div className="grid grid-cols-3 gap-2">{overflowItems.map((item) => { const active = isActive(item.href); const Icon = item.icon; return <Link key={item.href} href={item.href} onClick={() => { triggerHaptic('selection'); setMoreOpen(false); }} className={`flex min-h-[72px] flex-col items-center justify-center gap-2 rounded-[--radius-md] border p-2 text-center text-xs font-semibold ${active ? 'border-primary bg-accent text-primary' : 'border-border bg-surface-2 text-muted-foreground hover:text-foreground'}`}><Icon className="h-5 w-5" /><span>{item.label}</span></Link>; })}</div></div></>}
       </nav>
 
-      <main className="flex min-h-[100dvh] flex-col lg:pl-[--sidebar-width]" style={{ paddingTop: 'var(--header-height)', paddingBottom: 'calc(var(--bottom-bar-height) + env(safe-area-inset-bottom, 0px))' }}>
+      <main className="flex h-full min-h-0 flex-col lg:pl-[--sidebar-width]" style={{ paddingTop: 'var(--header-height)', paddingBottom: 'calc(var(--bottom-bar-height) + env(safe-area-inset-bottom, 0px))' }}>
         <header className="apple-chrome hidden min-h-[--header-height] items-center justify-between border-b px-6 lg:flex xl:px-8">
           <div className="flex items-center gap-3">{collapsed && <button onClick={toggleCollapse} className="flex min-h-[40px] min-w-[40px] items-center justify-center rounded-full text-muted-foreground hover:bg-surface-2" aria-label="Expand sidebar"><Menu className="h-4 w-4" /></button>}<div><p className="caption-label text-muted-foreground">Student workspace</p><h1 className="font-heading text-xl font-bold tracking-tight">{pageTitle}</h1></div></div>
           <div className="flex items-center gap-2"><Badge variant="info" className="hidden rounded-full px-3 py-1.5 sm:inline-flex"><span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-info" />Current semester</Badge><button type="button" onClick={() => setComplianceOpen(true)} className="flex min-h-[44px] items-center gap-2 rounded-full px-3 text-sm font-semibold text-success hover:bg-surface-2"><ShieldCheck className="h-4 w-4" /><span className="hidden xl:inline">Privacy</span></button><LanguageSelector /><Link href="/dashboard/circulars" aria-label="Notifications" className="relative flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-muted-foreground hover:bg-surface-2 hover:text-foreground"><Bell className="h-4 w-4" /><span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-success" /></Link><div className="h-7 w-px bg-border" /><Link href="/dashboard/profile" className="flex min-h-[44px] items-center gap-2 rounded-full px-1.5 pr-3 hover:bg-surface-2"><ProfileAvatar user={user} /><span className="hidden max-w-[160px] truncate text-sm font-semibold xl:block">{user.name}</span></Link></div>
         </header>
-        <div id="main-content" tabIndex={-1} className="custom-scrollbar flex-1 overflow-y-auto focus:outline-none"><div className="mx-auto w-full max-w-[--content-max-width] p-4 sm:p-6 lg:p-8">{children}</div></div>
+        <div id="main-content" tabIndex={-1} className="custom-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain focus:outline-none"><div className="mx-auto w-full max-w-[--content-max-width] p-4 sm:p-5 lg:p-6">{children}</div></div>
       </main>
 
       <AICopilot />

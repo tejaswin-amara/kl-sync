@@ -17,3 +17,11 @@ Navigating directly to `/dashboard` without a local session correctly returned t
 ## Dark-theme audit
 
 The final hardcoded light-token audit returned no remaining `bg-white`, `border-white`, `text-white`, zinc/gray hardcoded surface, black surface, or dark-theme variant tokens under `src`. Destructive compliance actions use the semantic `text-destructive-foreground` token. Shared global variables now declare `color-scheme: dark` and dark values for backgrounds, surfaces, borders, inputs, popovers, cards, controls, shadows, and overlays.
+
+## Compact-layout refinement
+
+The supplemental login content shown in the supplied screenshot was removed from the page: the three statistic tiles, the lower privacy/accessibility badge matrix, the lower “How it works” control, and the independent-project footer copy are no longer part of the login composition. The compact top-right privacy trigger and language selector remain available, and the compliance modal capability is preserved.
+
+The final browser refresh shows the compact dark login page with the form, CAPTCHA area, refresh control, sign-in action, and protected-session note visible in the primary viewport. Browser extraction reports only 69px below the viewport at the inspected desktop size, indicating a substantial reduction in unnecessary page scrolling. The dashboard shell now uses one primary scroll context, while wide tables, timetable matrices, chart canvases, and navigation drawers retain only the horizontal or contained scrolling needed for usable data access.
+
+The compact refinement also reduced persistent header and bottom-navigation heights, lowered dashboard content padding, removed the dashboard overview’s nested schedule scrollbox, and reduced oversized empty/loading state minimum heights.

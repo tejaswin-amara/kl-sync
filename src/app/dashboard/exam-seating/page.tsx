@@ -121,7 +121,7 @@ export default function ExamSeatingPage() {
         }
       />
 
-      <div className="rounded-[--radius-2xl] apple-card overflow-hidden shadow-xl border border-border min-h-[400px]">
+      <div className="rounded-[--radius-2xl] apple-card overflow-hidden shadow-xl border border-border min-h-[300px]">
         {loading ? (
           <div className="p-6 space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (

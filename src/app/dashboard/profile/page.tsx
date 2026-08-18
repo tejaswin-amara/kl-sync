@@ -24,14 +24,14 @@ export default function ProfilePage() {
       </div>
 
       {loading ? (
-        <div className="apple-card rounded-[--radius-2xl] min-h-[400px] flex flex-col items-center justify-center p-8 shadow-xl border border-border">
+        <div className="apple-card rounded-[--radius-2xl] min-h-[300px] flex flex-col items-center justify-center p-8 shadow-xl border border-border">
           <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
           <span className="text-xs text-muted-foreground font-medium">
             Syncing your profile...
           </span>
         </div>
       ) : error ? (
-        <div className="apple-card rounded-[--radius-2xl] min-h-[400px] flex flex-col items-center justify-center p-8 text-center shadow-xl border border-border">
+        <div className="apple-card rounded-[--radius-2xl] min-h-[300px] flex flex-col items-center justify-center p-8 text-center shadow-xl border border-border">
           <div className="w-16 h-16 rounded-[--radius-2xl] bg-destructive/15 border border-destructive/25 flex items-center justify-center text-destructive mb-4 shadow-inner">
             <AlertCircle className="w-8 h-8" />
           </div>
