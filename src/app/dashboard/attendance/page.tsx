@@ -495,16 +495,16 @@ function UnifiedSubjectCard({ subject }: { subject: GroupedSubjectAttendance }) 
   const isConditional = pct >= 75 && pct < 85;
 
   const accentBorder = isEligible
-    ? 'border-l-emerald-500'
+    ? 'border-l-success'
     : isConditional
-    ? 'border-l-amber-500'
-    : 'border-l-rose-500';
+    ? 'border-l-warning'
+    : 'border-l-error';
 
   const statusColor = isEligible
-    ? 'text-emerald-400'
+    ? 'text-success'
     : isConditional
-    ? 'text-amber-400'
-    : 'text-rose-400';
+    ? 'text-warning'
+    : 'text-error';
 
   const statusLabel = isEligible
     ? 'Eligible'
@@ -519,7 +519,7 @@ function UnifiedSubjectCard({ subject }: { subject: GroupedSubjectAttendance }) 
 
   return (
     <div
-      className={`rounded-[--radius-2xl] apple-card p-5 sm:p-7 border border-white/10 ${accentBorder} border-l-[6px] shadow-xl space-y-6 transition-all duration-[--duration-normal] hover:border-white/20`}
+      className={`rounded-[--radius-2xl] apple-card p-5 sm:p-7 border border-border ${accentBorder} border-l-[6px] shadow-xl space-y-6 transition-all duration-[--duration-normal] hover:border-primary/30`}
     >
       {/* Top Header */}
       <div className="flex items-start justify-between gap-4">
@@ -544,7 +544,7 @@ function UnifiedSubjectCard({ subject }: { subject: GroupedSubjectAttendance }) 
       </div>
 
       {/* Two-Column Body: Components & Projections */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-5 border-t border-white/8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-5 border-t border-border">
         {/* Left Column: Components */}
         <div className="space-y-3.5">
           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -571,29 +571,29 @@ function UnifiedSubjectCard({ subject }: { subject: GroupedSubjectAttendance }) 
         </div>
 
         {/* Right Column: Projections */}
-        <div className="space-y-3.5 md:border-l md:border-white/8 md:pl-8">
+        <div className="space-y-3.5 md:border-l md:border-border md:pl-8">
           <div>
             <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
               Projections
             </h4>
             <span
               className={`text-[11px] font-bold tracking-wide uppercase ${
-                isSafe ? 'text-emerald-400' : 'text-rose-400'
+                isSafe ? 'text-success' : 'text-error'
               }`}
             >
               {statusHeader}
             </span>
           </div>
 
-          <div className="space-y-2.5 pt-1 border-t border-white/6">
+          <div className="space-y-2.5 pt-1 border-t border-border">
             {projections.length > 0 ? (
               projections.map((proj, idx) => {
                 const color =
                   proj.type === 'skip'
                     ? proj.targetOverall === 75
-                      ? 'text-emerald-400'
-                      : 'text-emerald-300'
-                    : 'text-rose-400';
+                      ? 'text-success'
+                      : 'text-success'
+                    : 'text-error';
 
                 return (
                   <div key={idx} className="flex items-center justify-between text-xs py-0.5">
@@ -646,7 +646,7 @@ export default function AttendanceDashboard() {
         description="Real-time attendance synced from ERP"
         actions={
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center bg-surface-2/60 border border-white/10 rounded-[--radius-lg] p-0.5">
+            <div className="flex items-center bg-surface-2/60 border border-border rounded-[--radius-lg] p-0.5">
               <button
                 type="button"
                 onClick={() => {
@@ -700,18 +700,18 @@ export default function AttendanceDashboard() {
       {/* Overall Stats */}
       {!loading && !error && data.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="rounded-[--radius-2xl] apple-card p-5 flex items-center gap-4 shadow-xl border border-white/10">
+          <div className="rounded-[--radius-2xl] apple-card p-5 flex items-center gap-4 shadow-xl border border-border">
             <Progress value={overallPct} max={100} variant="circular" size="lg" showLabel colorByValue />
             <div>
               <p className="caption-label text-muted-foreground/80">Overall</p>
               <p className="text-2xl font-bold text-foreground tabular-numbers tracking-tight font-heading">{overallPct}%</p>
             </div>
           </div>
-          <div className="rounded-[--radius-2xl] apple-card p-5 shadow-xl border border-white/10">
+          <div className="rounded-[--radius-2xl] apple-card p-5 shadow-xl border border-border">
             <p className="caption-label text-muted-foreground/80 mb-1">Classes Attended</p>
             <p className="text-3xl font-bold text-foreground tabular-numbers tracking-tight font-heading">{overallAttended}</p>
           </div>
-          <div className="rounded-[--radius-2xl] apple-card p-5 shadow-xl border border-white/10">
+          <div className="rounded-[--radius-2xl] apple-card p-5 shadow-xl border border-border">
             <p className="caption-label text-muted-foreground/80 mb-1">Classes Held</p>
             <p className="text-3xl font-bold text-foreground tabular-numbers tracking-tight font-heading">{overallConducted}</p>
           </div>
@@ -724,15 +724,15 @@ export default function AttendanceDashboard() {
       {/* Attendance Cards / Table */}
       <div>
         {loading ? (
-          <div className="p-6 space-y-4 rounded-[--radius-2xl] apple-card border border-white/10 shadow-xl">
+          <div className="p-6 space-y-4 rounded-[--radius-2xl] apple-card border border-border shadow-xl">
             {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-44 w-full rounded-[--radius-2xl]" />)}
           </div>
         ) : error ? (
-          <div className="rounded-[--radius-2xl] apple-card overflow-hidden shadow-xl border border-white/10 p-4">
+          <div className="rounded-[--radius-2xl] apple-card overflow-hidden shadow-xl border border-border p-4">
             <EmptyState variant="error" description={error} action={{ label: 'Retry', onClick: () => mutate() }} />
           </div>
         ) : data.length === 0 ? (
-          <div className="rounded-[--radius-2xl] apple-card overflow-hidden shadow-xl border border-white/10 p-4">
+          <div className="rounded-[--radius-2xl] apple-card overflow-hidden shadow-xl border border-border p-4">
             <EmptyState title="No attendance records" description="Records will appear once available in the ERP." />
           </div>
         ) : viewMode === 'cards' ? (
@@ -742,11 +742,11 @@ export default function AttendanceDashboard() {
             ))}
           </div>
         ) : (
-          <div className="rounded-[--radius-2xl] apple-card overflow-hidden shadow-xl border border-white/10">
+          <div className="rounded-[--radius-2xl] apple-card overflow-hidden shadow-xl border border-border">
             <div className="overflow-x-auto custom-scrollbar">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/8 bg-surface-2/40 sticky top-0 z-10 backdrop-blur-md">
+                  <tr className="border-b border-border bg-surface-2/40 sticky top-0 z-10 backdrop-blur-md">
                     {Object.keys(data[0] || {}).map((key, i) => (
                       <th
                         key={i}
@@ -758,9 +758,9 @@ export default function AttendanceDashboard() {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/6">
+                <tbody className="divide-y divide-border">
                   {data.map((row, idx) => (
-                    <tr key={idx} className="hover:bg-white/4 transition-colors">
+                    <tr key={idx} className="hover:bg-surface-2 transition-colors">
                       {Object.values(row).map((val: unknown, j: number) => {
                         let displayVal: React.ReactNode = String(val);
 

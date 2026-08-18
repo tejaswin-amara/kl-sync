@@ -29,7 +29,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             'appearance-none w-full min-h-[44px] rounded-[--radius-md] pl-3.5 pr-9 py-2 text-sm tracking-tight font-medium',
             'bg-surface-2/70 backdrop-blur-md border border-border text-foreground',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:border-primary/50',
-            'hover:border-white/18 active:scale-[0.985] transition-all duration-[--duration-fast] ease-[--ease-spring-default] cursor-pointer touch-manipulation',
+            'hover:border-primary/35 active:scale-[0.985] transition-all duration-[--duration-fast] ease-[--ease-spring-default] cursor-pointer touch-manipulation',
             'disabled:cursor-not-allowed disabled:opacity-40',
             className
           )}

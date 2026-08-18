@@ -112,8 +112,8 @@ export function Captcha({ onVerify }: { onVerify: (token: string) => void }) {
             PoW Bot Protection Active
           </Badge>
         ) : solving ? (
-          <div className="flex items-center gap-2 text-xs text-zinc-400">
-            <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-400" />
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
             <span>Verifying browser integrity...</span>
           </div>
         ) : null}

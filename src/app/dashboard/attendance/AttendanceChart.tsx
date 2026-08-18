@@ -108,7 +108,7 @@ export function AttendanceChart({ data }: AttendanceChartProps) {
   const barWidth = Math.min(36, Math.max(18, step * 0.55));
 
   return (
-    <div className="rounded-[--radius-2xl] border border-white/10 apple-card p-6 space-y-4 shadow-xl overflow-hidden">
+    <div className="rounded-[--radius-2xl] border border-border apple-card p-6 space-y-4 shadow-xl overflow-hidden">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-semibold text-foreground font-heading tracking-tight">Subject Attendance Breakdown</h3>
@@ -138,7 +138,7 @@ export function AttendanceChart({ data }: AttendanceChartProps) {
                   y1={y}
                   x2={svgWidth - paddingRight}
                   y2={y}
-                  stroke={val === 75 ? 'rgba(245, 158, 11, 0.4)' : 'rgba(255, 255, 255, 0.08)'}
+                  stroke={val === 75 ? 'rgba(245, 158, 11, 0.4)' : 'rgba(255, 255, 255, 0.10)'}
                   strokeDasharray={val === 75 ? '4 4' : undefined}
                 />
                 <text

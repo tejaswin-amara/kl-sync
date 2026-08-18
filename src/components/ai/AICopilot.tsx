@@ -102,7 +102,7 @@ export function AICopilot({
         const errorMsg: ChatMessage = {
           id: `error-${Date.now()}`,
           role: 'assistant',
-          content: `⚠️ I ran into an error processing your query (${errorMsgText}). Please check your connection or try again.`,
+          content: `I ran into an error processing your query (${errorMsgText}). Please check your connection or try again.`,
           timestamp: new Date(),
         };
 
@@ -132,18 +132,18 @@ export function AICopilot({
           triggerHaptic('selection');
           setIsOpen(true);
         }}
-        className="fixed bottom-20 right-4 lg:bottom-6 lg:right-6 z-40 group flex items-center gap-2.5 px-4 py-3 rounded-full bg-primary text-primary-foreground shadow-[0_8px_30px_rgb(99,102,241,0.4)] hover:shadow-[0_12px_40px_rgb(99,102,241,0.6)] touch-manipulation hover:scale-105 active:scale-95 transition-all duration-[--duration-normal] ease-[--ease-spring-default] cursor-pointer"
+        className="fixed bottom-20 right-4 z-40 group flex items-center gap-2.5 rounded-full bg-primary px-4 py-3 text-primary-foreground shadow-lg shadow-primary/20 transition-transform duration-[--duration-normal] ease-[--ease-spring-default] hover:scale-[1.02] active:scale-95 touch-manipulation lg:bottom-6 lg:right-6"
         aria-label="AI Copilot ⌘K (Ctrl+Shift+A)"
         aria-expanded={isOpen}
       >
         <div className="relative">
-          <Sparkles className="w-5 h-5 animate-pulse text-white" />
-          <span className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-400 rounded-full animate-ping" />
+          <Sparkles className="h-5 w-5 text-primary-foreground" />
+          <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-success" />
         </div>
         <span className="font-semibold text-xs tracking-wide font-heading hidden sm:inline-block">
           AI Copilot
         </span>
-        <kbd className="hidden md:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] bg-black/25 text-white font-mono ml-1">
+        <kbd className="ml-1 hidden items-center gap-0.5 rounded bg-primary-foreground/15 px-1.5 py-0.5 font-mono text-[10px] text-primary-foreground md:inline-flex">
           ⌘K
         </kbd>
       </button>

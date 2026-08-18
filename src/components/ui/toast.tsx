@@ -73,7 +73,7 @@ function ToastSingle({ toast, onDismiss }: { toast: ToastItem; onDismiss: () => 
           onDismiss();
         }}
         aria-label="Close notification"
-        className="shrink-0 p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-white/10 active:scale-90 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2 -mt-2 cursor-pointer"
+        className="shrink-0 p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-surface-2 active:scale-90 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2 -mt-2 cursor-pointer"
       >
         <X className="w-4 h-4" />
       </button>

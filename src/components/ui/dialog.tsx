@@ -98,7 +98,7 @@ export function DialogContent({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Apple Translucent Dimming Scrim */}
       <div
-        className="fixed inset-0 bg-black/65 backdrop-blur-md transition-opacity duration-[--duration-normal] ease-[--ease-spring-default] animate-in"
+        className="fixed inset-0 bg-slate-950/25 backdrop-blur-sm transition-opacity duration-[--duration-normal] ease-[--ease-spring-default] animate-fade-in"
         onClick={() => {
           triggerHaptic('light');
           setOpen(false);
@@ -110,7 +110,7 @@ export function DialogContent({
         role="dialog"
         aria-modal="true"
         className={cn(
-          'relative z-50 w-full max-w-lg apple-modal rounded-[--radius-2xl] p-6 shadow-2xl animate-spring-scale duration-[--duration-spring] ease-[--ease-spring-default]',
+          'relative z-50 w-full max-w-lg apple-modal rounded-[--radius-2xl] p-6 shadow-xl animate-spring-up',
           className
         )}
         {...props}
@@ -121,7 +121,7 @@ export function DialogContent({
             triggerHaptic('light');
             setOpen(false);
           }}
-          className="absolute right-4 top-4 rounded-full p-2 bg-white/6 hover:bg-white/12 text-muted-foreground hover:text-foreground transition-all duration-[--duration-fast] active:scale-90 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
+          className="absolute right-4 top-4 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 text-muted-foreground transition-colors duration-[--duration-fast] hover:bg-surface-2 hover:text-foreground"
           aria-label="Close dialog"
         >
           <X className="w-4 h-4" />

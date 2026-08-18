@@ -179,7 +179,7 @@ export const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
               setOpen(false);
             }
           }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-[--duration-normal] ease-[--ease-spring-default] animate-in"
+          className="fixed inset-0 bg-slate-950/25 backdrop-blur-sm transition-opacity duration-[--duration-normal] ease-[--ease-spring-default] animate-fade-in"
         />
 
         {/* Apple Sheet Container */}
@@ -199,11 +199,11 @@ export const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
           onPointerCancel={handlePointerUp}
           style={dragStyle}
           className={cn(
-            'fixed z-50 gap-4 apple-sheet p-6 shadow-2xl transition-all duration-[--duration-spring] ease-[--ease-spring-sheet] flex flex-col',
-            side === 'right' && 'inset-y-0 right-0 h-full w-3/4 max-w-sm border-l border-white/10 animate-slide-in-right rounded-l-2xl',
-            side === 'left' && 'inset-y-0 left-0 h-full w-3/4 max-w-sm border-r border-white/10 animate-slide-in-left rounded-r-2xl',
-            side === 'top' && 'inset-x-0 top-0 w-full border-b border-white/10 animate-slide-in-top rounded-b-2xl',
-            side === 'bottom' && 'inset-x-0 bottom-0 w-full border-t border-white/15 animate-sheet-enter rounded-t-[28px] max-h-[92vh]',
+            'fixed z-50 flex flex-col gap-4 apple-sheet p-6 shadow-xl transition-all duration-[--duration-normal] ease-[--ease-spring-sheet]',
+            side === 'right' && 'inset-y-0 right-0 h-full w-3/4 max-w-sm border-l border-border animate-slide-in-right rounded-l-2xl',
+            side === 'left' && 'inset-y-0 left-0 h-full w-3/4 max-w-sm border-r border-border animate-slide-in-left rounded-r-2xl',
+            side === 'top' && 'inset-x-0 top-0 w-full border-b border-border animate-slide-in-top rounded-b-2xl',
+            side === 'bottom' && 'inset-x-0 bottom-0 w-full border-t border-border animate-sheet-enter rounded-t-[28px] max-h-[92vh]',
             className
           )}
           {...props}
@@ -217,7 +217,7 @@ export const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
               setOpen(false);
             }}
             aria-label="Close drawer"
-            className="absolute right-4 top-4 rounded-full p-2 bg-white/6 hover:bg-white/12 text-muted-foreground hover:text-foreground transition-all duration-[--duration-fast] active:scale-90 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
+            className="absolute right-4 top-4 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 text-muted-foreground transition-colors duration-[--duration-fast] hover:bg-surface-2 hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>

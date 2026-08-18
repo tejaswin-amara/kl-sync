@@ -57,7 +57,7 @@ export function AIChatMessageList({ messages }: AIChatMessageListProps) {
               className={`max-w-[85%] rounded-[--radius-2xl] px-4 py-3 text-sm shadow-md transition-all ${
                 isUser
                   ? 'bg-primary text-primary-foreground rounded-br-xs font-medium'
-                  : 'apple-card border border-white/10 text-foreground rounded-bl-xs font-normal'
+                  : 'apple-card border border-border text-foreground rounded-bl-xs font-normal'
               }`}
             >
               {/* Message text content */}
@@ -67,7 +67,7 @@ export function AIChatMessageList({ messages }: AIChatMessageListProps) {
 
               {/* Tool Execution Result Cards */}
               {msg.toolCalls && msg.toolCalls.length > 0 && (
-                <div className="mt-3 space-y-2 pt-2 border-t border-white/8">
+                <div className="mt-3 space-y-2 pt-2 border-t border-border">
                   {msg.toolCalls.map((tc, idx) => (
                     <ToolResultCard key={idx} toolCall={tc} />
                   ))}
@@ -76,7 +76,7 @@ export function AIChatMessageList({ messages }: AIChatMessageListProps) {
             </div>
 
             {isUser && (
-              <div className="w-7 h-7 rounded-[--radius-md] bg-surface-2 border border-white/10 flex items-center justify-center text-foreground shrink-0 mt-0.5 shadow-xs">
+              <div className="w-7 h-7 rounded-[--radius-md] bg-surface-2 border border-border flex items-center justify-center text-foreground shrink-0 mt-0.5 shadow-xs">
                 <User className="w-4 h-4" />
               </div>
             )}
@@ -125,7 +125,7 @@ function ToolResultCard({
       'Conducted Hours': string;
     }>;
     return (
-      <div className="p-3 rounded-[--radius-xl] bg-surface-2/60 border border-white/8 space-y-2 text-xs">
+      <div className="p-3 rounded-[--radius-xl] bg-surface-2/60 border border-border space-y-2 text-xs">
         <div className="flex items-center gap-1.5 font-semibold text-foreground font-heading">
           <BookOpen className="w-3.5 h-3.5 text-primary" />
           <span>Attendance Breakdown</span>
@@ -135,7 +135,7 @@ function ToolResultCard({
             const pct = parseFloat(String(item['Attendance Percentage'] || '0').replace('%', ''));
             const isLow = pct < 75;
             return (
-              <div key={i} className="p-2.5 rounded-[--radius-lg] bg-surface-2/40 border border-white/6 space-y-1.5">
+              <div key={i} className="p-2.5 rounded-[--radius-lg] bg-surface-2/40 border border-border space-y-1.5">
                 <div className="flex items-center justify-between text-foreground font-semibold">
                   <span className="truncate max-w-[180px] tracking-tight">{item['Course Title'] || item['Course Code']}</span>
                   <Badge variant={isLow ? 'danger' : pct >= 85 ? 'success' : 'warning'} className="tabular-numbers">
@@ -162,10 +162,10 @@ function ToolResultCard({
       hasPendingDue: boolean;
     };
     return (
-      <div className="p-3 rounded-[--radius-xl] bg-surface-2/60 border border-white/8 space-y-2 text-xs">
+      <div className="p-3 rounded-[--radius-xl] bg-surface-2/60 border border-border space-y-2 text-xs">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 font-semibold text-foreground font-heading">
-            <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+            <DollarSign className="w-3.5 h-3.5 text-success" />
             <span>Fee Overview</span>
           </div>
           <Badge variant={b.hasPendingDue ? 'danger' : 'success'} className="tabular-numbers">
@@ -173,11 +173,11 @@ function ToolResultCard({
           </Badge>
         </div>
         <div className="grid grid-cols-2 gap-2 text-center pt-1">
-          <div className="p-2.5 rounded-[--radius-lg] bg-surface-2/40 border border-white/6">
+          <div className="p-2.5 rounded-[--radius-lg] bg-surface-2/40 border border-border">
             <span className="caption-label text-muted-foreground block mb-0.5">Paid Amount</span>
-            <span className="font-bold text-emerald-400 font-mono tabular-numbers">₹{b.totalPaid.toLocaleString('en-IN')}</span>
+            <span className="font-bold text-success font-mono tabular-numbers">₹{b.totalPaid.toLocaleString('en-IN')}</span>
           </div>
-          <div className="p-2.5 rounded-[--radius-lg] bg-surface-2/40 border border-white/6">
+          <div className="p-2.5 rounded-[--radius-lg] bg-surface-2/40 border border-border">
             <span className="caption-label text-muted-foreground block mb-0.5">Total Amount</span>
             <span className="font-bold text-foreground font-mono tabular-numbers">₹{b.totalAmount.toLocaleString('en-IN')}</span>
           </div>
@@ -196,10 +196,10 @@ function ToolResultCard({
     };
     const isBelow = r.status === 'below_target';
     return (
-      <div className="p-3 rounded-[--radius-xl] bg-surface-2/60 border border-white/8 space-y-2 text-xs">
+      <div className="p-3 rounded-[--radius-xl] bg-surface-2/60 border border-border space-y-2 text-xs">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 font-semibold text-foreground font-heading">
-            <Target className="w-3.5 h-3.5 text-amber-400" />
+            <Target className="w-3.5 h-3.5 text-warning" />
             <span>Attendance Roadmap</span>
           </div>
           <Badge variant={isBelow ? 'danger' : 'success'} className="tabular-numbers">
@@ -231,10 +231,10 @@ function ToolResultCard({
       totalCredits: number;
     };
     return (
-      <div className="p-3 rounded-[--radius-xl] bg-surface-2/60 border border-white/8 space-y-2 text-xs">
+      <div className="p-3 rounded-[--radius-xl] bg-surface-2/60 border border-border space-y-2 text-xs">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 font-semibold text-foreground font-heading">
-            <Award className="w-3.5 h-3.5 text-pink-400" />
+            <Award className="w-3.5 h-3.5 text-primary" />
             <span>CGPA Forecast Roadmap</span>
           </div>
           <Badge variant={r.gpaDelta >= 0 ? 'success' : 'danger'} className="tabular-numbers">
@@ -242,11 +242,11 @@ function ToolResultCard({
           </Badge>
         </div>
         <div className="grid grid-cols-2 gap-2 text-center pt-1">
-          <div className="p-2.5 rounded-[--radius-lg] bg-surface-2/40 border border-white/6">
+          <div className="p-2.5 rounded-[--radius-lg] bg-surface-2/40 border border-border">
             <span className="caption-label text-muted-foreground block mb-0.5">Current CGPA</span>
             <span className="font-bold text-foreground font-mono tabular-numbers">{r.currentCGPA}</span>
           </div>
-          <div className="p-2.5 rounded-[--radius-lg] bg-surface-2/40 border border-white/6">
+          <div className="p-2.5 rounded-[--radius-lg] bg-surface-2/40 border border-border">
             <span className="caption-label text-muted-foreground block mb-0.5">Predicted CGPA</span>
             <span className="font-bold text-primary font-mono tabular-numbers">{r.predictedCGPA}</span>
           </div>

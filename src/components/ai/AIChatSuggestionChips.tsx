@@ -13,27 +13,27 @@ const SUGGESTIONS: SuggestionChip[] = [
   {
     label: 'OS Attendance',
     query: 'What is my attendance in OS?',
-    icon: <BookOpen className="w-3.5 h-3.5 text-indigo-300" />,
+    icon: <BookOpen className="w-3.5 h-3.5 text-primary" />,
   },
   {
     label: 'Fee Balance',
     query: 'Show fee breakdown',
-    icon: <DollarSign className="w-3.5 h-3.5 text-emerald-400" />,
+    icon: <DollarSign className="w-3.5 h-3.5 text-success" />,
   },
   {
     label: 'Today Schedule',
     query: 'What classes do I have today?',
-    icon: <Calendar className="w-3.5 h-3.5 text-purple-300" />,
+    icon: <Calendar className="w-3.5 h-3.5 text-primary" />,
   },
   {
     label: 'Target 75%',
     query: 'How many classes can I miss in OS?',
-    icon: <Target className="w-3.5 h-3.5 text-amber-300" />,
+    icon: <Target className="w-3.5 h-3.5 text-warning" />,
   },
   {
     label: 'Predict CGPA',
     query: 'Predict CGPA with upcoming courses',
-    icon: <Award className="w-3.5 h-3.5 text-pink-300" />,
+    icon: <Award className="w-3.5 h-3.5 text-primary" />,
   },
 ];
 
@@ -58,7 +58,7 @@ export function AIChatSuggestionChips({
               triggerHaptic('selection');
               onSelectSuggestion(chip.query);
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-surface-2/60 hover:bg-surface-2 text-foreground border border-white/8 apple-pill transition-all touch-manipulation active:scale-95 disabled:opacity-40 shrink-0 min-h-[44px] cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-surface-2/60 hover:bg-surface-2 text-foreground border border-border apple-pill transition-all touch-manipulation active:scale-95 disabled:opacity-40 shrink-0 min-h-[44px] cursor-pointer"
           >
             {chip.icon}
             <span>{chip.label}</span>

@@ -24,14 +24,14 @@ export default function ProfilePage() {
       </div>
 
       {loading ? (
-        <div className="apple-card rounded-[--radius-2xl] min-h-[400px] flex flex-col items-center justify-center p-8 shadow-xl border border-white/10">
+        <div className="apple-card rounded-[--radius-2xl] min-h-[400px] flex flex-col items-center justify-center p-8 shadow-xl border border-border">
           <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
           <span className="text-xs text-muted-foreground font-medium">
             Syncing your profile...
           </span>
         </div>
       ) : error ? (
-        <div className="apple-card rounded-[--radius-2xl] min-h-[400px] flex flex-col items-center justify-center p-8 text-center shadow-xl border border-white/10">
+        <div className="apple-card rounded-[--radius-2xl] min-h-[400px] flex flex-col items-center justify-center p-8 text-center shadow-xl border border-border">
           <div className="w-16 h-16 rounded-[--radius-2xl] bg-destructive/15 border border-destructive/25 flex items-center justify-center text-destructive mb-4 shadow-inner">
             <AlertCircle className="w-8 h-8" />
           </div>
@@ -41,7 +41,7 @@ export default function ProfilePage() {
           </p>
         </div>
       ) : data ? (
-        <div className="apple-card rounded-[--radius-2xl] shadow-2xl border border-white/10 overflow-hidden">
+        <div className="apple-card rounded-[--radius-2xl] shadow-2xl border border-border overflow-hidden">
           {/* Profile Header */}
           {(() => {
             const uid = String(data.universityId || '');
@@ -49,7 +49,7 @@ export default function ProfilePage() {
             const nameStr = String(data.name || '');
 
             return (
-              <div className="p-6 sm:p-8 border-b border-white/8 bg-surface-2/30 relative">
+              <div className="p-6 sm:p-8 border-b border-border bg-surface-2/30 relative">
                 <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-end gap-5">
                   <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-surface-2 border-2 border-primary/40 shadow-xl flex items-center justify-center text-foreground text-3xl font-bold overflow-hidden relative">
                     {uid ? (
@@ -76,7 +76,7 @@ export default function ProfilePage() {
                     <h3 className="text-2xl sm:text-3xl font-bold tracking-tight font-heading">
                       {nameStr || 'Unknown Student'}
                     </h3>
-                    <div className="inline-flex items-center gap-2 mt-2 px-3 py-1 bg-white/6 border border-white/8 rounded-full">
+                    <div className="inline-flex items-center gap-2 mt-2 px-3 py-1 bg-surface-2 border border-border rounded-full">
                       <span className="text-xs text-muted-foreground font-mono tracking-wider">
                         ID: {uid || 'N/A'}
                       </span>
@@ -156,7 +156,7 @@ export default function ProfilePage() {
                       {scalarEntries.map(([k, v]) => (
                         <div
                           key={k}
-                          className="flex flex-col p-3 bg-surface-2/40 rounded-[--radius-lg] border border-white/6 hover:border-primary/30 transition-all touch-manipulation"
+                          className="flex flex-col p-3 bg-surface-2/40 rounded-[--radius-lg] border border-border hover:border-primary/30 transition-all touch-manipulation"
                         >
                           <span
                             className="text-[9px] font-bold tracking-widest uppercase text-muted-foreground truncate mb-0.5"
@@ -175,7 +175,7 @@ export default function ProfilePage() {
                     </div>
 
                     {arrayEntries.length > 0 && (
-                      <div className="mt-8 pt-6 border-t border-white/8">
+                      <div className="mt-8 pt-6 border-t border-border">
                         <div className="flex flex-wrap gap-2 mb-6">
                           {arrayEntries.map(([k]) => (
                             <button
@@ -187,7 +187,7 @@ export default function ProfilePage() {
                               className={`px-4 py-2 text-xs font-semibold rounded-full transition-all duration-[--duration-fast] ease-[--ease-spring-default] min-h-[44px] flex items-center cursor-pointer touch-manipulation active:scale-95 ${
                                 currentTab === k
                                   ? 'bg-primary text-primary-foreground shadow-md'
-                                  : 'bg-surface-2/50 text-muted-foreground hover:text-foreground border border-white/8 hover:border-white/16'
+                                  : 'bg-surface-2/50 text-muted-foreground hover:text-foreground border border-border hover:border-primary/30'
                               }`}
                             >
                               {k.includes(' ') || k.toLowerCase() === k
@@ -208,11 +208,11 @@ export default function ProfilePage() {
                           return (
                             <div
                               key={k}
-                              className="overflow-x-auto rounded-[--radius-xl] border border-white/8 apple-card shadow-xl custom-scrollbar"
+                              className="overflow-x-auto rounded-[--radius-xl] border border-border apple-card shadow-xl custom-scrollbar"
                             >
                               <table className="w-full text-left border-collapse">
                                 <thead>
-                                  <tr className="border-b border-white/8 bg-surface-2/50">
+                                  <tr className="border-b border-border bg-surface-2/50">
                                     {Object.keys(rows[0]).map((header) => (
                                       <th
                                         key={header}
@@ -224,11 +224,11 @@ export default function ProfilePage() {
                                     ))}
                                   </tr>
                                 </thead>
-                                <tbody className="divide-y divide-white/6">
+                                <tbody className="divide-y divide-border">
                                   {rows.map((row, idx) => (
                                     <tr
                                       key={idx}
-                                      className="hover:bg-white/4 transition-colors"
+                                      className="hover:bg-surface-2 transition-colors"
                                     >
                                       {Object.values(row).map(
                                         (val: unknown, cellIdx) => (

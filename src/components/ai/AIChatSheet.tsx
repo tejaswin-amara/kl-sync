@@ -36,10 +36,10 @@ export function AIChatSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-md h-full flex flex-col p-0 apple-sheet border-l border-white/12 shadow-2xl"
+        className="h-full w-full flex flex-col p-0 apple-sheet border-l border-border shadow-xl sm:max-w-md"
       >
         {/* Drawer Header */}
-        <SheetHeader className="p-4 border-b border-white/8 flex flex-row items-center justify-between space-y-0">
+        <SheetHeader className="flex flex-row items-center justify-between space-y-0 border-b border-border p-4">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-[--radius-lg] bg-primary/20 border border-primary/30 flex items-center justify-center text-primary">
               <Sparkles className="w-4.5 h-4.5" />
@@ -65,7 +65,7 @@ export function AIChatSheet({
                   onClearChat();
                 }}
                 title="Clear Chat History"
-                className="p-2 rounded-full hover:bg-white/8 text-muted-foreground hover:text-foreground transition-all min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation active:scale-90 cursor-pointer"
+                className="p-2 rounded-full hover:bg-surface-2 text-muted-foreground hover:text-foreground transition-all min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation active:scale-90 cursor-pointer"
                 aria-label="Clear chat"
               >
                 <Trash2 className="w-4 h-4" />
@@ -79,7 +79,7 @@ export function AIChatSheet({
                   onToggleDialogMode();
                 }}
                 title="Expand to Modal"
-                className="p-2 rounded-full hover:bg-white/8 text-muted-foreground hover:text-foreground transition-all min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation active:scale-90 cursor-pointer"
+                className="p-2 rounded-full hover:bg-surface-2 text-muted-foreground hover:text-foreground transition-all min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation active:scale-90 cursor-pointer"
                 aria-label="Expand to dialog"
               >
                 <Maximize2 className="w-4 h-4" />
@@ -95,7 +95,7 @@ export function AIChatSheet({
         </div>
 
         {/* Suggestions & Input Footer */}
-        <div className="p-3 border-t border-white/8 bg-surface-2/40 backdrop-blur-md space-y-2">
+        <div className="space-y-2 border-t border-border bg-surface-2/60 p-3">
           <AIChatSuggestionChips onSelectSuggestion={onSendMessage} disabled={isBusy} />
           <AIChatInput onSendMessage={onSendMessage} disabled={isBusy} />
         </div>

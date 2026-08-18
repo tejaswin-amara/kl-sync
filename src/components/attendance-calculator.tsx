@@ -65,7 +65,7 @@ export function SimpleCalculator({
 
   return (
     <div className="space-y-6">
-      <div className="apple-card rounded-[--radius-2xl] p-6 shadow-xl border border-white/10 relative overflow-hidden">
+      <div className="apple-card rounded-[--radius-2xl] p-6 shadow-xl border border-border relative overflow-hidden">
         <div className="flex flex-col space-y-2 mb-6">
           <h3 className="section-title text-foreground">
             Attendance Analysis
@@ -81,8 +81,8 @@ export function SimpleCalculator({
         </div>
 
         <div className="space-y-4">
-          <div className="flex items-start gap-3.5 p-3 rounded-[--radius-lg] bg-white/4 border border-white/6">
-            <div className="w-2.5 h-2.5 rounded-full bg-indigo-400 mt-1.5 shrink-0 shadow-[0_0_8px_rgba(129,140,248,0.8)]" />
+          <div className="flex items-start gap-3.5 p-3 rounded-[--radius-lg] bg-surface-2 border border-border">
+            <div className="w-2.5 h-2.5 rounded-full bg-primary mt-1.5 shrink-0 shadow-[0_0_8px_rgba(129,140,248,0.8)]" />
             <div className="min-w-0 flex-1">
               <h4 className="text-xs font-semibold text-foreground tracking-tight">Classes you can miss</h4>
               <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
@@ -102,8 +102,8 @@ export function SimpleCalculator({
             </div>
           </div>
 
-          <div className="flex items-start gap-3.5 p-3 rounded-[--radius-lg] bg-white/4 border border-white/6">
-            <div className="w-2.5 h-2.5 rounded-full bg-amber-400 mt-1.5 shrink-0 shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
+          <div className="flex items-start gap-3.5 p-3 rounded-[--radius-lg] bg-surface-2 border border-border">
+            <div className="w-2.5 h-2.5 rounded-full bg-warning mt-1.5 shrink-0 shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
             <div className="min-w-0 flex-1">
               <h4 className="text-xs font-semibold text-foreground tracking-tight">Classes needed for 75%</h4>
               <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
@@ -122,8 +122,8 @@ export function SimpleCalculator({
             </div>
           </div>
 
-          <div className="flex items-start gap-3.5 p-3 rounded-[--radius-lg] bg-white/4 border border-white/6">
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 mt-1.5 shrink-0 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+          <div className="flex items-start gap-3.5 p-3 rounded-[--radius-lg] bg-surface-2 border border-border">
+            <div className="w-2.5 h-2.5 rounded-full bg-success mt-1.5 shrink-0 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
             <div className="min-w-0 flex-1">
               <h4 className="text-xs font-semibold text-foreground tracking-tight">Classes needed for 85%</h4>
               <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
@@ -325,7 +325,7 @@ export function LTPSAttendanceCalculator() {
         </h2>
       </div>
 
-      <div className="apple-card rounded-[--radius-2xl] p-6 sm:p-8 border border-white/10 shadow-2xl space-y-6">
+      <div className="apple-card rounded-[--radius-2xl] p-6 sm:p-8 border border-border shadow-2xl space-y-6">
         <div>
           <h3 className="text-xl font-bold text-foreground font-heading">Calculate Attendance</h3>
           <p className="text-xs text-muted-foreground mt-1">
@@ -427,7 +427,7 @@ export function LTPSAttendanceCalculator() {
           <Button
             type="submit"
             size="lg"
-            className="w-full min-h-[48px] bg-red-600 hover:bg-red-500 text-white font-semibold text-sm shadow-lg shadow-red-500/20 active:scale-[0.98] transition-all"
+            className="w-full min-h-[48px] bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm shadow-lg shadow-primary/20 active:scale-[0.98] transition-all"
           >
             <Calculator className="w-4 h-4 mr-2" />
             Calculate
@@ -436,8 +436,8 @@ export function LTPSAttendanceCalculator() {
 
         {/* Calculation Result */}
         {result && (
-          <div className="pt-6 border-t border-white/10 space-y-4 animate-spring-scale">
-            <div className="flex items-baseline justify-between gap-4 p-4 rounded-[--radius-xl] bg-surface-2/60 border border-white/8">
+          <div className="pt-6 border-t border-border space-y-4 animate-spring-scale">
+            <div className="flex items-baseline justify-between gap-4 p-4 rounded-[--radius-xl] bg-surface-2/60 border border-border">
               <div>
                 <p className="caption-label text-muted-foreground">Weighted LTPS Percentage</p>
                 <div className="flex items-baseline gap-3 mt-1">
@@ -497,7 +497,7 @@ export function LTPSAttendanceCalculator() {
 
         {/* Saved Drafts */}
         {drafts.length > 0 && (
-          <div className="pt-4 border-t border-white/8 space-y-2">
+          <div className="pt-4 border-t border-border space-y-2">
             <p className="caption-label text-muted-foreground flex items-center gap-1.5">
               <Bookmark className="w-3.5 h-3.5 text-primary" />
               Saved Subject Drafts
@@ -506,7 +506,7 @@ export function LTPSAttendanceCalculator() {
               {drafts.map((d) => (
                 <div
                   key={d.id}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-[--radius-lg] bg-white/4 border border-white/8 text-xs hover:border-white/20 transition-all"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-[--radius-lg] bg-surface-2 border border-border text-xs hover:border-primary/2520 transition-all"
                 >
                   <button
                     type="button"

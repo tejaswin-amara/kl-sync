@@ -29,7 +29,7 @@ function MarksMobileCard({ row }: { row: Record<string, unknown> }) {
   };
 
   return (
-    <div className="p-4 rounded-[--radius-xl] border border-white/8 apple-card space-y-3 transition-all duration-[--duration-normal] ease-[--ease-spring-default]">
+    <div className="p-4 rounded-[--radius-xl] border border-border apple-card space-y-3 transition-all duration-[--duration-normal] ease-[--ease-spring-default]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="caption-label text-muted-foreground/80">
@@ -46,7 +46,7 @@ function MarksMobileCard({ row }: { row: Record<string, unknown> }) {
             onClick={toggleExpand}
             aria-expanded={expanded}
             aria-label={`Toggle details for ${String(primaryVal)}`}
-            className="p-2 rounded-full hover:bg-white/8 text-muted-foreground hover:text-foreground transition-all min-w-[44px] min-h-[44px] flex items-center justify-center -mr-1 -mt-1 touch-manipulation active:scale-90 cursor-pointer"
+            className="p-2 rounded-full hover:bg-surface-3 text-muted-foreground hover:text-foreground transition-all min-w-[44px] min-h-[44px] flex items-center justify-center -mr-1 -mt-1 touch-manipulation active:scale-90 cursor-pointer"
           >
             {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
@@ -54,7 +54,7 @@ function MarksMobileCard({ row }: { row: Record<string, unknown> }) {
       </div>
 
       {secondaryEntries.length > 0 && (
-        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/6">
+        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border">
           {secondaryEntries.map(([key, val]) => (
             <div key={key} className="min-w-0">
               <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{key}</div>
@@ -65,9 +65,9 @@ function MarksMobileCard({ row }: { row: Record<string, unknown> }) {
       )}
 
       {expanded && remainingEntries.length > 0 && (
-        <div className="pt-3 border-t border-white/8 space-y-2 animate-spring-scale">
+        <div className="pt-3 border-t border-border space-y-2 animate-spring-scale">
           {remainingEntries.map(([key, val]) => (
-            <div key={key} className="flex justify-between items-center text-xs py-1 border-b border-white/4 last:border-0">
+            <div key={key} className="flex justify-between items-center text-xs py-1 border-b border-border/60 last:border-0">
               <span className="text-muted-foreground font-medium">{key}</span>
               <span className="text-foreground font-semibold text-right max-w-[60%] truncate tabular-numbers">{String(val)}</span>
             </div>
@@ -140,7 +140,7 @@ export default function MarksPage() {
         </div>
       )}
 
-      <div className="rounded-[--radius-2xl] apple-card overflow-hidden shadow-xl border border-white/10">
+      <div className="rounded-[--radius-2xl] apple-card overflow-hidden shadow-xl border border-border">
         {loading ? (
           <div className="p-6 space-y-3">
             {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full rounded-[--radius-lg]" />)}
@@ -155,7 +155,7 @@ export default function MarksPage() {
             <div className="hidden sm:block overflow-x-auto custom-scrollbar">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/8 bg-surface-2/40 sticky top-0 z-10 backdrop-blur-md">
+                  <tr className="border-b border-border bg-surface-2/40 sticky top-0 z-10 backdrop-blur-md">
                     {Object.keys(filteredData[0] || {}).map((key, i) => (
                       <th
                         key={i}
@@ -167,9 +167,9 @@ export default function MarksPage() {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/6">
+                <tbody className="divide-y divide-border">
                   {filteredData.map((row, idx) => (
-                    <tr key={idx} className="hover:bg-white/4 transition-colors">
+                    <tr key={idx} className="hover:bg-surface-2 transition-colors">
                       {Object.values(row).map((val: unknown, j) => (
                         <td key={j} className="px-5 py-3.5 text-sm text-foreground tabular-numbers font-medium whitespace-nowrap">{String(val)}</td>
                       ))}

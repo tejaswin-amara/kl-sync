@@ -58,13 +58,13 @@ export function FeeBreakdownChart({ data, totalFee: propTotal, pendingFee: propP
   const pendingDash = circumference - paidDash;
 
   return (
-    <div className="rounded-[--radius-2xl] border border-white/10 apple-card p-6 space-y-4 shadow-xl overflow-hidden">
+    <div className="rounded-[--radius-2xl] border border-border apple-card p-6 space-y-4 shadow-xl overflow-hidden">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-semibold text-foreground font-heading tracking-tight">Fee Summary</h3>
           <p className="text-xs text-muted-foreground/80 font-normal">Payment distribution status</p>
         </div>
-        <div className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full apple-pill">
+        <div className="text-xs font-mono font-bold text-success bg-success/10 border border-success/20 px-2.5 py-1 rounded-full apple-pill">
           {paidPct}% Paid
         </div>
       </div>
@@ -79,7 +79,7 @@ export function FeeBreakdownChart({ data, totalFee: propTotal, pendingFee: propP
               cy={size / 2}
               r={radius}
               fill="none"
-              stroke="rgba(255, 255, 255, 0.08)"
+              stroke="rgba(255, 255, 255, 0.10)"
               strokeWidth={strokeWidth}
             />
             {/* Paid Arc */}
@@ -88,7 +88,7 @@ export function FeeBreakdownChart({ data, totalFee: propTotal, pendingFee: propP
               cy={size / 2}
               r={radius}
               fill="none"
-              stroke="#10b981"
+              stroke="var(--success)"
               strokeWidth={strokeWidth}
               strokeDasharray={`${paidDash} ${circumference}`}
               strokeLinecap="round"
@@ -101,7 +101,7 @@ export function FeeBreakdownChart({ data, totalFee: propTotal, pendingFee: propP
                 cy={size / 2}
                 r={radius}
                 fill="none"
-                stroke="#ef4444"
+                stroke="var(--error)"
                 strokeWidth={strokeWidth}
                 strokeDasharray={`${pendingDash} ${circumference}`}
                 strokeDashoffset={-paidDash}
@@ -118,20 +118,20 @@ export function FeeBreakdownChart({ data, totalFee: propTotal, pendingFee: propP
 
         {/* Legend stats */}
         <div className="space-y-3 w-full sm:w-auto">
-          <div className="flex items-center justify-between sm:justify-start gap-4 p-3 rounded-[--radius-lg] bg-surface-2/40 border border-white/6">
+          <div className="flex items-center justify-between sm:justify-start gap-4 p-3 rounded-[--radius-lg] bg-surface-2/40 border border-border">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-success inline-block shadow-xs" />
               <span className="text-xs font-semibold text-muted-foreground">Paid Amount</span>
             </div>
-            <span className="text-xs font-bold text-emerald-400 font-mono tabular-numbers">₹{paid.toLocaleString()}</span>
+            <span className="text-xs font-bold text-success font-mono tabular-numbers">₹{paid.toLocaleString()}</span>
           </div>
 
-          <div className="flex items-center justify-between sm:justify-start gap-4 p-3 rounded-[--radius-lg] bg-surface-2/40 border border-white/6">
+          <div className="flex items-center justify-between sm:justify-start gap-4 p-3 rounded-[--radius-lg] bg-surface-2/40 border border-border">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-destructive inline-block shadow-xs" />
               <span className="text-xs font-semibold text-muted-foreground">Pending Due</span>
             </div>
-            <span className="text-xs font-bold text-rose-400 font-mono tabular-numbers">₹{pending.toLocaleString()}</span>
+            <span className="text-xs font-bold text-error font-mono tabular-numbers">₹{pending.toLocaleString()}</span>
           </div>
         </div>
       </div>

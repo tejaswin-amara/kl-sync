@@ -21,7 +21,7 @@ function Skeleton({
         variant === 'circle' && 'rounded-full',
         variant === 'text' && 'h-4 rounded-[--radius-sm]',
         variant === 'avatar' && 'w-10 h-10 rounded-full shrink-0',
-        variant === 'card' && 'h-32 w-full rounded-[--radius-xl] border border-white/8 p-4',
+        variant === 'card' && 'h-32 w-full rounded-[--radius-xl] border border-border p-4',
         variant === 'table-row' && 'h-12 w-full rounded-[--radius-md]',
         className
       )}
@@ -34,7 +34,7 @@ function SkeletonCard({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
   return (
     <div
       className={cn(
-        'p-5 rounded-[--radius-xl] border border-white/8 apple-card space-y-4 animate-pulse',
+        'p-5 rounded-[--radius-xl] border border-border apple-card space-y-4 animate-pulse',
         className
       )}
       {...props}

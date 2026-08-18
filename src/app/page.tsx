@@ -1,26 +1,20 @@
 'use client';
 
 /* eslint-disable @next/next/no-img-element */
-import { useState, useEffect } from 'react';
-import { RefreshCw, LogIn, AlertCircle, ShieldCheck, User, Lock, HelpCircle, Loader2 } from '@/components/ui/icons';
+
+import { useEffect, useState } from 'react';
+import { AlertCircle, HelpCircle, Loader2, Lock, LogIn, RefreshCw, ShieldCheck, User } from '@/components/ui/icons';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { triggerHaptic } from '@/lib/fluid-motion';
-import { Card, CardHeader, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
+import { triggerHaptic } from '@/lib/fluid-motion';
 import { prefetchAllUserData } from '@/lib/data-prefetcher';
 import { useI18n } from '@/lib/i18n';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { ComplianceBadgeBar, ComplianceModal } from '@/components/compliance/ComplianceModal';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -47,31 +41,17 @@ export default function LoginPage() {
       const response = await fetch('/api/captcha', { signal: AbortSignal.timeout(12000) });
       const data = await response.json();
       const sid = response.headers.get('x-session-id') || data.sessionId;
-      if (sid) {
-        setSessionId(sid);
-      }
+      if (sid) setSessionId(sid);
       setCaptchaImage(data.captchaImage);
-      if (data.solvedCaptcha) {
-        setCaptcha(data.solvedCaptcha);
-        setAutoSolveFailed(false);
-      } else {
-        setCaptcha('');
-        setAutoSolveFailed(true);
-      }
+      if (data.solvedCaptcha) { setCaptcha(data.solvedCaptcha); setAutoSolveFailed(false); } else { setCaptcha(''); setAutoSolveFailed(true); }
       return data.solvedCaptcha || '';
     } catch (err) {
       console.warn('[CAPTCHA] Client fetch timed out or failed, using instant fallback:', err);
-      const fallbackSvg =
-        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCAxMjAgNDAiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNMCwyMCBRMzAsNSA2MCwyMCBUMTIwLDIwIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTAsMTAgUTQwLDMwIDgwLDEwIFQxMjAsMzAiIHN0cm9rZT0iI2Q1ZDVkNSIgc3Ryb2tlLXdpZHRoPSIxLjUiIGZpbGw9Im5vbmUiLz48dGV4dCB4PSI1MCUiIHk9IjU1JSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9Im1vbm9zcGFjZSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMxMTExMTEiIGxldHRlci1zcGFjaW5nPSIzIj5hYmNkPC90ZXh0Pjwvc3ZnPg==';
-      setCaptchaImage(fallbackSvg);
-      setCaptcha('abcd');
-      const fallbackSid =
-        'b64.eyJjb29raWVzIjpbIHsgIm5hbWUiOiAiUEhQU0VTU0lEIiwgInZhbHVlIjogImRlbW9fcGhwc2Vzc2lkXzEyMyIgfSBdLCAiY3NyZlRva2VuIjogImRlbW9fY3NyZlRva2VuXzEyMyIsICJ1c2VyQWdlbnQiOiAiTW96aWxsYS81LjAiIH0=';
-      setSessionId(fallbackSid);
-      return 'abcd';
-    } finally {
-      setCaptchaLoading(false);
-    }
+      const fallbackSvg = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCAxMjAgNDAiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNMCwyMCBRMzAsNSA2MCwyMCBUMTIwLDIwIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTAsMTAgUTQwLDMwIDgwLDEwIFQxMjAsMzAiIHN0cm9rZT0iI2Q1ZDVkNSIgc3Ryb2tlLXdpZHRoPSIxLjUiIGZpbGw9Im5vbmUiLz48dGV4dCB4PSI1MCUiIHk9IjU1JSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9Im1vbm9zcGFjZSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgfont-weight="bold" fill="#16202a" letter-spacing="3">abcd</text></svg>';
+      setCaptchaImage(fallbackSvg); setCaptcha('abcd');
+      const fallbackSid = 'b64.eyJjb29raWVzIjpbIHsgIm5hbWUiOiAiUEhQU0VTU0lEIiwgInZhbHVlIjogImRlbW9fcGhwc2Vzc2lkXzEyMyIgfSBdLCAiY3NyZlRva2VuIjogImRlbW9fY3NyZlRva2VuXzEyMyIsICJ1c2VyQWdlbnQiOiAiTW96aWxsYS81LjAiIH0=';
+      setSessionId(fallbackSid); return 'abcd';
+    } finally { setCaptchaLoading(false); }
   };
 
   useEffect(() => {
@@ -79,388 +59,72 @@ export default function LoginPage() {
       try {
         const storedSession = sessionStorage.getItem('kl_erp_session_id');
         const storedCsrf = sessionStorage.getItem('kl_erp_csrf_token');
-        // Only auto-redirect if an authenticated session with valid CSRF token is present
-        if (storedSession && storedCsrf) {
-          setSessionId(storedSession);
-          void prefetchAllUserData();
-          router.push('/dashboard');
-          return;
-        } else {
-          fetchCaptcha();
-        }
+        if (storedSession && storedCsrf) { setSessionId(storedSession); void prefetchAllUserData(); router.push('/dashboard'); return; }
+        void fetchCaptcha();
         const savedDevice = localStorage.getItem('kl_erp_device_id');
         if (savedDevice) setDeviceId(savedDevice);
-      } catch {
-        fetchCaptcha();
-      }
-
+      } catch { void fetchCaptcha(); }
       const savedUser = localStorage.getItem('remember_username');
-      if (savedUser) {
-        setUsername(savedUser);
-        setRememberMe(true);
-      }
+      if (savedUser) { setUsername(savedUser); setRememberMe(true); }
     });
   }, [router]);
 
-  const handleLogin = async (e?: React.FormEvent) => {
-    e?.preventDefault();
+  const handleLogin = async (event?: React.FormEvent) => {
+    event?.preventDefault();
     const cleanCaptcha = captcha.toLowerCase().trim().replace(/[^a-z]/g, '');
-    if (!username || !password || !cleanCaptcha) {
-      triggerHaptic('error');
-      setError('Please fill in all fields (Security code: lowercase letters a–z only)');
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    setStatus(null);
-    triggerHaptic('light');
-
+    if (!username || !password || !cleanCaptcha) { triggerHaptic('error'); setError('Please fill in all fields. The security code accepts lowercase letters a–z only.'); return; }
+    setLoading(true); setError(null); setStatus(null); triggerHaptic('light');
     try {
-      const demoFallback =
-        'b64.eyJjb29raWVzIjpbIHsgIm5hbWUiOiAiUEhQU0VTU0lEIiwgInZhbHVlIjogImRlbW9fcGhwc2Vzc2lkXzEyMyIgfSBdLCAiY3NyZlRva2VuIjogImRlbW9fY3NyZlRva2VuXzEyMyIsICJ1c2VyQWdlbnQiOiAiTW96aWxsYS81LjAiIH0=';
-      const effectiveSessionId =
-        sessionId ||
-        (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('kl_erp_session_id') : '') ||
-        (username === '2100030000' || username === 'demo' ? demoFallback : '');
-
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-session-id': effectiveSessionId },
-        body: JSON.stringify({
-          username: username.trim(),
-          password,
-          captcha: cleanCaptcha,
-          captchaToken,
-          sessionId: effectiveSessionId,
-          deviceId: deviceId || (typeof localStorage !== 'undefined' ? localStorage.getItem('kl_erp_device_id') : '') || '',
-        }),
-      });
-
+      const demoFallback = 'b64.eyJjb29raWVzIjpbIHsgIm5hbWUiOiAiUEhQU0VTU0lEIiwgInZhbHVlIjogImRlbW9fcGhwc2Vzc2lkXzEyMyIgfSBdLCAiY3NyZlRva2VuIjogImRlbW9fY3NyZlRva2VuXzEyMyIsICJ1c2VyQWdlbnQiOiAiTW96aWxsYS81LjAiIH0=';
+      const effectiveSessionId = sessionId || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('kl_erp_session_id') : '') || (username === '2100030000' || username === 'demo' ? demoFallback : '');
+      const response = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-session-id': effectiveSessionId }, body: JSON.stringify({ username: username.trim(), password, captcha: cleanCaptcha, captchaToken, sessionId: effectiveSessionId, deviceId: deviceId || (typeof localStorage !== 'undefined' ? localStorage.getItem('kl_erp_device_id') : '') || '' }) });
       const data = await response.json();
-
-      if (data.deviceId) {
-        setDeviceId(data.deviceId);
-        try { localStorage.setItem('kl_erp_device_id', data.deviceId); } catch {}
-      }
-
-      if (data.needsCaptchaRetry) {
-        setError(null);
-        setStatus('First-time device setup — please enter the captcha once more.');
-        await fetchCaptcha(true);
-        setLoading(false);
-        triggerHaptic('warning');
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error(data.message || data.error || 'Login failed');
-      }
-
-      if (rememberMe) {
-        localStorage.setItem('remember_username', username);
-      } else {
-        localStorage.removeItem('remember_username');
-      }
+      if (data.deviceId) { setDeviceId(data.deviceId); try { localStorage.setItem('kl_erp_device_id', data.deviceId); } catch {} }
+      if (data.needsCaptchaRetry) { setError(null); setStatus('First-time device setup — please enter the captcha once more.'); await fetchCaptcha(true); setLoading(false); triggerHaptic('warning'); return; }
+      if (!response.ok) throw new Error(data.message || data.error || 'Login failed');
+      if (rememberMe) localStorage.setItem('remember_username', username); else localStorage.removeItem('remember_username');
       localStorage.removeItem('remember_password');
-
       if (data.sessionId) setSessionId(data.sessionId);
-
       try {
         document.cookie = `kl_erp_session=${data.sessionId || ''}; max-age=86400; path=/;`;
-        sessionStorage.setItem('kl_erp_session_id', data.sessionId || '');
-        sessionStorage.setItem('kl_erp_csrf_token', data.csrfToken || '');
-        localStorage.setItem('kl_erp_csrf_token', data.csrfToken || '');
-        localStorage.setItem('kl_erp_academic_years', JSON.stringify(data.academicYears || []));
-        localStorage.setItem('kl_erp_semesters', JSON.stringify(data.semesters || []));
+        sessionStorage.setItem('kl_erp_session_id', data.sessionId || ''); sessionStorage.setItem('kl_erp_csrf_token', data.csrfToken || ''); localStorage.setItem('kl_erp_csrf_token', data.csrfToken || '');
+        localStorage.setItem('kl_erp_academic_years', JSON.stringify(data.academicYears || [])); localStorage.setItem('kl_erp_semesters', JSON.stringify(data.semesters || []));
       } catch {}
-
       let academicYear = '';
-      if (data.academicYears && data.academicYears.length > 0) {
-        const sortedYears = [...data.academicYears].sort(
-          (a: { label: string; value: string }, b: { label: string; value: string }) =>
-            b.label.localeCompare(a.label)
-        );
-        academicYear = sortedYears[0].value;
-      }
-
+      if (data.academicYears?.length) { const sortedYears = [...data.academicYears].sort((a: { label: string }, b: { label: string }) => b.label.localeCompare(a.label)); academicYear = sortedYears[0].value; }
       let semesterId = '';
-      if (data.semesters && data.semesters.length > 0) {
-        const oddSem = data.semesters.find((s: { label: string; value: string }) =>
-          s.label.toLowerCase().includes('odd')
-        );
-        semesterId = oddSem ? oddSem.value : data.semesters[0].value;
-      }
-
-      if (academicYear) { try { localStorage.setItem('kl_erp_year', academicYear); } catch {} }
-      if (semesterId) { try { localStorage.setItem('kl_erp_sem', semesterId); } catch {} }
-      if (username) { try { localStorage.setItem('studentId', username); } catch {} }
-
-      // ── Zero-Loading Prefetch Engine ──
-      // Fire parallel background data fetching immediately so dashboard is preheated
-      void prefetchAllUserData({
-        academicYear,
-        semesterId,
-        csrfToken: data.csrfToken,
-      });
-
-      triggerHaptic('success');
-      router.push('/dashboard');
-    } catch (err: unknown) {
-      triggerHaptic('error');
-      setError(err instanceof Error && err.message ? err.message : 'An unexpected error occurred');
-      await fetchCaptcha(true);
-    } finally {
-      setLoading(false);
-    }
+      if (data.semesters?.length) { const oddSem = data.semesters.find((semester: { label: string }) => semester.label.toLowerCase().includes('odd')); semesterId = oddSem ? oddSem.value : data.semesters[0].value; }
+      if (academicYear) localStorage.setItem('kl_erp_year', academicYear);
+      if (semesterId) localStorage.setItem('kl_erp_sem', semesterId);
+      if (username) localStorage.setItem('studentId', username);
+      void prefetchAllUserData({ academicYear, semesterId, csrfToken: data.csrfToken });
+      triggerHaptic('success'); router.push('/dashboard');
+    } catch (err: unknown) { triggerHaptic('error'); setError(err instanceof Error && err.message ? err.message : 'An unexpected error occurred'); await fetchCaptcha(true); } finally { setLoading(false); }
   };
 
   return (
-    <main className="h-[100dvh] max-h-[100dvh] w-full flex bg-background text-foreground relative overflow-hidden font-sans">
+    <main className="relative flex min-h-[100dvh] w-full overflow-hidden bg-background text-foreground">
       <h1 className="sr-only">KL Sync Student Portal</h1>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_0%,rgba(79,70,200,0.10),transparent_35%),radial-gradient(circle_at_90%_100%,rgba(19,138,99,0.08),transparent_36%)]" />
+      <div className="absolute right-4 top-4 z-30 flex items-center gap-2 sm:right-6 sm:top-6"><button type="button" onClick={() => { triggerHaptic('light'); setComplianceOpen(true); }} className="flex min-h-[44px] items-center gap-2 rounded-full border border-border bg-surface-1/90 px-3 text-xs font-bold text-success shadow-xs backdrop-blur-md hover:bg-surface-2" aria-label="View Privacy & Accessibility Compliance"><ShieldCheck className="h-4 w-4" /><span className="hidden sm:inline">Privacy first</span></button><LanguageSelector /></div>
 
-      {/* Language Switcher Top Corner */}
-      <div className="absolute top-4 end-4 z-30 flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => {
-            triggerHaptic('light');
-            setComplianceOpen(true);
-          }}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-700/60 text-zinc-300 text-xs font-medium cursor-pointer shadow-xs min-h-[44px] touch-manipulation active:scale-95"
-          aria-label="View Privacy & Accessibility Compliance"
-        >
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span className="hidden sm:inline">Compliance</span>
-        </button>
-        <LanguageSelector />
-      </div>
+      <section className="relative z-10 hidden min-h-[100dvh] w-[46%] flex-col justify-between border-r border-border/70 bg-[#111922] p-8 lg:flex xl:p-14">
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(33,46,59,0.78),transparent_52%),radial-gradient(circle_at_80%_10%,rgba(79,70,200,0.13),transparent_32%)]" />
+        <div className="relative z-10"><div className="mb-14 flex items-center gap-3"><img src="/logo.png" alt="KLH" className="h-10 rounded-xl bg-surface-1 p-1.5 shadow-sm" /><div><p className="font-heading text-lg font-bold tracking-tight">KL Sync</p><p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Student workspace</p></div></div><Badge variant="success" dot className="mb-5 rounded-full px-3 py-1.5 text-[11px]">Live ERP sync</Badge><h2 className="display-title max-w-xl text-5xl xl:text-6xl">Your academic day, <span className="text-gradient-brand">in one clear view.</span></h2><p className="mt-6 max-w-lg text-base leading-relaxed text-muted-foreground">A focused student portal for the information you check most: today’s classes, attendance, marks, fees, profile details, and campus updates.</p><div className="mt-12 grid max-w-lg grid-cols-3 gap-3"><div className="rounded-[--radius-lg] border border-border bg-surface-1/80 p-4 shadow-xs"><p className="caption-label text-muted-foreground">Sync</p><p className="mt-2 font-heading text-2xl font-bold">Live</p></div><div className="rounded-[--radius-lg] border border-border bg-surface-1/80 p-4 shadow-xs"><p className="caption-label text-muted-foreground">Views</p><p className="mt-2 font-heading text-2xl font-bold">10+</p></div><div className="rounded-[--radius-lg] border border-border bg-surface-1/80 p-4 shadow-xs"><p className="caption-label text-muted-foreground">Built for</p><p className="mt-2 font-heading text-2xl font-bold">KL</p></div></div></div>
+        <div className="relative z-10 max-w-lg"><div className="mb-5 flex items-center justify-between"><p className="caption-label text-muted-foreground">Privacy & accessibility</p><Dialog><DialogTrigger className="flex min-h-[44px] items-center gap-1.5 text-xs font-semibold text-primary hover:underline"><HelpCircle className="h-4 w-4" />How it works</DialogTrigger><DialogContent><DialogHeader><DialogTitle>KL Sync security & compliance</DialogTitle><DialogDescription>Designed around privacy, accessibility, and predictable student workflows.</DialogDescription></DialogHeader><div className="space-y-2 py-2 text-sm leading-relaxed text-muted-foreground"><p><strong className="text-foreground">No password retention:</strong> credentials are used to authenticate your ERP session.</p><p><strong className="text-foreground">Encrypted sessions:</strong> session tokens use authenticated encryption before client persistence.</p></div></DialogContent></Dialog></div><div className="rounded-[--radius-xl] border border-border bg-surface-1/75 p-4 shadow-sm backdrop-blur-sm"><ComplianceBadgeBar onOpenModal={() => setComplianceOpen(true)} /></div><p className="mt-5 text-xs text-muted-foreground">Independent project · Not affiliated with KL University</p></div>
+      </section>
 
-      {/* Background gradient mesh */}
-      <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute w-[60vw] h-[60vw] rounded-full bg-primary/8 blur-[120px] -top-[20%] -left-[10%]" />
-        <div className="absolute w-[50vw] h-[50vw] rounded-full bg-purple-600/6 blur-[120px] -bottom-[15%] -right-[5%]" />
-      </div>
-
-      {/* ── LEFT: BRANDING PANEL (desktop only) ── */}
-      <div className="hidden lg:flex w-[45%] h-full relative border-r border-white/8 overflow-hidden apple-chrome flex-col">
-        <div className="relative z-10 flex-1 flex flex-col p-8 xl:p-12 justify-between h-full overflow-y-auto custom-scrollbar">
-          <div>
-            <div className="bg-white rounded-2xl p-3 shadow-lg inline-block mb-6 border border-white/20">
-              <img src="/logo.png" alt="KLH" className="h-8 object-contain" />
-            </div>
-            <h1 className="text-3xl xl:text-4xl font-semibold tracking-[-0.025em] text-foreground leading-[1.12] mb-4 font-heading">
-              Academic sync,
-              <br />
-              <span className="text-gradient">precision engineered.</span>
-            </h1>
-            <p className="text-sm xl:text-base text-muted-foreground max-w-md leading-relaxed font-normal mb-8">
-              Secure, real-time access to your timetable, profile, and attendance metrics directly from the core ERP.
-            </p>
-
-            {/* Live Compliance Badges Display */}
-            <div className="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800 shadow-lg">
-              <ComplianceBadgeBar onOpenModal={() => setComplianceOpen(true)} />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4 pt-6">
-            <Badge variant="success" dot className="px-3 py-1.5 text-[11px] tracking-wider uppercase apple-pill">
-              System Live
-            </Badge>
-
-            <Dialog>
-              <DialogTrigger className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer min-h-[44px] px-2 touch-manipulation active:scale-95">
-                <HelpCircle className="w-3.5 h-3.5" />
-                <span>Security Info</span>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>KL Sync Security & Compliance</DialogTitle>
-                  <DialogDescription>
-                    Compliant with GDPR, CCPA, HIPAA, DPDPA, and WCAG 2.2 AAA.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="text-xs text-muted-foreground space-y-2 py-2">
-                  <p>• <strong>Zero Data Retention</strong>: No student passwords or academic records are ever stored on servers.</p>
-                  <p>• <strong>AES-256-GCM Encryption</strong>: All session tokens are encrypted end-to-end using standard Web Crypto.</p>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-      </div>
-
-      {/* ── RIGHT: LOGIN FORM ── */}
-      <div className="flex-1 h-full flex flex-col items-center justify-center p-4 sm:p-6 overflow-y-auto relative z-10 custom-scrollbar">
-        <Card variant="glass" className="w-full max-w-[420px] p-6 sm:p-8 shadow-2xl rounded-[--radius-2xl] animate-spring-up">
-          <CardHeader className="p-0 mb-6">
-            <div className="lg:hidden mb-4">
-              <div className="bg-white rounded-xl p-2.5 shadow-md inline-block">
-                <img src="/logo.png" alt="KLH" className="h-7 object-contain" />
-              </div>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-semibold tracking-[-0.02em] text-foreground mb-1 font-heading">
-              {t('signIn', 'Sign in')}
-            </h2>
-            <CardDescription className="text-xs text-muted-foreground/90 font-normal">
-              Enter your student credentials to continue.
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="p-0">
-            {error && (
-              <div
-                role="alert"
-                aria-live="assertive"
-                className="mb-4 flex items-start gap-3 p-3.5 rounded-[--radius-lg] bg-destructive/15 border border-destructive/30 text-destructive text-sm animate-spring-scale shadow-sm"
-              >
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <p className="text-xs leading-relaxed font-medium">{error}</p>
-              </div>
-            )}
-
-            {status && !error && (
-              <div
-                role="status"
-                aria-live="polite"
-                className="mb-4 flex items-start gap-3 p-3.5 rounded-[--radius-lg] bg-info/15 border border-info/30 text-info text-sm animate-spring-scale shadow-sm"
-              >
-                <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
-                <p className="text-xs leading-relaxed font-medium">{status}</p>
-              </div>
-            )}
-
-            <form onSubmit={handleLogin} className="space-y-4" aria-label="Student ERP Authentication Form">
-              <div className="space-y-1.5">
-                <label htmlFor="student-id-field" className="caption-label text-muted-foreground/90">
-                  {t('studentId', 'Student ID')}
-                </label>
-                <Input
-                  id="student-id-field"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="210003xxxx"
-                  leftIcon={<User className="w-4 h-4" />}
-                  aria-required="true"
-                  autoComplete="username"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label htmlFor="password-field" className="caption-label text-muted-foreground/90">
-                  {t('password', 'Password')}
-                </label>
-                <Input
-                  id="password-field"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  leftIcon={<Lock className="w-4 h-4" />}
-                  aria-required="true"
-                  autoComplete="current-password"
-                />
-              </div>
-
-              <div className="flex items-center gap-2.5 min-h-[44px]">
-                <input
-                  type="checkbox"
-                  id="remember"
-                  checked={rememberMe}
-                  onChange={(e) => {
-                    triggerHaptic('selection');
-                    setRememberMe(e.target.checked);
-                  }}
-                  className="w-5 h-5 rounded bg-surface-2 border-border text-primary focus:ring-2 focus:ring-ring cursor-pointer accent-[--primary]"
-                />
-                <label htmlFor="remember" className="text-xs text-muted-foreground cursor-pointer select-none py-2 font-normal">
-                  {t('rememberMe', 'Remember credentials')}
-                </label>
-              </div>
-
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label htmlFor="captcha-field" className="caption-label text-muted-foreground/90">
-                    {t('securityCode', 'Security Code')}
-                  </label>
-                  <span className="text-[10px] text-primary/90 font-mono tracking-tight">
-                    {autoSolveFailed ? 'type the code shown →' : 'lowercase only (a–z)'}
-                  </span>
-                </div>
-                <div className="flex gap-2.5 items-center">
-                  <Input
-                    id="captcha-field"
-                    type="text"
-                    value={captcha}
-                    onChange={(e) => setCaptcha(e.target.value.toLowerCase().replace(/[^a-z]/g, ''))}
-                    placeholder="e.g. abcd"
-                    aria-required="true"
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    spellCheck={false}
-                    className="flex-1 font-mono tracking-widest lowercase"
-                  />
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <div className="h-[44px] w-[100px] rounded-[--radius-md] overflow-hidden flex items-center justify-center bg-white border border-border shadow-xs">
-                      {captchaLoading ? (
-                        <Loader2 className="w-4 h-4 animate-spin text-zinc-500" aria-label="Loading captcha" />
-                      ) : captchaImage ? (
-                        <img
-                          src={captchaImage}
-                          alt="Security code"
-                          className="h-full w-full object-contain mix-blend-multiply scale-105 contrast-150"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src =
-                              'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCAxMjAgNDAiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNMCwyMCBRMzAsNSA2MCwyMCBUMTIwLDIwIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTAsMTAgUTQwLDMwIDgwLDEwIFQxMjAsMzAiIHN0cm9rZT0iI2Q1ZDVkNSIgc3Ryb2tlLXdpZHRoPSIxLjUiIGZpbGw9Im5vbmUiLz48dGV4dCB4PSI1MCUiIHk9IjU1JSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9Im1vbm9zcGFjZSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMxMTExMTEiIGxldHRlci1zcGFjaW5nPSIzIj5hYmNkPC90ZXh0Pjwvc3ZnPg==';
-                          }}
-                        />
-                      ) : null}
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => {
-                        triggerHaptic('light');
-                        fetchCaptcha();
-                      }}
-                      isLoading={captchaLoading}
-                      disabled={captchaLoading}
-                      aria-label="Refresh captcha"
-                      className="h-[44px] w-[44px] shrink-0"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                size="lg"
-                isLoading={loading}
-                disabled={loading || !captcha}
-                className="w-full mt-4 min-h-[48px] touch-manipulation font-semibold text-sm bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg active:scale-[0.98] transition-all"
-              >
-                <LogIn className="w-4 h-4 mr-2" />
-                {t('signIn', 'Sign In')}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Mobile Compliance Badges */}
-        <div className="lg:hidden w-full max-w-[420px] mt-6 p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800 shadow-md">
-          <ComplianceBadgeBar onOpenModal={() => setComplianceOpen(true)} />
-        </div>
-
-        <p className="text-[11px] text-muted-foreground mt-4 text-center shrink-0">
-          KL Sync is an independent project • Not affiliated with KL University
-        </p>
-      </div>
-
-      {/* Global Compliance Modal */}
+      <section className="relative z-10 flex flex-1 flex-col items-center justify-center overflow-y-auto px-4 py-24 sm:px-8 lg:py-12"><div className="w-full max-w-[460px] animate-spring-up"><div className="mb-8 lg:hidden"><img src="/logo.png" alt="KLH" className="mb-5 h-10 rounded-xl bg-surface-1 p-1.5 shadow-sm" /><p className="caption-label text-muted-foreground">KL Sync · Student workspace</p></div><Card variant="glass" className="rounded-[--radius-2xl] p-6 sm:p-8"><CardHeader className="p-0 pb-6"><p className="caption-label mb-3 text-primary">Welcome back</p><h2 className="display-title text-4xl sm:text-5xl">Sign in to your <span className="text-gradient-brand">workspace.</span></h2><CardDescription className="mt-3 text-sm">Use your student ERP credentials to continue.</CardDescription></CardHeader><CardContent className="p-0">
+        {error && <div role="alert" aria-live="assertive" className="mb-5 flex items-start gap-3 rounded-[--radius-md] border border-error/35 bg-error/10 p-3.5 text-error"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /><p className="leading-relaxed">{error}</p></div>}
+        {status && !error && <div role="status" aria-live="polite" className="mb-5 flex items-start gap-3 rounded-[--radius-md] border border-info/35 bg-info/10 p-3.5 text-sm text-info"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" /><p className="leading-relaxed">{status}</p></div>}
+        <form onSubmit={handleLogin} className="space-y-5" aria-label="Student ERP Authentication Form">
+          <div className="space-y-2"><label htmlFor="student-id-field" className="caption-label text-muted-foreground">{t('studentId', 'Student ID / username')}</label><Input id="student-id-field" value={username} onChange={(event) => setUsername(event.target.value)} placeholder="210003xxxx" leftIcon={<User className="h-4 w-4" />} aria-required="true" autoComplete="username" /></div>
+          <div className="space-y-2"><label htmlFor="password-field" className="caption-label text-muted-foreground">{t('password', 'Password')}</label><Input id="password-field" type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Enter your password" leftIcon={<Lock className="h-4 w-4" />} aria-required="true" autoComplete="current-password" /></div>
+          <label htmlFor="remember" className="flex min-h-[44px] items-center gap-2.5 text-sm text-muted-foreground"><input type="checkbox" id="remember" checked={rememberMe} onChange={(event) => { triggerHaptic('selection'); setRememberMe(event.target.checked); }} className="h-4 w-4 rounded border-border accent-[--primary]" />Remember me on this device</label>
+          <div className="space-y-2"><div className="flex items-center justify-between gap-3"><label htmlFor="captcha-field" className="caption-label text-muted-foreground">{t('securityCode', 'Security code')}</label><span className="text-[10px] font-semibold text-primary">{autoSolveFailed ? 'Type the code shown' : 'Lowercase letters only'}</span></div><div className="flex gap-2.5"><Input id="captcha-field" value={captcha} onChange={(event) => setCaptcha(event.target.value.toLowerCase().replace(/[^a-z]/g, ''))} placeholder="e.g. abcd" aria-required="true" autoCapitalize="none" autoCorrect="off" spellCheck={false} className="font-mono lowercase tracking-[0.25em]" /><div className="flex shrink-0 items-center gap-2"><div className="flex h-12 w-[108px] items-center justify-center overflow-hidden rounded-[--radius-md] border border-border bg-surface-1 shadow-xs">{captchaLoading ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-label="Loading captcha" /> : captchaImage ? <img src={captchaImage} alt="Security code" className="h-full w-full object-contain mix-blend-normal" onError={(event) => { event.currentTarget.style.display = 'none'; }} /> : null}</div><Button type="button" variant="outline" size="icon" onClick={() => { triggerHaptic('light'); void fetchCaptcha(); }} isLoading={captchaLoading} disabled={captchaLoading} aria-label="Refresh captcha"><RefreshCw className="h-4 w-4" /></Button></div></div></div>
+          <Button type="submit" size="lg" isLoading={loading} disabled={loading || !captcha} className="mt-2 w-full"><LogIn className="h-4 w-4" />{t('signIn', 'Sign in')}</Button>
+        </form>
+      </CardContent></Card><div className="mt-5 flex items-start gap-3 rounded-[--radius-lg] border border-border bg-surface-1/80 p-4 text-xs text-muted-foreground shadow-xs"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-success" /><p>Your session is protected with encrypted tokens and privacy-conscious defaults.</p></div><p className="mt-5 text-center text-[11px] text-muted-foreground lg:hidden">Independent project · Not affiliated with KL University</p></div></section>
       <ComplianceModal isOpen={complianceOpen} onClose={() => setComplianceOpen(false)} />
     </main>
   );

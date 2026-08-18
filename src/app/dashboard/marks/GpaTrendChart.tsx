@@ -61,7 +61,7 @@ export function GpaTrendChart({ data }: GpaTrendChartProps) {
       : '';
 
   return (
-    <div className="rounded-[--radius-2xl] border border-white/10 apple-card p-6 space-y-4 shadow-xl overflow-hidden">
+    <div className="rounded-[--radius-2xl] border border-border apple-card p-6 space-y-4 shadow-xl overflow-hidden">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-semibold text-foreground font-heading tracking-tight">Performance Trend</h3>

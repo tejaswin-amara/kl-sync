@@ -98,7 +98,7 @@ function Progress({
 
   return (
     <div className={cn('w-full flex items-center gap-2.5 select-none', className)} {...props}>
-      <div className={cn('flex-1 rounded-full bg-surface-3/80 overflow-hidden shadow-inner border border-white/5', heights[size])}>
+      <div className={cn('flex-1 rounded-full bg-surface-3/80 overflow-hidden shadow-inner border border-border/60', heights[size])}>
         <div
           className={cn(
             'h-full rounded-full transition-all duration-[600ms] ease-[--ease-spring-default]',

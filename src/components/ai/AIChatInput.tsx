@@ -46,7 +46,7 @@ export function AIChatInput({
   };
 
   return (
-    <div className="relative flex items-end gap-2 p-2 bg-surface-2/70 backdrop-blur-xl border border-white/10 rounded-[--radius-xl] shadow-xl focus-within:border-primary/50 transition-all">
+    <div className="relative flex items-end gap-2 p-2 bg-surface-2/70 backdrop-blur-xl border border-border rounded-[--radius-xl] shadow-xl focus-within:border-primary/50 transition-all">
       <div className="flex-1 min-w-0">
         <textarea
           ref={textareaRef}
@@ -56,7 +56,7 @@ export function AIChatInput({
           placeholder={placeholder}
           disabled={disabled}
           rows={1}
-          className="w-full resize-none bg-transparent border-0 focus:outline-hidden text-xs text-foreground placeholder:text-zinc-400 max-h-[120px] py-2 px-3 font-normal leading-relaxed"
+          className="w-full resize-none bg-transparent border-0 focus:outline-hidden text-xs text-foreground placeholder:text-muted-foreground max-h-[120px] py-2 px-3 font-normal leading-relaxed"
           aria-label="Ask AI Copilot"
         />
       </div>

@@ -171,7 +171,7 @@ export default function TimetablePage() {
 
         {/* Controls: Year, Semester, View Toggle, Export */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center apple-card p-1 rounded-[--radius-lg] shadow-md border border-white/10">
+          <div className="flex items-center apple-card p-1 rounded-[--radius-lg] shadow-md border border-border">
             <button
               onClick={() => {
                 triggerHaptic('selection');
@@ -202,7 +202,7 @@ export default function TimetablePage() {
             </button>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 apple-card p-1.5 rounded-[--radius-lg] shadow-md border border-white/10">
+          <div className="flex flex-wrap items-center gap-2 apple-card p-1.5 rounded-[--radius-lg] shadow-md border border-border">
             <div className="relative">
               <select
                 aria-label="Filter by year"
@@ -225,7 +225,7 @@ export default function TimetablePage() {
               </select>
               <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
             </div>
-            <div className="h-4 w-px bg-white/10"></div>
+            <div className="h-4 w-px bg-surface-3"></div>
             <div className="relative">
               <select
                 aria-label="Filter by semester"
@@ -253,16 +253,16 @@ export default function TimetablePage() {
           <button
             onClick={handleExportCSV}
             disabled={!parsedTT || parsedTT.sessions.length === 0}
-            className="flex items-center gap-2 px-4 py-2.5 apple-card hover:bg-white/8 rounded-[--radius-lg] text-xs font-semibold text-foreground transition-all disabled:opacity-40 min-h-[44px] cursor-pointer touch-manipulation active:scale-95 border border-white/10"
+            className="flex items-center gap-2 px-4 py-2.5 apple-card hover:bg-surface-2 rounded-[--radius-lg] text-xs font-semibold text-foreground transition-all disabled:opacity-40 min-h-[44px] cursor-pointer touch-manipulation active:scale-95 border border-border"
           >
-            <Download className="w-4 h-4 text-indigo-300" />
+            <Download className="w-4 h-4 text-primary" />
             Export CSV
           </button>
         </div>
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 apple-card p-3 rounded-[--radius-2xl] shadow-lg border border-white/8">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 apple-card p-3 rounded-[--radius-2xl] shadow-lg border border-border">
         {/* Day Filter Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
           <Filter className="w-4 h-4 text-muted-foreground ml-2 mr-1 shrink-0" />
@@ -276,7 +276,7 @@ export default function TimetablePage() {
               className={`px-3 py-1.5 rounded-[--radius-md] text-xs font-medium whitespace-nowrap transition-all duration-[--duration-fast] ease-[--ease-spring-default] min-h-[44px] touch-manipulation cursor-pointer active:scale-95 ${
                 selectedDayFilter === day
                   ? 'bg-primary/25 text-primary border border-primary/35 font-semibold shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-white/6'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-surface-2'
               }`}
             >
               {day}
@@ -290,7 +290,7 @@ export default function TimetablePage() {
           <input
             type="text"
             placeholder="Search course, room, faculty..."
-            className="w-full bg-surface-2/60 border border-white/8 rounded-[--radius-lg] pl-9 pr-3 py-2 text-xs text-foreground focus:outline-hidden focus:border-primary/50 transition-all placeholder:text-zinc-400 font-normal"
+            className="w-full bg-surface-2/60 border border-border rounded-[--radius-lg] pl-9 pr-3 py-2 text-xs text-foreground focus:outline-hidden focus:border-primary/50 transition-all placeholder:text-muted-foreground font-normal"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -298,7 +298,7 @@ export default function TimetablePage() {
       </div>
 
       {/* Main Content Card */}
-      <div className="rounded-[--radius-2xl] border border-white/10 apple-card shadow-2xl overflow-hidden min-h-[450px] flex flex-col">
+      <div className="rounded-[--radius-2xl] border border-border apple-card shadow-2xl overflow-hidden min-h-[450px] flex flex-col">
         {loading ? (
           <div className="p-8 flex flex-col gap-6">
             <div className="flex gap-4">
@@ -334,7 +334,7 @@ export default function TimetablePage() {
                 triggerHaptic('light');
                 mutate();
               }}
-              className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-xs font-semibold text-white rounded-[--radius-lg] transition-all shadow-lg flex items-center gap-2 cursor-pointer touch-manipulation active:scale-95"
+              className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-xs font-semibold text-primary-foreground rounded-[--radius-lg] transition-all shadow-lg flex items-center gap-2 cursor-pointer touch-manipulation active:scale-95"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               Retry Sync
@@ -342,7 +342,7 @@ export default function TimetablePage() {
           </div>
         ) : !parsedTT || parsedTT.sessions.length === 0 ? (
           <div className="flex flex-col items-center justify-center flex-1 p-12 text-center my-auto">
-            <div className="w-16 h-16 rounded-[--radius-2xl] bg-surface-2/60 border border-white/8 flex items-center justify-center text-muted-foreground mb-4">
+            <div className="w-16 h-16 rounded-[--radius-2xl] bg-surface-2/60 border border-border flex items-center justify-center text-muted-foreground mb-4">
               <CalendarOff className="w-8 h-8 text-muted-foreground/50" />
             </div>
             <h3 className="text-base font-semibold text-foreground mb-1 tracking-tight">
@@ -361,13 +361,13 @@ export default function TimetablePage() {
               </div>
             ) : (
               <div className="w-full min-w-max flex flex-col gap-6">
-                <div className="bg-surface-2/30 border border-white/8 rounded-[--radius-2xl] overflow-hidden shadow-xl">
+                <div className="bg-surface-2/30 border border-border rounded-[--radius-2xl] overflow-hidden shadow-xl">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-surface-2/60 border-b border-white/8 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                      <tr className="bg-surface-2/60 border-b border-border text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                         <th
                           scope="col"
-                          className="p-4 sticky left-0 z-20 bg-surface-2/95 backdrop-blur-md min-w-[120px] border-r border-white/8 text-indigo-300 text-center"
+                          className="p-4 sticky left-0 z-20 bg-surface-1/95 backdrop-blur-md min-w-[120px] border-r border-border text-primary text-center"
                         >
                           Day / Period
                         </th>
@@ -375,7 +375,7 @@ export default function TimetablePage() {
                           <th
                             scope="col"
                             key={periodNum}
-                            className="p-3.5 text-center min-w-[170px] border-r border-white/6 last:border-r-0 text-foreground font-semibold"
+                            className="p-3.5 text-center min-w-[170px] border-r border-border last:border-r-0 text-foreground font-semibold"
                           >
                             {periodNum.length < 3 &&
                             !periodNum.toLowerCase().includes('p')
@@ -414,12 +414,12 @@ export default function TimetablePage() {
                           return (
                             <tr
                               key={day}
-                              className="hover:bg-white/2 transition-colors"
+                              className="hover:bg-surface-2/70 transition-colors"
                             >
                               {/* Sticky Day Column */}
                               <th
                                 scope="row"
-                                className="p-4 sticky left-0 z-10 bg-surface-2/90 backdrop-blur-md font-bold text-xs text-foreground border-r border-white/8 text-center whitespace-nowrap"
+                                className="p-4 sticky left-0 z-10 bg-surface-1/95 backdrop-blur-md font-bold text-xs text-foreground border-r border-border text-center whitespace-nowrap"
                               >
                                 {day}
                               </th>
@@ -432,7 +432,7 @@ export default function TimetablePage() {
                                 return (
                                   <td
                                     key={periodNum}
-                                    className="p-2 border-r border-white/6 last:border-r-0 align-top min-w-[170px]"
+                                    className="p-2 border-r border-border last:border-r-0 align-top min-w-[170px]"
                                   >
                                     {matchingSessions.length > 0 ? (
                                       <div className="flex flex-col gap-2 h-full">
@@ -449,26 +449,26 @@ export default function TimetablePage() {
                                           return (
                                             <div
                                               key={session.id || `${session.courseCode}-${sIdx}`}
-                                              className="bg-surface-2/60 border border-white/8 hover:border-primary/40 p-3 rounded-[--radius-lg] flex flex-col justify-between gap-2 shadow-md transition-all overflow-hidden min-h-[96px] group touch-manipulation active:scale-[0.98]"
+                                              className="bg-surface-2/60 border border-border hover:border-primary/40 p-3 rounded-[--radius-lg] flex flex-col justify-between gap-2 shadow-md transition-all overflow-hidden min-h-[96px] group touch-manipulation active:scale-[0.98]"
                                             >
                                               <div className="flex items-center justify-between gap-1">
                                                 {session.component && (
                                                   <span
                                                     className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider ${
                                                       session.component === 'Lecture'
-                                                        ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                                                        ? 'bg-info/10 text-info border border-info/20'
                                                         : session.component === 'Practical'
-                                                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                                        ? 'bg-success/10 text-success border border-success/20'
                                                         : session.component === 'Skill'
-                                                        ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                                                        : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                                        ? 'bg-primary/10 text-primary border border-primary/20'
+                                                        : 'bg-warning/10 text-warning border border-warning/20'
                                                     }`}
                                                   >
                                                     {session.component}
                                                   </span>
                                                 )}
                                                 {session.section && (
-                                                  <span className="text-[9px] font-mono bg-white/10 text-muted-foreground px-1.5 py-0.5 rounded-full">
+                                                  <span className="text-[9px] font-mono bg-surface-3 text-muted-foreground px-1.5 py-0.5 rounded-full">
                                                     {session.section}
                                                   </span>
                                                 )}
@@ -478,7 +478,7 @@ export default function TimetablePage() {
                                                 {subjectTitle}
                                               </h5>
 
-                                              <div className="flex items-center justify-between gap-1 text-[10px] text-muted-foreground pt-1.5 border-t border-white/6 mt-auto">
+                                              <div className="flex items-center justify-between gap-1 text-[10px] text-muted-foreground pt-1.5 border-t border-border mt-auto">
                                                 <span className="font-mono text-muted-foreground font-medium truncate">
                                                   {subjectCode}
                                                 </span>
@@ -494,7 +494,7 @@ export default function TimetablePage() {
                                         })}
                                       </div>
                                     ) : (
-                                      <div className="h-24 rounded-[--radius-lg] border border-dashed border-white/6 flex items-center justify-center text-muted-foreground/30 text-xs">
+                                      <div className="h-24 rounded-[--radius-lg] border border-dashed border-border flex items-center justify-center text-muted-foreground/30 text-xs">
                                         -
                                       </div>
                                     )}
@@ -522,25 +522,25 @@ export default function TimetablePage() {
               <table className="w-full text-left whitespace-nowrap border-separate border-spacing-y-2">
                 <thead>
                   <tr>
-                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-white/8">
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-border">
                       Day
                     </th>
-                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-white/8">
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-border">
                       Period / Slot
                     </th>
-                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-white/8">
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-border">
                       Course Code
                     </th>
-                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-white/8">
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-border">
                       Course Title
                     </th>
-                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-white/8">
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-border">
                       Component & Section
                     </th>
-                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-white/8">
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-border">
                       Venue / Room
                     </th>
-                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-white/8">
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-border">
                       Faculty
                     </th>
                   </tr>
@@ -551,11 +551,11 @@ export default function TimetablePage() {
                       key={session.id || idx}
                       className="group bg-surface-2/40 hover:bg-surface-2/70 transition-colors"
                     >
-                      <td className="px-4 py-3.5 text-xs font-semibold text-indigo-300 first:rounded-l-[--radius-lg] border-y border-transparent">
+                      <td className="px-4 py-3.5 text-xs font-semibold text-primary first:rounded-l-[--radius-lg] border-y border-transparent">
                         {session.day}
                       </td>
                       <td className="px-4 py-3.5 text-xs font-mono text-muted-foreground border-y border-transparent">
-                        <span className="bg-primary/15 border border-primary/25 text-indigo-300 px-2 py-0.5 rounded-full">
+                        <span className="bg-primary/15 border border-primary/25 text-primary px-2 py-0.5 rounded-full">
                           Period{' '}
                           {String(session.timeSlot || '')
                             .replace(/^Period\s*/i, '')
@@ -576,7 +576,7 @@ export default function TimetablePage() {
                             </span>
                           )}
                           {session.section && (
-                            <span className="text-[10px] font-mono bg-white/10 text-muted-foreground px-1.5 py-0.5 rounded-full">
+                            <span className="text-[10px] font-mono bg-surface-3 text-muted-foreground px-1.5 py-0.5 rounded-full">
                               {session.section}
                             </span>
                           )}

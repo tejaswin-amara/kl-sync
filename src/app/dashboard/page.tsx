@@ -279,9 +279,9 @@ function TodayScheduleWidget({
   const activeDaySessions = allSessions.filter((s) => isSameDay(s.day, selectedDay));
 
   return (
-    <div className="rounded-[--radius-2xl] apple-card flex flex-col h-full overflow-hidden shadow-xl border border-white/10">
+    <div className="rounded-[--radius-2xl] apple-card flex flex-col h-full overflow-hidden shadow-xl border border-border">
       {/* Header */}
-      <div className="p-4 sm:p-5 border-b border-white/8 flex flex-col gap-3">
+      <div className="p-4 sm:p-5 border-b border-border flex flex-col gap-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2.5">
             <CalendarDays className="w-5 h-5 text-primary" />
@@ -300,7 +300,7 @@ function TodayScheduleWidget({
                   loadSchedule();
                 }}
                 aria-label="Refresh timetable schedule"
-                className="p-2 rounded-full hover:bg-white/8 text-muted-foreground hover:text-foreground transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer touch-manipulation active:scale-90"
+                className="p-2 rounded-full hover:bg-surface-3 text-muted-foreground hover:text-foreground transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer touch-manipulation active:scale-90"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
               </button>
@@ -324,7 +324,7 @@ function TodayScheduleWidget({
                 className={`px-3 py-1.5 rounded-[--radius-md] text-xs font-medium transition-all duration-[--duration-fast] ease-[--ease-spring-default] shrink-0 flex items-center gap-1.5 min-h-[44px] touch-manipulation cursor-pointer active:scale-95 ${
                   isSelected
                     ? 'bg-primary text-primary-foreground shadow-md font-semibold'
-                    : 'bg-white/4 text-muted-foreground hover:text-foreground hover:bg-white/8'
+                    : 'bg-surface-2 text-muted-foreground hover:text-foreground hover:bg-surface-3'
                 }`}
               >
                 {d.slice(0, 3)}
@@ -355,25 +355,25 @@ function TodayScheduleWidget({
           activeDaySessions.map((s, idx) => (
             <div
               key={s.id || idx}
-              className="flex flex-col gap-1.5 bg-surface-2/40 p-3.5 rounded-[--radius-lg] border border-white/6 hover:border-primary/30 transition-all group touch-manipulation active:scale-[0.99]"
+              className="flex flex-col gap-1.5 bg-surface-2/40 p-3.5 rounded-[--radius-lg] border border-border hover:border-primary/30 transition-all group touch-manipulation active:scale-[0.99]"
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-mono font-bold bg-primary/15 border border-primary/25 text-indigo-300 px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] font-mono font-bold bg-accent border border-primary/20 text-primary px-2 py-0.5 rounded-full">
                     P{String(s.timeSlot || '').replace(/^Period\s*/i, '').trim()}
                   </span>
                   {s.component && (
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                      s.component === 'Lecture' ? 'bg-primary/15 text-primary border border-primary/25' :
-                      s.component === 'Practical' ? 'bg-success/15 text-success border border-success/25' :
-                      'bg-warning/15 text-warning border border-warning/25'
+                      s.component === 'Lecture' ? 'bg-accent text-primary border border-primary/20' :
+                      s.component === 'Practical' ? 'bg-emerald-50 text-success border border-emerald-200' :
+                      'bg-amber-50 text-warning border border-amber-200'
                     }`}>
                       {s.component}
                     </span>
                   )}
                 </div>
                 {s.room && (
-                  <span className="flex items-center gap-1 text-[10px] font-medium text-success bg-success/10 border border-success/20 px-2 py-0.5 rounded-full">
+                  <span className="flex items-center gap-1 text-[10px] font-medium text-success bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
                     <MapPin className="w-3 h-3" />{s.room}
                   </span>
                 )}
@@ -381,11 +381,11 @@ function TodayScheduleWidget({
               <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors leading-snug line-clamp-2 tracking-tight">
                 {getSubjectTitle(s.courseCode, s.courseTitle)}
               </h4>
-              <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-white/6 font-normal">
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border font-normal">
                 <span className="font-mono">{getSubjectCode(s.courseCode, s.rawText)}</span>
                 {s.faculty && (
                   <span className="flex items-center gap-1 truncate max-w-[180px]">
-                    <User className="w-3 h-3 text-purple-300 shrink-0" />{s.faculty}
+                    <User className="w-3 h-3 text-violet-700 shrink-0" />{s.faculty}
                   </span>
                 )}
               </div>
@@ -397,7 +397,7 @@ function TodayScheduleWidget({
       <Link
         href="/dashboard/timetable"
         onClick={() => triggerHaptic('selection')}
-        className="flex items-center justify-center gap-1.5 w-full p-3.5 text-xs font-semibold tracking-wider text-primary border-t border-white/8 hover:bg-white/4 transition-colors uppercase mt-auto touch-manipulation active:scale-95"
+        className="flex items-center justify-center gap-1.5 w-full p-3.5 text-xs font-semibold tracking-wider text-primary border-t border-border hover:bg-surface-2 transition-colors uppercase mt-auto touch-manipulation active:scale-95"
       >
         View Full Timetable <ChevronRight className="w-4 h-4" />
       </Link>
@@ -462,8 +462,8 @@ function CurrentCoursesWidget({
   }, [activeYearId, activeSemId]);
 
   return (
-    <div className="rounded-[--radius-2xl] apple-card flex flex-col h-full overflow-hidden shadow-xl border border-white/10">
-      <div className="p-4 sm:p-5 border-b border-white/8 flex justify-between items-center">
+    <div className="rounded-[--radius-2xl] apple-card flex flex-col h-full overflow-hidden shadow-xl border border-border">
+      <div className="p-4 sm:p-5 border-b border-border flex justify-between items-center">
         <div className="flex items-center gap-2.5">
           <BookOpen className="w-5 h-5 text-purple-400" />
           <h3 className="text-sm font-semibold text-foreground tracking-tight font-heading">Current Courses</h3>
@@ -486,14 +486,14 @@ function CurrentCoursesWidget({
               const nameKey = keys.find((k) => k.toLowerCase().includes('name') || k.toLowerCase().includes('title')) || 'Course Name';
               const compKey = keys.find((k) => k.toLowerCase().includes('eval') || k.toLowerCase().includes('component')) || 'Evaluation Components';
               return (
-                <div key={idx} className="p-4 flex items-start gap-3.5 hover:bg-white/4 transition-colors">
-                  <div className="w-9 h-9 rounded-[--radius-lg] bg-purple-500/15 text-purple-300 flex items-center justify-center shrink-0 border border-purple-500/25">
+                <div key={idx} className="p-4 flex items-start gap-3.5 hover:bg-surface-2 transition-colors">
+                  <div className="w-9 h-9 rounded-[--radius-lg] bg-violet-50 text-violet-700 flex items-center justify-center shrink-0 border border-violet-200">
                     <span className="text-xs font-bold font-mono">{idx + 1}</span>
                   </div>
                   <div className="flex flex-col min-w-0 flex-1">
                     <p className="text-sm font-semibold text-foreground truncate tracking-tight">{String(course[nameKey] || 'N/A')}</p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[10px] font-mono bg-white/6 text-muted-foreground px-2 py-0.5 rounded-full border border-white/6">{String(course[codeKey] || 'N/A')}</span>
+                      <span className="text-[10px] font-mono bg-surface-2 text-muted-foreground px-2 py-0.5 rounded-full border border-border">{String(course[codeKey] || 'N/A')}</span>
                       <span className="text-xs text-muted-foreground truncate font-normal">{String(course[compKey] || '')}</span>
                     </div>
                   </div>
@@ -507,7 +507,7 @@ function CurrentCoursesWidget({
       <Link
         href="/dashboard/marks"
         onClick={() => triggerHaptic('selection')}
-        className="flex items-center justify-center gap-1.5 w-full p-3.5 text-xs font-semibold tracking-wider text-purple-300 border-t border-white/8 hover:bg-white/4 transition-colors uppercase mt-auto touch-manipulation active:scale-95"
+        className="flex items-center justify-center gap-1.5 w-full p-3.5 text-xs font-semibold tracking-wider text-violet-700 border-t border-border hover:bg-surface-2 transition-colors uppercase mt-auto touch-manipulation active:scale-95"
       >
         View All Courses <ChevronRight className="w-4 h-4" />
       </Link>
