@@ -58,4 +58,25 @@ describe('Unified Attendance Subject Grouping & Projections', () => {
     // Weighted percentage: (80*1.0 + 100*0.5 + 100*0.25) / 1.75 = 155 / 1.75 = 88.57%
     assert.strictEqual(Math.round(subject.overallPercentage), 89);
   });
+
+  test('single raw ERP course row expands to full LTPS components', () => {
+    const rawRows = [
+      {
+        'Course Code': '25CS1302E',
+        'Course Title': 'DATABASE SYSTEMS ENGINEERING AND DISTRIBUTED BACKEND DEVELOPMENT',
+        'Conducted Hours': '15',
+        'Attended Hours': '14',
+        'Attendance Percentage': '89.00%',
+      },
+    ];
+
+    const grouped = groupAttendanceRows(rawRows);
+    assert.strictEqual(grouped.length, 1);
+
+    const subject = grouped[0];
+    assert.strictEqual(subject.components.length, 3);
+    assert.strictEqual(subject.components[0].name, 'Lecture');
+    assert.strictEqual(subject.components[1].name, 'Practical');
+    assert.strictEqual(subject.components[2].name, 'Skilling');
+  });
 });
