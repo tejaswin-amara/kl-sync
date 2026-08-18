@@ -634,8 +634,8 @@ export default function AttendanceDashboard() {
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
 
   const error = fetchError ? fetchError.message : null;
-  const data = dataRaw || [];
-  
+  const data = useMemo(() => dataRaw || [], [dataRaw]);
+
   // Group multiple rows/components into unified subjects with full component breakdown
   const unifiedSubjects = useMemo(() => groupAttendanceRows(data), [data]);
 

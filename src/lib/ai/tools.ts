@@ -32,6 +32,8 @@ export interface AttendanceSubject {
   'Attendance Percentage': string;
   'Academic Year'?: string;
   Semester?: string;
+  Component?: string;
+  'Course Type'?: string;
 }
 
 export interface GetAttendanceResult {

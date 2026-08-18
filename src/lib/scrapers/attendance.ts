@@ -326,9 +326,15 @@ export async function fetchAttendanceData(
   let courseListHtml = '';
   if (courseListRes.ok) {
     courseListHtml = await courseListRes.text();
+    try {
+      const courseTitlesData = parseGenericTable(courseListHtml);
+      registerCourseTitles(courseTitlesData);
+    } catch {
+      // Ignore title registration errors
+    }
   }
 
-  const attendanceData = parseGenericTable(courseListHtml || text);
+  const attendanceData = parseGenericTable(text);
   registerCourseTitles(attendanceData);
   return {
     success: true,

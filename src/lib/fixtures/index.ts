@@ -12,6 +12,7 @@ export const DEMO_ATTENDANCE: AttendanceSubject[] = [
   {
     'Course Code': '23CS2101R',
     'Course Title': 'Data Structures & Algorithms',
+    Component: 'Lecture',
     'Conducted Hours': '45',
     'Attended Hours': '40',
     'Attendance Percentage': '88.89%',
@@ -21,6 +22,7 @@ export const DEMO_ATTENDANCE: AttendanceSubject[] = [
   {
     'Course Code': '23CS2102R',
     'Course Title': 'Computer Organization & Architecture',
+    Component: 'Lecture',
     'Conducted Hours': '40',
     'Attended Hours': '36',
     'Attendance Percentage': '90.00%',
@@ -30,6 +32,7 @@ export const DEMO_ATTENDANCE: AttendanceSubject[] = [
   {
     'Course Code': '23CS2103R',
     'Course Title': 'Database Management Systems',
+    Component: 'Lecture',
     'Conducted Hours': '42',
     'Attended Hours': '38',
     'Attendance Percentage': '90.48%',
@@ -39,6 +42,7 @@ export const DEMO_ATTENDANCE: AttendanceSubject[] = [
   {
     'Course Code': '23CS2104R',
     'Course Title': 'Operating Systems',
+    Component: 'Lecture',
     'Conducted Hours': '40',
     'Attended Hours': '33',
     'Attendance Percentage': '82.50%',

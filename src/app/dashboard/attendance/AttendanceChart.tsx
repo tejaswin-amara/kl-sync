@@ -10,54 +10,84 @@ export interface AttendanceChartProps {
 export function AttendanceChart({ data }: AttendanceChartProps) {
   if (!data || data.length === 0) return null;
 
-  // Extract course code, subject title, and percentage from row
-  const items = data
-    .map((row) => {
-      let rawCode = '';
-      let rawTitle = '';
-      let pct = 0;
+  // Group by base code/title so each subject has one consolidated chart bar
+  const subjectMap = new Map<string, {
+    subjectName: string;
+    shortName: string;
+    subjectCode: string;
+    weightedPctSum: number;
+    weightSum: number;
+  }>();
 
-      for (const [key, val] of Object.entries(row)) {
-        const k = key.toLowerCase();
-        const strVal = String(val ?? '').trim();
+  data.forEach((row) => {
+    let rawCode = '';
+    let rawTitle = '';
+    let pct = 0;
+    let weight = 1.0;
 
-        if (k.includes('code') || k.includes('coursecode')) {
-          if (!rawCode) rawCode = strVal;
-        } else if (k.includes('title') || k.includes('subject') || k.includes('coursename') || k.includes('coursedesc')) {
-          if (!rawTitle) rawTitle = strVal;
-        } else if (!rawCode && !rawTitle && /^[0-9]{2}[A-Z]{2,5}[0-9]{3,4}[A-Z]?$/i.test(strVal)) {
-          rawCode = strVal;
-        }
+    for (const [key, val] of Object.entries(row)) {
+      const k = key.toLowerCase();
+      const strVal = String(val ?? '').trim();
 
-        if (typeof val === 'string' && val.includes('%')) {
-          const num = parseFloat(val);
-          if (!isNaN(num)) pct = num;
-        } else if (k.includes('percentage') || k.includes('pct') || k.includes('att %')) {
-          const num = parseFloat(String(val));
-          if (!isNaN(num)) pct = num;
-        }
+      if (k.includes('code') || k.includes('coursecode')) {
+        if (!rawCode) rawCode = strVal;
+      } else if (k.includes('title') || k.includes('subject') || k.includes('coursename') || k.includes('coursedesc')) {
+        if (!rawTitle) rawTitle = strVal;
+      } else if (!rawCode && !rawTitle && /^[0-9]{2}[A-Z]{2,5}[0-9]{3,4}[A-Z]?$/i.test(strVal)) {
+        rawCode = strVal;
       }
 
-      if (!rawCode && !rawTitle) {
-        rawTitle = String(Object.values(row)[0] || 'Subject');
+      if (typeof val === 'string' && val.includes('%')) {
+        const num = parseFloat(val);
+        if (!isNaN(num)) pct = num;
+      } else if (k.includes('percentage') || k.includes('pct') || k.includes('att %')) {
+        const num = parseFloat(String(val));
+        if (!isNaN(num)) pct = num;
       }
 
-      const subjectName = getSubjectTitle(rawCode, rawTitle);
-      const subjectCode = getSubjectCode(rawCode, rawTitle);
+      if (k.includes('component') || k.includes('type')) {
+        const t = strVal.toLowerCase();
+        if (t.includes('skil') || t === 's') weight = 0.25;
+        else if (t.includes('prac') || t.includes('lab') || t === 'p') weight = 0.5;
+        else if (t.includes('tut') || t === 't') weight = 0.25;
+        else if (t.includes('lec') || t === 'l') weight = 1.0;
+      }
+    }
 
-      // Create a clean short name for X-axis label (10 chars max + ellipsis)
+    if (!rawCode && !rawTitle) {
+      rawTitle = String(Object.values(row)[0] || 'Subject');
+    }
+
+    const baseCode = getSubjectCode(rawCode, rawTitle);
+    const subjectName = getSubjectTitle(rawCode, rawTitle);
+    const groupKey = baseCode || subjectName;
+
+    if (!subjectMap.has(groupKey)) {
       let shortName = subjectName;
       if (shortName.length > 11) {
         shortName = shortName.substring(0, 10).trim() + '…';
       }
-
-      return {
+      subjectMap.set(groupKey, {
         subjectName,
         shortName,
-        subjectCode,
-        pct,
-      };
-    })
+        subjectCode: baseCode,
+        weightedPctSum: pct * weight,
+        weightSum: weight,
+      });
+    } else {
+      const existing = subjectMap.get(groupKey)!;
+      existing.weightedPctSum += pct * weight;
+      existing.weightSum += weight;
+    }
+  });
+
+  const items = Array.from(subjectMap.values())
+    .map((item) => ({
+      subjectName: item.subjectName,
+      shortName: item.shortName,
+      subjectCode: item.subjectCode,
+      pct: item.weightSum > 0 ? Math.round((item.weightedPctSum / item.weightSum) * 100) / 100 : 100,
+    }))
     .filter((item) => item.pct >= 0);
 
   if (items.length === 0) return null;
