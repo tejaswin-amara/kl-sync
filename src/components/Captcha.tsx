@@ -22,10 +22,9 @@ export function Captcha({ onVerify }: { onVerify: (token: string) => void }) {
     if (!isMounted) return;
 
     let cleanup: (() => void) | undefined;
-    let fallbackTimer: NodeJS.Timeout | undefined;
 
     // Safety timeout: Ensure the user is never blocked if PoW takes > 1500ms or fails to load
-    fallbackTimer = setTimeout(() => {
+    const fallbackTimer = setTimeout(() => {
       setVerified(true);
       setSolving(false);
       onVerify("demo_token");

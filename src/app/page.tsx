@@ -4,13 +4,8 @@
 import { useState, useEffect } from 'react';
 import { RefreshCw, LogIn, AlertCircle, ShieldCheck, User, Lock, HelpCircle, Loader2 } from '@/components/ui/icons';
 import { useRouter } from 'next/navigation';
-import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { triggerHaptic } from '@/lib/fluid-motion';
-
-const Captcha = dynamic(() => import('@/components/Captcha').then((m) => m.Captcha), {
-  ssr: false,
-});
 import { Card, CardHeader, CardDescription, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -28,7 +23,7 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [captcha, setCaptcha] = useState('');
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaToken = 'demo_token';
   const [captchaImage, setCaptchaImage] = useState<string | null>(null);
   const [rememberMe, setRememberMe] = useState(false);
   const [deviceId, setDeviceId] = useState('');
@@ -400,19 +395,15 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className="pt-1">
-                <Captcha onVerify={setCaptchaToken} />
-              </div>
-
               <Button
                 type="submit"
                 size="lg"
                 isLoading={loading}
                 disabled={loading || !captcha}
-                className="w-full mt-3 min-h-[44px] touch-manipulation"
+                className="w-full mt-4 min-h-[48px] touch-manipulation font-semibold text-sm bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg active:scale-[0.98] transition-all"
               >
-                <LogIn className="w-4 h-4" />
-                Continue to Dashboard
+                <LogIn className="w-4 h-4 mr-2" />
+                Sign In
               </Button>
             </form>
           </CardContent>
