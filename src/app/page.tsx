@@ -32,6 +32,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState('');
   const [status, setStatus] = useState<string | null>(null);
+  const [autoSolveFailed, setAutoSolveFailed] = useState(false);
 
   const fetchCaptcha = async (preserveError = false): Promise<string> => {
     setCaptchaLoading(true);
@@ -46,8 +47,10 @@ export default function LoginPage() {
       setCaptchaImage(data.captchaImage);
       if (data.solvedCaptcha) {
         setCaptcha(data.solvedCaptcha);
+        setAutoSolveFailed(false);
       } else {
         setCaptcha('');
+        setAutoSolveFailed(true);
       }
       return data.solvedCaptcha || '';
     } catch (err) {
@@ -344,7 +347,7 @@ export default function LoginPage() {
                     Security Code
                   </label>
                   <span className="text-[10px] text-primary/90 font-mono tracking-tight">
-                    lowercase only (a–z)
+                    {autoSolveFailed ? 'type the code shown →' : 'lowercase only (a–z)'}
                   </span>
                 </div>
                 <div className="flex gap-2.5 items-center">
