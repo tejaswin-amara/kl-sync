@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useAcademicSession } from '@/hooks/useAcademicSession';
 import { useAttendance } from '@/hooks/useAttendance';
 import { PageHeader } from '@/components/ui/page-header';
@@ -19,107 +19,354 @@ import {
 import { getSubjectTitle, getSubjectCode } from '@/lib/course-utils';
 import { triggerHaptic } from '@/lib/fluid-motion';
 
-interface ParsedComponent {
+export interface AttendanceComponent {
   name: string;
-  weight: number;
+  weight: number; // 1.0, 0.5, 0.25
+  weightPercentage: number; // 100, 50, 25
   attended: number;
   conducted: number;
   percentage: number;
 }
 
-interface ParsedCourseAttendance {
-  code: string;
-  title: string;
+export interface GroupedSubjectAttendance {
+  subjectCode: string;
+  subjectTitle: string;
   overallPercentage: number;
   totalAttended: number;
   totalConducted: number;
-  components: ParsedComponent[];
-  rawRow: Record<string, unknown>;
+  components: AttendanceComponent[];
+  rawRows: Record<string, unknown>[];
 }
 
-function parseCourseRow(row: Record<string, unknown>): ParsedCourseAttendance {
+interface ProjectionItem {
+  componentName: string;
+  type: 'skip' | 'need';
+  count: number | string;
+  targetOverall: number;
+  projectedAttended: number;
+  projectedConducted: number;
+  label: string;
+}
+
+function normalizeBaseCode(rawCode: string): string {
+  if (!rawCode) return '';
+  return rawCode
+    .trim()
+    .toUpperCase()
+    .replace(/[-_](L|P|S|T|LEC|PRAC|LAB|SKILL|TUT)$/i, '')
+    .replace(/\s*\((L|P|S|T|LEC|PRAC|LAB|SKILL|TUT)\)$/i, '')
+    .replace(/\s*\[(L|P|S|T|LEC|PRAC|LAB|SKILL|TUT)\]$/i, '');
+}
+
+function normalizeBaseTitle(rawTitle: string): string {
+  if (!rawTitle) return '';
+  return rawTitle
+    .trim()
+    .toUpperCase()
+    .replace(/\s*[-–—]\s*(LECTURE|PRACTICAL|SKILLING|TUTORIAL|LAB|SKILL|TUT|LEC|PRAC)$/i, '')
+    .replace(/\s*\((LECTURE|PRACTICAL|SKILLING|TUTORIAL|LAB|SKILL|TUT|L|P|S|T)\)$/i, '')
+    .replace(/\s*\[(LECTURE|PRACTICAL|SKILLING|TUTORIAL|LAB|SKILL|TUT|L|P|S|T)\]$/i, '')
+    .trim();
+}
+
+function detectComponentMeta(row: Record<string, unknown>, rawCode: string, rawTitle: string): { name: string; weight: number; weightPercentage: number } {
+  let detected = '';
   const entries = Object.entries(row);
-  let code = '';
-  let title = '';
-  let totalAttended = 0;
-  let totalConducted = 0;
-  let overallPercentage = 0;
 
-  entries.forEach(([k, v]) => {
+  // 1. Check dedicated type / component column values
+  for (const [k, v] of entries) {
     const key = k.toLowerCase();
-    if (key.includes('code') || key.includes('subject code')) code = String(v);
-    if (key.includes('title') || key.includes('subject title') || key.includes('name') || key.includes('course name')) {
-      title = String(v);
+    if (
+      key.includes('component') ||
+      key.includes('course type') ||
+      key.includes('session type') ||
+      key.includes('subject type') ||
+      key.includes('type') ||
+      key.includes('category')
+    ) {
+      const val = String(v).trim().toLowerCase();
+      if (val.includes('skil') || val === 's') detected = 'Skilling';
+      else if (val.includes('prac') || val.includes('lab') || val === 'p') detected = 'Practical';
+      else if (val.includes('tut') || val === 't') detected = 'Tutorial';
+      else if (val.includes('lec') || val === 'l') detected = 'Lecture';
     }
-    if (key.includes('conducted') || (key.includes('total') && !key.includes('%'))) {
-      const num = parseFloat(String(v));
-      if (!isNaN(num)) totalConducted = num;
-    }
-    if (key.includes('attended') || (key.includes('present') && !key.includes('%'))) {
-      const num = parseFloat(String(v));
-      if (!isNaN(num)) totalAttended = num;
-    }
-    if (typeof v === 'string' && v.includes('%')) {
-      const num = parseFloat(v);
-      if (!isNaN(num)) overallPercentage = num;
-    }
-  });
-
-  if (!code && !title && entries.length > 0) {
-    code = String(entries[0][1]);
   }
 
-  if (overallPercentage === 0 && totalConducted > 0) {
-    overallPercentage = Math.round((totalAttended / totalConducted) * 10000) / 100;
+  // 2. Check course code suffixes (e.g. 25CS1302E-L, 25CS1302E-P)
+  if (!detected && rawCode) {
+    const code = rawCode.trim().toUpperCase();
+    if (code.endsWith('-S') || code.endsWith('(S)') || code.endsWith(' SKILLING')) detected = 'Skilling';
+    else if (code.endsWith('-P') || code.endsWith('(P)') || code.endsWith(' PRACTICAL') || code.endsWith(' LAB')) detected = 'Practical';
+    else if (code.endsWith('-T') || code.endsWith('(T)') || code.endsWith(' TUTORIAL')) detected = 'Tutorial';
+    else if (code.endsWith('-L') || code.endsWith('(L)') || code.endsWith(' LECTURE')) detected = 'Lecture';
   }
 
-  const subjectName = getSubjectTitle(code, title);
-  const subjectCode = getSubjectCode(code);
+  // 3. Check course title keywords
+  if (!detected && rawTitle) {
+    const title = rawTitle.toLowerCase();
+    if (title.includes('skilling') || title.includes('skill')) detected = 'Skilling';
+    else if (title.includes('practical') || title.includes('lab')) detected = 'Practical';
+    else if (title.includes('tutorial') || title.includes('tut')) detected = 'Tutorial';
+    else if (title.includes('lecture') || title.includes('lec')) detected = 'Lecture';
+  }
 
-  // Extract components if individual columns exist (Lecture, Practical, Tutorial, Skilling)
-  const components: ParsedComponent[] = [];
-  const compKeywords = [
-    { name: 'Lecture', weight: 100 },
-    { name: 'Practical', weight: 50 },
-    { name: 'Tutorial', weight: 25 },
-    { name: 'Skilling', weight: 25 },
-  ];
+  // Default to Lecture
+  detected = detected || 'Lecture';
 
-  compKeywords.forEach(({ name, weight }) => {
-    const matchAtt = entries.find(([k]) => k.toLowerCase().includes(name.toLowerCase()) && k.toLowerCase().includes('attend'));
-    const matchCond = entries.find(([k]) => k.toLowerCase().includes(name.toLowerCase()) && k.toLowerCase().includes('conduct'));
-    if (matchAtt && matchCond) {
-      const att = parseFloat(String(matchAtt[1])) || 0;
-      const cond = parseFloat(String(matchCond[1])) || 0;
-      const pct = cond > 0 ? Math.round((att / cond) * 100) : 100;
-      components.push({ name, weight, attended: att, conducted: cond, percentage: pct });
-    }
-  });
+  switch (detected) {
+    case 'Skilling':
+      return { name: 'Skilling', weight: 0.25, weightPercentage: 25 };
+    case 'Practical':
+      return { name: 'Practical', weight: 0.5, weightPercentage: 50 };
+    case 'Tutorial':
+      return { name: 'Tutorial', weight: 0.25, weightPercentage: 25 };
+    case 'Lecture':
+    default:
+      return { name: 'Lecture', weight: 1.0, weightPercentage: 100 };
+  }
+}
 
-  // Fallback to standard lecture component if no sub-component headers are present
-  if (components.length === 0 && totalConducted > 0) {
-    components.push({
-      name: 'Lecture',
-      weight: 100,
-      attended: totalAttended,
-      conducted: totalConducted,
-      percentage: overallPercentage,
+export function groupAttendanceRows(rawRows: Record<string, unknown>[]): GroupedSubjectAttendance[] {
+  if (!rawRows || rawRows.length === 0) return [];
+
+  const subjectMap = new Map<string, {
+    baseCode: string;
+    baseTitle: string;
+    componentsMap: Map<string, AttendanceComponent>;
+    rawRows: Record<string, unknown>[];
+  }>();
+
+  rawRows.forEach((row) => {
+    let rawCode = '';
+    let rawTitle = '';
+    let conducted = 0;
+    let attended = 0;
+    let percentage = 0;
+
+    Object.entries(row).forEach(([k, v]) => {
+      const key = k.toLowerCase();
+      if (key.includes('code') || key.includes('subject code')) rawCode = String(v).trim();
+      if (key.includes('title') || key.includes('subject title') || key.includes('name') || key.includes('course name')) {
+        rawTitle = String(v).trim();
+      }
+      if (key.includes('conducted') || (key.includes('total') && !key.includes('%'))) {
+        const num = parseFloat(String(v));
+        if (!isNaN(num)) conducted = num;
+      }
+      if (key.includes('attended') || (key.includes('present') && !key.includes('%'))) {
+        const num = parseFloat(String(v));
+        if (!isNaN(num)) attended = num;
+      }
+      if (typeof v === 'string' && v.includes('%')) {
+        const num = parseFloat(v);
+        if (!isNaN(num)) percentage = num;
+      }
     });
+
+    if (!rawCode && !rawTitle && Object.keys(row).length > 0) {
+      rawCode = String(Object.values(row)[0]);
+    }
+
+    const baseCode = normalizeBaseCode(rawCode) || getSubjectCode(rawCode);
+    const baseTitle = normalizeBaseTitle(rawTitle) || getSubjectTitle(rawCode, rawTitle);
+    const groupKey = baseCode ? baseCode : baseTitle;
+
+    if (!subjectMap.has(groupKey)) {
+      subjectMap.set(groupKey, {
+        baseCode,
+        baseTitle,
+        componentsMap: new Map(),
+        rawRows: [],
+      });
+    }
+
+    const subjectEntry = subjectMap.get(groupKey)!;
+    subjectEntry.rawRows.push(row);
+
+    const compMeta = detectComponentMeta(row, rawCode, rawTitle);
+    const compPct = conducted > 0 ? Math.round((attended / conducted) * 10000) / 100 : (percentage || 100);
+
+    // If duplicate component row exists, aggregate hours
+    if (subjectEntry.componentsMap.has(compMeta.name)) {
+      const existing = subjectEntry.componentsMap.get(compMeta.name)!;
+      const totalAtt = existing.attended + attended;
+      const totalCond = existing.conducted + conducted;
+      subjectEntry.componentsMap.set(compMeta.name, {
+        ...existing,
+        attended: totalAtt,
+        conducted: totalCond,
+        percentage: totalCond > 0 ? Math.round((totalAtt / totalCond) * 10000) / 100 : 100,
+      });
+    } else {
+      subjectEntry.componentsMap.set(compMeta.name, {
+        name: compMeta.name,
+        weight: compMeta.weight,
+        weightPercentage: compMeta.weightPercentage,
+        attended,
+        conducted,
+        percentage: compPct,
+      });
+    }
+  });
+
+  return Array.from(subjectMap.values()).map(({ baseCode, baseTitle, componentsMap, rawRows }) => {
+    // Sort components: Lecture, Practical, Tutorial, Skilling
+    const sortOrder: Record<string, number> = { Lecture: 1, Practical: 2, Tutorial: 3, Skilling: 4 };
+    const components = Array.from(componentsMap.values()).sort(
+      (a, b) => (sortOrder[a.name] || 99) - (sortOrder[b.name] || 99)
+    );
+
+    let totalWeight = 0;
+    let weightedSum = 0;
+    let totalAttended = 0;
+    let totalConducted = 0;
+
+    components.forEach((c) => {
+      weightedSum += c.percentage * c.weight;
+      totalWeight += c.weight;
+      totalAttended += c.attended;
+      totalConducted += c.conducted;
+    });
+
+    const overallPercentage =
+      totalWeight > 0
+        ? Math.round((weightedSum / totalWeight) * 100) / 100
+        : totalConducted > 0
+        ? Math.round((totalAttended / totalConducted) * 10000) / 100
+        : 100;
+
+    return {
+      subjectCode: baseCode,
+      subjectTitle: baseTitle || getSubjectTitle(baseCode, ''),
+      overallPercentage,
+      totalAttended,
+      totalConducted,
+      components,
+      rawRows,
+    };
+  });
+}
+
+function calculateSubjectProjections(subject: GroupedSubjectAttendance): {
+  statusHeader: string;
+  isSafe: boolean;
+  projections: ProjectionItem[];
+} {
+  const { components, overallPercentage } = subject;
+  const totalWeight = components.reduce((sum, c) => sum + c.weight, 0);
+  const projections: ProjectionItem[] = [];
+
+  if (totalWeight === 0 || components.length === 0) {
+    return { statusHeader: 'ON TRACK', isSafe: true, projections: [] };
   }
+
+  let totalSkipsPossible = 0;
+
+  components.forEach((comp) => {
+    const otherWeightedSum = components
+      .filter((c) => c !== comp)
+      .reduce((sum, c) => sum + c.percentage * c.weight, 0);
+
+    // Calculate Skips for 75%
+    const target75 = 75;
+    const required75 = target75 * totalWeight - otherWeightedSum;
+
+    if (required75 <= 0) {
+      // Component can be skipped indefinitely while staying >= 75%
+      projections.push({
+        componentName: comp.name,
+        type: 'skip',
+        count: '>50',
+        targetOverall: 75,
+        projectedAttended: comp.attended,
+        projectedConducted: comp.conducted + 200,
+        label: `>50 ${comp.name} (maintain 75% overall)`,
+      });
+      totalSkipsPossible += 50;
+    } else {
+      // (comp.attended / (comp.conducted + k)) * 100 * comp.weight >= required75
+      const maxConducted = (100 * comp.attended * comp.weight) / required75;
+      const skips75 = Math.floor(maxConducted - comp.conducted);
+      if (skips75 > 0) {
+        totalSkipsPossible += skips75;
+        projections.push({
+          componentName: comp.name,
+          type: 'skip',
+          count: skips75 > 50 ? '>50' : skips75,
+          targetOverall: 75,
+          projectedAttended: comp.attended,
+          projectedConducted: comp.conducted + (skips75 > 50 ? 200 : skips75),
+          label: `${skips75 > 50 ? '>50' : skips75} ${comp.name} (maintain 75% overall)`,
+        });
+      }
+    }
+
+    // Calculate Skips / Needed for 85%
+    const target85 = 85;
+    const required85 = target85 * totalWeight - otherWeightedSum;
+
+    if (required85 <= 0) {
+      projections.push({
+        componentName: comp.name,
+        type: 'skip',
+        count: '>50',
+        targetOverall: 85,
+        projectedAttended: comp.attended,
+        projectedConducted: comp.conducted + 50,
+        label: `>50 ${comp.name} (maintain 85% overall)`,
+      });
+    } else {
+      const maxConducted85 = (100 * comp.attended * comp.weight) / required85;
+      const skips85 = Math.floor(maxConducted85 - comp.conducted);
+      if (skips85 > 0 && skips85 <= 50) {
+        projections.push({
+          componentName: comp.name,
+          type: 'skip',
+          count: skips85,
+          targetOverall: 85,
+          projectedAttended: comp.attended,
+          projectedConducted: comp.conducted + skips85,
+          label: `${skips85} ${comp.name} (maintain 85% overall)`,
+        });
+      } else if (skips85 < 0) {
+        // Need classes to reach 85%
+        // (comp.attended + m) / (comp.conducted + m) >= required85 / (100 * comp.weight)
+        const targetFraction = required85 / (100 * comp.weight);
+        if (targetFraction < 1) {
+          const needed = Math.ceil((targetFraction * comp.conducted - comp.attended) / (1 - targetFraction));
+          if (needed > 0) {
+            projections.push({
+              componentName: comp.name,
+              type: 'need',
+              count: needed,
+              targetOverall: 85,
+              projectedAttended: comp.attended + needed,
+              projectedConducted: comp.conducted + needed,
+              label: `${needed} ${comp.name} (reach 85% overall)`,
+            });
+          }
+        }
+      }
+    }
+  });
+
+  const isSafe = overallPercentage >= 75;
+  const statusHeader =
+    totalSkipsPossible > 0
+      ? `SAFE TO SKIP (Any ${Math.min(totalSkipsPossible, 3)})`
+      : overallPercentage >= 85
+      ? 'ATTENDANCE STABLE (85%+ Target Met)'
+      : 'ATTENDANCE REQUIRED';
 
   return {
-    code: subjectCode,
-    title: subjectName,
-    overallPercentage,
-    totalAttended,
-    totalConducted,
-    components,
-    rawRow: row,
+    statusHeader,
+    isSafe,
+    projections,
   };
 }
 
-function AttendanceCardLayout({ course }: { course: ParsedCourseAttendance }) {
-  const pct = course.overallPercentage;
+function UnifiedSubjectCard({ subject }: { subject: GroupedSubjectAttendance }) {
+  const pct = subject.overallPercentage;
   const isEligible = pct >= 85;
   const isConditional = pct >= 75 && pct < 85;
 
@@ -141,32 +388,24 @@ function AttendanceCardLayout({ course }: { course: ParsedCourseAttendance }) {
     ? 'Conditional'
     : 'Not Eligible';
 
-  // Math projections
-  const presents = course.totalAttended;
-  const total = course.totalConducted;
-
-  // Safe skips for 75%
-  const skip75 = total > 0 ? Math.max(0, Math.floor((100 * presents - 75 * total) / 75)) : 0;
-  // Safe skips for 85%
-  const skip85 = total > 0 ? Math.max(0, Math.floor((100 * presents - 85 * total) / 85)) : 0;
-  // Needed for 75%
-  const need75 = total > 0 && pct < 75 ? Math.max(0, Math.ceil((75 * total - 100 * presents) / 25)) : 0;
-  // Needed for 85%
-  const need85 = total > 0 && pct < 85 ? Math.max(0, Math.ceil((85 * total - 100 * presents) / 15)) : 0;
+  const { statusHeader, isSafe, projections } = useMemo(
+    () => calculateSubjectProjections(subject),
+    [subject]
+  );
 
   return (
     <div
-      className={`rounded-[--radius-2xl] apple-card p-5 sm:p-6 border border-white/10 ${accentBorder} border-l-[6px] shadow-xl space-y-5 transition-all duration-[--duration-normal] hover:border-white/20`}
+      className={`rounded-[--radius-2xl] apple-card p-5 sm:p-7 border border-white/10 ${accentBorder} border-l-[6px] shadow-xl space-y-6 transition-all duration-[--duration-normal] hover:border-white/20`}
     >
-      {/* Header */}
+      {/* Top Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <h3 className="text-sm sm:text-base font-bold text-foreground uppercase tracking-tight line-clamp-2">
-            {course.title}
+          <h3 className="text-base sm:text-lg font-bold text-foreground uppercase tracking-tight line-clamp-2 leading-snug">
+            {subject.subjectTitle}
           </h3>
-          {course.code && (
+          {subject.subjectCode && (
             <p className="text-xs font-mono text-muted-foreground/90 mt-1 tracking-wider uppercase font-semibold">
-              {course.code}
+              {subject.subjectCode}
             </p>
           )}
         </div>
@@ -181,22 +420,26 @@ function AttendanceCardLayout({ course }: { course: ParsedCourseAttendance }) {
       </div>
 
       {/* Two-Column Body: Components & Projections */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-white/8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-5 border-t border-white/8">
         {/* Left Column: Components */}
-        <div className="space-y-3">
+        <div className="space-y-3.5">
           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Components
           </h4>
-          <div className="space-y-2.5">
-            {course.components.map((comp, idx) => (
+          <div className="space-y-3">
+            {subject.components.map((comp, idx) => (
               <div key={idx} className="flex items-center justify-between text-xs py-0.5">
                 <span className="text-muted-foreground font-medium">
                   <strong className="text-foreground font-semibold">{comp.name}</strong>{' '}
-                  <span className="text-[11px] text-muted-foreground/80">(Weightage: {comp.weight}%)</span>
+                  <span className="text-[11px] text-muted-foreground/80 font-normal">
+                    (Weightage: {comp.weightPercentage}%)
+                  </span>
                 </span>
-                <span className="text-foreground font-semibold tabular-numbers text-right">
+                <span className="text-foreground font-semibold tabular-numbers text-right text-xs">
                   {comp.attended}/{comp.conducted}{' '}
-                  <span className="text-muted-foreground/90 font-normal">({comp.percentage}%)</span>
+                  <span className="text-muted-foreground/90 font-normal">
+                    ({Math.round(comp.percentage)}%)
+                  </span>
                 </span>
               </div>
             ))}
@@ -204,78 +447,45 @@ function AttendanceCardLayout({ course }: { course: ParsedCourseAttendance }) {
         </div>
 
         {/* Right Column: Projections */}
-        <div className="space-y-3 md:border-l md:border-white/8 md:pl-6">
-          <div className="flex items-center justify-between">
-            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        <div className="space-y-3.5 md:border-l md:border-white/8 md:pl-8">
+          <div>
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
               Projections
             </h4>
-            {skip75 > 0 ? (
-              <span className="text-[10px] font-bold text-emerald-400 tracking-wide uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 apple-pill">
-                Safe to skip ({skip75})
-              </span>
-            ) : need75 > 0 ? (
-              <span className="text-[10px] font-bold text-rose-400 tracking-wide uppercase px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 apple-pill">
-                Need {need75} to pass
-              </span>
-            ) : (
-              <span className="text-[10px] font-bold text-amber-400 tracking-wide uppercase px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 apple-pill">
-                On Track
-              </span>
-            )}
+            <span
+              className={`text-[11px] font-bold tracking-wide uppercase ${
+                isSafe ? 'text-emerald-400' : 'text-rose-400'
+              }`}
+            >
+              {statusHeader}
+            </span>
           </div>
 
-          <div className="space-y-2 text-xs">
-            {skip75 > 0 && (
-              <div className="flex items-center justify-between py-0.5">
-                <span className="text-muted-foreground">
-                  <strong className="text-emerald-400 font-semibold">{skip75} Classes</strong>{' '}
-                  <span className="text-[11px]">(maintain 75% overall)</span>
-                </span>
-                <span className="text-muted-foreground/80 font-mono text-[11px] tabular-numbers">
-                  ({presents}/{total + skip75})
-                </span>
-              </div>
-            )}
+          <div className="space-y-2.5 pt-1 border-t border-white/6">
+            {projections.length > 0 ? (
+              projections.map((proj, idx) => {
+                const color =
+                  proj.type === 'skip'
+                    ? proj.targetOverall === 75
+                      ? 'text-emerald-400'
+                      : 'text-emerald-300'
+                    : 'text-rose-400';
 
-            {skip85 > 0 && (
-              <div className="flex items-center justify-between py-0.5">
-                <span className="text-muted-foreground">
-                  <strong className="text-emerald-400 font-semibold">{skip85} Classes</strong>{' '}
-                  <span className="text-[11px]">(maintain 85% overall)</span>
-                </span>
-                <span className="text-muted-foreground/80 font-mono text-[11px] tabular-numbers">
-                  ({presents}/{total + skip85})
-                </span>
-              </div>
-            )}
-
-            {need75 > 0 && (
-              <div className="flex items-center justify-between py-0.5">
-                <span className="text-muted-foreground">
-                  <strong className="text-rose-400 font-semibold">Attend {need75}</strong>{' '}
-                  <span className="text-[11px]">(to reach 75% overall)</span>
-                </span>
-                <span className="text-muted-foreground/80 font-mono text-[11px] tabular-numbers">
-                  ({presents + need75}/{total + need75})
-                </span>
-              </div>
-            )}
-
-            {need85 > 0 && (
-              <div className="flex items-center justify-between py-0.5">
-                <span className="text-muted-foreground">
-                  <strong className="text-amber-400 font-semibold">Attend {need85}</strong>{' '}
-                  <span className="text-[11px]">(to reach 85% overall)</span>
-                </span>
-                <span className="text-muted-foreground/80 font-mono text-[11px] tabular-numbers">
-                  ({presents + need85}/{total + need85})
-                </span>
-              </div>
-            )}
-
-            {skip75 === 0 && need75 === 0 && (
-              <div className="text-[11px] text-muted-foreground/90 italic py-1">
-                Perfect attendance balance maintained.
+                return (
+                  <div key={idx} className="flex items-center justify-between text-xs py-0.5">
+                    <span className="text-muted-foreground">
+                      <strong className={`font-semibold ${color}`}>{proj.count} {proj.componentName}</strong>{' '}
+                      <span className="text-[11px]">({proj.type === 'skip' ? 'maintain' : 'reach'} {proj.targetOverall}% overall)</span>
+                    </span>
+                    <span className="text-muted-foreground/80 font-mono text-[11px] tabular-numbers">
+                      ({proj.projectedAttended}/{proj.projectedConducted})
+                    </span>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-xs text-muted-foreground/80 italic py-1">
+                Attendance requirement currently balanced.
               </div>
             )}
           </div>
@@ -301,7 +511,9 @@ export default function AttendanceDashboard() {
 
   const error = fetchError ? fetchError.message : null;
   const data = dataRaw || [];
-  const parsedCourses = data.map(parseCourseRow);
+  
+  // Group multiple rows of the same course into a single unified Subject
+  const unifiedSubjects = useMemo(() => groupAttendanceRows(data), [data]);
 
   return (
     <div className="flex flex-col gap-6 w-full animate-spring-up">
@@ -389,7 +601,7 @@ export default function AttendanceDashboard() {
       <div>
         {loading ? (
           <div className="p-6 space-y-4 rounded-[--radius-2xl] apple-card border border-white/10 shadow-xl">
-            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-36 w-full rounded-[--radius-2xl]" />)}
+            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-44 w-full rounded-[--radius-2xl]" />)}
           </div>
         ) : error ? (
           <div className="rounded-[--radius-2xl] apple-card overflow-hidden shadow-xl border border-white/10 p-4">
@@ -400,9 +612,9 @@ export default function AttendanceDashboard() {
             <EmptyState title="No attendance records" description="Records will appear once available in the ERP." />
           </div>
         ) : viewMode === 'cards' ? (
-          <div className="space-y-4">
-            {parsedCourses.map((course, idx) => (
-              <AttendanceCardLayout key={course.code || idx} course={course} />
+          <div className="space-y-5">
+            {unifiedSubjects.map((subject, idx) => (
+              <UnifiedSubjectCard key={subject.subjectCode || idx} subject={subject} />
             ))}
           </div>
         ) : (
