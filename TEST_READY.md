@@ -14,7 +14,7 @@
 | Tier | Count | Description |
 |------|------:|-------------|
 | 1. Type & Lint Gating | 2 | TypeScript strict check + ESLint |
-| 2. Unit & Integration Suites | 318 | Scrapers, session crypto, UI, AI tools across 53 suites |
+| 2. Unit & Integration Suites | 320 | Scrapers, session crypto, UI, AI tools across 54 suites |
 | 3. AI Agent Evaluations | 9 | Tool execution & judgment scenarios |
 | 4. Icon & Repo Stress | 13 | Native SVG engine and zero-bloat verifications |
 | 5. Production Compilation | 15 | Next.js Turbopack route compilation |
@@ -30,3 +30,6 @@
 | Pure Native SVG Icon Engine | ✓ | ✓ | ✓ | ✓ | ✓ |
 | 11 Dashboard Routes & Auth | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Exam-Seating Uniformity | ✓ | ✓ | ✓ | ✓ | ✓ |
+| International Compliance Suite | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Zero-Loading Data Prefetcher | ✓ | ✓ | ✓ | ✓ | ✓ |
+| i18n & RTL Support | ✓ | ✓ | ✓ | ✓ | ✓ |

@@ -502,3 +502,48 @@
 .custom-scrollbar {
   -webkit-overflow-scrolling: touch;
 }
+
+/* ═══════════════════════════════════════════════
+   WCAG 2.2 AAA & RTL Engine Support
+   ═══════════════════════════════════════════════ */
+
+/* 1. RTL (Right-to-Left) Mirroring Engine */
+html[dir="rtl"],
+.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] .text-left {
+  text-align: right !important;
+}
+
+html[dir="rtl"] .text-right {
+  text-align: left !important;
+}
+
+/* Flip directional icons in RTL mode */
+html[dir="rtl"] .icon-directional {
+  transform: scaleX(-1);
+}
+
+/* 2. WCAG 2.2 AAA Focus Indicator & Touch Target Standards */
+:focus-visible {
+  outline: 3px solid #818cf8 !important;
+  outline-offset: 2px !important;
+  border-radius: var(--radius-sm);
+}
+
+/* Ensure interactive targets meet minimum 44x44px for AAA touch target size */
+button,
+a,
+input,
+select {
+  min-height: 44px;
+}
+
+/* Inline exceptions where compact elements reside */
+.inline-action,
+.badge-action {
+  min-height: unset;
+}

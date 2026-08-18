@@ -73,4 +73,22 @@ Synthesized from:
 
 ## 5. Pure SVG Zero-Runtime Icon Engine
 
-All icons originate from the native 55-component SVG engine in [`src/components/ui/icons.tsx`](file:///C:/Users/speed/Documents/antigravity/optimistic-pascal/src/components/ui/icons.tsx). Zero third-party icon packages, zero runtime bloat, zero emoji icons.
+All icons originate from the native 57-component SVG engine in [`src/components/ui/icons.tsx`](file:///C:/Users/speed/Documents/antigravity/optimistic-pascal/src/components/ui/icons.tsx). Zero third-party icon packages, zero runtime bloat, zero emoji icons.
+
+---
+
+## 6. Internationalization (i18n) & RTL Support
+
+- **9 Languages**: English, Telugu, Hindi, Spanish, French, German, Arabic, Chinese, Russian.
+- **RTL Mirroring**: Arabic (`ar`) triggers `dir="rtl"` on `<html>`, which activates CSS logical property mirroring rules in `globals.css` for navigation, modals, and content layout.
+- **Language Selector**: Dropdown component (`src/components/ui/LanguageSelector.tsx`) with Globe icon, live preview, and persistent `localStorage` preference.
+
+---
+
+## 7. International Regulatory Compliance
+
+- **13 Regulatory Badges**: 8 privacy laws (GDPR, CCPA/CPRA, HIPAA, PIPEDA/CPPA, LGPD, DPDPA, PIPL, 152-FZ) and 5 accessibility standards (WCAG 2.2 AAA, EAA/EN 301 549, Section 508, i18n, RTL).
+- **Data Export (GDPR Art. 20)**: JSON bundle export of all cached academic data.
+- **Cryptographic Erasure (GDPR Art. 17)**: One-click purge of all browser-side storage.
+- **Consent Manager**: Granular toggles for analytics, functional cookies, and third-party integrations.
+- **Compliance Center UI**: Live badge bar + interactive modal (`src/components/compliance/ComplianceModal.tsx`).

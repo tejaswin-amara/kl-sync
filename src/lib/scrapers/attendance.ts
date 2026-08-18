@@ -283,6 +283,7 @@ export async function fetchAttendanceData(
   params.append('_csrf', csrfToken);
   params.append('DynamicModel[academicyear]', academicYear);
   params.append('DynamicModel[semesterid]', semesterId);
+  params.append('DynamicModel[semester]', semesterId);
 
   const res = await fetchWithJar(ATTENDANCE_URL, jar, {
     method: 'POST',

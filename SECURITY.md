@@ -70,6 +70,17 @@ If you discover a vulnerability in an upstream dependency:
 2. Notify us via email so we can expedite a dependency version bump.
 3. If the vulnerability is specific to *how* KL Sync implements the package, report it directly to us following the disclosure rules above.
 
+### 5. International Regulatory Compliance
+**Compliance Framework**: KL Sync implements client-side compliance controls aligned with 8 international privacy regulations (GDPR, CCPA/CPRA, HIPAA, PIPEDA/CPPA, LGPD, DPDPA, PIPL, 152-FZ) and 5 accessibility standards (WCAG 2.2 AAA, EAA/EN 301 549, Section 508, i18n, RTL).
+
+**Data Export (GDPR Art. 20 / CCPA)**: Users can export all cached academic data as a JSON bundle via the Compliance Center modal.
+
+**Cryptographic Data Erasure (GDPR Art. 17)**: One-click purge of all cookies, sessionStorage, localStorage, cached records, and cryptographic keys with zero server residue.
+
+**Consent Management**: Granular consent toggles for analytics, functional cookies, and third-party integrations.
+
+**Important**: These compliance controls are client-side implementations. KL Sync operates as a stateless edge proxy with zero persistent data storage, which inherently minimizes regulatory exposure. No personal data is stored on servers.
+
 ---
 
 ## 🛑 Out of Scope

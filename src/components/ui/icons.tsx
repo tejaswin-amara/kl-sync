@@ -150,6 +150,10 @@ export const CalendarOff = createIcon('CalendarOff', (
   </>
 ));
 
+export const Check = createIcon('Check', (
+  <polyline points="20 6 9 17 4 12" />
+));
+
 export const CheckCircle = createIcon('CheckCircle', (
   <>
     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
@@ -218,6 +222,14 @@ export const Download = createIcon('Download', (
 
 export const Filter = createIcon('Filter', (
   <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+));
+
+export const Globe = createIcon('Globe', (
+  <>
+    <circle cx="12" cy="12" r="10" />
+    <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+    <path d="M2 12h20" />
+  </>
 ));
 
 export const GraduationCap = createIcon('GraduationCap', (

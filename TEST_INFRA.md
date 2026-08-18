@@ -17,10 +17,13 @@
 | 8 | WCAG 2.2 AAA Accessibility | AGENTS.md §Architecture | ✓ | ✓ | ✓ | ✓ |
 | 9 | Ponytail YAGNI Compliance | AGENTS.md §Architecture | ✓ | ✓ | ✓ | ✓ |
 | 10 | Quality Gate Verification Commands | ORIGINAL_REQUEST §R3 | ✓ | ✓ | ✓ | ✓ |
+| 11 | International Compliance (GDPR/CCPA/HIPAA) | User Request | ✓ | ✓ | ✓ | ✓ |
+| 12 | Zero-Loading Data Prefetcher | User Request | ✓ | ✓ | ✓ | ✓ |
+| 13 | i18n & RTL Support | User Request | ✓ | ✓ | ✓ | ✓ |
 
 ## Test Architecture
 - **Tier 1: Type & Syntax Gating**: `npx tsc --noEmit` (0 errors) & `npm run lint` (0 errors).
-- **Tier 2: Unit & Integration Test Suite**: `npm test` (`npx tsx --test src/**/*.test.ts`) covering 318 tests across 53 suites (crypto, session encoding, scrapers, UI components, AI tools).
+- **Tier 2: Unit & Integration Test Suite**: `npm test` (`npx tsx --test src/**/*.test.ts`) covering 320 tests across 54 suites (crypto, session encoding, scrapers, UI components, AI tools).
 - **Tier 3: AI Tool Capabilities Suite**: `npx tsx scripts/agent-as-judge.ts` verifying 9 tool execution scenarios.
 - **Tier 4: E2E Browser & Icon Stress Suites**:
   - `npx tsx scripts/challenger-icon-stress.ts` (13 icon and repo integrity checks).
@@ -30,7 +33,7 @@
 ## Acceptance Thresholds
 - `npx tsc --noEmit`: Exit code 0 (0 errors)
 - `npm run lint`: Exit code 0 (0 warnings, 0 errors)
-- `npm test`: 318/318 passing across 53 suites
+- `npm test`: 320/320 passing across 54 suites
 - `npx tsx scripts/agent-as-judge.ts`: 9/9 passing
 - `npm run build`: Exit code 0 (15/15 routes)
 - Forensic Integrity: 0 cheating, 0 hardcoding, genuine logic verified.

@@ -5,7 +5,7 @@ KL-Sync is an unofficial high-performance, minimalist ERP web client and edge pr
 - **Framework**: Next.js 16 (App Router, Turbopack, React 19)
 - **Language**: TypeScript 5.8
 - **Styling**: Tailwind CSS v4 + Vanilla CSS tokens (`globals.css`)
-- **Icon Engine**: Zero-runtime native SVG library (`src/components/ui/icons.tsx` — 55 primitives)
+- **Icon Engine**: Zero-runtime native SVG library (`src/components/ui/icons.tsx` — 57 primitives)
 - **Design Language**: Apple Human Interface Guidelines (OLED deep black, translucent chrome materials `blur(24px) saturate(180%)`, specular elevation `inset 0 1px 1px 0 rgba(255, 255, 255, 0.08)`, fluid spring physics, active press scale(0.965), and Web Vibration haptics).
 - **Accessibility**: WCAG 2.2 AAA standard (contrast ratios $\ge 7.1:1$, touch targets $\ge 44\text{px} \times 44\text{px}$, high-visibility focus rings).
 - **Data Tables & Typography**: OpenType Tabular Numerals (`font-feature-settings: 'tnum' 1, 'ss01' 1`, `font-variant-numeric: tabular-nums`) and zero-layout-shift bounding boxes with skeleton loading states.
@@ -23,8 +23,11 @@ Every feature from the Survey phase mapped to its assigned milestone:
 | 7 | Zero-Bloat Native SVG Icon Engine | 55 pure SVG primitives in `src/components/ui/icons.tsx`, zero `lucide-react`, zero emojis as UI icons | M2 | Survey 3 | DONE |
 | 8 | WCAG 2.2 AAA Accessibility | Contrast $\ge 7.1:1$, touch targets $\ge 44\text{px}$, `:focus-visible` rings, accessibility triple-gate | M2 | Survey 3 | DONE |
 | 9 | Ponytail YAGNI Compliance | Standard library primitives, zero bloat, clean dependencies | M2 | Survey 3 | DONE |
-| 10 | Quality Gate Verification | Pass `tsc --noEmit`, `npm run lint`, `npm test` (318/318), `agent-as-judge` (9/9), `npm run build` (15/15) | M2 | Survey 3 | DONE |
+| 10 | Quality Gate Verification | Pass `tsc --noEmit`, `npm run lint`, `npm test` (320/320), `agent-as-judge` (9/9), `npm run build` (15/15) | M2 | Survey 3 | DONE |
 | 11 | Adversarial Stress & Forensic Integrity | Empirical verification via Challenger stress suites and Forensic Auditor verification | M3 | Project Pattern | DONE |
+| 12 | International Compliance Suite | 13 regulatory badges (GDPR, CCPA, HIPAA, PIPEDA, LGPD, DPDPA, PIPL, 152-FZ, WCAG 2.2 AAA, EAA, Section 508, i18n, RTL) | M4 | User Request | DONE |
+| 13 | Zero-Loading Data Prefetcher | Parallel prefetch of 9 ERP modules on login, SWR in-memory + sessionStorage cache | M4 | User Request | DONE |
+| 14 | i18n & RTL Support | 9-language translation engine with RTL mirroring for Arabic | M4 | User Request | DONE |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
@@ -32,6 +35,7 @@ Every feature from the Survey phase mapped to its assigned milestone:
 | M1 | UI/UX Consistency & Exam-Seating Alignment | Refactor `src/app/dashboard/exam-seating/page.tsx` to match system-wide `apple-card`, `PageHeader`, `animate-spring-up`, `tabular-numbers`, `Skeleton` loading, and `triggerHaptic` | none | **DONE** |
 | M2 | Comprehensive Quality Gate & Review Verification | Execute full suite of verification commands (tsc, lint, 318 tests, 9 agent-as-judge tests, build, icon stress, E2E browser tests) with 2 independent Reviewers and Challengers | M1 | **DONE** |
 | M3 | Final Forensic Audit & Adversarial Verification | Forensic Auditor (`teamwork_preview_auditor`) integrity check + Challenger stress verification for zero-cheating and 100% compliance | M2 | **DONE** |
+| M4 | International Compliance, Prefetcher & i18n | Compliance suite (13 badges), data prefetcher (9 modules), i18n (9 languages), RTL support, CAPTCHA & attendance fixes | M3 | **DONE** |
 
 ## Code Layout
 ```
@@ -62,12 +66,21 @@ src/
 │   │   ├── progress.tsx                # Progress bar & circular ring
 │   │   ├── skeleton.tsx                # Pulse skeleton placeholder
 │   │   ├── sheet.tsx                   # Gesture drag sheet with fluid physics
-│   │   ├── icons.tsx                   # 55 native pure SVG icon primitives
+│   │   ├── icons.tsx                   # 57 native pure SVG icon primitives
 │   │   └── page-header.tsx             # Standardized module page header
+│   │   └── LanguageSelector.tsx        # i18n language & RTL toggle
+│   ├── compliance/
+│   │   └── ComplianceModal.tsx         # Compliance Center badges & interactive modal
 │   └── ai/                             # AI Copilot components
 ├── lib/
 │   ├── fluid-motion.ts                 # WWDC spring physics, project(), rubberband(), triggerHaptic()
 │   ├── utils.ts                        # Zero-dependency cn helper
+│   ├── data-prefetcher.ts              # Parallel login-time prefetch for all 9 ERP modules
+│   ├── compliance/                     # Regulatory compliance data & manager
+│   │   ├── compliance-data.ts          # 13 regulatory badge metadata
+│   │   └── compliance-manager.ts       # Data Export, Erasure, Consent Manager
+│   ├── i18n/
+│   │   └── index.ts                    # 9-language zero-dep translation engine with RTL
 │   └── scrapers/                       # ERP scrapers
 └── scripts/
     ├── agent-as-judge.ts               # AI Tool capability evaluation suite

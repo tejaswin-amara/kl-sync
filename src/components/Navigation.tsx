@@ -2,7 +2,6 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React, { useState, useEffect, useMemo } from 'react';
-
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -21,11 +20,16 @@ import {
   MoreHorizontal,
   X,
   ChevronLeft,
+  ShieldCheck,
 } from '@/components/ui/icons';
 
 import { Badge } from '@/components/ui/badge';
 import { AICopilot } from '@/components/ai/AICopilot';
 import { triggerHaptic } from '@/lib/fluid-motion';
+import { prefetchAllUserData } from '@/lib/data-prefetcher';
+import { useI18n } from '@/lib/i18n';
+import { LanguageSelector } from '@/components/ui/LanguageSelector';
+import { ComplianceModal } from '@/components/compliance/ComplianceModal';
 
 /* ── Profile Avatar ── */
 function ProfileAvatar({
@@ -68,32 +72,16 @@ function ProfileAvatar({
   );
 }
 
-/* ── Nav Items ── */
-const allNavItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/attendance', label: 'Attendance', icon: CheckSquare },
-  { href: '/dashboard/timetable', label: 'Timetable', icon: Calendar },
-  { href: '/dashboard/marks', label: 'Marks', icon: Star },
-  { href: '/dashboard/profile', label: 'Profile', icon: User },
-  { href: '/dashboard/fee', label: 'Fee Details', icon: CreditCard },
-  { href: '/dashboard/circulars', label: 'Circulars', icon: Megaphone },
-  { href: '/dashboard/hostels', label: 'Hostel Info', icon: Building2 },
-  { href: '/dashboard/library', label: 'Library', icon: BookOpen },
-  { href: '/dashboard/tools', label: 'Tools', icon: CheckSquare },
-];
-
-// Bottom bar shows first 4 + More
-const bottomBarItems = allNavItems.slice(0, 4);
-const overflowItems = allNavItems.slice(4);
-
 export default function Navigation({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { t } = useI18n();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [complianceOpen, setComplianceOpen] = useState(false);
   const pathname = usePathname();
 
   const [user, setUser] = useState({
@@ -103,7 +91,30 @@ export default function Navigation({
     photoUrl: '',
   });
 
+  const allNavItems = useMemo(
+    () => [
+      { href: '/dashboard', label: t('dashboard', 'Dashboard'), icon: LayoutDashboard },
+      { href: '/dashboard/attendance', label: t('attendance', 'Attendance'), icon: CheckSquare },
+      { href: '/dashboard/timetable', label: t('timetable', 'Timetable'), icon: Calendar },
+      { href: '/dashboard/marks', label: t('marks', 'Marks'), icon: Star },
+      { href: '/dashboard/profile', label: t('profile', 'Profile'), icon: User },
+      { href: '/dashboard/fee', label: t('fee', 'Fee Details'), icon: CreditCard },
+      { href: '/dashboard/circulars', label: t('circulars', 'Circulars'), icon: Megaphone },
+      { href: '/dashboard/hostels', label: t('hostels', 'Hostel Info'), icon: Building2 },
+      { href: '/dashboard/library', label: t('library', 'Library'), icon: BookOpen },
+      { href: '/dashboard/tools', label: t('tools', 'Tools'), icon: CheckSquare },
+    ],
+    [t]
+  );
+
+  const bottomBarItems = allNavItems.slice(0, 4);
+  const overflowItems = allNavItems.slice(4);
+
   useEffect(() => {
+    // 1. Kick off instant background prefetch for zero-loading navigation
+    void prefetchAllUserData();
+
+    // 2. Load user profile metadata
     let cachedName: string | null = null;
     queueMicrotask(() => {
       cachedName = localStorage.getItem('kl_student_name');
@@ -171,88 +182,98 @@ export default function Navigation({
 
   const pageTitle =
     pathname === '/dashboard'
-      ? 'Overview'
+      ? t('dashboard', 'Overview')
       : allNavItems.find((i) => pathname.startsWith(i.href) && i.href !== '/dashboard')?.label ||
         allNavItems.find((i) => i.href === pathname)?.label ||
         'Dashboard';
 
   return (
     <div className="min-h-[100dvh] bg-background text-foreground flex overflow-hidden">
-      {/* ═══ MOBILE: Top Header ═══ */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 h-[--header-height] apple-chrome">
+      {/* ═══ MOBILE: Top Navigation Header ═══ */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 h-[--header-height] border-b border-white/8 apple-chrome z-40 flex items-center justify-between px-4">
         <div className="flex items-center gap-3">
           <button
             onClick={() => {
-              triggerHaptic('light');
+              triggerHaptic('selection');
               setSidebarOpen(true);
             }}
-            className="p-2 -ml-2 rounded-[--radius-md] hover:bg-white/8 text-muted-foreground hover:text-foreground touch-manipulation active:scale-95 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
-            aria-label="Open navigation"
+            className="p-2 rounded-full hover:bg-white/8 text-muted-foreground hover:text-foreground transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer touch-manipulation active:scale-90"
+            aria-label="Open navigation menu"
             aria-expanded={sidebarOpen}
+            aria-controls="mobile-sidebar-drawer"
           >
             <Menu className="w-5 h-5" />
           </button>
-          <Link href="/dashboard" className="flex items-center gap-2 touch-manipulation active:scale-95 transition-transform" onClick={() => triggerHaptic('selection')}>
-            <img src="/logo.png" alt="KL" className="h-6 object-contain" />
-            <span className="font-bold text-sm text-foreground font-heading tracking-tight">KL Sync</span>
-          </Link>
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="KL" className="h-6 w-auto object-contain" />
+            <span className="font-bold text-sm tracking-tight font-heading">
+              KL Sync
+            </span>
+          </div>
         </div>
+
         <div className="flex items-center gap-2">
-          <Link
-            href="/dashboard/circulars"
-            onClick={() => triggerHaptic('selection')}
-            className="relative p-2 rounded-full hover:bg-white/8 transition-colors text-muted-foreground hover:text-foreground min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation active:scale-90"
-            aria-label="Notifications"
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              setComplianceOpen(true);
+            }}
+            className="p-2 rounded-full hover:bg-white/8 text-primary transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer touch-manipulation active:scale-90"
+            aria-label="Compliance and Privacy"
           >
-            <Bell className="w-4 h-4" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-success rounded-full shadow-[0_0_8px_rgba(48,209,88,0.8)]" />
-          </Link>
-          <Link href="/dashboard/profile" onClick={() => triggerHaptic('selection')} className="touch-manipulation active:scale-90 transition-transform">
+            <ShieldCheck className="w-5 h-5" />
+          </button>
+          <LanguageSelector />
+          <Link
+            href="/dashboard/profile"
+            aria-label="Student profile"
+            onClick={() => triggerHaptic('selection')}
+            className="touch-manipulation active:scale-90 transition-transform p-1 min-h-[44px] min-w-[44px] flex items-center justify-center"
+          >
             <ProfileAvatar user={user} size="sm" />
           </Link>
         </div>
       </header>
 
-      {/* ═══ MOBILE: Slide-over Drawer ═══ */}
+      {/* ═══ MOBILE: Drawer Backdrop & Panel ═══ */}
       {sidebarOpen && (
         <>
           <div
-            role="button"
-            tabIndex={0}
-            aria-label="Close navigation overlay"
-            className="fixed inset-0 bg-black/65 backdrop-blur-sm z-40 lg:hidden cursor-pointer transition-opacity animate-in"
-            onClick={() => {
-              triggerHaptic('light');
-              setSidebarOpen(false);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
-                e.preventDefault();
-                setSidebarOpen(false);
-              }
-            }}
+            className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-50 animate-fade-in"
+            onClick={() => setSidebarOpen(false)}
           />
-          <aside className="fixed top-0 left-0 bottom-0 w-[280px] z-50 lg:hidden flex flex-col apple-sheet border-r border-white/12 animate-slide-in-left rounded-r-[24px]">
-            <div className="p-5 border-b border-border/50 flex items-center justify-between">
-              <Link href="/dashboard" className="flex items-center gap-2" onClick={() => { triggerHaptic('selection'); setSidebarOpen(false); }}>
-                <img src="/logo.png" alt="KL" className="h-7 object-contain" />
-                <span className="font-bold text-lg text-foreground font-heading tracking-tight">KL Sync</span>
-              </Link>
+          <aside
+            id="mobile-sidebar-drawer"
+            className="lg:hidden fixed top-0 left-0 bottom-0 w-72 apple-chrome border-r border-white/10 z-50 flex flex-col p-4 animate-drawer-enter"
+          >
+            <div className="flex items-center justify-between pb-4 border-b border-white/8">
+              <div className="flex items-center gap-2.5">
+                <img src="/logo.png" alt="KL" className="h-7 w-auto object-contain" />
+                <span className="font-bold text-base tracking-tight font-heading">
+                  KL Sync
+                </span>
+              </div>
               <button
-                onClick={() => {
-                  triggerHaptic('light');
-                  setSidebarOpen(false);
-                }}
+                onClick={() => setSidebarOpen(false)}
+                className="p-2 rounded-full hover:bg-white/8 text-muted-foreground hover:text-foreground transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer touch-manipulation active:scale-90"
                 aria-label="Close menu"
-                className="p-2 rounded-full hover:bg-white/10 text-muted-foreground hover:text-foreground touch-manipulation active:scale-90 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
-            <nav className="flex-1 py-3 px-2.5 overflow-y-auto custom-scrollbar">
-              <div className="caption-label text-muted-foreground/80 px-3 mb-2">
-                Menu
+
+            {/* Profile snapshot */}
+            <div className="flex items-center gap-3 py-3 border-b border-white/8">
+              <ProfileAvatar user={user} />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-foreground truncate">{user.name}</p>
+                <p className="text-xs text-muted-foreground font-mono truncate">{user.id}</p>
               </div>
+            </div>
+
+            {/* Navigation links */}
+            <nav className="flex-1 py-3 overflow-y-auto space-y-1 custom-scrollbar">
               {allNavItems.map((item) => {
                 const active = isActive(item.href);
                 const Icon = item.icon;
@@ -265,7 +286,7 @@ export default function Navigation({
                       triggerHaptic('selection');
                       setSidebarOpen(false);
                     }}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-[--radius-md] text-sm font-medium transition-all mb-1 min-h-[44px] touch-manipulation active:scale-[0.98] ${
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-[--radius-md] text-sm font-medium transition-all min-h-[44px] touch-manipulation active:scale-95 ${
                       active
                         ? 'bg-primary/20 text-primary border border-primary/30 font-semibold shadow-xs'
                         : 'text-muted-foreground hover:text-foreground hover:bg-white/6'
@@ -276,27 +297,43 @@ export default function Navigation({
                   </Link>
                 );
               })}
+
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic('selection');
+                  setSidebarOpen(false);
+                  setComplianceOpen(true);
+                }}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-[--radius-md] text-sm font-medium text-emerald-400 hover:bg-emerald-500/10 transition-all min-h-[44px] w-full text-left cursor-pointer"
+              >
+                <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-400" />
+                <span className="truncate">{t('compliance', 'Privacy & Compliance')}</span>
+              </button>
             </nav>
-            <div className="p-4 border-t border-border/50">
+
+            {/* Drawer Footer: Sign Out */}
+            <div className="pt-3 border-t border-white/8">
               <button
                 onClick={handleSignOut}
-                className="flex items-center gap-3 w-full px-3 py-2.5 rounded-[--radius-md] text-sm font-medium text-destructive hover:bg-destructive/15 transition-colors min-h-[44px] touch-manipulation active:scale-95 cursor-pointer"
+                aria-label="Sign Out"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-[--radius-md] text-sm font-medium text-destructive hover:bg-destructive/15 transition-colors w-full cursor-pointer touch-manipulation active:scale-95 min-h-[44px]"
               >
-                <LogOut className="w-4 h-4" />
-                Sign Out
+                <LogOut className="w-4 h-4 shrink-0" />
+                <span>{t('logout', 'Sign Out')}</span>
               </button>
             </div>
           </aside>
         </>
       )}
 
-      {/* ═══ DESKTOP: Fixed Sidebar ═══ */}
+      {/* ═══ DESKTOP: Sidebar ═══ */}
       <aside
-        className={`hidden lg:flex fixed top-0 left-0 h-full shrink-0 flex-col border-r border-white/8 apple-chrome z-30 transition-all duration-[--duration-spring] ease-[--ease-spring-default] ${
-          collapsed ? 'w-[72px]' : 'w-[260px]'
+        className={`hidden lg:flex flex-col border-r border-white/8 apple-chrome transition-all duration-[--duration-normal] ease-[--ease-spring-default] shrink-0 z-30 ${
+          collapsed ? 'w-[72px]' : 'w-64'
         }`}
       >
-        <div className={`p-4 border-b border-white/8 flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
+        <div className="h-[--header-height] flex items-center justify-between px-4 border-b border-white/8">
           {!collapsed && (
             <Link href="/dashboard" className="flex items-center gap-2.5 touch-manipulation active:scale-95 transition-transform" onClick={() => triggerHaptic('selection')}>
               <img src="/logo.png" alt="KL" className="h-7 w-auto object-contain" />
@@ -349,11 +386,26 @@ export default function Navigation({
               </Link>
             );
           })}
+
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('selection');
+              setComplianceOpen(true);
+            }}
+            title={collapsed ? 'Privacy & Compliance' : undefined}
+            className={`flex items-center gap-3 rounded-[--radius-md] text-sm font-medium transition-all mb-1 min-h-[44px] w-full text-emerald-400 hover:bg-emerald-500/10 cursor-pointer ${
+              collapsed ? 'justify-center px-0 py-2.5 mx-1' : 'px-3 py-2.5'
+            }`}
+          >
+            <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-400" />
+            {!collapsed && <span className="truncate text-xs font-semibold">{t('compliance', 'Privacy & Compliance')}</span>}
+          </button>
         </nav>
 
-        <div className="p-3 border-t border-white/8">
+        <div className="p-3 border-t border-white/8 space-y-2">
           {!collapsed ? (
-            <div className="flex items-center gap-3 px-2 py-1.5 mb-2">
+            <div className="flex items-center gap-3 px-2 py-1.5 mb-1">
               <ProfileAvatar user={user} />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-foreground truncate">{user.name}</p>
@@ -361,7 +413,7 @@ export default function Navigation({
               </div>
             </div>
           ) : (
-            <div className="flex justify-center mb-2">
+            <div className="flex justify-center mb-1">
               <ProfileAvatar user={user} size="sm" />
             </div>
           )}
@@ -373,12 +425,12 @@ export default function Navigation({
             }`}
           >
             <LogOut className="w-4 h-4" />
-            {!collapsed && <span>Sign Out</span>}
+            {!collapsed && <span>{t('logout', 'Sign Out')}</span>}
           </button>
         </div>
       </aside>
 
-      {/* ═══ MOBILE: Bottom Tab Bar (Apple Floating Glass Chrome) ═══ */}
+      {/* ═══ MOBILE: Bottom Tab Bar ═══ */}
       <nav
         className="lg:hidden fixed bottom-0 left-0 right-0 z-40 apple-chrome-bottom"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
@@ -448,11 +500,11 @@ export default function Navigation({
                       className={`flex flex-col items-center gap-2 p-3 rounded-[--radius-lg] transition-all min-h-[44px] touch-manipulation active:scale-95 ${
                         active
                           ? 'bg-primary/20 text-primary border border-primary/30 font-semibold shadow-xs'
-                          : 'text-muted-foreground hover:bg-white/8 hover:text-foreground'
+                          : 'bg-white/4 hover:bg-white/8 text-muted-foreground hover:text-foreground border border-white/6'
                       }`}
                     >
-                      <Icon className="w-5 h-5" />
-                      <span className="text-[11px] font-medium text-center tracking-tight">{item.label}</span>
+                      <Icon className={`w-5 h-5 ${active ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <span className="text-xs font-medium text-center truncate w-full">{item.label}</span>
                     </Link>
                   );
                 })}
@@ -462,11 +514,9 @@ export default function Navigation({
         )}
       </nav>
 
-      {/* ═══ Main Content Area ═══ */}
+      {/* ═══ MAIN CONTENT REGION ═══ */}
       <main
-        className={`flex-1 flex flex-col min-h-[100dvh] overflow-hidden relative z-10 w-full transition-all duration-[--duration-spring] ease-[--ease-spring-default] ${
-          collapsed ? 'lg:pl-[72px]' : 'lg:pl-[260px]'
-        }`}
+        className="flex-1 flex flex-col min-w-0 overflow-hidden relative"
         style={{
           paddingTop: 'var(--header-height)',
           paddingBottom: 'calc(var(--bottom-bar-height) + env(safe-area-inset-bottom, 0px))',
@@ -501,6 +551,20 @@ export default function Navigation({
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic('light');
+                setComplianceOpen(true);
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold transition-all cursor-pointer active:scale-95 shadow-xs min-h-[44px]"
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>Compliance</span>
+            </button>
+
+            <LanguageSelector />
+
             <Badge variant="info" className="py-1 px-3 apple-pill">
               <Calendar className="w-3 h-3 mr-1" />
               <span className="text-[11px] font-medium">Current Sem</span>
@@ -554,6 +618,9 @@ export default function Navigation({
 
       {/* AI Copilot Widget */}
       <AICopilot />
+
+      {/* Global Compliance Center Modal */}
+      <ComplianceModal isOpen={complianceOpen} onClose={() => setComplianceOpen(false)} />
     </div>
   );
 }

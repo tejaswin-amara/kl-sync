@@ -10,7 +10,7 @@ This file provides guidance and project context for AI coding agents operating i
 - **Language**: TypeScript 5.8
 - **Architecture**: Edge Proxy (Stateless, no DB). Session tokens encrypted with AES-256-GCM.
 - **Styling**: Tailwind CSS v4 + Vanilla CSS tokens (`globals.css`)
-- **Icon Engine**: Native zero-runtime SVG library (`src/components/ui/icons.tsx` — 55 primitives)
+- **Icon Engine**: Native zero-runtime SVG library (`src/components/ui/icons.tsx` — 57 primitives)
 - **Testing**: Native Node.js Test Runner (`node:test`) + Playwright E2E + Agent-as-Judge AI suite
 
 ---
@@ -26,7 +26,7 @@ npx tsc --noEmit
 # 2. Linting (0 Errors)
 npm run lint
 
-# 3. Unit & Integration Test Suite (318 tests across 53 suites)
+# 3. Unit & Integration Test Suite (320 tests across 54 suites)
 npm test
 
 # 4. Agent-as-Judge AI Verification (9 tests)
@@ -78,9 +78,14 @@ npm run build
 │   │   ├── api/              # Edge proxy endpoints (login, captcha, erp-proxy, fetch-photo, ai/chat)
 │   │   └── dashboard/        # 11 Dashboard module routes (attendance, timetable, marks, etc.)
 │   ├── components/           # React UI components & native SVG icon engine
-│   │   └── ui/icons.tsx      # Native 55-component SVG icon library
+│   │   ├── ui/icons.tsx      # Native 57-component SVG icon library
+│   │   └── ui/LanguageSelector.tsx # i18n language & RTL toggle
+│   │   └── compliance/ComplianceModal.tsx # Compliance Center badges & modal
 │   ├── hooks/                # Custom React data hooks (useAcademicSession, useNativeQuery)
 │   ├── lib/                  # Scrapers (attendance, marks, timetable, fee, profile), crypto, captcha
+│   │   ├── compliance/       # Regulatory compliance data & manager (GDPR, CCPA, HIPAA...)
+│   │   ├── i18n/             # 9-language zero-dependency translation engine with RTL
+│   │   └── data-prefetcher.ts # Parallel login-time prefetch for all 9 ERP modules
 │   └── types/                # TypeScript type definitions & Zod schemas
 └── AGENTS.md                 # Agent guidance & project instructions
 

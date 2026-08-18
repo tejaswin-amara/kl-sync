@@ -75,7 +75,7 @@ Before committing, you **must** verify that your changes do not break the build 
    npm run lint
    ```
 3. **Run Automated Test Suites**:
-   Run the 312-test unit/integration suite and 9-test AI benchmark:
+   Run the 320-test unit/integration suite and 9-test AI benchmark:
    ```bash
    npm test
    npx tsx scripts/agent-as-judge.ts

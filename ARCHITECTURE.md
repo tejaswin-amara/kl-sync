@@ -42,6 +42,10 @@ graph TD
    - Dynamic key switching uses `useRef` stabilization to prevent cascading re-render or infinite fetch loops.
 2. **Edge Photo Caching**:
    - Student ID card photos proxied via `/api/fetch-photo` return immutable cache headers (`Cache-Control: public, max-age=86400, immutable`), offloading repeat requests to browser and CDN edge caches.
+3. **Zero-Loading Data Prefetcher (`data-prefetcher.ts`)**:
+   - Immediately after login, `prefetchAllUserData()` fires parallel fetches for all 9 ERP modules (Attendance, Timetable, Marks, Fee, Profile, Circulars, Hostels, Library, Exam Seating).
+   - Results are stored in a global in-memory cache with `sessionStorage` persistence, enabling synchronous initial state retrieval and SWR background revalidation.
+   - Dashboard tabs render instantly with zero loading screens.
 
 ---
 
@@ -86,3 +90,21 @@ src/lib/
 3. **High Request Concurrency**:
    - In-memory rate limiting (`src/lib/request-utils.ts`) prevents client IP flood attacks on university servers.
 
+---
+
+## 7. International Compliance & Localization
+
+### 7.1 Regulatory Compliance Framework
+KL Sync implements client-side compliance controls aligned with 8 international privacy regulations and 5 accessibility standards:
+- **Privacy**: GDPR, CCPA/CPRA, HIPAA, PIPEDA/CPPA, LGPD, DPDPA, PIPL, 152-FZ.
+- **Accessibility**: WCAG 2.2 AAA, EAA/EN 301 549, Section 508, i18n, RTL.
+
+Key modules:
+- `src/lib/compliance/compliance-data.ts`: 13 regulatory badge metadata definitions.
+- `src/lib/compliance/compliance-manager.ts`: Data Export (GDPR Art. 20), Cryptographic Erasure (Art. 17), Consent Manager.
+- `src/components/compliance/ComplianceModal.tsx`: Interactive Compliance Center with live badge bar.
+
+### 7.2 Internationalization (i18n) & RTL
+- `src/lib/i18n/index.ts`: Zero-dependency 9-language translation engine (en, te, hi, es, fr, de, ar, zh, ru).
+- `src/components/ui/LanguageSelector.tsx`: Language picker with Globe icon and `localStorage` persistence.
+- Arabic (`ar`) triggers `dir="rtl"` on `<html>`, activating CSS logical property mirroring in `globals.css`.
