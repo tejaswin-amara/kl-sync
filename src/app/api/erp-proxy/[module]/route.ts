@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { decodeSession, isDemoModeEnabled, isDemoSession } from '@/lib/session';
-import { resolveSessionToken, checkRateLimit, getClientIP } from '@/lib/request-utils';
+import { resolveSessionToken, checkRateLimitDistributed, getClientIP } from '@/lib/request-utils';
 import {
   fetchAttendanceData,
   fetchTimetableData,
@@ -25,6 +25,13 @@ import {
 
 export const dynamic = 'force-dynamic';
 
+function apiJson(data: unknown, init?: ResponseInit) {
+  const headers = new Headers(init?.headers);
+  headers.set('Cache-Control', 'private, no-store, max-age=0');
+  headers.set('Vary', 'Cookie');
+  return NextResponse.json(data, { ...init, headers });
+}
+
 async function handleProxy(
   request: NextRequest,
   { params }: { params: Promise<{ module: string }> }
@@ -34,9 +41,9 @@ async function handleProxy(
     const moduleName = resolvedParams.module;
 
     const clientIP = getClientIP(request);
-    const rl = checkRateLimit(`erp-proxy:${clientIP}`, 1000, 60_000);
+    const rl = await checkRateLimitDistributed(`erp-proxy:${clientIP}`, 1000, 60_000);
     if (!rl.allowed) {
-      return NextResponse.json(
+      return apiJson(
         { success: false, error: 'Too many requests. Please slow down.' },
         { status: 429 }
       );
@@ -58,14 +65,14 @@ async function handleProxy(
 
     if (!sessionValue) {
       if (!demoMode) {
-        return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
+        return apiJson({ success: false, error: 'Authentication required.' }, { status: 401 });
       }
       session = DEMO_SESSION;
     } else {
       try {
         session = await decodeSession(sessionValue);
       } catch {
-        return NextResponse.json({ success: false, error: 'Session expired. Please sign in again.' }, { status: 401 });
+        return apiJson({ success: false, error: 'Session expired. Please sign in again.' }, { status: 401 });
       }
     }
     const academicYear =
@@ -87,7 +94,7 @@ async function handleProxy(
       !rawCsrf &&
       ['attendance', 'timetable', 'marks', 'end-exam'].includes(moduleName)
     ) {
-      return NextResponse.json(
+      return apiJson(
         { success: false, error: 'CSRF token missing' },
         { status: 400 }
       );
@@ -100,7 +107,7 @@ async function handleProxy(
       ['attendance', 'timetable', 'marks', 'end-exam'].includes(moduleName) &&
       (!academicYear || !semesterId)
     ) {
-      return NextResponse.json(
+      return apiJson(
         { success: false, error: 'Missing academicYear or semesterId' },
         { status: 400 }
       );
@@ -122,19 +129,19 @@ async function handleProxy(
       'library',
     ];
     if (!knownModules.includes(moduleName) && !ERP_ENDPOINTS[moduleName]) {
-      return NextResponse.json(
+      return apiJson(
         { success: false, error: `Unknown module: ${moduleName}` },
         { status: 404 }
       );
     }
 
     if (isDemoSession(session) && !demoMode) {
-      return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
+      return apiJson({ success: false, error: 'Authentication required.' }, { status: 401 });
     }
 
     if (demoMode && isDemoSession(session)) {
       if (moduleName === 'attendance') {
-        return NextResponse.json({
+        return apiJson({
           success: true,
           attendanceData: DEMO_ATTENDANCE.map((item) => ({
             ...item,
@@ -144,19 +151,19 @@ async function handleProxy(
         });
       }
       if (moduleName === 'timetable') {
-        return NextResponse.json({
+        return apiJson({
           success: true,
           data: DEMO_TIMETABLE_RAW,
         });
       }
       if (moduleName === 'marks') {
-        return NextResponse.json({
+        return apiJson({
           success: true,
           data: DEMO_MARKS,
         });
       }
       if (moduleName === 'profile') {
-        return NextResponse.json({
+        return apiJson({
           success: true,
           data: {
             ...DEMO_PROFILE,
@@ -166,19 +173,19 @@ async function handleProxy(
         });
       }
       if (moduleName === 'cgpa') {
-        return NextResponse.json({
+        return apiJson({
           success: true,
           data: DEMO_CGPA,
         });
       }
       if (moduleName === 'fee') {
-        return NextResponse.json({
+        return apiJson({
           success: true,
           data: DEMO_FEE_ITEMS,
         });
       }
       if (moduleName === 'circulars') {
-        return NextResponse.json({
+        return apiJson({
           success: true,
           data: [
             {
@@ -197,7 +204,7 @@ async function handleProxy(
         });
       }
       if (moduleName === 'hostels') {
-        return NextResponse.json({
+        return apiJson({
           success: true,
           data: [
             {
@@ -210,7 +217,7 @@ async function handleProxy(
         });
       }
       if (moduleName === 'library') {
-        return NextResponse.json({
+        return apiJson({
           success: true,
           data: [
             {
@@ -224,7 +231,7 @@ async function handleProxy(
         });
       }
       if (moduleName === 'exam-seating') {
-        return NextResponse.json({
+        return apiJson({
           success: true,
           data: [
             {
@@ -245,7 +252,7 @@ async function handleProxy(
     switch (moduleName) {
       case 'attendance':
         if (!academicYear || !semesterId)
-          return NextResponse.json(
+          return apiJson(
             { success: false, error: 'Missing academicYear or semesterId' },
             { status: 400 }
           );
@@ -258,7 +265,7 @@ async function handleProxy(
         break;
       case 'timetable':
         if (!academicYear || !semesterId)
-          return NextResponse.json(
+          return apiJson(
             { success: false, error: 'Missing academicYear or semesterId' },
             { status: 400 }
           );
@@ -271,7 +278,7 @@ async function handleProxy(
         break;
       case 'marks':
         if (!academicYear || !semesterId)
-          return NextResponse.json(
+          return apiJson(
             { success: false, error: 'Missing academicYear or semesterId' },
             { status: 400 }
           );
@@ -284,7 +291,7 @@ async function handleProxy(
         break;
       case 'end-exam':
         if (!academicYear || !semesterId)
-          return NextResponse.json(
+          return apiJson(
             { success: false, error: 'Missing academicYear or semesterId' },
             { status: 400 }
           );
@@ -317,7 +324,7 @@ async function handleProxy(
             ERP_ENDPOINTS[moduleName]
           );
         } else {
-          return NextResponse.json(
+          return apiJson(
             { success: false, error: `Unknown module: ${moduleName}` },
             { status: 404 }
           );
@@ -325,7 +332,7 @@ async function handleProxy(
         break;
     }
 
-    return NextResponse.json(result);
+    return apiJson(result);
   } catch (error: unknown) {
     let modName = 'unknown';
     try {
@@ -340,7 +347,7 @@ async function handleProxy(
       errMessage.includes('Session expired') ||
       errMessage.includes('invalid ERP route');
     if (isSessionExpired) {
-      return NextResponse.json(
+      return apiJson(
         { success: false, error: 'Session expired. Please re-login.' },
         { status: 401 }
       );
@@ -357,7 +364,7 @@ async function handleProxy(
         error.name === 'TimeoutError');
 
     if (isTimeout) {
-      return NextResponse.json(
+      return apiJson(
         {
           success: false,
           error: 'ERP Gateway Timeout',
@@ -368,7 +375,7 @@ async function handleProxy(
     }
 
     // 3. Network / Upstream Proxy Failure -> 502 Bad Gateway
-    return NextResponse.json(
+    return apiJson(
       {
         success: false,
         error: 'ERP Bad Gateway',

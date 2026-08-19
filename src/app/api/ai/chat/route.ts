@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { decodeSession, isDemoModeEnabled, ScraperSession } from '@/lib/session';
-import { resolveSessionToken, checkRateLimit, getClientIP } from '@/lib/request-utils';
+import { resolveSessionToken, checkRateLimitDistributed, getClientIP } from '@/lib/request-utils';
 import { processAIChat, ToolExecutionContext } from '@/lib/ai/executor';
 import { DEMO_SESSION } from '@/lib/fixtures';
 
@@ -13,7 +13,7 @@ interface ChatMessageInput {
 
 export async function POST(request: NextRequest) {
   const clientIP = getClientIP(request);
-  const rl = checkRateLimit(`ai-chat:${clientIP}`, 60, 60_000);
+  const rl = await checkRateLimitDistributed(`ai-chat:${clientIP}`, 60, 60_000);
   if (!rl.allowed) {
     return NextResponse.json(
       { success: false, error: 'Rate limit exceeded. Please wait before sending more messages.' },

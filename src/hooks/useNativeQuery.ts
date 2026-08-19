@@ -122,8 +122,13 @@ export function useNativeQuery<T>(
         setError(null);
       }
     } catch (err: unknown) {
+      const normalizedError = err instanceof Error ? err : new Error(String(err));
+      if (/session expired|authentication required|sign in again/i.test(normalizedError.message)) {
+        clearGlobalCache();
+        if (mountedRef.current) setData(undefined);
+      }
       if (mountedRef.current) {
-        setError(err instanceof Error ? err : new Error(String(err)));
+        setError(normalizedError);
       }
     } finally {
       if (mountedRef.current) {

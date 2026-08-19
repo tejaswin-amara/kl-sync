@@ -74,7 +74,12 @@ export async function fetchWithJar(
   init: RequestInit & { extraHeaders?: Record<string, string> } = {},
   maxRedirects = 5
 ): Promise<Response> {
-  let currentUrl = url;
+  const initialUrl = new URL(url);
+  if (initialUrl.origin !== ERP_URL) {
+    throw new Error('ERP request URL is outside the configured origin');
+  }
+
+  let currentUrl = initialUrl.toString();
   let method = (init.method || 'GET').toUpperCase();
   let body = init.body;
 
@@ -104,9 +109,12 @@ export async function fetchWithJar(
     const status = res.status;
     const location = res.headers.get('location');
     if (status >= 300 && status < 400 && location) {
-      let next = new URL(location, currentUrl).toString();
-      next = next.replace(/^http:\/\//i, 'https://');
-      currentUrl = next;
+      const nextUrl = new URL(location, currentUrl);
+      nextUrl.protocol = 'https:';
+      if (nextUrl.origin !== ERP_URL) {
+        throw new Error('ERP redirect left the configured origin');
+      }
+      currentUrl = nextUrl.toString();
       if (status === 303 || status === 302 || status === 301) {
         method = 'GET';
         body = undefined;

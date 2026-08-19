@@ -3,6 +3,7 @@ import { loginAndFetchSemesters, ScraperSession } from '@/lib/scraper';
 import { decodeSession, encodeSession, isDemoModeEnabled } from '@/lib/session';
 import { verifyCaptchaToken } from '@/lib/captcha';
 import { DEMO_LOGIN_RESULT } from '@/lib/fixtures';
+import { checkRateLimitDistributed, getClientIP } from '@/lib/request-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,6 +46,18 @@ export async function POST(request: NextRequest) {
 
     if (!username || !password || !captcha) {
       return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
+    }
+
+    const clientIp = getClientIP(request);
+    const accountKey = username.toLowerCase().slice(0, 128);
+    const ipLimit = await checkRateLimitDistributed(`login:ip:${clientIp}`, 10, 10 * 60 * 1000);
+    const accountLimit = await checkRateLimitDistributed(`login:account:${accountKey}`, 8, 10 * 60 * 1000);
+    if (!ipLimit.allowed || !accountLimit.allowed) {
+      const retryAfter = Math.ceil(Math.max(ipLimit.resetMs, accountLimit.resetMs) / 1000);
+      return NextResponse.json(
+        { success: false, message: 'Too many login attempts. Please try again later.' },
+        { status: 429, headers: { 'Cache-Control': 'no-store, max-age=0', 'Retry-After': String(retryAfter) } }
+      );
     }
 
     const demoMode = isDemoModeEnabled();

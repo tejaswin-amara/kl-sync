@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getCaptcha } from '@/lib/scraper';
 import { encodeSession, isDemoModeEnabled } from '@/lib/session';
 import { DEMO_SESSION, DEMO_CAPTCHA_SVG } from '@/lib/fixtures';
+import { checkRateLimitDistributed, getClientIP } from '@/lib/request-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -65,7 +66,16 @@ function withCaptchaCookie(response: NextResponse, sessionId: string): NextRespo
   return response;
 }
 
-export async function GET() {
+export async function GET(request?: NextRequest) {
+  const effectiveRequest = request ?? new NextRequest('http://localhost/api/captcha');
+  const limit = await checkRateLimitDistributed(`captcha:ip:${getClientIP(effectiveRequest)}`, 30, 60_000);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { success: false, error: 'Too many captcha requests. Please try again later.' },
+      { status: 429, headers: { 'Cache-Control': 'no-store, max-age=0', 'Retry-After': String(Math.ceil(limit.resetMs / 1000)) } }
+    );
+  }
+
   try {
     const demoMode = isDemoModeEnabled();
     const apiKey = process.env.OCR_SPACE_API_KEY;

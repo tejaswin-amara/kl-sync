@@ -128,7 +128,7 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
             <Menu className="h-5 w-5" />
           </button>
           <Link href="/dashboard" className="flex items-center gap-2" onClick={() => triggerHaptic('selection')}>
-            <img src="/logo.png" alt="KL" className="h-7 w-auto rounded-md bg-surface-1 object-contain" />
+            <img src="/logo.webp" alt="KL" className="h-7 w-auto rounded-md bg-surface-1 object-contain" />
             <span className="font-heading text-sm font-bold tracking-tight">KL Sync</span>
           </Link>
         </div>
@@ -143,7 +143,7 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
         <div className="animate-fade-in fixed inset-0 z-50 bg-slate-950/25 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
         <aside id="mobile-sidebar-drawer" className="apple-chrome animate-drawer-enter fixed inset-y-0 left-0 z-50 flex w-[min(86vw,320px)] flex-col border-r p-4 lg:hidden">
           <div className="flex items-center justify-between border-b pb-4">
-            <Link href="/dashboard" className="flex items-center gap-2.5"><img src="/logo.png" alt="KL" className="h-8 rounded-md bg-surface-1" /><span className="font-heading font-bold">KL Sync</span></Link>
+            <Link href="/dashboard" className="flex items-center gap-2.5"><img src="/logo.webp" alt="KL" className="h-8 rounded-md bg-surface-1" /><span className="font-heading font-bold">KL Sync</span></Link>
             <button onClick={() => setSidebarOpen(false)} className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-muted-foreground hover:bg-surface-2" aria-label="Close menu"><X className="h-5 w-5" /></button>
           </div>
           <div className="flex items-center gap-3 border-b py-4"><ProfileAvatar user={user} /><div className="min-w-0"><p className="truncate text-sm font-bold">{user.name}</p><p className="truncate font-mono text-[11px] text-muted-foreground">{user.id}</p></div></div>
@@ -154,7 +154,7 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
 
       <aside className={`apple-chrome fixed inset-y-0 left-0 z-30 hidden flex-col border-r transition-[width] duration-[--duration-normal] lg:flex ${collapsed ? 'w-[--sidebar-collapsed]' : 'w-[--sidebar-width]'}`}>
         <div className="flex h-[--header-height] items-center justify-between border-b px-4">
-          <Link href="/dashboard" className={`flex items-center gap-2.5 ${collapsed ? 'mx-auto' : ''}`}><img src="/logo.png" alt="KL" className="h-8 rounded-md bg-surface-1 object-contain" />{!collapsed && <span className="font-heading text-base font-bold tracking-tight">KL Sync</span>}</Link>
+          <Link href="/dashboard" className={`flex items-center gap-2.5 ${collapsed ? 'mx-auto' : ''}`}><img src="/logo.webp" alt="KL" className="h-8 rounded-md bg-surface-1 object-contain" />{!collapsed && <span className="font-heading text-base font-bold tracking-tight">KL Sync</span>}</Link>
           {!collapsed && <button onClick={toggleCollapse} className="flex min-h-[40px] min-w-[40px] items-center justify-center rounded-full text-muted-foreground hover:bg-surface-2" aria-label="Collapse sidebar"><ChevronLeft className="h-4 w-4" /></button>}
         </div>
         <nav className="custom-scrollbar flex-1 space-y-1 overflow-y-auto px-2 py-5">

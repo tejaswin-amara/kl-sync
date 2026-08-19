@@ -50,15 +50,10 @@ export default function ToolsPage() {
       }
 
       if (yearId && semId) {
-        const csrf = sessionStorage.getItem('kl_erp_csrf_token');
         const attRes = await fetch('/api/erp-proxy/attendance', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            academicYear: yearId,
-            semesterId: semId,
-            csrfToken: csrf,
-          }),
+          body: JSON.stringify({ academicYear: yearId, semesterId: semId }),
         });
         const attData = await attRes.json();
         if (attData.success && attData.attendanceData) {

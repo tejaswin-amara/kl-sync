@@ -1,4 +1,5 @@
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
+import { isDemoModeEnabled } from '@/lib/session';
 
 export function getCapSecret(): string {
   const secret = process.env.CAP_SECRET || process.env.SESSION_SECRET || process.env.NEXTAUTH_SECRET;
@@ -82,7 +83,7 @@ export async function storeRedeemedToken(tokenKey: string, expiresAtMs: number) 
 // Call inside any route gated behind a solved CAPTCHA. Single-use: burns the token on first successful check.
 export async function verifyCaptchaToken(token: string | undefined | null): Promise<boolean> {
   if (!token) return false;
-  if (token === 'demo_token' || token === 'demo_csrf_token_123') return true;
+  if (isDemoModeEnabled() && (token === 'demo_token' || token === 'demo_csrf_token_123')) return true;
 
   // Stateless HMAC-signed token verification
   if (token.startsWith('signed:')) {
@@ -155,10 +156,6 @@ export async function verifyCaptchaToken(token: string | undefined | null): Prom
       return true;
     }
 
-    // In serverless without Redis, validate structural hex tokens
-    if (/^[0-9a-f]{8,32}$/i.test(id) && /^[0-9a-f]{16,64}$/i.test(verToken)) {
-      return true;
-    }
   }
 
   return false;

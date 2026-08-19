@@ -15,11 +15,10 @@ export interface UseAttendanceResult {
 
 async function attendanceFetcher(key: unknown) {
   const [url, academicYear, semesterId] = key as [string, string, string];
-  const csrfToken = typeof window !== 'undefined' ? sessionStorage.getItem('kl_erp_csrf_token') : null;
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ academicYear, semesterId, csrfToken }),
+    body: JSON.stringify({ academicYear, semesterId }),
   });
   const contentType = res.headers.get('content-type') || '';
   if (!contentType.includes('application/json')) {

@@ -84,11 +84,10 @@ export default function DashboardOverview() {
         setActiveYearId(yearId);
         setActiveSemId(semId);
 
-        const csrf = sessionStorage.getItem('kl_erp_csrf_token');
         fetch('/api/erp-proxy/attendance', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ academicYear: yearId, semesterId: semId, csrfToken: csrf }),
+          body: JSON.stringify({ academicYear: yearId, semesterId: semId }),
         })
           .then((res) => res.json())
           .then((resData) => {
@@ -246,11 +245,10 @@ function TodayScheduleWidget({
 
     // Fetch fresh
     try {
-      const csrf = sessionStorage.getItem('kl_erp_csrf_token');
       const res = await fetch('/api/erp-proxy/timetable', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ academicYear: activeYearId, semesterId: activeSemId, csrfToken: csrf }),
+        body: JSON.stringify({ academicYear: activeYearId, semesterId: activeSemId }),
       });
       const resData = await res.json();
       if (resData.success && Array.isArray(resData.data)) {
@@ -437,11 +435,10 @@ function CurrentCoursesWidget({
           }
         }
 
-        const csrf = sessionStorage.getItem('kl_erp_csrf_token');
         const marksRes = await fetch('/api/erp-proxy/marks', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ academicYear: activeYearId, semesterId: activeSemId, csrfToken: csrf }),
+          body: JSON.stringify({ academicYear: activeYearId, semesterId: activeSemId }),
         }).catch(() => null);
 
         if (marksRes && marksRes.ok) {

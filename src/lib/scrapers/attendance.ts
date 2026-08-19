@@ -30,7 +30,7 @@ export async function getCaptcha(options?: { signal?: AbortSignal }): Promise<Ca
 
     let csrfToken = ($('input[name="_csrf"]').val() as string) || '';
     if (!csrfToken) {
-      const csrfMatch = html.match(/name="_csrf"[^>]*value="([^"]+)"/);
+      const csrfMatch = html.match(/name=["']_csrf["'][^>]*value=["']([^"']+)["']/i);
       if (csrfMatch) csrfToken = csrfMatch[1];
     }
     if (!csrfToken) {
@@ -139,8 +139,8 @@ export async function loginAndFetchSemesters(
   const attendanceHtml = await attendanceRes.text();
 
   const authenticated =
-    /name="DynamicModel\[academicyear\]"/.test(attendanceHtml) ||
-    /name="DynamicModel\[semesterid\]"/.test(attendanceHtml);
+    /name=["'][^"']*academicyear[^"']*["']/i.test(attendanceHtml) ||
+    /name=["'][^"']*semesterid[^"']*["']/i.test(attendanceHtml);
 
   if (!authenticated) {
     const $err = cheerio.load(loginText || attendanceHtml);
@@ -209,7 +209,7 @@ export async function loginAndFetchSemesters(
   }
 
   const csrfTokenMatch = attendanceHtml.match(
-    /name="_csrf"[^>]*value="([^"]+)"/
+    /name=["']_csrf["'][^>]*value=["']([^"']+)["']/i
   );
   const csrfToken = csrfTokenMatch ? csrfTokenMatch[1] : session.csrfToken;
 
@@ -217,7 +217,7 @@ export async function loginAndFetchSemesters(
 
   const academicYears: SemesterOption[] = [];
   let selectedYearValue = '';
-  $('select[name="DynamicModel[academicyear]"] option').each((_i, el) => {
+  $('select[name="DynamicModel[academicyear]"], select[name="academicyear"], select[name*="[academicyear]"] option').first().parent().find('option').each((_i, el) => {
     const value = $(el).attr('value');
     const label = $(el).text().trim();
     if (value) {
@@ -238,7 +238,7 @@ export async function loginAndFetchSemesters(
 
   const semesters: SemesterOption[] = [];
   let selectedSemValue = '';
-  $('select[name="DynamicModel[semesterid]"] option').each((_i, el) => {
+  $('select[name="DynamicModel[semesterid]"], select[name="semesterid"], select[name*="[semesterid]"] option').first().parent().find('option').each((_i, el) => {
     const value = $(el).attr('value');
     const label = $(el).text().trim();
     if (value) {
@@ -336,6 +336,9 @@ export async function fetchAttendanceData(
   }
 
   const attendanceData = parseGenericTable(text);
+  if (attendanceData.length === 0 && /<\/?(?:html|body|main|section)\b/i.test(text)) {
+    throw new Error('Attendance data format changed or no attendance table was returned.');
+  }
   registerCourseTitles(attendanceData);
   return {
     success: true,

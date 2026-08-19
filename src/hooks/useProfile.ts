@@ -12,10 +12,6 @@ async function profileFetcher(url: unknown) {
   const res = await fetch(`${url as string}?t=${Date.now()}`);
   const contentType = res.headers.get('content-type') || '';
   if (res.status === 401) {
-    if (typeof window !== 'undefined') {
-      sessionStorage.removeItem('kl_erp_session');
-      sessionStorage.removeItem('kl_erp_csrf_token');
-    }
     throw new Error('Session expired. Please log in again.');
   }
   if (!contentType.includes('application/json')) {
