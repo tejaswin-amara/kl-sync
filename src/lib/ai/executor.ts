@@ -60,6 +60,13 @@ export interface ToolExecutionResult {
   error?: string;
 }
 
+const SUPPORTED_AI_MODELS = new Set(['gpt-5-nano', 'gpt-5-mini', 'gpt-5', 'gpt-5.5', 'gpt-4.1-mini', 'gpt-4.1-nano']);
+
+function getConfiguredAIModel(): string {
+  const configured = process.env.KL_SYNC_AI_MODEL?.trim();
+  return configured && SUPPORTED_AI_MODELS.has(configured) ? configured : 'gpt-5-mini';
+}
+
 // ============================================================================
 // Tool Executors
 // ============================================================================
@@ -94,10 +101,10 @@ export async function executeGetAttendance(
       if (res.success && Array.isArray(res.data) && res.data.length > 0) {
         attendanceList = res.data as unknown as AttendanceSubject[];
       } else {
-        attendanceList = DEMO_ATTENDANCE;
+        throw new Error('Attendance data is unavailable.');
       }
     } catch {
-      attendanceList = DEMO_ATTENDANCE;
+      throw new Error('Attendance data is unavailable.');
     }
   }
 
@@ -180,10 +187,10 @@ export async function executeGetTimetable(
       if (res.success && Array.isArray(res.data) && res.data.length > 0) {
         rawRows = res.data as Record<string, unknown>[];
       } else {
-        rawRows = DEMO_TIMETABLE_RAW;
+        throw new Error('Timetable data is unavailable.');
       }
     } catch {
-      rawRows = DEMO_TIMETABLE_RAW;
+      throw new Error('Timetable data is unavailable.');
     }
   }
 
@@ -243,10 +250,10 @@ export async function executeGetMarks(
       if (res.success && Array.isArray(res.data) && res.data.length > 0) {
         marksList = res.data as Record<string, unknown>[];
       } else {
-        marksList = DEMO_MARKS;
+        throw new Error('Marks data is unavailable.');
       }
     } catch {
-      marksList = DEMO_MARKS;
+      throw new Error('Marks data is unavailable.');
     }
   }
 
@@ -278,10 +285,10 @@ export async function executeGetFeeDetails(
       if (res.success && Array.isArray(res.data) && res.data.length > 0) {
         feeRows = res.data as Record<string, unknown>[];
       } else {
-        feeRows = DEMO_FEE_ITEMS as unknown as Record<string, unknown>[];
+        throw new Error('Fee data is unavailable.');
       }
     } catch {
-      feeRows = DEMO_FEE_ITEMS as unknown as Record<string, unknown>[];
+      throw new Error('Fee data is unavailable.');
     }
   }
 
@@ -345,6 +352,8 @@ export async function executeGetStudentProfile(
       name?: string;
       universityId?: string;
       photoUrl?: string;
+      program?: string;
+      department?: string;
       extendedProfile?: string | Record<string, unknown>;
       success?: boolean;
     };
@@ -365,20 +374,19 @@ export async function executeGetStudentProfile(
           name: rawRes.name,
           universityId: rawRes.universityId,
           photoUrl: rawRes.photoUrl || '/logo.png',
-          program: DEMO_PROFILE.program,
-          department: DEMO_PROFILE.department,
+          program: rawRes.program,
+          department: rawRes.department,
           academicYear: context?.academicYear || '2025-2026',
           semester: context?.semesterId || '1',
           extendedProfile: ext,
         },
       };
     }
-  } catch {}
+  } catch {
+    throw new Error('Profile data is unavailable.');
+  }
 
-  return {
-    success: true,
-    profile: DEMO_PROFILE,
-  };
+  throw new Error('Profile data is unavailable.');
 }
 
 export function executeCalculateAttendanceTarget(
@@ -599,7 +607,7 @@ export async function processAIChat(
   const lastMessage = messages[messages.length - 1];
   const userQuery = lastMessage?.content || '';
 
-  if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.trim() === '') {
+  if (process.env.KL_SYNC_AI_MODE === 'offline' || !process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.trim() === '') {
     const offlineResult = await matchOfflineQuery(userQuery, context);
     return {
       assistantResponseText: offlineResult.text,
@@ -613,11 +621,21 @@ export async function processAIChat(
     content: m.content,
   }));
 
-  const sdkResult = await generateText({
-    model: openai('gpt-4o'),
-    tools,
-    messages: formattedMessages,
-  });
+  let sdkResult;
+  try {
+    sdkResult = await generateText({
+      model: openai(getConfiguredAIModel()),
+      tools,
+      messages: formattedMessages,
+    });
+  } catch (error) {
+    console.error('[AI] Provider unavailable; using deterministic offline matcher:', error instanceof Error ? error.message : 'Unknown provider error');
+    const offlineResult = await matchOfflineQuery(userQuery, context);
+    return {
+      assistantResponseText: offlineResult.text,
+      toolCalls: offlineResult.toolCalls,
+    };
+  }
 
   const toolCalls: Array<{
     tool: string;

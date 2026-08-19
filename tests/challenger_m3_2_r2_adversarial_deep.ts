@@ -192,10 +192,14 @@ async function runAdversarialDeepVerification() {
     assert.strictEqual(r6.remaining, 0);
   })();
 
-  await record('getClientIP resolves x-forwarded-for and x-real-ip headers accurately', () => {
+  await record('getClientIP trusts forwarded headers only when explicitly configured', () => {
     const req1 = new NextRequest('http://localhost:3000/api/ai/chat', {
       headers: { 'x-forwarded-for': '203.0.113.195, 70.41.3.18, 150.172.238.178' },
     });
+    const originalTrust = process.env.TRUST_PROXY_HEADERS;
+    delete process.env.TRUST_PROXY_HEADERS;
+    assert.strictEqual(getClientIP(req1), 'unknown');
+    process.env.TRUST_PROXY_HEADERS = 'true';
     assert.strictEqual(getClientIP(req1), '203.0.113.195');
 
     const req2 = new NextRequest('http://localhost:3000/api/ai/chat', {
@@ -204,10 +208,12 @@ async function runAdversarialDeepVerification() {
     assert.strictEqual(getClientIP(req2), '198.51.100.42');
 
     const req3 = new NextRequest('http://localhost:3000/api/ai/chat');
-    assert.strictEqual(getClientIP(req3), '127.0.0.1');
+    if (originalTrust === undefined) delete process.env.TRUST_PROXY_HEADERS;
+    else process.env.TRUST_PROXY_HEADERS = originalTrust;
+    assert.strictEqual(getClientIP(req3), 'unknown');
   })();
 
-  await record('resolveSessionToken strictly prioritizes cookie > header > body > query', () => {
+  await record('resolveSessionToken accepts only the auth cookie by default', () => {
     // Cookie priority over header and body
     const reqCookie = new NextRequest('http://localhost:3000/api/erp-proxy/attendance', {
       headers: {
@@ -215,7 +221,7 @@ async function runAdversarialDeepVerification() {
         'x-session-id': 'header_val_456',
       },
     });
-    assert.strictEqual(resolveSessionToken(reqCookie, { sessionId: 'body_val_789' }), 'cookie_val_123');
+    assert.strictEqual(resolveSessionToken(reqCookie), 'cookie_val_123');
 
     // Header priority when no cookie
     const reqHeader = new NextRequest('http://localhost:3000/api/erp-proxy/attendance', {
@@ -223,15 +229,10 @@ async function runAdversarialDeepVerification() {
         'x-session-id': 'header_val_456',
       },
     });
-    assert.strictEqual(resolveSessionToken(reqHeader, { sessionId: 'body_val_789' }), 'header_val_456');
+    assert.strictEqual(resolveSessionToken(reqHeader), undefined);
 
-    // Body priority when no cookie or header
-    const reqBody = new NextRequest('http://localhost:3000/api/erp-proxy/attendance');
-    assert.strictEqual(resolveSessionToken(reqBody, { sessionId: 'body_val_789' }), 'body_val_789');
-
-    // Query fallback
     const reqQuery = new NextRequest('http://localhost:3000/api/erp-proxy/attendance?sessionId=query_val_999');
-    assert.strictEqual(resolveSessionToken(reqQuery), 'query_val_999');
+    assert.strictEqual(resolveSessionToken(reqQuery), undefined);
   })();
 
   // ---------------------------------------------------------------------------

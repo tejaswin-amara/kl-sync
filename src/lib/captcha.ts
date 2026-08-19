@@ -1,7 +1,13 @@
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 
 export function getCapSecret(): string {
-  const secret = process.env.CAP_SECRET || process.env.SESSION_SECRET || process.env.NEXTAUTH_SECRET || 'kl-sync-cap-secret-production-fallback-key-32-chars';
+  const secret = process.env.CAP_SECRET || process.env.SESSION_SECRET || process.env.NEXTAUTH_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('[SECURITY FATAL] CAP_SECRET or SESSION_SECRET is required in production.');
+    }
+    return 'kl-sync-cap-dev-secret-only';
+  }
   if (secret.length >= 16) return secret;
   return createHash('sha256').update(secret).digest('hex');
 }

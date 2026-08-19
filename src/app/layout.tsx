@@ -3,6 +3,7 @@ import { Inter, Outfit } from 'next/font/google';
 import './globals.css';
 import { ToastProvider } from '@/components/ui/toast';
 import { AriaLiveRegion } from '@/components/ui/aria-live';
+import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration';
 
 const inter = Inter({
   variable: '--font-inter',
@@ -26,7 +27,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#f4f6f8',
+  themeColor: '#0b0f14',
 };
 
 export default function RootLayout({
@@ -43,7 +44,7 @@ export default function RootLayout({
       <head>
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/logo.png" />
-        <meta name="color-scheme" content="light" />
+        <meta name="color-scheme" content="dark" />
       </head>
       <body
         className="min-h-full flex flex-col font-sans text-foreground bg-background"
@@ -57,19 +58,7 @@ export default function RootLayout({
             {children}
           </ToastProvider>
         </AriaLiveRegion>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
-                window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js').catch(function(err) {
-                    console.warn('[SW] Registration failed:', err);
-                  });
-                });
-              }
-            `,
-          }}
-        />
+        <ServiceWorkerRegistration />
       </body>
     </html>
   );

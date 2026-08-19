@@ -103,7 +103,9 @@ export async function matchOfflineQuery(
   }
 
   // 5. Marks check
-  if (q.includes('mark') || q.includes('score') || q.includes('exam') || q.includes('grade')) {
+  if (
+    q.includes('mark') || q.includes('score') || q.includes('exam') || q.includes('internal')
+  ) {
     const res = await executeTool('getMarks', {}, context);
     const resultObj = (res.result as Record<string, unknown>) || {};
     toolCalls.push({ tool: 'getMarks', args: {}, result: { success: true, ...resultObj } });

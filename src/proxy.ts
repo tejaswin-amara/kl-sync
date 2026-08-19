@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const isDashboard = request.nextUrl.pathname.startsWith('/dashboard');
 
   if (isDashboard) {
     const sessionCookie = request.cookies.get('kl_erp_session');
-    // If the user doesn't have the session cookie, redirect them to the login page
-    if (!sessionCookie || !sessionCookie.value) {
+    // Reject missing and legacy/plain session cookies before the dashboard shell renders.
+    if (!sessionCookie?.value || !sessionCookie.value.startsWith('enc.')) {
       return NextResponse.redirect(new URL('/', request.url));
     }
   }
@@ -15,7 +15,7 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-export default middleware;
+export default proxy;
 
 export const config = {
   matcher: ['/dashboard/:path*', '/dashboard'],

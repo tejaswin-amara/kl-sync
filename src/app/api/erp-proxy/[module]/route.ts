@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { decodeSession, isDemoSession } from '@/lib/session';
+import { decodeSession, isDemoModeEnabled, isDemoSession } from '@/lib/session';
 import { resolveSessionToken, checkRateLimit, getClientIP } from '@/lib/request-utils';
 import {
   fetchAttendanceData,
@@ -53,16 +53,20 @@ async function handleProxy(
     const searchParams = request.nextUrl.searchParams;
 
     let session: ScraperSession;
-    const sessionValue = resolveSessionToken(request, body);
+    const sessionValue = resolveSessionToken(request);
+    const demoMode = isDemoModeEnabled();
 
-    if (sessionValue) {
+    if (!sessionValue) {
+      if (!demoMode) {
+        return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
+      }
+      session = DEMO_SESSION;
+    } else {
       try {
         session = await decodeSession(sessionValue);
       } catch {
-        session = DEMO_SESSION;
+        return NextResponse.json({ success: false, error: 'Session expired. Please sign in again.' }, { status: 401 });
       }
-    } else {
-      session = DEMO_SESSION;
     }
     const academicYear =
       body.academicYear ||
@@ -76,13 +80,7 @@ async function handleProxy(
       searchParams.get('semester') ||
       searchParams.get('semester_id') ||
       undefined;
-    const csrfToken =
-      body.csrfToken ||
-      searchParams.get('csrfToken') ||
-      searchParams.get('_csrf') ||
-      undefined;
-
-    const rawCsrf = csrfToken || (sessionValue ? session.csrfToken : undefined);
+    const rawCsrf = sessionValue ? session.csrfToken : (demoMode ? session.csrfToken : undefined);
 
     // Validate CSRF token resolution for POST endpoints requiring form submission
     if (
@@ -130,7 +128,11 @@ async function handleProxy(
       );
     }
 
-    if (isDemoSession(session)) {
+    if (isDemoSession(session) && !demoMode) {
+      return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
+    }
+
+    if (demoMode && isDemoSession(session)) {
       if (moduleName === 'attendance') {
         return NextResponse.json({
           success: true,
@@ -370,7 +372,7 @@ async function handleProxy(
       {
         success: false,
         error: 'ERP Bad Gateway',
-        details: errMessage || 'Failed to establish connection with ERP backend.',
+          details: 'The ERP service could not complete the request. Please try again later.',
       },
       { status: 502 }
     );

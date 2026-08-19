@@ -1,176 +1,100 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loginAndFetchSemesters, ScraperSession } from '@/lib/scraper';
-import { decodeSession, encodeSession } from '@/lib/session';
+import { decodeSession, encodeSession, isDemoModeEnabled } from '@/lib/session';
 import { verifyCaptchaToken } from '@/lib/captcha';
 import { DEMO_LOGIN_RESULT } from '@/lib/fixtures';
 
 export const dynamic = 'force-dynamic';
 
+const CAPTCHA_COOKIE = 'kl_captcha_session';
+const SESSION_COOKIE = 'kl_erp_session';
+
+function setCookie(response: NextResponse, name: string, value: string, maxAge: number): NextResponse {
+  response.cookies.set(name, value, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge,
+  });
+  return response;
+}
+
+function clearCookie(response: NextResponse, name: string): NextResponse {
+  response.cookies.set(name, '', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/', maxAge: 0 });
+  return response;
+}
+
+function safeLoginError(error: unknown): { message: string; status: number; isOffline?: boolean } {
+  const message = error instanceof Error ? error.message : '';
+  if (message.includes('fetch failed') || message.includes('ENOTFOUND') || message.includes('ETIMEDOUT') || message.includes('ECONNREFUSED') || message.includes('KLU ERP server error') || message.includes('ERP login page structure')) {
+    return { message: 'KL ERP server is currently unreachable. Please try again later.', status: 502, isOffline: true };
+  }
+  return { message: 'Login failed. Please verify your credentials and try again.', status: 401 };
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { captchaToken, username, password, captcha, deviceId } = body;
+    const username = typeof body.username === 'string' ? body.username.trim() : '';
+    const password = typeof body.password === 'string' ? body.password : '';
+    const captcha = typeof body.captcha === 'string' ? body.captcha.trim().toLowerCase() : '';
+    const captchaToken = typeof body.captchaToken === 'string' ? body.captchaToken : '';
+    const deviceId = typeof body.deviceId === 'string' ? body.deviceId : '';
+    const rememberMe = body.rememberMe === true;
 
-    const isDemoToken =
-      !captchaToken ||
-      captchaToken === 'demo_token' ||
-      username === 'demo' ||
-      username === 'teststudent' ||
-      username === '2100030000';
-
-    if (!isDemoToken && !(await verifyCaptchaToken(captchaToken))) {
-      return NextResponse.json(
-        { success: false, message: 'Captcha verification failed. Please try again.' },
-        { status: 400 }
-      );
+    if (!username || !password || !captcha) {
+      return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
     }
 
-    // The ERP device id is the load-bearing value that avoids its post-login
-    // UserAccessToken crash. Prefer the httpOnly cookie we set on a previous
-    // login (survives refreshes, not readable by JS), falling back to whatever
-    // the client sent in the body.
-    const cookieDeviceId = request.cookies.get('kl_device')?.value;
-    const effectiveDeviceId = deviceId || cookieDeviceId || '';
-
-    // Get session ID from header (preferred) or body (fallback)
-    const sessionId = request.headers.get('x-session-id') || body.sessionId;
-
-    const cleanCaptcha = typeof captcha === 'string' ? captcha.trim().toLowerCase() : '';
-
-    if (!username || !password || !cleanCaptcha) {
-      return NextResponse.json(
-        { success: false, message: 'Missing required fields' },
-        { status: 400 }
-      );
+    const demoMode = isDemoModeEnabled();
+    const isExplicitDemoUser = demoMode && (username === 'demo' || username === 'teststudent' || username === '2100030000');
+    if (!isExplicitDemoUser && captchaToken && !(await verifyCaptchaToken(captchaToken))) {
+      return NextResponse.json({ success: false, message: 'Captcha verification failed. Please try again.' }, { status: 400 });
     }
 
-    // Decode session
-    if (!sessionId) {
-      return NextResponse.json(
-        { success: false, message: 'Session expired. Please refresh captcha.' },
-        { status: 400 }
-      );
+    const captchaSessionId = request.cookies.get(CAPTCHA_COOKIE)?.value;
+    if (!captchaSessionId) {
+      return NextResponse.json({ success: false, message: 'Session expired. Please refresh captcha.' }, { status: 400 });
     }
 
     let session: ScraperSession;
     try {
-      session = await decodeSession(sessionId);
-    } catch (e) {
-      const errMessage = e instanceof Error ? e.message : 'Invalid session';
-      console.error('Session parsing failed:', errMessage);
-      return NextResponse.json(
-        { success: false, message: 'Invalid session. Please refresh captcha.' },
-        { status: 400 }
-      );
+      session = await decodeSession(captchaSessionId);
+    } catch {
+      return NextResponse.json({ success: false, message: 'Captcha session is invalid. Please refresh the captcha.' }, { status: 400 });
     }
 
-    // Attempt Login (passing any previously-registered device id)
     let result;
     try {
-      if (
-        username === 'demo' ||
-        username === 'teststudent' ||
-        username === '2100030000' ||
-        session.csrfToken.includes('demo_csrf')
-      ) {
-        throw new Error('DEMO_FALLBACK');
-      }
-      result = await loginAndFetchSemesters(
-        username,
-        password,
-        cleanCaptcha,
-        session,
-        effectiveDeviceId
-      );
-    } catch (e: unknown) {
-      const errMsg = e instanceof Error ? e.message : String(e);
-      const isExplicitDemoUser =
-        username === 'demo' ||
-        username === 'teststudent' ||
-        username === '2100030000' ||
-        session.csrfToken.includes('demo_csrf');
-
-      if (errMsg === 'DEMO_FALLBACK' || isExplicitDemoUser) {
-        console.warn('[AUTH] Using fallback login session for explicit demo user mode:', errMsg);
-        result = {
-          ...DEMO_LOGIN_RESULT,
-          deviceId: effectiveDeviceId || DEMO_LOGIN_RESULT.deviceId,
-        };
-      } else if (
-        errMsg.includes('fetch failed') ||
-        errMsg.includes('ENOTFOUND') ||
-        errMsg.includes('ETIMEDOUT') ||
-        errMsg.includes('ECONNREFUSED') ||
-        errMsg.includes('KLU ERP server error') ||
-        errMsg.includes('ERP login page structure')
-      ) {
-        console.error('[AUTH] Upstream ERP unreachable for user login attempt:', errMsg);
-        return NextResponse.json(
-          {
-            success: false,
-            message: 'KL ERP server is currently unreachable. Please check status or try again later.',
-            isOffline: true,
-          },
-          { status: 502 }
-        );
+      if (isExplicitDemoUser || session.csrfToken.includes('demo_csrf')) {
+        if (!demoMode) throw new Error('Invalid login request');
+        result = { ...DEMO_LOGIN_RESULT, deviceId: deviceId || DEMO_LOGIN_RESULT.deviceId };
       } else {
-        throw e;
+        result = await loginAndFetchSemesters(username, password, captcha, session, deviceId);
       }
+    } catch (error) {
+      const safe = safeLoginError(error);
+      return NextResponse.json({ success: false, message: safe.message, ...(safe.isOffline ? { isOffline: true } : {}) }, { status: safe.status });
     }
 
-    // Encode (and encrypt, when SESSION_SECRET is set) the updated session with new cookies
     const updatedSessionId = await encodeSession(result.session);
-
-    // Persist any device id the ERP issued as an httpOnly cookie so the very
-    // next login carries it automatically (no JS/localStorage races).
-    const persistDeviceCookie = (res: NextResponse) => {
-      if (result.deviceId) {
-        res.cookies.set('kl_device', result.deviceId, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-          maxAge: 60 * 60 * 24 * 180, // 180 days
-        });
-      }
-      return res;
-    };
-
-    // First-time device registration: ask the client to retry with a fresh
-    // captcha. Return 200 so the client can handle it as a normal flow step,
-    // and hand back the harvested deviceId for it to store + resend.
     if (result.needsCaptchaRetry) {
-      return persistDeviceCookie(
-        NextResponse.json({
-          success: false,
-          needsCaptchaRetry: true,
-          deviceId: result.deviceId,
-          sessionId: updatedSessionId,
-          message: result.message,
-        })
-      );
+      const response = NextResponse.json({ success: false, needsCaptchaRetry: true, message: result.message });
+      return setCookie(clearCookie(response, SESSION_COOKIE), CAPTCHA_COOKIE, updatedSessionId, 5 * 60);
     }
 
-    return persistDeviceCookie(
-      NextResponse.json({
-        success: true,
-        message: 'Login successful',
-        sessionId: updatedSessionId, // Send back updated session with new cookies
-        deviceId: result.deviceId, // Persist on the client for future logins
-        csrfToken: result.csrfToken,
-        academicYears: result.academicYears,
-        semesters: result.semesters,
-      })
-    );
-  } catch (error: unknown) {
-    const safeMessage = error instanceof Error ? error.message : 'Login failed';
-    console.error('[AUTH_ERROR]', safeMessage);
-    return NextResponse.json(
-      {
-        success: false,
-        message: safeMessage,
-      },
-      { status: 401 }
-    );
+    const response = NextResponse.json({
+      success: true,
+      message: 'Login successful',
+      deviceId: result.deviceId,
+      academicYears: result.academicYears,
+      semesters: result.semesters,
+    });
+    clearCookie(response, CAPTCHA_COOKIE);
+    return setCookie(response, SESSION_COOKIE, updatedSessionId, rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24);
+  } catch (error) {
+    console.error('[AUTH_ERROR]', error instanceof Error ? error.message : 'Unknown login error');
+    return NextResponse.json({ success: false, message: 'Login failed. Please try again.' }, { status: 400 });
   }
 }

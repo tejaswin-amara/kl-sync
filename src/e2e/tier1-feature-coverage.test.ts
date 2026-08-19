@@ -146,32 +146,24 @@ test('Tier 1 - Feature 6: API Route & Security Tests (/api/login, /api/erp-proxy
   assert.strictEqual(captchaRes.status, 200);
   const captchaJson = await captchaRes.json();
   assert.ok(captchaJson.captchaImage);
-  assert.ok(captchaRes.headers.get('x-session-id'));
+  const captchaCookie = captchaRes.headers.get('set-cookie')?.split(';', 1)[0];
+  assert.ok(captchaCookie?.startsWith('kl_captcha_session='));
 
   // 2. /api/login POST happy path demo login
   const loginReq = new NextRequest('http://localhost/api/login', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      username: '2100030000',
-      password: 'password123',
-      captcha: 'ABCD',
-      sessionId: await encodeSession({
-        cookies: [{ name: 'PHPSESSID', value: 'demo' }],
-        csrfToken: 'demo_csrf',
-        userAgent: 'Mozilla/5.0',
-      }),
-      captchaToken: 'demo_token',
-    }),
+    headers: { 'Content-Type': 'application/json', cookie: captchaCookie || '' },
+    body: JSON.stringify({ username: '2100030000', password: 'password123', captcha: 'ABCD' }),
   });
   const loginRes = await handleLogin(loginReq);
   assert.strictEqual(loginRes.status, 200);
   const loginJson = await loginRes.json();
   assert.strictEqual(loginJson.success, true);
-  assert.ok(loginJson.sessionId);
+  const authCookie = loginRes.headers.get('set-cookie')?.match(/kl_erp_session=[^;]+/)?.[0];
+  assert.ok(authCookie?.startsWith('kl_erp_session='));
 
   // 3. /api/erp-proxy/attendance GET demo mode
-  const proxyReq = new NextRequest('http://localhost/api/erp-proxy/attendance?academicYear=2025-2026&semesterId=1&csrfToken=demo_csrf');
+  const proxyReq = new NextRequest('http://localhost/api/erp-proxy/attendance?academicYear=2025-2026&semesterId=1', { headers: { cookie: authCookie || '' } });
   const proxyRes = await handleErpProxyGet(proxyReq, { params: Promise.resolve({ module: 'attendance' }) });
   assert.strictEqual(proxyRes.status, 200);
   const proxyJson = await proxyRes.json();
@@ -179,15 +171,7 @@ test('Tier 1 - Feature 6: API Route & Security Tests (/api/login, /api/erp-proxy
   assert.ok(Array.isArray(proxyJson.attendanceData));
 
   // 4. /api/fetch-photo GET demo photo endpoint validation
-  const photoReq = new NextRequest('http://localhost/api/fetch-photo?id=2100030000', {
-    headers: {
-      'x-session-id': await encodeSession({
-        cookies: [{ name: 'PHPSESSID', value: 'demo' }],
-        csrfToken: 'demo_csrf',
-        userAgent: 'Mozilla/5.0',
-      }),
-    },
-  });
+  const photoReq = new NextRequest('http://localhost/api/fetch-photo?id=2100030000', { headers: { cookie: authCookie || '' } });
   const photoRes = await handleFetchPhotoGet(photoReq);
   assert.ok(photoRes.status === 200 || photoRes.status === 404);
 });

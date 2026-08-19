@@ -1,10 +1,9 @@
 import type { ScraperSession } from './scraper';
-import { DEMO_SESSION } from '@/lib/fixtures';
 
 export type { ScraperSession };
 
 const ENC_PREFIX = 'enc.';
-const B64_PREFIX = 'b64.';
+const MAX_SESSION_BYTES = 64 * 1024;
 
 function getSecret(): string {
   if (process.env.SESSION_SECRET) return process.env.SESSION_SECRET;
@@ -18,17 +17,45 @@ function getSecret(): string {
 }
 
 export class SessionDecodeError extends Error {
-  constructor(message: string) {
+  constructor(message = 'Invalid or expired session') {
     super(message);
     this.name = 'SessionDecodeError';
   }
+}
+
+export function isDemoModeEnabled(): boolean {
+  return process.env.NODE_ENV !== 'production' && process.env.KL_SYNC_DEMO_MODE === 'true';
 }
 
 export function isDemoSession(session: ScraperSession | null | undefined): boolean {
   if (!session) return true;
   if (!session.csrfToken || session.csrfToken.includes('demo')) return true;
   if (!session.cookies || session.cookies.length === 0) return true;
-  return session.cookies.some((c) => c.value?.includes('demo'));
+  return session.cookies.some((cookie) => cookie.value?.includes('demo'));
+}
+
+function validateSessionShape(value: unknown): ScraperSession {
+  if (!value || typeof value !== 'object') {
+    throw new SessionDecodeError();
+  }
+
+  const candidate = value as Partial<ScraperSession>;
+  if (!Array.isArray(candidate.cookies) || typeof candidate.csrfToken !== 'string') {
+    throw new SessionDecodeError();
+  }
+
+  const cookies = candidate.cookies.map((cookie) => {
+    if (!cookie || typeof cookie !== 'object') throw new SessionDecodeError();
+    const item = cookie as { name?: unknown; value?: unknown };
+    if (typeof item.name !== 'string' || typeof item.value !== 'string') throw new SessionDecodeError();
+    return { name: item.name, value: item.value };
+  });
+
+  return {
+    cookies,
+    csrfToken: candidate.csrfToken,
+    ...(typeof candidate.userAgent === 'string' ? { userAgent: candidate.userAgent } : {}),
+  };
 }
 
 async function getCryptoKey(): Promise<CryptoKey> {
@@ -44,75 +71,64 @@ async function getCryptoKey(): Promise<CryptoKey> {
 }
 
 export async function encodeSession(session: ScraperSession): Promise<string> {
-  try {
-    const jsonStr = JSON.stringify(session);
-    const data = new TextEncoder().encode(jsonStr);
-    const key = await getCryptoKey();
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const encryptedBuffer = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv },
-      key,
-      data
-    );
-
-    const combined = new Uint8Array(iv.byteLength + encryptedBuffer.byteLength);
-    combined.set(iv, 0);
-    combined.set(new Uint8Array(encryptedBuffer), iv.byteLength);
-
-    return ENC_PREFIX + Buffer.from(combined).toString('base64');
-  } catch (err) {
-    if (err instanceof Error && err.message.includes('[SECURITY FATAL]')) {
-      throw err;
-    }
-    console.error('[SESSION] Failed to encode session, fallback to b64:', err);
-    return B64_PREFIX + Buffer.from(JSON.stringify(session), 'utf-8').toString('base64');
+  const validated = validateSessionShape(session);
+  const json = JSON.stringify(validated);
+  const data = new TextEncoder().encode(json);
+  if (data.byteLength > MAX_SESSION_BYTES) {
+    throw new Error('Session payload exceeds the maximum allowed size');
   }
+
+  const key = await getCryptoKey();
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encryptedBuffer = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    key,
+    data
+  );
+
+  const combined = new Uint8Array(iv.byteLength + encryptedBuffer.byteLength);
+  combined.set(iv, 0);
+  combined.set(new Uint8Array(encryptedBuffer), iv.byteLength);
+
+  return ENC_PREFIX + Buffer.from(combined).toString('base64url');
 }
 
 export async function decodeSession(token: string | null | undefined): Promise<ScraperSession> {
+  if (!token || !token.startsWith(ENC_PREFIX)) {
+    throw new SessionDecodeError();
+  }
+
   try {
-    if (!token) throw new Error('Token is empty or null');
-    if (token.startsWith(ENC_PREFIX)) {
-      const raw = Buffer.from(token.slice(ENC_PREFIX.length), 'base64');
-      if (raw.length < 28) {
-        throw new Error('Invalid or corrupted encrypted session token');
-      }
-      const iv = raw.subarray(0, 12);
-      const key = await getCryptoKey();
-
-      try {
-        // Try Web Crypto standard format: [IV 12][Ciphertext][Tag 16]
-        const ciphertextWithTag = raw.subarray(12);
-        const decryptedBuffer = await crypto.subtle.decrypt(
-          { name: 'AES-GCM', iv },
-          key,
-          ciphertextWithTag
-        );
-        const decodedStr = new TextDecoder().decode(decryptedBuffer);
-        return JSON.parse(decodedStr);
-      } catch {
-        // Try legacy Node format fallback: [IV 12][Tag 16][Ciphertext] -> rearrange tag to end
-        const tag = raw.subarray(12, 28);
-        const ciphertext = raw.subarray(28);
-        const rearranged = new Uint8Array(ciphertext.byteLength + tag.byteLength);
-        rearranged.set(ciphertext, 0);
-        rearranged.set(tag, ciphertext.byteLength);
-
-        const decryptedBuffer = await crypto.subtle.decrypt(
-          { name: 'AES-GCM', iv },
-          key,
-          rearranged
-        );
-        const decodedStr = new TextDecoder().decode(decryptedBuffer);
-        return JSON.parse(decodedStr);
-      }
+    const raw = Buffer.from(token.slice(ENC_PREFIX.length), 'base64url');
+    if (raw.length < 28 || raw.length > MAX_SESSION_BYTES + 28) {
+      throw new SessionDecodeError();
     }
 
-    const b64 = token.startsWith(B64_PREFIX) ? token.slice(B64_PREFIX.length) : token;
-    return JSON.parse(Buffer.from(b64, 'base64').toString('utf-8'));
-  } catch (err) {
-    console.warn('[SESSION] decodeSession error, using fallback session:', err);
-    return DEMO_SESSION;
+    const iv = raw.subarray(0, 12);
+    const ciphertextWithTag = raw.subarray(12);
+    const key = await getCryptoKey();
+
+    let decryptedBuffer: ArrayBuffer;
+    try {
+      decryptedBuffer = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        ciphertextWithTag
+      );
+    } catch {
+      // Decode legacy Node layout only for encrypted tokens already issued by this app.
+      const tag = raw.subarray(12, 28);
+      const ciphertext = raw.subarray(28);
+      const rearranged = new Uint8Array(ciphertext.byteLength + tag.byteLength);
+      rearranged.set(ciphertext, 0);
+      rearranged.set(tag, ciphertext.byteLength);
+      decryptedBuffer = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, rearranged);
+    }
+
+    const decoded = JSON.parse(new TextDecoder().decode(decryptedBuffer));
+    return validateSessionShape(decoded);
+  } catch (error) {
+    if (error instanceof SessionDecodeError) throw error;
+    throw new SessionDecodeError();
   }
 }
-

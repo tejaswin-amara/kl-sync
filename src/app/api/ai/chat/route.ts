@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { decodeSession, isDemoSession, ScraperSession } from '@/lib/session';
+import { decodeSession, isDemoModeEnabled, ScraperSession } from '@/lib/session';
 import { resolveSessionToken, checkRateLimit, getClientIP } from '@/lib/request-utils';
 import { processAIChat, ToolExecutionContext } from '@/lib/ai/executor';
 import { DEMO_SESSION } from '@/lib/fixtures';
@@ -12,95 +12,61 @@ interface ChatMessageInput {
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    const clientIP = getClientIP(request);
-    const rl = checkRateLimit(`ai-chat:${clientIP}`, 500, 60_000);
-    if (!rl.allowed) {
-      return NextResponse.json(
-        { success: false, error: 'Rate limit exceeded. Please wait a moment before sending more messages.' },
-        { status: 429 }
-      );
-    }
+  const clientIP = getClientIP(request);
+  const rl = checkRateLimit(`ai-chat:${clientIP}`, 60, 60_000);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { success: false, error: 'Rate limit exceeded. Please wait before sending more messages.' },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil(rl.resetMs / 1000)) } }
+    );
+  }
 
-    let body: Record<string, unknown> = {};
+  try {
+    let body: Record<string, unknown>;
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json(
-        { success: false, error: 'Invalid JSON payload in request body' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: 'Invalid JSON payload in request body' }, { status: 400 });
+    }
+    const messages = body?.messages as ChatMessageInput[] | undefined;
+    if (!Array.isArray(messages) || messages.length === 0 || messages.length > 40) {
+      return NextResponse.json({ success: false, error: 'Messages must contain between 1 and 40 items.' }, { status: 400 });
     }
 
-    const messages = body.messages as ChatMessageInput[] | undefined;
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'Request body must contain a non-empty messages array' },
-        { status: 400 }
-      );
+    const validMessages = messages.every((message) =>
+      message && ['user', 'assistant', 'system'].includes(message.role) && typeof message.content === 'string' && message.content.length > 0 && message.content.length <= 8_000
+    );
+    if (!validMessages) {
+      return NextResponse.json({ success: false, error: 'Each message must contain a valid role and bounded text content.' }, { status: 400 });
     }
 
-    const lastMessage = messages[messages.length - 1];
-    if (!lastMessage || !lastMessage.content || typeof lastMessage.content !== 'string') {
-      return NextResponse.json(
-        { success: false, error: 'Last message in conversation must contain valid string content' },
-        { status: 400 }
-      );
-    }
-
-    // Session resolution
     const sessionToken = resolveSessionToken(request);
-
+    const demoMode = isDemoModeEnabled();
     let session: ScraperSession;
-    if (sessionToken) {
+    if (!sessionToken) {
+      if (!demoMode) return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
+      session = DEMO_SESSION;
+    } else {
       try {
         session = await decodeSession(sessionToken);
       } catch {
-        session = DEMO_SESSION;
+        return NextResponse.json({ success: false, error: 'Session expired. Please sign in again.' }, { status: 401 });
       }
-    } else {
-      session = DEMO_SESSION;
     }
 
-    const academicYear =
-      (typeof body.academicYear === 'string' ? body.academicYear : undefined) ||
-      request.nextUrl.searchParams.get('academicYear') ||
-      '2025-2026';
-    const semesterId =
-      (typeof body.semesterId === 'string' ? body.semesterId : undefined) ||
-      request.nextUrl.searchParams.get('semesterId') ||
-      '1';
-
-    const isDemo = isDemoSession(session);
-
-    const executionContext: ToolExecutionContext = {
-      session,
-      academicYear,
-      semesterId,
-      isDemo,
-    };
-
-    const { assistantResponseText, toolCalls } = await processAIChat(
-      messages,
-      executionContext
-    );
+    const academicYear = (typeof body.academicYear === 'string' ? body.academicYear : undefined) || request.nextUrl.searchParams.get('academicYear') || '2025-2026';
+    const semesterId = (typeof body.semesterId === 'string' ? body.semesterId : undefined) || request.nextUrl.searchParams.get('semesterId') || '1';
+    const executionContext: ToolExecutionContext = { session, academicYear, semesterId, isDemo: demoMode && session === DEMO_SESSION };
+    const { assistantResponseText, toolCalls } = await processAIChat(messages, executionContext);
 
     return NextResponse.json({
       success: true,
-      message: {
-        role: 'assistant',
-        content: assistantResponseText,
-      },
+      message: { role: 'assistant', content: assistantResponseText },
       toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+      mode: executionContext.isDemo ? 'demo' : 'live',
     });
-  } catch (err: unknown) {
-    console.error('[AI CHAT API] Unexpected handler error:', err);
-    return NextResponse.json({
-      success: true,
-      message: {
-        role: 'assistant',
-        content: 'I encountered an issue processing your request. Please try asking again or refresh your session.',
-      },
-    });
+  } catch (error) {
+    console.error('[AI CHAT API] Unexpected handler error:', error instanceof Error ? error.message : 'Unknown error');
+    return NextResponse.json({ success: false, error: 'The assistant is temporarily unavailable. Please try again.' }, { status: 503 });
   }
 }

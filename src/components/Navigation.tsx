@@ -85,11 +85,11 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
     });
   }, []);
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     triggerHaptic('warning');
+    try { await fetch('/api/logout', { method: 'POST', headers: { 'Content-Type': 'application/json' } }); } catch {}
     sessionStorage.clear();
-    ['studentId', 'kl_student_name', 'kl_student_photo', 'kl_student_profile', 'kl_erp_academic_years', 'kl_erp_semesters'].forEach((key) => localStorage.removeItem(key));
-    document.cookie = 'kl_erp_session=; Max-Age=-99999999; path=/;';
+    ['studentId', 'kl_student_name', 'kl_student_photo', 'kl_student_profile', 'kl_erp_academic_years', 'kl_erp_semesters', 'kl_erp_year', 'kl_erp_sem', 'remember_username'].forEach((key) => localStorage.removeItem(key));
     window.location.href = '/';
   };
 
@@ -121,7 +121,7 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <div className="h-[100dvh] overflow-hidden bg-background text-foreground">
+    <div className="relative h-[100dvh] min-h-[100dvh] overflow-hidden bg-background text-foreground">
       <header className="apple-chrome fixed inset-x-0 top-0 z-40 flex h-[--header-height] items-center justify-between border-b px-4 lg:hidden">
         <div className="flex items-center gap-3">
           <button onClick={() => { triggerHaptic('selection'); setSidebarOpen(true); }} className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-muted-foreground hover:bg-surface-2 hover:text-foreground" aria-label="Open navigation menu" aria-expanded={sidebarOpen}>
@@ -170,12 +170,12 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
         {moreOpen && <><div className="fixed inset-0 z-30" onClick={() => setMoreOpen(false)} /><div id="more-overflow-menu" className="apple-sheet animate-sheet-enter absolute bottom-full inset-x-0 z-40 p-4"><div className="drag-handle" /><div className="grid grid-cols-3 gap-2">{overflowItems.map((item) => { const active = isActive(item.href); const Icon = item.icon; return <Link key={item.href} href={item.href} onClick={() => { triggerHaptic('selection'); setMoreOpen(false); }} className={`flex min-h-[72px] flex-col items-center justify-center gap-2 rounded-[--radius-md] border p-2 text-center text-xs font-semibold ${active ? 'border-primary bg-accent text-primary' : 'border-border bg-surface-2 text-muted-foreground hover:text-foreground'}`}><Icon className="h-5 w-5" /><span>{item.label}</span></Link>; })}</div></div></>}
       </nav>
 
-      <main className="flex h-full min-h-0 flex-col lg:pl-[--sidebar-width]" style={{ paddingTop: 'var(--header-height)', paddingBottom: 'calc(var(--bottom-bar-height) + env(safe-area-inset-bottom, 0px))' }}>
+      <main className="flex h-full min-h-0 flex-col pt-[--header-height] pb-[calc(var(--bottom-bar-height)+env(safe-area-inset-bottom,0px))] lg:pl-[--sidebar-width] lg:pt-0 lg:pb-0">
         <header className="apple-chrome hidden min-h-[--header-height] items-center justify-between border-b px-6 lg:flex xl:px-8">
           <div className="flex items-center gap-3">{collapsed && <button onClick={toggleCollapse} className="flex min-h-[40px] min-w-[40px] items-center justify-center rounded-full text-muted-foreground hover:bg-surface-2" aria-label="Expand sidebar"><Menu className="h-4 w-4" /></button>}<div><p className="caption-label text-muted-foreground">Student workspace</p><h1 className="font-heading text-xl font-bold tracking-tight">{pageTitle}</h1></div></div>
           <div className="flex items-center gap-2"><Badge variant="info" className="hidden rounded-full px-3 py-1.5 sm:inline-flex"><span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-info" />Current semester</Badge><button type="button" onClick={() => setComplianceOpen(true)} className="flex min-h-[44px] items-center gap-2 rounded-full px-3 text-sm font-semibold text-success hover:bg-surface-2"><ShieldCheck className="h-4 w-4" /><span className="hidden xl:inline">Privacy</span></button><LanguageSelector /><Link href="/dashboard/circulars" aria-label="Notifications" className="relative flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-muted-foreground hover:bg-surface-2 hover:text-foreground"><Bell className="h-4 w-4" /><span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-success" /></Link><div className="h-7 w-px bg-border" /><Link href="/dashboard/profile" className="flex min-h-[44px] items-center gap-2 rounded-full px-1.5 pr-3 hover:bg-surface-2"><ProfileAvatar user={user} /><span className="hidden max-w-[160px] truncate text-sm font-semibold xl:block">{user.name}</span></Link></div>
         </header>
-        <div id="main-content" tabIndex={-1} className="custom-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain focus:outline-none"><div className="mx-auto w-full max-w-[--content-max-width] p-4 sm:p-5 lg:p-6">{children}</div></div>
+        <div id="main-content" tabIndex={-1} className="custom-scrollbar min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain focus:outline-none"><div className="mx-auto w-full max-w-[--content-max-width] p-4 sm:p-5 lg:p-6">{children}</div></div>
       </main>
 
       <AICopilot />

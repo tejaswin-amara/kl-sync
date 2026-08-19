@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { encodeSession, decodeSession, ScraperSession } from './session';
-import { DEMO_SESSION } from './fixtures';
+import { encodeSession, decodeSession, ScraperSession, SessionDecodeError } from './session';
 
 test('Challenger M1 Session - Valid Sessions Roundtrip', async () => {
   // 1. Standard session
@@ -51,27 +50,22 @@ test('Challenger M1 Session - Valid Sessions Roundtrip', async () => {
     csrfToken: 'large_csrf_' + 'X'.repeat(5000),
     userAgent: 'Large User Agent ' + 'Y'.repeat(5000),
   };
-  const encodedLarge = await encodeSession(largeSession);
-  const decodedLarge = await decodeSession(encodedLarge);
-  assert.deepEqual(decodedLarge, largeSession);
+  await assert.rejects(() => encodeSession(largeSession), /maximum allowed size/);
 });
 
-test('Challenger M1 Session - Invalid Tokens & Corrupted Payloads', async () => {
+test('Challenger M1 Session - Invalid Tokens & Corrupted Payloads reject closed', async () => {
   // 1. Completely invalid base64 after enc.
   const invalidB64Enc = 'enc.!!!NotBase64!!!';
-  const res1 = await decodeSession(invalidB64Enc);
-  assert.deepEqual(res1, DEMO_SESSION, 'Corrupted base64 must gracefully return DEMO_SESSION');
+  await assert.rejects(() => decodeSession(invalidB64Enc), SessionDecodeError);
 
   // 2. Encrypted string too short (< 28 bytes raw)
   // 20 bytes of base64 -> 15 bytes raw (< 28 bytes minimum for IV + Tag)
   const shortEnc = 'enc.' + Buffer.from('short_bytes_12345').toString('base64');
-  const res2 = await decodeSession(shortEnc);
-  assert.deepEqual(res2, DEMO_SESSION, 'Payload shorter than 28 bytes must return DEMO_SESSION');
+  await assert.rejects(() => decodeSession(shortEnc), SessionDecodeError);
 
   // 3. Exactly 27 bytes payload (1 byte below threshold)
   const exact27 = 'enc.' + Buffer.from(new Uint8Array(27)).toString('base64');
-  const res3 = await decodeSession(exact27);
-  assert.deepEqual(res3, DEMO_SESSION, '27 byte payload must return DEMO_SESSION');
+  await assert.rejects(() => decodeSession(exact27), SessionDecodeError);
 
   // 4. Bit flipping / Tampering AES-GCM Ciphertext & Tag
   const validSession: ScraperSession = {
@@ -85,25 +79,22 @@ test('Challenger M1 Session - Invalid Tokens & Corrupted Payloads', async () => 
   // Flip bits in tag / ciphertext area
   rawBuffer[rawBuffer.length - 1] ^= 0xff;
   const tamperedToken = 'enc.' + rawBuffer.toString('base64');
-  const res4 = await decodeSession(tamperedToken);
-  assert.deepEqual(res4, DEMO_SESSION, 'Tampered GCM tag/ciphertext must be rejected and return DEMO_SESSION');
+  await assert.rejects(() => decodeSession(tamperedToken), SessionDecodeError);
 
   // 5. Corrupted b64. prefix payload
   const corruptedB64 = 'b64.{"invalid_json": ';
-  const res5 = await decodeSession(corruptedB64);
-  assert.deepEqual(res5, DEMO_SESSION, 'Corrupted JSON in b64 prefix must return DEMO_SESSION');
+  await assert.rejects(() => decodeSession(corruptedB64), SessionDecodeError);
 
   // 6. Plain invalid string without enc. or b64. prefix
   const plainJunk = 'just_a_random_string_that_is_not_base64_or_json!';
-  const res6 = await decodeSession(plainJunk);
-  assert.deepEqual(res6, DEMO_SESSION, 'Random string input must return DEMO_SESSION');
+  await assert.rejects(() => decodeSession(plainJunk), SessionDecodeError);
 });
 
-test('Challenger M1 Session - Null, Undefined, and Empty Inputs', async () => {
-  assert.deepEqual(await decodeSession(null), DEMO_SESSION);
-  assert.deepEqual(await decodeSession(undefined), DEMO_SESSION);
-  assert.deepEqual(await decodeSession(''), DEMO_SESSION);
-  assert.deepEqual(await decodeSession('   '), DEMO_SESSION);
+test('Challenger M1 Session - Null, Undefined, and Empty Inputs reject closed', async () => {
+  await assert.rejects(() => decodeSession(null), SessionDecodeError);
+  await assert.rejects(() => decodeSession(undefined), SessionDecodeError);
+  await assert.rejects(() => decodeSession(''), SessionDecodeError);
+  await assert.rejects(() => decodeSession('   '), SessionDecodeError);
 });
 
 test('Challenger M1 Session - Environment Secret Permutations & Key Mismatch', async () => {
@@ -127,12 +118,7 @@ test('Challenger M1 Session - Environment Secret Permutations & Key Mismatch', a
 
     // Scenario B: Key mismatch (decode with Secret B)
     process.env.SESSION_SECRET = 'completely_different_secret_bbb_67890';
-    const decodedMismatch = await decodeSession(encodedSecretA);
-    assert.deepEqual(
-      decodedMismatch,
-      DEMO_SESSION,
-      'Decoding token encrypted with different secret must safely return DEMO_SESSION'
-    );
+    await assert.rejects(() => decodeSession(encodedSecretA), SessionDecodeError);
 
     // Scenario C: Fallback secret (no env vars set)
     delete process.env.SESSION_SECRET;

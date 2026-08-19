@@ -24,58 +24,51 @@ test('Tier 4 - Scenario 1: Complete Student Login & Multi-Module Dashboard Synch
 
   const captchaData = await captchaRes.json();
   assert.ok(captchaData.captchaImage);
-  const captchaSessionId = captchaRes.headers.get('x-session-id') || '';
-  assert.ok(captchaSessionId.length > 0);
+  const captchaCookie = captchaRes.headers.get('set-cookie')?.match(/kl_captcha_session=[^;]+/)?.[0] || '';
+  assert.ok(captchaCookie.length > 0);
 
   // Step 2: Student Login Submission
   const loginReq = new NextRequest('http://localhost/api/login', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      username: '2100030000',
-      password: 'student_password_123',
-      captcha: captchaData.solvedCaptcha || '8888',
-      captchaToken: 'demo_token',
-      sessionId: captchaSessionId,
-    }),
+    headers: { 'Content-Type': 'application/json', cookie: captchaCookie },
+    body: JSON.stringify({ username: '2100030000', password: 'student_password_123', captcha: captchaData.solvedCaptcha || '8888' }),
   });
   const loginRes = await handleLogin(loginReq);
   assert.strictEqual(loginRes.status, 200);
   const loginData = await loginRes.json();
   assert.strictEqual(loginData.success, true);
-  assert.ok(loginData.sessionId);
-
-  const authSessionId = loginData.sessionId;
+  const authCookie = loginRes.headers.get('set-cookie')?.match(/kl_erp_session=[^;]+/)?.[0] || '';
+  assert.ok(authCookie.length > 0);
 
   // Step 3: Parallel Data Synchronization across all ERP Modules
   const [attRes, ttRes, marksRes, feeRes, profileRes] = await Promise.all([
     handleErpProxyGet(
       new NextRequest('http://localhost/api/erp-proxy/attendance?academicYear=2025-2026&semesterId=1', {
-        headers: { 'x-session-id': authSessionId },
+        headers: { cookie: authCookie },
       }),
       { params: Promise.resolve({ module: 'attendance' }) }
     ),
     handleErpProxyGet(
       new NextRequest('http://localhost/api/erp-proxy/timetable?academicYear=2025-2026&semesterId=1', {
-        headers: { 'x-session-id': authSessionId },
+        headers: { cookie: authCookie },
       }),
       { params: Promise.resolve({ module: 'timetable' }) }
     ),
     handleErpProxyGet(
       new NextRequest('http://localhost/api/erp-proxy/marks?academicYear=2025-2026&semesterId=1', {
-        headers: { 'x-session-id': authSessionId },
+        headers: { cookie: authCookie },
       }),
       { params: Promise.resolve({ module: 'marks' }) }
     ),
     handleErpProxyGet(
       new NextRequest('http://localhost/api/erp-proxy/fee', {
-        headers: { 'x-session-id': authSessionId },
+        headers: { cookie: authCookie },
       }),
       { params: Promise.resolve({ module: 'fee' }) }
     ),
     handleErpProxyGet(
       new NextRequest('http://localhost/api/erp-proxy/profile', {
-        headers: { 'x-session-id': authSessionId },
+        headers: { cookie: authCookie },
       }),
       { params: Promise.resolve({ module: 'profile' }) }
     ),
@@ -98,7 +91,7 @@ test('Tier 4 - Scenario 1: Complete Student Login & Multi-Module Dashboard Synch
 
   // Step 5: Student Profile Photo Fetching
   const photoReq = new NextRequest('http://localhost/api/fetch-photo?id=2100030000', {
-    headers: { 'x-session-id': authSessionId },
+    headers: { cookie: authCookie },
   });
   const photoRes = await handleFetchPhotoGet(photoReq);
   assert.ok(photoRes.status === 200 || photoRes.status === 404);

@@ -1,63 +1,55 @@
 import { NextRequest } from 'next/server';
 
-export function resolveSessionToken(
-  request: NextRequest,
-  body?: Record<string, unknown>
-): string | undefined {
-  // 1. Strict Priority: httpOnly cookie
+export function resolveSessionToken(request: NextRequest): string | undefined {
   const cookieValue = request.cookies.get('kl_erp_session')?.value;
   if (cookieValue) return cookieValue;
 
-  // 2. Strict Priority: x-session-id header
-  const headerValue = request.headers.get('x-session-id');
-  if (headerValue) return headerValue;
-
-  // 3. Fallback: Body session ID (if provided)
-  if (body && typeof body.sessionId === 'string' && body.sessionId) return body.sessionId;
-  if (body && typeof body.session_id === 'string' && body.session_id) return body.session_id;
-
-  // 4. Fallback: Query search parameter (if provided)
-  try {
-    const searchParams = request.nextUrl?.searchParams;
-    if (searchParams) {
-      const qSession = searchParams.get('sessionId') || searchParams.get('session_id');
-      if (qSession) return qSession;
-    }
-  } catch {}
 
   return undefined;
 }
 
-// In-memory sliding window rate limiter
+const MAX_RATE_LIMIT_KEYS = 10_000;
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function pruneRateLimitMap(now: number): void {
+  if (rateLimitMap.size < MAX_RATE_LIMIT_KEYS) return;
+  for (const [key, value] of rateLimitMap) {
+    if (value.resetAt <= now) rateLimitMap.delete(key);
+    if (rateLimitMap.size < MAX_RATE_LIMIT_KEYS) break;
+  }
+}
 
 export function checkRateLimit(
   key: string,
-  limit: number = 1000,
+  limit: number = 60,
   windowMs: number = 60_000
 ): { allowed: boolean; remaining: number; resetMs: number } {
   const now = Date.now();
-  const current = rateLimitMap.get(key);
+  const safeLimit = Math.max(1, Math.floor(limit));
+  const safeWindow = Math.max(1_000, Math.floor(windowMs));
+  pruneRateLimitMap(now);
 
+  const current = rateLimitMap.get(key);
   if (!current || current.resetAt <= now) {
-    rateLimitMap.set(key, { count: 1, resetAt: now + windowMs });
-    return { allowed: true, remaining: limit - 1, resetMs: windowMs };
+    rateLimitMap.set(key, { count: 1, resetAt: now + safeWindow });
+    return { allowed: true, remaining: safeLimit - 1, resetMs: safeWindow };
   }
 
-  if (current.count >= limit) {
-    return { allowed: false, remaining: 0, resetMs: current.resetAt - now };
+  if (current.count >= safeLimit) {
+    return { allowed: false, remaining: 0, resetMs: Math.max(0, current.resetAt - now) };
   }
 
   current.count += 1;
-  return { allowed: true, remaining: limit - current.count, resetMs: current.resetAt - now };
+  return { allowed: true, remaining: safeLimit - current.count, resetMs: Math.max(0, current.resetAt - now) };
 }
 
 export function getClientIP(request: NextRequest): string {
-  const xff = request.headers.get('x-forwarded-for');
-  if (xff) {
-    return xff.split(',')[0].trim();
+  if (process.env.TRUST_PROXY_HEADERS === 'true') {
+    const xff = request.headers.get('x-forwarded-for');
+    if (xff) return xff.split(',')[0].trim().slice(0, 128) || 'unknown';
+    const realIp = request.headers.get('x-real-ip');
+    if (realIp) return realIp.trim().slice(0, 128) || 'unknown';
   }
-  const realIp = request.headers.get('x-real-ip');
-  if (realIp) return realIp.trim();
-  return '127.0.0.1';
+
+  return 'unknown';
 }

@@ -150,14 +150,8 @@ test('Tier 3 - Combo 5: Login Flow -> Session Issuance -> Photo Route Fetch', as
 
   const loginReq = new NextRequest('http://localhost/api/login', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      username: '2100030000',
-      password: 'demo_password',
-      captcha: 'ABCD',
-      captchaToken: 'demo_token',
-      sessionId: validSessionToken,
-    }),
+    headers: { 'Content-Type': 'application/json', cookie: `kl_captcha_session=${validSessionToken}` },
+    body: JSON.stringify({ username: '2100030000', password: 'demo_password', captcha: 'ABCD' }),
   });
 
   const loginRes = await handleLogin(loginReq);
@@ -167,11 +161,8 @@ test('Tier 3 - Combo 5: Login Flow -> Session Issuance -> Photo Route Fetch', as
   assert.strictEqual(loginJson.success, true);
 
   // Step 2: Fetch photo with returned session cookie
-  const photoReq = new NextRequest('http://localhost/api/fetch-photo?id=2100030000', {
-    headers: {
-      'x-session-id': loginJson.sessionId,
-    },
-  });
+  const authCookie = loginRes.headers.get('set-cookie')?.match(/kl_erp_session=[^;]+/)?.[0];
+  const photoReq = new NextRequest('http://localhost/api/fetch-photo?id=2100030000', { headers: { cookie: authCookie || '' } });
 
   const photoRes = await handleFetchPhotoGet(photoReq);
   assert.ok(photoRes.status === 200 || photoRes.status === 404);

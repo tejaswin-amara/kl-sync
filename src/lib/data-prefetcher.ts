@@ -5,7 +5,6 @@ import { registerCourseTitles } from '@/lib/course-utils';
 export interface PrefetchOptions {
   academicYear?: string;
   semesterId?: string;
-  csrfToken?: string | null;
 }
 
 let isPrefetching = false;
@@ -27,12 +26,6 @@ export async function prefetchAllUserData(options: PrefetchOptions = {}): Promis
     options.semesterId ||
     localStorage.getItem('kl_erp_sem') ||
     '';
-
-  const csrfToken =
-    options.csrfToken ||
-    sessionStorage.getItem('kl_erp_csrf_token') ||
-    localStorage.getItem('kl_erp_csrf_token') ||
-    null;
 
   const postHeaders = { 'Content-Type': 'application/json' };
 
@@ -115,7 +108,7 @@ export async function prefetchAllUserData(options: PrefetchOptions = {}): Promis
 
   // Academic Modules (Attendance, Timetable, Marks)
   if (academicYear && semesterId) {
-    const payload = JSON.stringify({ academicYear, semesterId, csrfToken });
+    const payload = JSON.stringify({ academicYear, semesterId });
 
     // 7. Attendance
     const attKey = ['/api/erp-proxy/attendance', academicYear, semesterId] as const;
