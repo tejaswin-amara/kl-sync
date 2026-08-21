@@ -12,13 +12,6 @@
     <img src="https://img.shields.io/badge/Accessibility-WCAG_2.2_AAA-4B275F?style=for-the-badge" alt="WCAG 2.2 AAA" />
     <img src="https://img.shields.io/badge/Security-AES--256--GCM-228B22?style=for-the-badge" alt="AES-256-GCM Security" />
     <img src="https://img.shields.io/badge/Compliance-GDPR_|_CCPA_|_HIPAA-blue?style=for-the-badge" alt="GDPR|CCPA|HIPAA" />
-    <img src="https://img.shields.io/badge/Tests-320_Passing-brightgreen?style=for-the-badge" alt="320 Tests" />
-  </p>
-  <p>
-    <img src="https://img.shields.io/github/stars/tejaswin-amara/kl-sync?style=for-the-badge" alt="GitHub stars" />
-    <img src="https://img.shields.io/github/forks/tejaswin-amara/kl-sync?style=for-the-badge" alt="GitHub forks" />
-    <img src="https://img.shields.io/github/issues/tejaswin-amara/kl-sync?style=for-the-badge" alt="GitHub issues" />
-    <img src="https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge" alt="License" />
   </p>
 </div>
 
