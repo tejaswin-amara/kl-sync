@@ -14,14 +14,14 @@
     "verify": "npm run typecheck && npm run lint && npm run build && npm run test"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^4.0.36",
-    "ai": "^7.0.58",
+    "@ai-sdk/openai": "^4.0.42",
+    "ai": "^7.0.66",
     "cap-widget": "^0.1.56",
     "capjs-core": "^0.1.1",
     "cheerio": "^1.2.0",
-    "next": "^16.3.0",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
+    "next": "^16.3.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "zod": "^4.4.3"
   },
   "devDependencies": {
