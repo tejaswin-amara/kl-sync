@@ -37,7 +37,7 @@ export async function GET(request: Request) {
   const targetRelativePaths: string[] = [];
   if (path) {
     const sanitizedPath = path.startsWith('/') ? path : `/${path}`;
-    if (!sanitizedPath.toLowerCase().startsWith('/uploads/') || !/^\/uploads\/[a-zA-Z0-9_\-.\/]+$/i.test(sanitizedPath)) {
+    if (!sanitizedPath.toLowerCase().startsWith('/uploads/') || !/^\/uploads\/[a-zA-Z0-9._\-/]+$/i.test(sanitizedPath)) {
       return new NextResponse('Invalid photo path', { status: 400 });
     }
     targetRelativePaths.push(sanitizedPath);
@@ -54,8 +54,10 @@ export async function GET(request: Request) {
     let response: Response | undefined;
     for (const relativePath of targetRelativePaths) {
       const targetUrl = new URL(relativePath, ERP_BASE_ORIGIN);
-      if (targetUrl.origin !== ERP_BASE_ORIGIN) return new NextResponse('Invalid photo path', { status: 400 });
-      response = await fetch(targetUrl, { headers, signal: AbortSignal.timeout(8_000) });
+      if (targetUrl.origin !== ERP_BASE_ORIGIN || !targetUrl.pathname.toLowerCase().startsWith('/uploads/')) {
+        return new NextResponse('Invalid photo path', { status: 400 });
+      }
+      response = await fetch(targetUrl.href, { headers, signal: AbortSignal.timeout(8_000) });
       if (response.ok) break;
     }
     if (!response?.ok) return new NextResponse('Photo not found', { status: response?.status || 404 });
