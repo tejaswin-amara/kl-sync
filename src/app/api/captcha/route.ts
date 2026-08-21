@@ -56,6 +56,7 @@ async function solveCaptchaImage(base64: string, apiKey: string): Promise<string
 }
 
 function withCaptchaCookie(response: NextResponse, sessionId: string): NextResponse {
+  response.headers.set('x-session-id', sessionId);
   response.cookies.set(CAPTCHA_COOKIE, sessionId, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

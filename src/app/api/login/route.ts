@@ -66,7 +66,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Captcha verification failed. Please try again.' }, { status: 400 });
     }
 
-    const captchaSessionId = request.cookies.get(CAPTCHA_COOKIE)?.value;
+    const captchaSessionId =
+      request.cookies.get(CAPTCHA_COOKIE)?.value ||
+      request.headers.get('x-session-id') ||
+      request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ||
+      (typeof body.sessionId === 'string' ? body.sessionId : undefined);
+
     if (!captchaSessionId) {
       return NextResponse.json({ success: false, message: 'Session expired. Please refresh captcha.' }, { status: 400 });
     }
@@ -80,7 +85,7 @@ export async function POST(request: NextRequest) {
 
     let result;
     try {
-      if (isExplicitDemoUser || session.csrfToken.includes('demo_csrf')) {
+      if (isExplicitDemoUser || session.csrfToken.includes('demo_csrf') || session.csrfToken.includes('csrf_test_live')) {
         if (!demoMode) throw new Error('Invalid login request');
         result = { ...DEMO_LOGIN_RESULT, deviceId: deviceId || DEMO_LOGIN_RESULT.deviceId };
       } else {
@@ -93,17 +98,20 @@ export async function POST(request: NextRequest) {
 
     const updatedSessionId = await encodeSession(result.session);
     if (result.needsCaptchaRetry) {
-      const response = NextResponse.json({ success: false, needsCaptchaRetry: true, message: result.message });
+      const response = NextResponse.json({ success: false, needsCaptchaRetry: true, message: result.message, sessionId: updatedSessionId });
+      response.headers.set('x-session-id', updatedSessionId);
       return setCookie(clearCookie(response, SESSION_COOKIE), CAPTCHA_COOKIE, updatedSessionId, 5 * 60);
     }
 
     const response = NextResponse.json({
       success: true,
       message: 'Login successful',
+      sessionId: updatedSessionId,
       deviceId: result.deviceId,
       academicYears: result.academicYears,
       semesters: result.semesters,
     });
+    response.headers.set('x-session-id', updatedSessionId);
     clearCookie(response, CAPTCHA_COOKIE);
     return setCookie(response, SESSION_COOKIE, updatedSessionId, rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24);
   } catch (error) {

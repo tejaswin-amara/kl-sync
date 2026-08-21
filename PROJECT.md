@@ -1,105 +1,124 @@
-# Project: KL-Sync Frontend Elevation & Stress Verification
+# Project: KL Sync Frontend Redesign
 
 ## Architecture
-KL-Sync is an unofficial high-performance, minimalist ERP web client and edge proxy for KL University students.
 - **Framework**: Next.js 16 (App Router, Turbopack, React 19)
 - **Language**: TypeScript 5.8
-- **Styling**: Tailwind CSS v4 + Vanilla CSS tokens (`globals.css`)
-- **Icon Engine**: Zero-runtime native SVG library (`src/components/ui/icons.tsx` — 57 primitives)
-- **Design Language**: Apple Human Interface Guidelines (OLED deep black, translucent chrome materials `blur(24px) saturate(180%)`, specular elevation `inset 0 1px 1px 0 rgba(255, 255, 255, 0.08)`, fluid spring physics, active press scale(0.965), and Web Vibration haptics).
-- **Accessibility**: WCAG 2.2 AAA standard (contrast ratios $\ge 7.1:1$, touch targets $\ge 44\text{px} \times 44\text{px}$, high-visibility focus rings).
-- **Data Tables & Typography**: OpenType Tabular Numerals (`font-feature-settings: 'tnum' 1, 'ss01' 1`, `font-variant-numeric: tabular-nums`) and zero-layout-shift bounding boxes with skeleton loading states.
+- **Architecture**: Edge Proxy (Stateless, no DB). Session tokens encrypted with AES-256-GCM via Web Crypto API.
+- **Styling**: Tailwind CSS v4 + Vanilla CSS tokens (`src/app/globals.css`).
+- **Icon Engine**: 100% Native zero-runtime SVG library (`src/components/ui/icons.tsx` — 57 primitives).
+- **Philosophy**: Ponytail (Zero UI/icon bloat; no `lucide-react`, `framer-motion`, `swr`, `clsx`, `tailwind-merge`).
+- **Data Layer**: Custom `useNativeQuery` with in-memory L1 cache, `sessionStorage` L2 cache, and in-flight Promise deduplication.
+- **Accessibility**: WCAG 2.2 AAA compliance across all screens (contrast >= 7.1:1, touch targets >= 44x44px, `:focus-visible` 3px rings, skip-navigation links, ARIA live regions).
+- **i18n**: 9-language zero-dependency internationalization engine with real-time RTL layout switching (`dir="rtl"`).
 
 ## Feature Inventory
-Every feature from the Survey phase mapped to its assigned milestone:
-| # | Feature | Description | Milestone | Source | Status |
-|---|---------|-------------|-----------|--------|:------:|
-| 1 | Apple Spring Physics & Tokens | `--ease-spring-default`, `--ease-spring-sheet`, `--ease-spring-bounce`, `.touch-press` scale(0.965) | M1 | Survey 1 | DONE |
-| 2 | Specular Rim Elevation & Translucent Materials | `.apple-card`, `.apple-chrome`, `.apple-sheet`, `.apple-modal`, `.apple-pill` with specular inset shadows | M1 | Survey 1 | DONE |
-| 3 | Web Vibration Haptics Engine | Multimodal haptic feedback (`triggerHaptic`) with silent fallback across buttons, tabs, and sheet actions | M1 | Survey 1 | DONE |
-| 4 | OpenType Tabular Numerals | `.tabular-numbers` with `tnum` 1 applied across all numeric metrics, badges, charts, and tables | M1 | Survey 2 | DONE |
-| 5 | Zero-Layout-Shift Table Architecture | Fixed header heights, responsive skeleton rows (`h-12 w-full`), timetable matrix bounds (`min-w-[170px]`) | M1 | Survey 2 | DONE |
-| 6 | Exam Seating Route Alignment | Polish `src/app/dashboard/exam-seating/page.tsx` with `PageHeader`, `apple-card`, `tabular-numbers`, `Skeleton`, `animate-spring-up` | M1 | Survey 1 & 2 | DONE |
-| 7 | Zero-Bloat Native SVG Icon Engine | 55 pure SVG primitives in `src/components/ui/icons.tsx`, zero `lucide-react`, zero emojis as UI icons | M2 | Survey 3 | DONE |
-| 8 | WCAG 2.2 AAA Accessibility | Contrast $\ge 7.1:1$, touch targets $\ge 44\text{px}$, `:focus-visible` rings, accessibility triple-gate | M2 | Survey 3 | DONE |
-| 9 | Ponytail YAGNI Compliance | Standard library primitives, zero bloat, clean dependencies | M2 | Survey 3 | DONE |
-| 10 | Quality Gate Verification | Pass `tsc --noEmit`, `npm run lint`, `npm test` (320/320), `agent-as-judge` (9/9), `npm run build` (15/15) | M2 | Survey 3 | DONE |
-| 11 | Adversarial Stress & Forensic Integrity | Empirical verification via Challenger stress suites and Forensic Auditor verification | M3 | Project Pattern | DONE |
-| 12 | International Compliance Suite | 13 regulatory badges (GDPR, CCPA, HIPAA, PIPEDA, LGPD, DPDPA, PIPL, 152-FZ, WCAG 2.2 AAA, EAA, Section 508, i18n, RTL) | M4 | User Request | DONE |
-| 13 | Zero-Loading Data Prefetcher | Parallel prefetch of 9 ERP modules on login, SWR in-memory + sessionStorage cache | M4 | User Request | DONE |
-| 14 | i18n & RTL Support | 9-language translation engine with RTL mirroring for Arabic | M4 | User Request | DONE |
+| # | Feature | Description | Milestone | Source |
+|---|---------|-------------|-----------|--------|
+| 1 | Zero-Bloat Foundation | Enforce Ponytail philosophy; zero external UI/icon dependencies (`lucide-react`, `framer-motion`, `swr`, `clsx`, `tailwind-merge` eliminated). | M1 | ORIGINAL_REQUEST §R1 |
+| 2 | Native SVG Icon Suite | 57 native SVG icon components with forwardRef in `src/components/ui/icons.tsx`. | M1 | ORIGINAL_REQUEST §R1 |
+| 3 | Fluid Motion Physics | Pure TypeScript Apple fluid motion (`project`, `rubberband`, `createVelocityTracker`, `triggerHaptic`). | M1 | ORIGINAL_REQUEST §R2 |
+| 4 | Specular Dark Design System | Tailwind v4 specular dark tokens, elevation surfaces 0-4, frosted glassmorphism, spring transitions. | M1 | ORIGINAL_REQUEST §R2 |
+| 5 | WCAG 2.2 AAA Accessibility | Contrast >= 7.1:1 (foreground 18.7:1), touch targets >= 44px, `:focus-visible` rings, skip-links, ARIA live. | M2 | ORIGINAL_REQUEST §R3 |
+| 6 | 9-Language i18n & RTL | 9 languages (`en`, `te`, `hi`, `es`, `fr`, `de`, `ar`, `zh`, `ru`) with real-time bidirectional layout switching. | M2 | ORIGINAL_REQUEST §R3 |
+| 7 | Authentication & Login | Split-screen glass hero, OCR auto-solve, PoW challenge, ComplianceModal standard badges, prefetching. | M3 | ORIGINAL_REQUEST §R4 |
+| 8 | Shell Navigation | Collapsible desktop sidebar (260px <-> 64px), top status bar with profile avatar, mobile gesture dock. | M3 | ORIGINAL_REQUEST §R4 |
+| 9 | 11 Dashboard Module Routes | Overview, Attendance (LTPS rollup, bunk forecast, SVG chart), Timetable (matrix grid), Marks & CGPA (SVG trend chart), Profile, Fee Management (SVG donut), Tools (calculators), Circulars, Hostels, Library, Exam Seating. | M3 | ORIGINAL_REQUEST §R4 |
+| 10 | AI Copilot Integration | Floating trigger, `Cmd+K` / `Ctrl+Shift+A` shortcuts, gesture drawer sheet, Zod-validated tool execution. | M4 | ORIGINAL_REQUEST §R5 |
+| 11 | Interactive Execution Cards | 4 interactive execution cards for Attendance target, Fee balance, CGPA goal predictor, and timetable queries. | M4 | ORIGINAL_REQUEST §R5 |
+| 12 | 100% E2E Test Pass & Adversarial Hardening | 4-Tier opaque-box test suite (Tiers 1-4) + Tier 5 white-box adversarial stress tests + 9/9 Agent-as-Judge. | M5 | ORIGINAL_REQUEST Acceptance Criteria |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
-|---|------|-------|-------------|:------:|
-| M1 | UI/UX Consistency & Exam-Seating Alignment | Refactor `src/app/dashboard/exam-seating/page.tsx` to match system-wide `apple-card`, `PageHeader`, `animate-spring-up`, `tabular-numbers`, `Skeleton` loading, and `triggerHaptic` | none | **DONE** |
-| M2 | Comprehensive Quality Gate & Review Verification | Execute full suite of verification commands (tsc, lint, 318 tests, 9 agent-as-judge tests, build, icon stress, E2E browser tests) with 2 independent Reviewers and Challengers | M1 | **DONE** |
-| M3 | Final Forensic Audit & Adversarial Verification | Forensic Auditor (`teamwork_preview_auditor`) integrity check + Challenger stress verification for zero-cheating and 100% compliance | M2 | **DONE** |
-| M4 | International Compliance, Prefetcher & i18n | Compliance suite (13 badges), data prefetcher (9 modules), i18n (9 languages), RTL support, CAPTCHA & attendance fixes | M3 | **DONE** |
+|---|------|-------|-------------|--------|
+| 1 | Foundation, Primitives & Fluid Motion (M1) | `src/components/ui/`, `src/lib/fluid-motion.ts`, `src/app/globals.css`, icons, tokens | none | DONE |
+| 2 | Accessibility (WCAG AAA) & i18n RTL Engine (M2) | `src/lib/i18n/`, `src/components/ui/LanguageSelector.tsx`, WCAG contrast & touch targets | M1 | DONE |
+| 3 | Authentication & 12 Dashboard Modules (M3) | `src/app/page.tsx`, `src/components/Navigation.tsx`, `src/app/dashboard/**` | M1, M2 | DONE |
+| 4 | AI Copilot & Interactive Execution Cards (M4) | `src/components/ai/**`, `src/lib/ai/**`, `src/app/api/ai/chat/route.ts` | M1, M2, M3 | DONE |
+| 5 | Dual Track E2E Acceptance & Adversarial Hardening (M5) | 4-Tier E2E Suites, Tier 5 Adversarial Stress, 9/9 Agent-as-Judge, Turbopack Build | M1, M2, M3, M4 | IN_PROGRESS |
+
+## Interface Contracts
+### `src/components/ui/icons.tsx` ↔ All Components
+- Function signatures: `export const <IconName> = createIcon(...)` (React.ForwardRefExoticComponent<IconProps>)
+- Props: `IconProps { size?: number | string; className?: string; strokeWidth?: number; ... }`
+
+### `src/lib/fluid-motion.ts` ↔ UI Components
+- `project(initialVelocity: number, decelerationRate?: number): number`
+- `rubberband(overshoot: number, dimension: number, constant?: number): number`
+- `triggerHaptic(type: 'selection' | 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error'): boolean`
+- `createVelocityTracker(): { addSample(position: number): void; getVelocity(): number; reset(): void }`
+
+### `src/lib/i18n/index.ts` ↔ UI Components
+- `t(key: TranslationKey, params?: Record<string, string | number>): string`
+- `getLocale(): SupportedLocale`
+- `setLocale(locale: SupportedLocale): void`
+- `getDirection(locale?: SupportedLocale): 'ltr' | 'rtl'`
+
+### `src/hooks/useNativeQuery.ts` ↔ Dashboard Pages
+- `useNativeQuery<T>(key: string, fetcher: () => Promise<T>, options?: QueryOptions<T>): QueryResult<T>`
+
+### `src/lib/ai/tools.ts` & `executor.ts` ↔ AI Copilot UI
+- `executeTool(toolName: string, args: Record<string, unknown>, sessionContext: SessionContext): Promise<ToolResult>`
 
 ## Code Layout
 ```
 src/
 ├── app/
-│   ├── layout.tsx                      # Root layout, Inter & Outfit fonts
-│   ├── globals.css                     # Semantic color tokens, Apple spring curves, materials, tabular-numbers
-│   ├── page.tsx                        # Login route with CAPTCHA PoW and haptics
-│   ├── api/                            # Edge proxy API endpoints
-│   └── dashboard/                      # 11 ERP module routes
-│       ├── page.tsx                    # Dashboard overview & schedule widget
-│       ├── attendance/                 # Attendance module & circular/bar SVG charts
-│       ├── timetable/                  # Timetable matrix & list views
-│       ├── marks/                      # Marks module & spline GPA trend chart
-│       ├── profile/                    # Profile module & scalar sub-tabs
-│       ├── fee/                        # Fee module & donut chart
-│       ├── tools/                      # Attendance calculator & CGPA predictor
-│       ├── circulars/                  # Circulars ERP table page
-│       ├── hostels/                    # Hostels ERP table page
-│       ├── library/                    # Library ERP table page
-│       └── exam-seating/               # Exam seating ERP table & mobile card view
+│   ├── api/
+│   │   ├── ai/chat/route.ts
+│   │   ├── captcha/route.ts
+│   │   ├── erp-proxy/route.ts
+│   │   ├── fetch-photo/route.ts
+│   │   └── login/route.ts
+│   ├── dashboard/
+│   │   ├── attendance/
+│   │   ├── circulars/
+│   │   ├── exam-seating/
+│   │   ├── fee/
+│   │   ├── hostels/
+│   │   ├── library/
+│   │   ├── marks/
+│   │   ├── overview/
+│   │   ├── profile/
+│   │   ├── timetable/
+│   │   ├── tools/
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx
 ├── components/
-│   ├── Navigation.tsx                  # Global navigation bar & drawer
-│   ├── ERPTablePage.tsx                # Reusable Apple-styled ERP table page
-│   ├── ui/
-│   │   ├── button.tsx                  # Apple tactile button with haptics & active scale
-│   │   ├── stat-card.tsx               # Metric stat card with tabular numbers & specular depth
-│   │   ├── progress.tsx                # Progress bar & circular ring
-│   │   ├── skeleton.tsx                # Pulse skeleton placeholder
-│   │   ├── sheet.tsx                   # Gesture drag sheet with fluid physics
-│   │   ├── icons.tsx                   # 57 native pure SVG icon primitives
-│   │   └── page-header.tsx             # Standardized module page header
-│   │   └── LanguageSelector.tsx        # i18n language & RTL toggle
+│   ├── ai/
+│   │   ├── AIChatMessageList.tsx
+│   │   ├── AIChatSheet.tsx
+│   │   ├── AICopilot.tsx
+│   │   └── ExecutionCards.tsx
 │   ├── compliance/
-│   │   └── ComplianceModal.tsx         # Compliance Center badges & interactive modal
-│   └── ai/                             # AI Copilot components
+│   │   └── ComplianceModal.tsx
+│   ├── ui/
+│   │   ├── icons.tsx
+│   │   ├── LanguageSelector.tsx
+│   │   ├── button.tsx
+│   │   ├── card.tsx
+│   │   ├── dialog.tsx
+│   │   ├── sheet.tsx
+│   │   └── ...
+│   ├── Captcha.tsx
+│   └── Navigation.tsx
+├── e2e/
+│   ├── tier1-feature-coverage.test.ts
+│   ├── tier2-boundary-corner-cases.test.ts
+│   ├── tier3-cross-feature-combinations.test.ts
+│   └── tier4-real-world-scenarios.test.ts
+├── hooks/
+│   ├── useAcademicSession.ts
+│   ├── useAriaAnnounce.ts
+│   └── useNativeQuery.ts
 ├── lib/
-│   ├── fluid-motion.ts                 # WWDC spring physics, project(), rubberband(), triggerHaptic()
-│   ├── utils.ts                        # Zero-dependency cn helper
-│   ├── data-prefetcher.ts              # Parallel login-time prefetch for all 9 ERP modules
-│   ├── compliance/                     # Regulatory compliance data & manager
-│   │   ├── compliance-data.ts          # 13 regulatory badge metadata
-│   │   └── compliance-manager.ts       # Data Export, Erasure, Consent Manager
+│   ├── ai/
+│   ├── compliance/
 │   ├── i18n/
-│   │   └── index.ts                    # 9-language zero-dep translation engine with RTL
-│   └── scrapers/                       # ERP scrapers
-└── scripts/
-    ├── agent-as-judge.ts               # AI Tool capability evaluation suite
-    ├── challenger-icon-stress.ts       # Native SVG icon engine verification
-    ├── challenger-browser-stress.ts    # Deep browser DOM & touch target audit
-    ├── challenger-interaction-stress.ts# Fluid motion physics & layout shift audit
-    └── e2e-browser-audit.ts            # Multi-route browser navigation audit
+│   ├── crypto.ts
+│   ├── data-prefetcher.ts
+│   └── fluid-motion.ts
+└── types/
 ```
-
-## Interface Contracts
-### `PageHeader` (`src/components/ui/page-header.tsx`)
-- Props: `icon: React.ComponentType<{ className?: string; size?: number }>`, `title: string`, `description: string`, `badge?: React.ReactNode`, `actions?: React.ReactNode`, `className?: string`
-- Semantics: Renders standard module header with icon badge, title, subtitle, and responsive action slot.
-
-### `ERPTablePage` (`src/components/ERPTablePage.tsx`)
-- Props: `title: string`, `description: string`, `icon: React.ComponentType`, `columns: string[]`, `rows: (string | number)[][]`, `searchPlaceholder?: string`, `actions?: React.ReactNode`
-- Features: Live search filter, CSV export, responsive table on desktop, expandable card list on mobile, `tabular-numbers`, skeleton loading state.
-
-### `fluid-motion.ts` (`src/lib/fluid-motion.ts`)
-- `triggerHaptic(type: 'light' | 'selection' | 'medium' | 'heavy' | 'success' | 'warning' | 'error')`: Triggers `navigator.vibrate` with silent fallback.
-- `project(initialVelocity: number, decayRate = 0.998)`: Exponential decay displacement calculator.
-- `rubberband(overshoot: number, dimension: number, constant = 0.55)`: UIKit rubberband resistance formula.

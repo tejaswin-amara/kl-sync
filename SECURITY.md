@@ -1,103 +1,56 @@
-# 🔒 Security Policy & Threat Model
+# Security Policy
 
-Security is a foundational pillar of **KL Sync**. Because the application acts as an intermediary for highly sensitive student ERP credentials, academic records, and financial fee data, we maintain a strict, uncompromising security posture. 
+## Supported Versions
 
-This document exhaustively details our threat model, known limitations, and the mandated process for responsibly reporting vulnerabilities.
+We take security seriously. Please note which versions of KL Sync are currently supported with security updates.
 
----
+| Version | Supported          | Notes                                  |
+| ------- | ------------------ | -------------------------------------- |
+| 2.4.x   | :white_check_mark: | Active development & security updates. |
+| 2.3.x   | :white_check_mark: | Security fixes only.                   |
+| 2.2.x   | :x:                | End of life.                           |
+| 2.1.x   | :x:                | End of life.                           |
+| 2.0.x   | :x:                | End of life.                           |
+| < 2.0   | :x:                | End of life.                           |
 
-## 🚨 Reporting a Vulnerability (Responsible Disclosure)
+## Vulnerability Disclosure Policy
 
-If you discover a security vulnerability, flaw in the session encryption, or any exploit that could compromise student data, **you must report it responsibly**.  
+If you discover a security vulnerability within KL Sync, please do **NOT** open a public issue.
 
-**Do NOT open a public GitHub issue, Pull Request, or GitHub Discussion regarding the vulnerability.** Public disclosure before a patch is available actively puts KL Sync users at risk.
+Instead, report it privately via email to **tejaswinamara@gmail.com**. You may optionally use PGP encryption if preferred.
 
-### How to Report
+## SLA Timeline
 
-Please send a detailed email directly to **`tejaswinamara@gmail.com`**. Your report must be exhaustive and include the following details:
+We aim to adhere to the following timeline for security vulnerabilities:
+- **Day 0**: Vulnerability submitted.
+- **Days 1-3**: Triage and acknowledgment of the report.
+- **Days 4-14**: Remediation and patch development.
+- **Day 15**: Coordinated release of the security patch.
 
-1. **Vulnerability Type** — A clear, concise description of the issue (e.g., Cross-Site Scripting (XSS), AES-256-GCM encryption bypass, CSRF token leakage).
-2. **Location** — The exact file path, function, or API endpoint that is affected (e.g., `src/lib/session.ts` line 42).
-3. **Reproduction Steps** — Exhaustive, step-by-step instructions or a minimal Proof of Concept (PoC) code example to reproduce the exploit.
-4. **Threat Impact** — What could an attacker realistically accomplish? (e.g., impersonate another student's session, manipulate server state, decrypt raw cookies).
-5. **Suggested Remediation (Optional)** — If you are familiar with the codebase, provide a suggested fix or architectural mitigation.
+## Threat Model
 
-### Resolution Timeline & SLA
+KL Sync operates as a stateless edge proxy. Our threat model focuses on:
+- **Session Encryption**: Protecting ephemeral credentials via AES-256-GCM.
+- **MITM (Man-in-the-Middle)**: Ensuring secure transit between the client, edge proxy, and upstream ERP.
+- **Supply Chain**: Maintaining zero-bloat, strict dependency minimization to reduce supply chain risks.
+- **Compliance**: Adhering to GDPR, CCPA/CPRA, HIPAA, PIPEDA/CPPA, LGPD, DPDPA, PIPL, and 152-FZ regarding data handling.
 
-We adhere to the following Service Level Agreement (SLA) for security reports:
-- **Day 0**: You submit the report via email.
-- **Days 1–3 (Triage)**: The maintainer will acknowledge receipt, verify the exploit, and ask clarifying questions if needed.
-- **Days 4–14 (Remediation)**: The maintainer will develop, test, and verify a patch locally to ensure it does not break upstream ERP proxying.
-- **Day 15 (Release)**: The patch is merged into the `master` branch and released. You will be credited in the GitHub Release notes (if you explicitly opt-in to public acknowledgment).
+## Out of Scope
 
-### Post-Release Disclosure
+The following are considered out of scope for our bug bounty and vulnerability disclosure:
+- Social engineering (phishing, vishing, etc.) against KL Sync users or maintainers.
+- Physical access to user devices or servers.
+- Vulnerabilities in the upstream university ERP system itself (report those to the university).
+- Denial of Service (DoS/DDoS) attacks against the hosted proxy.
 
-Once a fix is officially released and deployed, you are entirely welcome and encouraged to:
-- Publish a detailed technical write-up of the vulnerability on your blog.
-- Disclose the CVE or bug details publicly on social media.
-- Request explicit credit in the repository's release notes.
+## Security Architecture
 
----
+KL Sync is built with a security-first architecture:
+- **Stateless Edge**: No databases. No user data is stored persistently.
+- **AES-256-GCM**: Used via the Web Crypto API to securely encrypt session tokens.
+- **SSRF Protection**: Hardened fetch wrappers to prevent Server-Side Request Forgery against internal networks.
+- **`SESSION_SECRET`**: A cryptographically secure 32-byte hex string is strictly required in production environments to seed the encryption algorithm.
 
-## 🧠 Threat Model & Known Architectural Limitations
+## Post-Release Disclosure Policy
 
-Due to the nature of proxying a legacy ERP, KL Sync has specific inherent architectural limitations. These are documented heavily here so contributors and deployers understand the risk surface.
-
-### 1. Client-Side Session Storage & Encryption
-**The Flow**: Upon successful authentication at `/api/login`, the ERP returns raw `PHPSESSID` and CSRF tokens. KL Sync bundles these strings and stores them in the user's browser as the `kl_erp_session` cookie.
-
-**The Risk**: If this cookie is stored as plaintext, anyone with access to the user's browser or network intercept could steal the cookie and impersonate the student on the actual ERP.
-
-**The Mitigation**: KL Sync uses **AES-256-GCM** encryption to encrypt the cookie payload before sending it to the browser.
-- **Mandate**: In production (`NODE_ENV=production`), omitting `SESSION_SECRET` triggers an explicit `[SECURITY FATAL]` exception at startup/invocation, preventing insecure deployments. You MUST set a strong 32+ character `SESSION_SECRET` in your environment. In development mode, a local fallback key is used with console warnings.
-
-### 2. Ephemeral Credentials in Memory
-**The Flow**: Your ERP username and password are submitted to `/api/login`, used exactly **once** to authenticate against `newerp.kluniversity.in`, and immediately discarded.
-
-**The Risk**: The credentials are never written to disk or database. However, during the split-second HTTP POST request, the credentials exist in the server's RAM. If an attacker gains root access to the hosting server (e.g., a compromised Vercel account or a malicious server admin), they could theoretically execute a memory dump and recover credentials mid-flight.
-- **Mandate**: This is an inherent limitation of server-side proxy authentication. If you require absolute zero-trust privacy, you must self-host the application locally.
-
-### 3. Privacy in Transit (Man-in-the-Middle)
-**The Flow**: KL Sync communicates with `newerp.kluniversity.in` exclusively over secure HTTPS. 
-
-**The Risk**: If you are using a public, third-party hosted instance of KL Sync, your encrypted session passes through *their* server. If that server is compromised, the operator has access to the decryption keys (`SESSION_SECRET`).
-- **Mandate**: We do not guarantee the security of third-party hosted instances. Use them at your own risk.
-
-### 4. Supply Chain Vulnerabilities (Third-Party Dependencies)
-KL Sync minimizes dependencies to reduce supply-chain risks (the "Ponytail Philosophy"). However, we still rely on Next.js, React, Tailwind CSS, and Cheerio.
-If you discover a vulnerability in an upstream dependency:
-1. Report it to the upstream package maintainers first.
-2. Notify us via email so we can expedite a dependency version bump.
-3. If the vulnerability is specific to *how* KL Sync implements the package, report it directly to us following the disclosure rules above.
-
-### 5. International Regulatory Compliance
-**Compliance Framework**: KL Sync implements client-side compliance controls aligned with 8 international privacy regulations (GDPR, CCPA/CPRA, HIPAA, PIPEDA/CPPA, LGPD, DPDPA, PIPL, 152-FZ) and 5 accessibility standards (WCAG 2.2 AAA, EAA/EN 301 549, Section 508, i18n, RTL).
-
-**Data Export (GDPR Art. 20 / CCPA)**: Users can export all cached academic data as a JSON bundle via the Compliance Center modal.
-
-**Cryptographic Data Erasure (GDPR Art. 17)**: One-click purge of all cookies, sessionStorage, localStorage, cached records, and cryptographic keys with zero server residue.
-
-**Consent Management**: Granular consent toggles for analytics, functional cookies, and third-party integrations.
-
-**Important**: These compliance controls are client-side implementations. KL Sync operates as a stateless edge proxy with zero persistent data storage, which inherently minimizes regulatory exposure. No personal data is stored on servers.
-
----
-
-## 🛑 Out of Scope
-
-The following vectors are explicitly considered out of scope for our security policy and should not be reported as vulnerabilities:
-- **Social Engineering**: Phishing attempts tricking a user into handing over their ERP password or `kl_erp_session` cookie.
-- **Physical Device Access**: An attacker accessing a student's unlocked laptop or mobile phone.
-- **Local Network Attacks**: An attacker executing Man-in-the-Middle (MITM) attacks on a compromised public Wi-Fi network (bypassing SSL).
-- **Upstream ERP Vulnerabilities**: Any vulnerabilities that exist on the official `newerp.kluniversity.in` servers (e.g., SQL injections on the ERP itself). You must report those directly to KL University IT.
-
----
-
-## ❓ Questions or Ambiguities?
-
-If you are ever unsure whether a behavior qualifies as a security vulnerability or a standard bug, **assume it is a security issue**. It is always better to report something privately that turns out to be harmless than to publicly expose an actual exploit.
-
-**Contact**: `tejaswinamara@gmail.com`
-
----
-*Thank you for helping keep the KL Sync community secure!*
+After a patch is released, a public security advisory will be published in the GitHub repository detailing the vulnerability, its impact, and the steps taken to resolve it. Contributors who reported the vulnerability will receive appropriate credit unless they request to remain anonymous.

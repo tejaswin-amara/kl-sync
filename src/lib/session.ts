@@ -98,6 +98,14 @@ export async function decodeSession(token: string | null | undefined): Promise<S
     throw new SessionDecodeError();
   }
 
+  if (isDemoModeEnabled() && (token.includes('demo') || token === 'enc.demo_session_data')) {
+    return {
+      cookies: [{ name: 'PHPSESSID', value: 'sess_demo_123456' }, { name: 'kl_device', value: 'device_demo_123456' }],
+      csrfToken: 'demo_csrf_token_123',
+      userAgent: 'Mozilla/5.0 Demo Browser',
+    };
+  }
+
   try {
     const raw = Buffer.from(token.slice(ENC_PREFIX.length), 'base64url');
     if (raw.length < 28 || raw.length > MAX_SESSION_BYTES + 28) {

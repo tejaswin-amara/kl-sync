@@ -60,7 +60,11 @@ async function handleProxy(
     const searchParams = request.nextUrl.searchParams;
 
     let session: ScraperSession;
-    const sessionValue = resolveSessionToken(request);
+    const sessionValue =
+      resolveSessionToken(request) ||
+      (typeof body.sessionId === 'string' ? body.sessionId : undefined) ||
+      searchParams.get('sessionId') ||
+      undefined;
     const demoMode = isDemoModeEnabled();
 
     if (!sessionValue) {
@@ -72,7 +76,11 @@ async function handleProxy(
       try {
         session = await decodeSession(sessionValue);
       } catch {
-        return apiJson({ success: false, error: 'Session expired. Please sign in again.' }, { status: 401 });
+        if (demoMode && sessionValue.includes('demo')) {
+          session = DEMO_SESSION;
+        } else {
+          return apiJson({ success: false, error: 'Session expired. Please sign in again.' }, { status: 401 });
+        }
       }
     }
     const academicYear =
@@ -87,7 +95,14 @@ async function handleProxy(
       searchParams.get('semester') ||
       searchParams.get('semester_id') ||
       undefined;
-    const rawCsrf = sessionValue ? session.csrfToken : (demoMode ? session.csrfToken : undefined);
+    const rawCsrf =
+      (typeof body.csrfToken === 'string' ? body.csrfToken : undefined) ||
+      (typeof body._csrf === 'string' ? body._csrf : undefined) ||
+      searchParams.get('csrfToken') ||
+      searchParams.get('_csrf') ||
+      searchParams.get('csrf') ||
+      request.headers.get('x-csrf-token') ||
+      (sessionValue && session ? session.csrfToken : undefined);
 
     // Validate CSRF token resolution for POST endpoints requiring form submission
     if (
@@ -379,7 +394,7 @@ async function handleProxy(
       {
         success: false,
         error: 'ERP Bad Gateway',
-          details: 'The ERP service could not complete the request. Please try again later.',
+        details: errMessage || 'The ERP service could not complete the request. Please try again later.',
       },
       { status: 502 }
     );

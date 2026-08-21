@@ -17,19 +17,22 @@ export async function GET(request: Request) {
   }
 
   const cookieHeader = request.headers.get('cookie') || '';
-  const rawSession = cookieHeader.match(/(?:^|;\s*)kl_erp_session=([^;]+)/)?.[1];
+  const rawSession =
+    cookieHeader.match(/(?:^|;\s*)kl_erp_session=([^;]+)/)?.[1] ||
+    request.headers.get('x-session-id') ||
+    request.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
   const demoMode = isDemoModeEnabled();
-  if (!rawSession && !demoMode) return new NextResponse('Unauthorized', { status: 401 });
+  if (!rawSession) return new NextResponse('Unauthorized', { status: 401 });
 
-  const session = rawSession ? await decodeSession(rawSession).catch(() => null) : null;
-  if (!session && !demoMode) return new NextResponse('Unauthorized', { status: 401 });
-  if ((!session || isDemoSession(session)) && demoMode) {
+  const session = await decodeSession(rawSession).catch(() => null);
+  if (!session) return new NextResponse('Unauthorized', { status: 401 });
+  if (isDemoSession(session) && demoMode) {
     return new NextResponse('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#273142"/></svg>', {
       status: 200,
       headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' },
     });
   }
-  if (!session || isDemoSession(session)) return new NextResponse('Unauthorized', { status: 401 });
+  if (isDemoSession(session)) return new NextResponse('Unauthorized', { status: 401 });
 
   const targetRelativePaths: string[] = [];
   if (path) {

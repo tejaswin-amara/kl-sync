@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+title: KL Sync
+message: 'If you use or reference this software, please cite it as below.'
+type: software
+authors:
+  - given-names: Tejaswin
+    family-names: Amara
+    email: tejaswinamara@gmail.com
+repository-code: 'https://github.com/tejaswin-amara/kl-sync'
+url: 'https://klhb.vercel.app'
+license: LicenseRef-Proprietary
+version: 2.4.0
+date-released: 2026-08-18
+keywords:
+  - erp-client
+  - next.js
+  - edge-proxy
+  - university
+  - attendance-tracker
+  - typescript

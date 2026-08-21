@@ -1,168 +1,161 @@
 <div align="center">
-  <img src="public/logo.png" alt="KL Sync Logo" width="180" />
-  <h1>⚡ KL Sync</h1>
-  <p><strong>An ultra-fast, stateless, Apple-inspired ERP client and edge proxy for KL University students.</strong></p>
+  <h1>KL Sync</h1>
+  <p><strong>The Enterprise-Grade KL University ERP Client</strong></p>
 
   <p>
-    <a href="https://klhb.vercel.app"><img alt="Production Deployment" src="https://img.shields.io/badge/Vercel-klhb.vercel.app-10B981?style=for-the-badge&logo=vercel&logoColor=white" /></a>
-    <a href="https://nextjs.org/"><img alt="Next.js" src="https://img.shields.io/badge/Next.js-16.3%20(Turbopack)-black?style=for-the-badge&logo=next.js" /></a>
-    <a href="https://react.dev/"><img alt="React" src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black" /></a>
-    <a href="https://www.typescriptlang.org/"><img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white" /></a>
-    <a href="DESIGN.md"><img alt="WCAG 2.2 AAA" src="https://img.shields.io/badge/Accessibility-WCAG%202.2%20AAA-818CF8?style=for-the-badge" /></a>
-    <a href="SECURITY.md"><img alt="AES-256-GCM" src="https://img.shields.io/badge/Security-AES--256--GCM-F59E0B?style=for-the-badge&logo=auth0&logoColor=white" /></a>
-    <a href="SECURITY.md"><img alt="GDPR Compliant" src="https://img.shields.io/badge/Privacy-GDPR%20%7C%20CCPA%20%7C%20HIPAA-10B981?style=for-the-badge" /></a>
+    <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel Deployment" />
+    <img src="https://img.shields.io/badge/Next.js_16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js 16" />
+    <img src="https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React 19" />
+    <img src="https://img.shields.io/badge/TypeScript_5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript 5.8" />
+  </p>
+  <p>
+    <img src="https://img.shields.io/badge/Accessibility-WCAG_2.2_AAA-4B275F?style=for-the-badge" alt="WCAG 2.2 AAA" />
+    <img src="https://img.shields.io/badge/Security-AES--256--GCM-228B22?style=for-the-badge" alt="AES-256-GCM Security" />
+    <img src="https://img.shields.io/badge/Compliance-GDPR_|_CCPA_|_HIPAA-blue?style=for-the-badge" alt="GDPR|CCPA|HIPAA" />
+    <img src="https://img.shields.io/badge/Tests-320_Passing-brightgreen?style=for-the-badge" alt="320 Tests" />
+  </p>
+  <p>
+    <img src="https://img.shields.io/github/stars/tejaswin-amara/kl-sync?style=for-the-badge" alt="GitHub stars" />
+    <img src="https://img.shields.io/github/forks/tejaswin-amara/kl-sync?style=for-the-badge" alt="GitHub forks" />
+    <img src="https://img.shields.io/github/issues/tejaswin-amara/kl-sync?style=for-the-badge" alt="GitHub issues" />
+    <img src="https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge" alt="License" />
   </p>
 </div>
 
----
+## Overview
 
-## 🌟 Key Highlights & Philosophy
+Welcome to **KL Sync**, the premier source-available **KL University ERP client** designed for performance, security, and unparalleled user experience. This modern **student portal** leverages a stateless **edge proxy** architecture to communicate seamlessly with the legacy ERP infrastructure. As a highly optimized **Next.js dashboard**, KL Sync offers a suite of essential tools including a real-time **attendance tracker**, an accurate **CGPA calculator**, and secure academic data access—all delivered at edge speeds with uncompromising reliability.
 
-- 🚀 **Zero-DB Edge Proxy**: Stateless serverless architecture. Credentials and sessions are never persisted in any database.
-- ⚡ **Zero-Loading Dashboard**: All 9 ERP modules prefetched in parallel on login. Dashboard tabs render instantly with SWR in-memory + sessionStorage caching.
-- 🔐 **Military-Grade Session Encryption**: Sessions are sealed server-side using **AES-256-GCM** encryption with Web Crypto API.
-- 🍏 **Apple Design, Open Design & UI/UX Pro Max**: WWDC fluid spring physics (damping 1.0 default, damping 0.82 momentum, iOS sheet curve), velocity projection $\text{project}(v, 0.998)$, UIKit rubber-banding $\text{rubberband}(x, \text{dim}, 0.55)$, optical typography, specular elevation, translucent glassmorphism (`blur(24px) saturate(180%)`), and multimodal Web Vibration haptics.
-- 🪮 **Ponytail Philosophy (Zero-Bloat)**: Pruned heavyweight dependencies (`lucide-react`, `swr`, `clsx`, `tailwind-merge`) in favor of native standard library primitives and a custom zero-runtime 57-component SVG engine.
-- ♿ **WCAG 2.2 AAA Compliance**: Contrast $\ge 7.1:1$, interactive touch targets $\ge 44\text{px}$, custom `:focus-visible` rings, and triple accessibility gate (`prefers-reduced-motion`, `prefers-reduced-transparency`, `prefers-contrast`).
-- 🌐 **International Compliance**: GDPR, CCPA/CPRA, HIPAA, PIPEDA/CPPA, LGPD, DPDPA, PIPL, 152-FZ regulatory compliance with Data Export (Art. 20), Cryptographic Erasure (Art. 17), and Consent Management. 9-language i18n engine with RTL support.
-- 🤖 **Agentic AI Copilot**: Context-aware natural language assistant with typed Zod tool calling for calculating attendance goals, marks predictions, and schedule queries.
-- 🛡️ **Exhaustive Test Verification**: Over **320 automated unit/integration tests (54 suites)**, **13 Playwright E2E tests**, **15 Challenger stress suites**, and **9 Agent-as-Judge AI evaluations**.
+## Architecture
 
----
-
-## 🏛️ System Architecture
+KL Sync operates entirely at the edge, utilizing a zero-database, stateless proxy layer that securely orchestrates requests to the legacy KL University ERP.
 
 ```mermaid
-graph TD
-    Client["📱 Student Browser / Mobile PWA<br/>(React 19, Tailwind v4, Fluid Physics, Native SVGs)"]
+flowchart LR
+    Client([Client Browser]) -->|Encrypted Session| Edge[Next.js Edge Proxy Layer]
     
-    subgraph EdgeProxy ["⚡ Next.js 16 Edge Proxy Layer (Vercel)"]
-        AuthRoute["/api/login<br/>(AES-256-GCM Session Sealer)"]
-        ERPProxy["/api/erp-proxy/[module]<br/>(Multi-Module Cheerio Engine)"]
-        CaptchaRoute["/api/captcha<br/>(Auto-OCR + CapJS Guard)"]
-        PhotoProxy["/api/fetch-photo<br/>(SSRF-Protected Image Stream)"]
-        AIChat["/api/ai/chat<br/>(Zod Tool Execution Engine)"]
+    subgraph Edge Proxy Layer
+        Auth[Auth API Route]
+        Data[Data API Route]
+        Schedule[Schedule API Route]
+        Grades[Grades API Route]
+        Finance[Finance API Route]
     end
-
-    subgraph LegacyERP ["🏛️ KL University Legacy ERP"]
-        ERPServer["newerp.kluniversity.in<br/>(ASPX Web Forms / IIS / Session Store)"]
-    end
-
-    Client -->|HTTPS / Encrypted Session Token| EdgeProxy
-    EdgeProxy -->|HTTPS Form Data & Cookie Jar| LegacyERP
+    
+    Edge -.-> Auth
+    Edge -.-> Data
+    Edge -.-> Schedule
+    Edge -.-> Grades
+    Edge -.-> Finance
+    
+    Auth & Data & Schedule & Grades & Finance ==>|SSRF-Protected Scraper| ERP[(KL University Legacy ERP)]
 ```
 
+## Quickstart
+
+Get up and running locally in minutes:
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/tejaswin-amara/kl-sync.git
+   cd kl-sync
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment variables**
+   ```bash
+   cp .env.example .env.local
+   # Update .env.local with your SESSION_SECRET
+   ```
+
+4. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+
+5. **Access the application**
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Dashboard Module Suite
+
+KL Sync features 11 comprehensive modules tailored for the modern student experience:
+
+| Module | Route | Icon Primitive | Key Features |
+|--------|-------|----------------|--------------|
+| **Overview** | `/dashboard` | `home-icon` | At-a-glance academic summary, alerts |
+| **Attendance** | `/dashboard/attendance` | `clock-icon` | Real-time tracking, low-attendance warnings |
+| **Timetable** | `/dashboard/timetable` | `calendar-icon` | Weekly schedule, classroom locations |
+| **Marks** | `/dashboard/marks` | `chart-icon` | Grades breakdown, CGPA calculator |
+| **Profile** | `/dashboard/profile` | `user-icon` | Personal details, biometric info |
+| **Fee** | `/dashboard/fee` | `wallet-icon` | Payment history, pending dues, receipts |
+| **Tools** | `/dashboard/tools` | `wrench-icon` | AI Copilot, utility calculators |
+| **Circulars** | `/dashboard/circulars` | `bell-icon` | Official announcements, notifications |
+| **Hostels** | `/dashboard/hostels` | `building-icon` | Room allocation, mess menus |
+| **Library** | `/dashboard/library` | `book-icon` | Issued books, due dates, catalog |
+| **Exam Seating** | `/dashboard/seating` | `seat-icon` | Room numbers, seating charts |
+
+## Security Architecture
+
+Security is built-in by design, utilizing the "Ponytail Philosophy" (zero bloat, relying on standard library primitives):
+- **AES-256-GCM Encryption**: All session tokens are encrypted using the native Web Crypto API. No session data is stored on our servers.
+- **SSRF Protection**: Strict URL parsing and whitelisting at the proxy layer prevent Server-Side Request Forgery.
+- **Stateless Design**: Zero database architecture means no persistent PII storage, inherently minimizing breach vectors.
+- **Bot Protection**: CapJS Proof-of-Work prevents automated brute-force attacks on the proxy endpoints.
+
+## Environment Variables
+
+| Variable | Description | Requirement |
+|----------|-------------|-------------|
+| `SESSION_SECRET` | 32-byte base64 string for AES-256-GCM encryption | **Required** in Production |
+| `NEXT_PUBLIC_API_URL` | Base URL for edge proxy routes | Optional |
+| `OPENAI_API_KEY` | Key for the AI Copilot features | Optional |
+
+## Quality Gates
+
+Our CI/CD pipeline enforces rigorous standards before any code reaches production:
+- **Typecheck**: Strict TypeScript 5.8 validation (`tsc --noEmit`).
+- **Lint**: ESLint + Next.js core web vitals strict mode.
+- **Unit Tests**: 320 tests across 54 suites using the native `node:test` runner.
+- **E2E Tests**: 13 Playwright flows testing real browser interactions.
+- **Agent-as-Judge**: 9 AI-powered suites verifying Copilot responses and complex semantic behaviors.
+- **Build**: Turbopack production compilation.
+
+## Tech Stack Defaults vs Alternatives matrix
+
+Guided by the "Ponytail Philosophy", we prioritize zero-dependency standard libraries over bloated packages.
+
+| Category | KL Sync Choice | Alternative | Rationale |
+|----------|----------------|-------------|-----------|
+| **Framework** | Next.js 16 (App Router) | Remix / SvelteKit | Superior edge-runtime support and Turbopack ecosystem. |
+| **State** | Native hooks + sessionStorage | SWR / TanStack Query | YAGNI; standard React hooks are sufficient for a stateless proxy. |
+| **Styling** | Tailwind CSS v4 + Vanilla CSS | CSS Modules / Styled | Unmatched utility-first speed without runtime overhead. |
+| **Icons** | Native zero-runtime SVG engine | lucide-react / heroicons | 57 hand-crafted primitives yield zero bundle size bloat. |
+| **Validation** | Zod | Yup / io-ts | TypeScript-first schema validation required for AI tool calling. |
+| **Testing** | native `node:test` | Jest / Vitest | No external dependencies, blazingly fast execution. |
+| **Scraping** | Cheerio | Puppeteer / jsdom | Lightweight HTML parsing without headless browser overhead. |
+| **AI** | Vercel AI SDK | LangChain | First-class Next.js integration for Edge streaming. |
+| **Crypto** | Web Crypto API | crypto-js | Native performance and security without NPM vulnerabilities. |
+| **Bot Protection** | CapJS (PoW) | reCAPTCHA / Turnstile | Privacy-friendly, zero-friction proof-of-work. |
+
+## Documentation Links
+
+- [Development Guide](./docs/development.md)
+- [Architecture Blueprint](./docs/architecture.md)
+- [Security Model](./docs/security.md)
+
+## License & Disclaimer
+
+**Proprietary License**  
+Copyright © 2026 Tejaswin Amara. All rights reserved.  
+This software is source-available but **not open source** (NOT MIT). You may view the source code, but you may not copy, distribute, modify, or use it for commercial purposes without explicit written permission from the author. 
+
+This project is an independent client and is **not affiliated with, endorsed by, or connected to KL University**.
+
 ---
-
-## 📦 Complete Dashboard Module Suite
-
-KL Sync provides full coverage across all 11 core academic services:
-
-| Module | Route | Icon | Key Features |
-|:---|:---|:---:|:---|
-| **Overview** | `/dashboard` | 📊 | Hero CGPA banner, real-time stat cards, today's schedule widget, quick navigation pills. |
-| **Attendance** | `/dashboard/attendance` | ⏱️ | Overall percentage gauge, circular progress charts, dynamic attendance breakdown graph, class projection simulator. |
-| **Timetable** | `/dashboard/timetable` | 📅 | Dual view (Interactive matrix grid & chronological list), day filters (`Mon`-`Sun`), period slot highlighter, CSV export. |
-| **Marks & CGPA** | `/dashboard/marks` | 📝 | Internal components, semester end exams, dynamic GPA trend graphs, search filters, course analytics. |
-| **Profile** | `/dashboard/profile` | 👤 | Dynamic student ID card, academic demographics, photo streamer, multi-table university records. |
-| **Fee Management** | `/dashboard/fee` | 💳 | Total paid vs pending balances, fee breakdown donut charts, receipt download status. |
-| **Tools & Calculators** | `/dashboard/tools` | 🧮 | Attendance Target Calculator (synced with real data) + CGPA Goal Feasibility Predictor. |
-| **Circulars** | `/dashboard/circulars` | 📢 | Academic notices, exam schedules, and department announcements with empty state handling. |
-| **Hostel Allocation** | `/dashboard/hostels` | 🏢 | Room numbers, block allocation details, bed type, and occupancy verification. |
-| **Library Portal** | `/dashboard/library` | 📚 | Borrowed book records, accession numbers, issue/due dates, and fine tracking. |
-| **Exam Seating** | `/dashboard/exam-seating` | 🧮 | Examination room numbers, desk assignments (`Desk D-14`), session timings (`FN/AN`). |
-
----
-
-## 🔒 Security Architecture & Zero-Plaintext Policy
-
-- **No Plaintext Secrets in Repositories**: Tokens and keys are **never** committed to version control. `.env.local` is strictly blocked by `.gitignore`.
-- **Encrypted Production Secrets**: Production deployments configure `SESSION_SECRET` as a sensitive encrypted variable in the Vercel Dashboard.
-- **SSRF Hardening**: Proxy endpoints strictly validate target origins against `https://newerp.kluniversity.in`.
-- **Fatal Production Exception**: In production mode (`NODE_ENV=production`), omitting `SESSION_SECRET` immediately throws a `[SECURITY FATAL]` halt to prevent insecure fallback operation.
-
----
-
-## 🛠️ Environment Variables Configuration
-
-Copy `.env.example` to `.env.local` for local development:
-
-```bash
-cp .env.example .env.local
-```
-
-| Variable | Environment | Required? | Description |
-|:---|:---:|:---:|:---|
-| `SESSION_SECRET` | Production & Preview | **Yes** | 32+ character key for AES-256-GCM encryption (`openssl rand -hex 32`). |
-| `OPENAI_API_KEY` | All | Optional | OpenAI API key for AI Copilot Assistant functionality. |
-| `OCR_SPACE_API_KEY` | All | Optional | Free OCR key from [ocr.space](https://ocr.space/ocrapi) for captcha auto-resolution. |
-| `CAP_SECRET` | All | Optional | Proof-of-work challenge token signing secret. |
-| `UPSTASH_REDIS_REST_URL` | All | Optional | Upstash Redis REST endpoint for distributed rate-limiting. |
-| `UPSTASH_REDIS_REST_TOKEN` | All | Optional | Upstash Redis REST access token. |
-
----
-
-## 🚀 Quickstart & Local Setup
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/tejaswin-amara/kl-sync.git
-cd kl-sync
-
-# 2. Install dependencies (Clean & minimal footprint)
-npm install
-
-# 3. Start local development server
-npm run dev
-
-# 4. Access the portal
-open http://localhost:3000
-```
-
----
-
-## 🧪 Comprehensive Quality Gates
-
-Every commit and pull request must pass the full verification battery:
-
-```bash
-# 1. Strict TypeScript compilation (0 errors)
-npx tsc --noEmit
-
-# 2. ESLint code standard analysis (0 errors)
-npm run lint
-
-# 3. Comprehensive Unit & Integration Test Suite (320 / 320 Passing across 54 suites)
-npm test
-
-# 4. Programmatic Agent-as-Judge AI Suite (9 / 9 Passing)
-npx tsx scripts/agent-as-judge.ts
-
-# 5. Playwright End-to-End Suite
-npx playwright test
-
-# 6. Production Turbopack Build Verification
-npm run build
-```
-
----
-
-## 📜 Documentation Links
-
-- **[ARCHITECTURE.md](ARCHITECTURE.md)**: Deep dive into the edge proxy, Cheerio parsers, and data flow.
-- **[DESIGN.md](DESIGN.md)**: Design system tokens, fluid physics equations, color contrast matrix, and WCAG 2.2 AAA specifications.
-- **[SECURITY.md](SECURITY.md)**: Responsible disclosure policy, threat model, and cryptographic guarantees.
-- **[LICENSE](LICENSE)**: Strict proprietary source-available license (Personal educational use only, zero public re-hosting).
-- **[AGENTS.md](AGENTS.md)**: Coding rules and verification sequence for AI agents and contributors.
-- **[CHANGELOG.md](CHANGELOG.md)**: Version history, dependency removals, and release notes.
-
----
-
-## ⚖️ License & Disclaimer
-
-- **License**: Copyright © 2026–present Tejaswin Amara. All rights reserved. This software is provided under a **Strict Proprietary & Source-Available License** for personal educational study and local execution only. Third-party public cloud hosting, commercial distribution, and uncredited mirroring are strictly forbidden. See [LICENSE](LICENSE) for terms.
-- **Affiliation**: KL Sync is an independent project created for KL University students. It is **not** affiliated with, endorsed by, or supported by KL University. Student credentials are used strictly for in-flight authentication and are never stored or logged.
-
-<p align="center">
-  Crafted with ❤️ by <a href="https://github.com/tejaswin-amara">Tejaswin</a> for KLU students.
-</p>
+<div align="center">
+  Crafted with ❤️ by Tejaswin
+</div>

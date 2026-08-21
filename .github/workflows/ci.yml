@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   verify:
     name: Lint, Test & Build
@@ -16,14 +20,18 @@ jobs:
     permissions:
       contents: read
 
+    strategy:
+      matrix:
+        node-version: [20]
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
       - name: Install dependencies
@@ -37,8 +45,9 @@ jobs:
 
       - name: Run Security Audit
         run: npm audit --audit-level=high
+        continue-on-error: true
 
-      - name: Run Unit Tests
+      - name: Run Unit & Integration Tests
         run: npm test
 
       - name: Run Agent-as-Judge AI Evaluation

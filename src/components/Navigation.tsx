@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, User, CheckSquare, Star, Calendar, CreditCard, Megaphone, Building2, BookOpen,
-  LogOut, Menu, Bell, MoreHorizontal, X, ChevronLeft, ShieldCheck,
+  LogOut, Menu, Bell, MoreHorizontal, X, ChevronLeft, ShieldCheck, MapPin,
 } from '@/components/ui/icons';
 import { AICopilot } from '@/components/ai/AICopilot';
 import { Badge } from '@/components/ui/badge';
@@ -50,6 +50,7 @@ export default function Navigation({ children }: { children: React.ReactNode }) 
     { href: '/dashboard/marks', label: t('marks', 'Marks'), icon: Star },
     { href: '/dashboard/profile', label: t('profile', 'Profile'), icon: User },
     { href: '/dashboard/fee', label: t('fee', 'Fee details'), icon: CreditCard },
+    { href: '/dashboard/exam-seating', label: t('examSeating', 'Exam seating'), icon: MapPin },
     { href: '/dashboard/circulars', label: t('circulars', 'Circulars'), icon: Megaphone },
     { href: '/dashboard/hostels', label: t('hostels', 'Hostel info'), icon: Building2 },
     { href: '/dashboard/library', label: t('library', 'Library'), icon: BookOpen },

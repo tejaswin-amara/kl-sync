@@ -1,7 +1,7 @@
 # 🏛️ KL Sync - Architecture & System Design
 
 ## 1. System Overview & Core Requirements
-**KL Sync** is an ultra-fast, stateless, dark-themed modern web client and edge proxy for KL University's legacy ERP system (`newerp.kluniversity.in`). It intercepts legacy ASP.NET/HTML responses, transforms them into structured JSON payloads with Cheerio, and renders them in a high-density, responsive Next.js 16 (App Router + Turbopack) dashboard.
+**KL Sync** is an ultra-fast, stateless, dark-themed modern web client and edge proxy for KL University's legacy ERP system (`newerp.kluniversity.in`). It intercepts legacy ASP.NET/HTML responses, transforms them into structured JSON payloads with Cheerio, and renders them in a high-density, responsive Next.js 16 (App Router + Turbopack) dashboard. There is zero database storage required, maintaining high security and privacy.
 
 ---
 
@@ -29,14 +29,43 @@ graph TD
 
 ---
 
-## 3. Data Strategy: Storage, Caching, and Security
+## 3. Directory Structure
 
-### 3.1 Stateless Storage Model
+```text
+src/
+├── app/
+│   ├── api/             # Next.js API Routes (Serverless Functions)
+│   ├── dashboard/       # Dashboard Modules UI (Attendance, Timetable, etc.)
+│   ├── layout.tsx       # Root layout & providers
+│   ├── page.tsx         # Login page & entry point
+│   └── globals.css      # Tailwind v4 directives & custom variables
+├── components/
+│   ├── ui/              # Base UI components (icons, buttons, inputs)
+│   ├── ai/              # AI Copilot UI widgets
+│   ├── compliance/      # Compliance Center & Modals
+│   └── Navigation.tsx   # Dashboard navigation
+├── hooks/
+│   └── useNativeQuery.ts# Custom SWR-like data fetching hook
+├── lib/
+│   ├── scrapers/        # Modular Cheerio HTML->JSON scrapers
+│   ├── ai/              # AI Tool registry & schemas (Zod)
+│   ├── compliance/      # i18n & compliance logic
+│   ├── session.ts       # AES-256-GCM Crypto implementation
+│   ├── data-prefetcher.ts # Zero-loading prefetch logic
+│   └── utils.ts         # Zero-dependency utilities
+└── tests/               # Test suites
+```
+
+---
+
+## 4. Data Strategy: Storage, Caching, and Security
+
+### 4.1 Stateless Storage Model
 - **Zero Database Persistence**: Student credentials, passwords, and sensitive academic records are never stored on persistent disks or databases.
 - **Client-Side Session Token**: Upstream ASP.NET session cookies and CSRF tokens are bundled and encrypted using **AES-256-GCM** via the Web Crypto API, derived from the server's `SESSION_SECRET`.
 - **Integrity Guarantee**: The encrypted payload is prefixed with `enc.`, base64-encoded, and protected by authentication tags that prevent client-side tampering.
 
-### 3.2 Caching & Concurrency Discipline
+### 4.2 Caching & Concurrency Discipline
 1. **Client-Side Request Deduplication (`useNativeQuery`)**:
    - In-flight HTTP requests for identical tuples (`[url, year, semester]`) are coalesced using a global `inFlightDedupeMap`, preventing duplicate network traffic.
    - Dynamic key switching uses `useRef` stabilization to prevent cascading re-render or infinite fetch loops.
@@ -49,7 +78,7 @@ graph TD
 
 ---
 
-## 4. API Specification & Endpoints
+## 5. API Specification & Endpoints
 
 | Endpoint | Method | Purpose | Input Payload | Output Format |
 | :--- | :---: | :--- | :--- | :--- |
@@ -63,9 +92,11 @@ graph TD
 
 ---
 
-## 5. Modular Scraper Engine (`src/lib/scrapers/`)
+## 6. Modular Scraper Engine (`src/lib/scrapers/`)
 
-```
+The monolithic scraping logic has been refactored into domain-specific modules:
+
+```text
 src/lib/
 ├── scraper.ts              # Facade re-exporting modular scrapers
 └── scrapers/
@@ -74,12 +105,16 @@ src/lib/
     ├── timetable.ts        # Timetable matrix grid parser and period slot normalizer
     ├── marks.ts            # Internal evaluation, end exam marks, and dual-bound semester mapping
     ├── fee.ts              # Fee receipt tracking and payment breakdown
-    └── profile.ts          # Multi-tab demographic profile scraper
+    ├── profile.ts          # Multi-tab demographic profile scraper
+    ├── circulars.ts        # University announcements and circulars
+    ├── hostels.ts          # Hostel allocation and details
+    ├── library.ts          # Library book issued history
+    └── exam-seating.ts     # Exam seating arrangements
 ```
 
 ---
 
-## 6. Resilience & Failure Modes
+## 7. Resilience & Failure Modes
 
 1. **ERP Unavailability / Server Downtime**:
    - Wrapped with `AbortSignal.timeout(25000)` to ensure Next.js serverless functions terminate cleanly without hanging worker threads.
@@ -92,9 +127,9 @@ src/lib/
 
 ---
 
-## 7. International Compliance & Localization
+## 8. International Compliance & Localization
 
-### 7.1 Regulatory Compliance Framework
+### 8.1 Regulatory Compliance Framework
 KL Sync implements client-side compliance controls aligned with 8 international privacy regulations and 5 accessibility standards:
 - **Privacy**: GDPR, CCPA/CPRA, HIPAA, PIPEDA/CPPA, LGPD, DPDPA, PIPL, 152-FZ.
 - **Accessibility**: WCAG 2.2 AAA, EAA/EN 301 549, Section 508, i18n, RTL.
@@ -104,7 +139,25 @@ Key modules:
 - `src/lib/compliance/compliance-manager.ts`: Data Export (GDPR Art. 20), Cryptographic Erasure (Art. 17), Consent Manager.
 - `src/components/compliance/ComplianceModal.tsx`: Interactive Compliance Center with live badge bar.
 
-### 7.2 Internationalization (i18n) & RTL
+### 8.2 Internationalization (i18n) & RTL
 - `src/lib/i18n/index.ts`: Zero-dependency 9-language translation engine (en, te, hi, es, fr, de, ar, zh, ru).
 - `src/components/ui/LanguageSelector.tsx`: Language picker with Globe icon and `localStorage` persistence.
 - Arabic (`ar`) triggers `dir="rtl"` on `<html>`, activating CSS logical property mirroring in `globals.css`.
+
+---
+
+## 9. Agentic AI Copilot Architecture
+
+The AI Copilot uses structured tool calling to interact with the underlying ERP API on behalf of the user.
+
+- **Zod Tool Schemas**: `src/lib/ai/tools.ts` defines structured schemas for all modules (`getAttendance`, `getTimetable`, etc.). The AI knows exactly what parameters are required.
+- **Streaming Response**: Powered by the Vercel AI SDK, utilizing React Server Components to stream both text and real-time execution states to the client.
+- **Context-Aware**: The agent is injected with user session state and current context, allowing queries like "What is my attendance target?".
+
+---
+
+## 10. Security Architecture
+
+- **AES-256-GCM Session Tokens**: Native Web Crypto API encrypts the session with a strong `SESSION_SECRET`. Plain base64 tokens are immediately rejected if missing a valid MAC tag.
+- **SSRF Hardening**: The `/api/fetch-photo` edge function aggressively validates image URLs. Paths must match expected ERP subdirectories (`/uploads/`) to prevent Server-Side Request Forgery.
+- **Strict Content Security Policy**: CSP headers mitigate cross-site scripting (XSS) risks.

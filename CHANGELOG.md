@@ -144,3 +144,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Automated CI Workflow**: Added `.github/workflows/ci.yml` running ESLint, strict TypeScript type checking (`tsc --noEmit`), automated scraper unit tests, and production Next.js compilation.
 - **Comprehensive Unit Testing**: Added 18 unit tests in `src/lib/scraper.test.ts` covering timetable normalization, cell splitting, and HTML table matrix formats.
 - **Prettier & ESLint Cleanliness**: Formatted codebase via Prettier and resolved all ESLint warnings and errors.
+
+[2.4.0]: https://github.com/tejaswin-amara/kl-sync/compare/v2.3.0...v2.4.0
+[2.3.0]: https://github.com/tejaswin-amara/kl-sync/compare/v2.2.2...v2.3.0
+[2.2.2]: https://github.com/tejaswin-amara/kl-sync/compare/v2.2.1...v2.2.2
+[2.2.1]: https://github.com/tejaswin-amara/kl-sync/compare/v2.2.0...v2.2.1
+[2.2.0]: https://github.com/tejaswin-amara/kl-sync/compare/v2.1.0...v2.2.0
+[2.1.0]: https://github.com/tejaswin-amara/kl-sync/compare/v2.0.0...v2.1.0
+[2.0.0]: https://github.com/tejaswin-amara/kl-sync/releases/tag/v2.0.0

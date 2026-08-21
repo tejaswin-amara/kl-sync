@@ -8,7 +8,7 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 const variantStyles: Record<string, string> = {
   default: 'bg-surface-1 border border-border shadow-sm apple-card',
   glass: 'bg-surface-1/95 border border-border shadow-md apple-card',
-  interactive: 'bg-surface-1 border border-border shadow-sm cursor-pointer hover:border-primary/25 hover:shadow-md transition-all apple-card',
+  interactive: 'bg-surface-1 border border-border shadow-sm cursor-pointer hover-lift hover:border-primary/25 hover:shadow-md transition-all apple-card',
   elevated: 'bg-surface-1 border border-border shadow-md apple-card',
 };
 

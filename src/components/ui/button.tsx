@@ -41,7 +41,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           variant === 'destructive' && 'bg-destructive text-destructive-foreground border border-destructive/70 shadow-sm hover:bg-destructive/90',
           size === 'default' && 'min-h-[44px] rounded-[--radius-md] px-4 py-2.5 text-sm',
           size === 'sm' && 'min-h-[40px] rounded-[--radius-sm] px-3.5 py-2 text-xs',
-          size === 'lg' && 'min-h-[50px] rounded-[--radius-lg] px-6 py-3 text-[0.9375rem]',
+          size === 'lg' && 'min-h-[48px] rounded-[--radius-lg] px-6 py-3 text-[0.9375rem]',
           size === 'icon' && 'min-h-[44px] min-w-[44px] rounded-[--radius-md] p-2.5',
           className
         )}

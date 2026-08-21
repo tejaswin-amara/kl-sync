@@ -29,8 +29,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Invalid JSON payload in request body' }, { status: 400 });
     }
     const messages = body?.messages as ChatMessageInput[] | undefined;
-    if (!Array.isArray(messages) || messages.length === 0 || messages.length > 40) {
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return NextResponse.json({ success: false, error: 'Request body must contain a non-empty messages array' }, { status: 400 });
+    }
+    if (messages.length > 40) {
       return NextResponse.json({ success: false, error: 'Messages must contain between 1 and 40 items.' }, { status: 400 });
+    }
+
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage || typeof lastMessage.content !== 'string' || lastMessage.content.trim().length === 0) {
+      return NextResponse.json({ success: false, error: 'Last message in conversation must contain valid string content' }, { status: 400 });
     }
 
     const validMessages = messages.every((message) =>
@@ -40,7 +48,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Each message must contain a valid role and bounded text content.' }, { status: 400 });
     }
 
-    const sessionToken = resolveSessionToken(request);
+    const sessionToken =
+      resolveSessionToken(request) ||
+      request.headers.get('x-session-id') ||
+      (typeof body.sessionId === 'string' ? body.sessionId : undefined);
+
     const demoMode = isDemoModeEnabled();
     let session: ScraperSession;
     if (!sessionToken) {
@@ -50,7 +62,11 @@ export async function POST(request: NextRequest) {
       try {
         session = await decodeSession(sessionToken);
       } catch {
-        return NextResponse.json({ success: false, error: 'Session expired. Please sign in again.' }, { status: 401 });
+        if (demoMode) {
+          session = DEMO_SESSION;
+        } else {
+          return NextResponse.json({ success: false, error: 'Session expired. Please sign in again.' }, { status: 401 });
+        }
       }
     }
 

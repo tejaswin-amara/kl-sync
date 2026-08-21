@@ -1,76 +1,51 @@
-# 🛡️ Code of Conduct
+# KL Sync Code of Conduct
 
-This project is a community space built by and for KL University students. We aim to build something incredibly useful, performant, and reliable. To achieve that, we must ensure this project is welcoming, inclusive, and respectful to everyone who interacts with it—regardless of their engineering background or experience level.
+## Our Pledge
 
-By participating in this project, you agree to abide by this Code of Conduct.
+We as members, contributors, and leaders pledge to make participation in our community a harassment-free experience for everyone, regardless of age, body size, visible or invisible disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, caste, color, religion, or sexual identity and orientation.
 
----
+We pledge to act and interact in ways that contribute to an open, welcoming, diverse, inclusive, and healthy community.
 
-## 🌟 Our Core Values
+## Special KL Sync Context
 
-Our community thrives on these four foundational pillars:
+Due to the nature of KL Sync as an ERP proxy, contributors must strictly adhere to the following privacy rules:
+- **Never** share ERP credentials (yours or anyone else's) in issues, PRs, or discussions.
+- **Never** share unredacted session tokens, payloads, or network requests that contain sensitive data.
+- **Never** share Student Personally Identifiable Information (PII) including names, roll numbers, or academic records.
 
-1. **Respect**: Treat everyone with kindness. Harassment, condescension, or dismissiveness based on someone's background, identity, gender, or technical experience level is strictly prohibited. 
-2. **Honesty & Transparency**: Disagreements and technical debates (especially regarding the "Ponytail Philosophy" and architectural choices) are highly encouraged! However, bad-faith arguments, trolling, or passive-aggressive behavior are not.
-3. **Inclusion**: Avoid using heavy insider jargon without explanation. If someone asks a beginner question, help them learn and grow as a developer rather than dismissing them. A rising tide lifts all boats.
-4. **Safety & Privacy**: Keep discussions focused purely on the project and the codebase. **Never** share or solicit personal information (real names, phone numbers, addresses, ERP passwords, or live session tokens) under any circumstances.
+## Our Standards
 
----
+Examples of behavior that contributes to a positive environment for our community include:
+- Demonstrating empathy and kindness toward other people
+- Being respectful of differing opinions, viewpoints, and experiences
+- Giving and gracefully accepting constructive feedback
+- Accepting responsibility and apologizing to those affected by our mistakes, and learning from the experience
+- Focusing on what is best not just for us as individuals, but for the overall community
 
-## ✅ Expected Behavior (How to Thrive Here)
+Examples of unacceptable behavior include:
+- The use of sexualized language or imagery, and sexual attention or advances of any kind
+- Trolling, insulting or derogatory comments, and personal or political attacks
+- Public or private harassment
+- Publishing others' private information without explicit permission
+- Other conduct which could reasonably be considered inappropriate in a professional setting
 
-To maintain a healthy open-source ecosystem, we expect contributors to practice the following:
+## Scope
 
-- **Ask High-Quality Questions**: "How do I configure the `SESSION_SECRET` to test the login route locally?" is an excellent question. "Why is the dashboard broken?" with zero context or logs is not. Provide reproduction steps.
-- **Give Thoughtful, Constructive Feedback**: Whether reviewing code in a Pull Request or discussing an architecture proposal in an Issue, focus your feedback on the *code*, not the *person*. Point out exactly why a pattern might cause a hydration mismatch or violate the minimalism philosophy, and suggest an alternative.
-- **Acknowledge Mistakes Openly**: Saying "I didn't test this thoroughly on mobile viewports, my bad, I will push a fix" is always better than silence, defensiveness, or deflecting blame.
-- **Help Others Proactively**: If you know the answer to a question in an issue or discussion, share it. Do not wait for maintainers to answer everything. 
+This Code of Conduct applies within all community spaces, including GitHub Issues, Pull Requests, Discussions, and official channels. It also applies when an individual is officially representing the community in public spaces.
 
----
+## Enforcement
 
-## ❌ Unacceptable Behavior (Zero Tolerance)
+Community leaders are responsible for clarifying and enforcing our standards of acceptable behavior and will take appropriate and fair corrective action in response to any behavior that they deem inappropriate, threatening, offensive, or harmful.
 
-The following behaviors are strictly prohibited and will result in immediate consequences:
+### Enforcement Guidelines
 
-- **Harassment**: Any form of insults, slurs, or exclusionary comments based on identity, race, gender, sexual orientation, or background.
-- **Doxxing & Privacy Violations**: Sharing others' private information (email addresses, phone numbers, physical locations, or ERP credentials/tokens) without explicit consent.
-- **Spam**: Repeatedly posting off-topic messages, linking to unrelated projects, or bumping issues aggressively.
-- **Malicious Intent**: Attempts to exploit, sabotage, or introduce malicious dependencies (supply chain attacks) into the project.
-- **Gatekeeping**: Dismissing someone's contribution based on their perceived skill level (e.g., "You don't understand React Server Components, so your PR doesn't matter"). Every contributor was a beginner once.
+1. **Correction**: A private, written warning from community leaders, providing clarity around the nature of the violation and an explanation of why the behavior was inappropriate.
+2. **Warning**: A warning with consequences for continued behavior.
+3. **Temporary Ban**: A temporary ban from any sort of interaction or public communication with the community for a specified period of time.
+4. **Permanent Ban**: A permanent ban from any sort of public interaction within the community.
 
----
+## Reporting
 
-## 🚨 Enforcement & Reporting (If Something Goes Wrong)
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the project owner at **tejaswinamara@gmail.com**. All complaints will be reviewed and investigated promptly and fairly.
 
-If you experience or witness behavior that violates this Code of Conduct, you have two primary avenues for resolution:
-
-### 1. Public De-escalation
-If the violation is mild (e.g., a slightly rude tone or a thoughtless comment), flag it respectfully within the GitHub Issue or PR itself. Saying something like, "Let's keep the focus on the code" or "This comment feels a bit unnecessarily harsh" is often the best way to de-escalate without immediate maintainer intervention.
-
-### 2. Private Reporting
-If the violation is severe (harassment, doxxing, malicious intent) or you do not feel comfortable addressing it publicly, please report it privately:
-
-- **Email**: Contact **`tejaswinamara@gmail.com`**.
-- **Include Details**: Be specific about what happened, who was involved, where it happened (provide links to specific comments or PRs), and why it violates the code of conduct.
-
-### 3. Maintainer Action
-Maintainers take all reports seriously and will investigate them promptly and confidentially. Depending on the severity of the violation, maintainers reserve the right to take the following actions:
-- Issue a private or public warning to the offender.
-- Delete the offending comment, issue, or Pull Request.
-- Temporarily or permanently suspend the offender's ability to participate in the repository (GitHub block).
-
----
-
-## 📍 Scope of the Code of Conduct
-
-This Code of Conduct applies strictly to:
-- All GitHub Issues, Pull Requests, Discussions, and Commit Messages within the `tejaswin-amara/kl-sync` repository.
-- Any official KL Sync communication channels (e.g., a community Discord server, Slack workspace, or Telegram group, should they be created).
-- Public spaces where an individual is representing the KL Sync project officially.
-
-It does **not** apply to behavior outside the scope of this project (e.g., private interactions between students unrelated to the codebase).
-
----
-
-> **Disagreements are healthy. Rudeness is not.**  
-> Let's build something great together.
+This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org), version 2.1.

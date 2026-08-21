@@ -217,7 +217,7 @@ export const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
               setOpen(false);
             }}
             aria-label="Close drawer"
-            className="absolute right-4 top-4 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 text-muted-foreground transition-colors duration-[--duration-fast] hover:bg-surface-2 hover:text-foreground"
+            className="absolute right-4 top-4 flex min-w-[44px] min-h-[44px] items-center justify-center rounded-full p-2 text-muted-foreground transition-colors duration-[--duration-fast] hover:bg-surface-2 hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>

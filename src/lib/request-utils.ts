@@ -4,6 +4,12 @@ export function resolveSessionToken(request: NextRequest): string | undefined {
   const cookieValue = request.cookies.get('kl_erp_session')?.value;
   if (cookieValue) return cookieValue;
 
+  const headerValue = request.headers.get('x-session-id');
+  if (headerValue) return headerValue;
+
+  const authHeader = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
+  if (authHeader) return authHeader;
+
   return undefined;
 }
 
