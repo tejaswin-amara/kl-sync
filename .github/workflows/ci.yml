@@ -22,7 +22,13 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20]
+        node-version: [22]
+
+    env:
+      KL_SYNC_DEMO_MODE: 'true'
+      KL_SYNC_AI_MODE: 'offline'
+      SESSION_SECRET: 'ci-secret-key-testing-minimum-32-bytes-long'
+      NODE_ENV: 'test'
 
     steps:
       - name: Checkout repository
@@ -56,4 +62,6 @@ jobs:
       - name: Build Next.js Production Bundle
         run: npm run build
         env:
+          NODE_ENV: 'production'
           SESSION_SECRET: 'ci-secret-key-testing-minimum-32-bytes-long'
+

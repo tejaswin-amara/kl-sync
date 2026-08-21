@@ -1,3 +1,7 @@
+process.env.KL_SYNC_DEMO_MODE = process.env.KL_SYNC_DEMO_MODE || 'true';
+process.env.KL_SYNC_AI_MODE = process.env.KL_SYNC_AI_MODE || 'offline';
+process.env.SESSION_SECRET = process.env.SESSION_SECRET || 'ci-secret-key-testing-minimum-32-bytes-long';
+
 import { NextRequest } from 'next/server';
 import { POST as handleAiChat } from '../src/app/api/ai/chat/route';
 import {
