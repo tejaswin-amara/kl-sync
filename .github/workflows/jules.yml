@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout repository (master branch)
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: master
 
@@ -45,7 +45,7 @@ jobs:
           SESSION_SECRET: 'jules-secret-key-testing-minimum-32-bytes-long'
 
       - name: Create Pull Request for Jules Updates
-        uses: peter-evans/create-pull-request@5e914681df9dc83aa4e4905692ca88beb2f9e91f # v6.0.0
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v6.0.0
         with:
           commit-message: "chore(jules): automated update"
           title: "chore(jules): automated updates"
