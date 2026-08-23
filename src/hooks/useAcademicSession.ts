@@ -33,7 +33,6 @@ export function useAcademicSession() {
 
         let parsedYears: SemesterOption[] = [];
         let parsedSems: SemesterOption[] = [];
-        let initialError: string | null = null;
 
         if (yStr) {
           try {
