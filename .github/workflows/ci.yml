@@ -56,6 +56,12 @@ jobs:
       - name: Run Unit & Integration Tests
         run: npm test
 
+      - name: Run Markdown Verifier Test Suite
+        run: npx tsx tests/verify-links.test.ts
+
+      - name: Run Markdown Link, Anchor & License Verification
+        run: npx tsx scripts/verify-links.ts --offline --strict
+
       - name: Run Agent-as-Judge AI Evaluation
         run: npx tsx scripts/agent-as-judge.ts
 
@@ -64,4 +70,5 @@ jobs:
         env:
           NODE_ENV: 'production'
           SESSION_SECRET: 'ci-secret-key-testing-minimum-32-bytes-long'
+
 
