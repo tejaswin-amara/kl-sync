@@ -79,11 +79,13 @@ export default function DashboardOverview() {
       const sStr = localStorage.getItem('kl_erp_semesters') || sessionStorage.getItem('kl_erp_semesters');
       if (!yearId && yStr) { try { const years = JSON.parse(yStr); if (years.length > 0) yearId = years[0].value; } catch {} }
       if (!semId && sStr) { try { const semesters = JSON.parse(sStr); if (semesters.length > 0) semId = semesters[0].value; } catch {} }
+      if (!yearId) yearId = '2025-2026';
+      if (!semId) semId = '1';
+
+      setActiveYearId(yearId);
+      setActiveSemId(semId);
 
       if (yearId && semId) {
-        setActiveYearId(yearId);
-        setActiveSemId(semId);
-
         fetch('/api/erp-proxy/attendance', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

@@ -523,21 +523,21 @@ async function runBrowserInteractionAndLayoutStress(browser: Browser) {
     try {
       // 1. Timetable Grid <-> List view toggle stability
       await page.goto('http://localhost:3000/dashboard/timetable', { waitUntil: 'domcontentloaded' });
-      await page.waitForTimeout(300);
+      await page.waitForSelector('table', { timeout: 10000 });
 
       const listBtn = page.getByRole('button', { name: /List/i });
       const gridBtn = page.getByRole('button', { name: /Grid/i });
       await listBtn.click();
-      await page.waitForTimeout(150);
+      await page.waitForSelector('table', { timeout: 10000 });
       assert.ok(await page.locator('table').first().isVisible(), 'Timetable list view visible');
 
       await gridBtn.click();
-      await page.waitForTimeout(150);
+      await page.waitForSelector('table', { timeout: 10000 });
       assert.ok(await page.locator('table').first().isVisible(), 'Timetable grid view restored');
 
       // 2. Marks page search filtering stability
       await page.goto('http://localhost:3000/dashboard/marks', { waitUntil: 'domcontentloaded' });
-      await page.waitForTimeout(300);
+      await page.waitForSelector('table', { timeout: 10000 });
 
       const searchInput = page.getByPlaceholder(/Search courses/i);
       await searchInput.fill('CS');
@@ -549,7 +549,7 @@ async function runBrowserInteractionAndLayoutStress(browser: Browser) {
 
       // 3. Tools page calculation input interactions
       await page.goto('http://localhost:3000/dashboard/tools', { waitUntil: 'domcontentloaded' });
-      await page.waitForTimeout(300);
+      await page.waitForSelector('input[type="number"]', { timeout: 10000 });
       const inputs = page.locator('input[type="number"]');
       const count = await inputs.count();
       if (count > 0) {
@@ -572,7 +572,7 @@ async function runBrowserInteractionAndLayoutStress(browser: Browser) {
       durationMs: Date.now() - start,
       error: errorMsg || undefined,
     });
-    console.log(`  ${passed ? '✓' : '✗'} Dynamic View Toggles, Search Filters & Form Tools Interaction`);
+    console.log(`  ${passed ? '✓' : '✗'} Dynamic View Toggles, Search Filters & Form Tools Interaction ${errorMsg ? `(${errorMsg})` : ''}`);
   }
 
   // Test 4: Tabular Numbers CSS Rendering Check on Metric Elements

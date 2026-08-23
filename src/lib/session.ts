@@ -24,7 +24,7 @@ export class SessionDecodeError extends Error {
 }
 
 export function isDemoModeEnabled(): boolean {
-  return process.env.NODE_ENV !== 'production' && process.env.KL_SYNC_DEMO_MODE === 'true';
+  return process.env.KL_SYNC_DEMO_MODE === 'true';
 }
 
 export function isDemoSession(session: ScraperSession | null | undefined): boolean {

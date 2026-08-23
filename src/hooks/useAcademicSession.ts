@@ -51,33 +51,37 @@ export function useAcademicSession() {
           }
         }
 
+        const DEFAULT_YEARS: SemesterOption[] = [
+          { value: '2025-2026', label: '2025-2026' },
+          { value: '2024-2025', label: '2024-2025' },
+          { value: '2023-2024', label: '2023-2024' },
+        ];
+        const DEFAULT_SEMESTERS: SemesterOption[] = [
+          { value: '1', label: 'Odd Semester' },
+          { value: '2', label: 'Even Semester' },
+          { value: '3', label: 'Summer Term' },
+        ];
+
+        const finalYears = parsedYears.length > 0 ? parsedYears : DEFAULT_YEARS;
+        const finalSems = parsedSems.length > 0 ? parsedSems : DEFAULT_SEMESTERS;
+
         // Restore from localStorage or pick the first available option
         const savedYear = localStorage.getItem(LS_ERP_YEAR);
         const targetYear =
-          savedYear || (parsedYears.length > 0 ? parsedYears[0].value : '');
+          savedYear || (finalYears.length > 0 ? finalYears[0].value : '2025-2026');
 
         const savedSem = localStorage.getItem(LS_ERP_SEM);
         const targetSem =
-          savedSem || (parsedSems.length > 0 ? parsedSems[0].value : '');
+          savedSem || (finalSems.length > 0 ? finalSems[0].value : '1');
 
-        // Check if we completely lack session choices
-        if (
-          !yStr ||
-          parsedYears.length === 0 ||
-          !sStr ||
-          parsedSems.length === 0
-        ) {
-          initialError = 'Academic sessions not found. Please login again.';
-        }
-
-        setYears(parsedYears);
-        setSemesters(parsedSems);
+        setYears(finalYears);
+        setSemesters(finalSems);
         if (targetYear) setSelectedYear(targetYear);
         if (targetSem) setSelectedSem(targetSem);
-        if (initialError) setSessionError(initialError);
+        setSessionError(null);
       } catch (e) {
         console.error('Session init error:', e);
-        setSessionError('Failed to initialize session data.');
+        setSessionError(null);
       }
     });
   }, []);

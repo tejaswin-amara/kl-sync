@@ -86,9 +86,9 @@ export function useNativeQuery<T>(
     key !== null && url !== null && (Array.isArray(key) ? key.every(Boolean) : true);
   const keyStr = getCacheKeyStr(key);
 
-  const [data, setData] = useState<T | undefined>(() => (shouldFetch ? getCachedValue<T>(key) : undefined));
+  const [data, setData] = useState<T | undefined>(undefined);
   const [error, setError] = useState<Error | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(() => (shouldFetch ? !getCachedValue<T>(key) : false));
+  const [isLoading, setIsLoading] = useState<boolean>(() => Boolean(shouldFetch));
 
   const mountedRef = useRef(true);
   const keyRef = useRef(key);

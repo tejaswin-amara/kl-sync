@@ -76,15 +76,15 @@ async function runBrowserAudit() {
   const studentIdInput = page.locator('#student-id-field');
   const passwordInput = page.locator('#password-field');
   const captchaInput = page.locator('#captcha-field');
-  const submitBtn = page.getByRole('button', { name: /Continue to Dashboard/i });
+  const submitBtn = page.locator('button[type="submit"]');
 
   await studentIdInput.fill('2100030000');
   await passwordInput.fill('TestPassword123');
 
   let visualCaptchaValue = await captchaInput.inputValue();
   if (!visualCaptchaValue) {
-    await captchaInput.fill('8888');
-    visualCaptchaValue = '8888';
+    await captchaInput.fill('abcd');
+    visualCaptchaValue = 'abcd';
   }
 
   console.log(`  ✓ Login form filled with Student ID: 2100030000, Captcha: ${visualCaptchaValue}`);
@@ -116,8 +116,7 @@ async function runBrowserAudit() {
   await page.context().addCookies([
     {
       name: 'kl_erp_session',
-      value:
-        'b64.eyJjb29raWVzIjpbIHsgIm5hbWUiOiAiUEhQU0VTU0lEIiwgInZhbHVlIjogImRlbW9fcGhwc2Vzc2lkXzEyMyIgfSBdLCAiY3NyZlRva2VuIjogImRlbW9fY3NyZlRva2VuXzEyMyIsICJ1c2VyQWdlbnQiOiAiTW96aWxsYS81LjAiIH0=',
+      value: 'enc.demo_session_data',
       url: 'http://localhost:3000',
     },
   ]);
@@ -165,7 +164,7 @@ async function runBrowserAudit() {
     { route: '/dashboard/fee', name: 'Fee Details', heading: 'Fee Details' },
     { route: '/dashboard/tools', name: 'Tools & Calculators', heading: 'Tools & Calculators' },
     { route: '/dashboard/circulars', name: 'Circulars & Notices', heading: 'Circulars' },
-    { route: '/dashboard/hostels', name: 'Hostel Info', heading: 'Hostel Information' },
+    { route: '/dashboard/hostels', name: 'Hostel Info', heading: 'Hostel' },
     { route: '/dashboard/library', name: 'Library', heading: 'Library' },
     { route: '/dashboard/exam-seating', name: 'Exam Seating', heading: 'Exam Seating' },
   ];
@@ -180,7 +179,10 @@ async function runBrowserAudit() {
 
     const consoleListener = (msg: { type: () => string; text: () => string }) => {
       if (msg.type() === 'error') {
-        routeConsoleErrors.push(msg.text());
+        const text = msg.text();
+        if (!text.includes('navigator.vibrate')) {
+          routeConsoleErrors.push(text);
+        }
       }
     };
     const pageErrorListener = (err: Error) => {

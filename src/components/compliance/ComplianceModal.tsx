@@ -84,7 +84,7 @@ export function ComplianceModal({ isOpen, onClose }: { isOpen: boolean; onClose:
               <p className="text-xs text-muted-foreground">GDPR • CCPA • HIPAA • PIPEDA • LGPD • DPDPA • PIPL • 152-FZ • WCAG 2.2 AAA</p>
             </div>
           </div>
-          <button type="button" onClick={onClose} className="flex min-h-[40px] min-w-[40px] items-center justify-center rounded-full text-muted-foreground hover:bg-surface-2 hover:text-foreground" aria-label="Close modal"><X className="h-5 w-5" /></button>
+          <button type="button" onClick={onClose} className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-muted-foreground hover:bg-surface-2 hover:text-foreground" aria-label="Close modal"><X className="h-5 w-5" /></button>
         </div>
 
         <div className="custom-scrollbar flex gap-1 overflow-x-auto border-b border-border bg-surface-2/55 px-6" role="tablist" aria-label="Compliance sections">

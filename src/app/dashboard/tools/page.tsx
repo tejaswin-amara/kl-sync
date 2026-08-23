@@ -12,14 +12,13 @@ export default function ToolsPage() {
   const [presents, setPresents] = useState(0);
   const [cgpa, setCgpa] = useState<number>(0);
   const [completedCredits, setCompletedCredits] = useState<number>(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const [targetCgpa, setTargetCgpa] = useState<string>('9.0');
   const [newCredits, setNewCredits] = useState<string>('24');
 
   const fetchData = useCallback(async () => {
     try {
-      setLoading(true);
       const cgpaRes = await fetch('/api/erp-proxy/cgpa');
       const cgpaData = await cgpaRes.json();
       if (cgpaData.success && cgpaData.data && cgpaData.data.length > 0) {
@@ -48,6 +47,8 @@ export default function ToolsPage() {
           if (Array.isArray(parsed) && parsed.length > 0) semId = parsed[0]?.value || '';
         } catch {}
       }
+      if (!yearId) yearId = '2025-2026';
+      if (!semId) semId = '1';
 
       if (yearId && semId) {
         const attRes = await fetch('/api/erp-proxy/attendance', {
@@ -61,10 +62,10 @@ export default function ToolsPage() {
           let totalAttended = 0;
           attData.attendanceData.forEach((row: Record<string, unknown>) => {
             const condKey = Object.keys(row).find((k) =>
-              k.toLowerCase().includes('conducted')
+              k.toLowerCase().includes('conducted') || k.toLowerCase().includes('held') || (k.toLowerCase().includes('total') && !k.toLowerCase().includes('%'))
             );
             const attKey = Object.keys(row).find((k) =>
-              k.toLowerCase().includes('attended')
+              k.toLowerCase().includes('attended') || k.toLowerCase().includes('present')
             );
             if (condKey && attKey) {
               totalConducted += parseFloat(String(row[condKey])) || 0;
@@ -84,6 +85,10 @@ export default function ToolsPage() {
 
   useEffect(() => {
     queueMicrotask(() => {
+      const cachedCgpa = localStorage.getItem('kl_dashboard_cgpa');
+      const cachedCredits = localStorage.getItem('kl_dashboard_credits');
+      if (cachedCgpa) setCgpa(Number(cachedCgpa));
+      if (cachedCredits) setCompletedCredits(Number(cachedCredits));
       fetchData();
     });
   }, [fetchData]);
