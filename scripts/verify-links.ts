@@ -112,6 +112,25 @@ export interface VerificationResult {
   };
 }
 
+/**
+ * Strips HTML tags cleanly without vulnerable single-pass regexes (CodeQL Alert #39 & #40).
+ */
+export function stripHtmlTags(input: string): string {
+  let result = '';
+  let insideTag = false;
+  for (let i = 0; i < input.length; i++) {
+    const char = input[i];
+    if (char === '<') {
+      insideTag = true;
+    } else if (char === '>') {
+      insideTag = false;
+    } else if (!insideTag) {
+      result += char;
+    }
+  }
+  return result;
+}
+
 // ============================================================================
 // 2. GFM Heading Slugifier
 // ============================================================================
@@ -136,8 +155,8 @@ export class GitHubSlugifier {
     // 4. Strip formatting tokens: bold/italic/strikethrough (*, _, ~)
     text = text.replace(/[*_~]/g, '');
 
-    // 5. Strip inline HTML tags <span>, <a>, <code>, etc.
-    text = text.replace(/<[^>]*>/g, '');
+    // 5. Strip inline HTML tags <span>, <a>, <code>, etc. using robust parser (CodeQL Alert #39)
+    text = stripHtmlTags(text);
 
     // 6. Strip punctuation matching GitHub GFM rules.
     // Retains alphanumeric characters, spaces, hyphens, and underscores.
@@ -277,7 +296,7 @@ export function parseMarkdownContent(
     const htmlLinkMatches = line.matchAll(/<a\s+(?:[^>]*?\s+)?href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gi);
     for (const match of htmlLinkMatches) {
       const url = match[1].trim();
-      const rawText = match[2].replace(/<[^>]*>/g, '').trim();
+      const rawText = stripHtmlTags(match[2]).trim();
       links.push({
         file: filePath,
         line: i + 1,
