@@ -1,75 +1,124 @@
-# Project: Awesome Dev Pipeline
+# Project: KL Sync Frontend Redesign
 
-## Architecture & System Overview
-Awesome Dev Pipeline is a curated, production-ready, honestly-caveated developer tooling guide and AI agent operational reference repository with an automated markdown verification harness and GitHub Actions CI workflow.
-
-```
-├── .github/workflows/
-│   ├── ci.yml                            # GitHub Actions CI matrix (offline + online link & license audit)
-│   └── verify-links.yml                  # Dedicated matrix verification workflow
-├── scripts/
-│   └── verify-links.ts                   # Standalone zero-dependency TypeScript link, anchor, and license auditor
-├── tests/
-│   ├── verify-links.test.ts              # Unit test suite for verification script (slugifier, parser, assertions)
-│   └── challenger-pipeline-adversarial.test.ts # Adversarial stress test suite
-├── README.md                             # Comprehensive developer tools guide (Parts 1, 2, 3, Meta, Bonus)
-├── CLAUDE.md                             # Operational condensed tabular quick-reference for AI coding agents
-├── full-stack-dev-github-repos.md        # Deep architectural reference, trade-offs, and licensing rationale
-├── CONTRIBUTING.md                       # Contribution standards, PR checklists, and licensing guidelines
-└── LICENSE                               # MIT License
-```
+## Architecture
+- **Framework**: Next.js 16 (App Router, Turbopack, React 19)
+- **Language**: TypeScript 5.8
+- **Architecture**: Edge Proxy (Stateless, no DB). Session tokens encrypted with AES-256-GCM via Web Crypto API.
+- **Styling**: Tailwind CSS v4 + Vanilla CSS tokens (`src/app/globals.css`).
+- **Icon Engine**: 100% Native zero-runtime SVG library (`src/components/ui/icons.tsx` — 57 primitives).
+- **Philosophy**: Ponytail (Zero UI/icon bloat; no `lucide-react`, `framer-motion`, `swr`, `clsx`, `tailwind-merge`).
+- **Data Layer**: Custom `useNativeQuery` with in-memory L1 cache, `sessionStorage` L2 cache, and in-flight Promise deduplication.
+- **Accessibility**: WCAG 2.2 AAA compliance across all screens (contrast >= 7.1:1, touch targets >= 44x44px, `:focus-visible` 3px rings, skip-navigation links, ARIA live regions).
+- **i18n**: 9-language zero-dependency internationalization engine with real-time RTL layout switching (`dir="rtl"`).
 
 ## Feature Inventory
-Every feature from the Survey phase is enumerated below with its assigned milestone.
-
 | # | Feature | Description | Milestone | Source |
 |---|---------|-------------|-----------|--------|
-| 1 | Universal Developer Tooling (Part 1) | Terminal (Ghostty, Alacritty), Multiplexer (Tmux, Zellij), Shells (Zsh, Starship), Git/VCS (LazyGit, Jujutsu), Editors (VS Code, Neovim, Zed), Package Managers (pnpm, uv, Mise), Linters/Formatters (Biome, Ruff). | M1 | survey_1 |
-| 2 | Full-Stack Web Pipeline (Part 2) | Frontend (Next.js, Astro, SvelteKit), Backend (Hono, Fastify, FastAPI), Database (PostgreSQL, SQLite, Turso, ClickHouse, DuckDB), ORM (Drizzle, Prisma, Kysely), Cache/Store (Valkey), Auth (Better Auth, Auth.js), API/RPC (tRPC, TanStack Query, Zod), Styling/UI (Tailwind v4, shadcn/ui, Radix, Lucide). | M1 | survey_1 |
-| 3 | Situational Tools (Part 2 Situational) | Micro-frontends (Module Federation), WebSockets/Realtime (PartyKit, Socket.IO, LiveKit), Search/Vector (Meilisearch, Qdrant), File/Object Storage (Cloudflare R2, MinIO AGPLv3), Analytics/Telemetry (PostHog, Umami), Feature Flags (Unleash), Email (Resend, React Email). | M1 | survey_1 |
-| 4 | Beyond a Web App (Part 3) | CLI Frameworks (Commander, Clap, Cobra, Ratatui, Bubbletea), Background Jobs/Workflows (BullMQ, Temporal, Trigger.dev, n8n), Cross-Platform (Expo, Flutter, Tauri, Electron), Data & ML (Polars, dbt), DevOps & Infra (Docker, Podman, K3s, OpenTofu, Pulumi, Coolify, Caddy, Sentry, OpenTelemetry). | M1 | survey_1 |
-| 5 | Meta & Roadmap Decision Trees | Architecture Decision Trees (DB selection, Frontend framework selection, Cache selection, License risk triage matrix). | M1 | survey_1 |
-| 6 | Bonus AI Agent Tooling & MCP Ecosystem | Coding Agents (Claude Code, Cursor, Aider, Roo Code, OpenHands), Agent Frameworks (LangGraph, LlamaIndex, DSPy, CrewAI), MCP Ecosystem (Model Context Protocol spec, FastMCP, official servers), Local LLM (Ollama, vLLM), LLM Observability (Langfuse, Promptfoo). | M1 | survey_1 |
-| 7 | Repository Standards & MIT License | CONTRIBUTING.md (PR guidelines, tooling criteria, table schema rules) and LICENSE (MIT). | M1 | survey_1 |
-| 8 | Operational Tabular AI Agent Defaults | CLAUDE.md quick-reference tables mapping Universal, Full-Stack, Situational, and Agent Tooling tiers to strict defaults. | M2 | survey_2 |
-| 9 | Concrete Default Stacks & Rationale | 5 end-to-end default architecture stacks (Full-Stack TypeScript SaaS, High-Performance Python Microservice, Lightweight Edge/Embedded, CLI Utility, Cross-Platform Desktop/Mobile). | M2 | survey_2 |
-| 10 | Explicit Deviation Rules & Scale Triggers | 14 quantitative & qualitative deviation triggers for AI agents (scale thresholds, latency, complex CTEs, analytics, offline-first). | M2 | survey_2 |
-| 11 | License Alert & Constraint Matrix | In-depth legal risks and constraints: MinIO (AGPLv3 copyleft), Terraform/Redis/Sentry (BSL 1.1 non-compete), n8n (Sustainable Use fair-code), SSPL, Elastic, MIT/Apache tradeoffs. | M2 | survey_2 |
-| 12 | Deep Architectural Trade-Offs Reference | In-depth reference in `full-stack-dev-github-repos.md` detailing technical trade-offs, DX vs performance, maintenance burdens, and ecosystem maturity matching README hierarchy. | M2 | survey_2 |
-| 13 | Standalone Link & Anchor Auditor | `scripts/verify-links.ts` zero-bloat TypeScript script parsing markdown AST/regex, verifying relative paths, and computing GitHub GFM heading slugification with duplicate suffix tracking. | M3 | survey_3 |
-| 14 | License Caveat Presence Scanner | Automated assertion in `scripts/verify-links.ts` validating that flagged copyleft/source-available tools (MinIO, Terraform, Redis, n8n, Sentry) contain explicit license warnings across all docs. | M3 | survey_3 |
-| 15 | Dual Mode Network Engine (Offline + Online) | Deterministic fast offline mode (<200ms) for CI PRs and concurrent HTTP reachability auditing for scheduled releases. | M3 | survey_3 |
-| 16 | Star Metric & Badge Schema Validator | Verification of star metric formatting and badge syntax integrity across markdown tables. | M3 | survey_3 |
-| 17 | GitHub Actions CI/CD Pipeline | `.github/workflows/ci.yml` running typecheck, lint, unit tests, offline link/license verification, and Next.js build. | M3 | survey_3 |
-| 18 | Verification Unit Test Suite | `tests/verify-links.test.ts` providing unit tests for slugification, anchor extraction, relative path resolution, and license audit assertions. | M3 | survey_3 |
-| 19 | Full Suite 100% Pass & E2E Hardening | Execution of complete verification pipeline across all markdown files with 0 errors and zero warnings, backed by adversarial challenger testing and forensic integrity audit. | M4 | orchestrator |
+| 1 | Zero-Bloat Foundation | Enforce Ponytail philosophy; zero external UI/icon dependencies (`lucide-react`, `framer-motion`, `swr`, `clsx`, `tailwind-merge` eliminated). | M1 | ORIGINAL_REQUEST §R1 |
+| 2 | Native SVG Icon Suite | 57 native SVG icon components with forwardRef in `src/components/ui/icons.tsx`. | M1 | ORIGINAL_REQUEST §R1 |
+| 3 | Fluid Motion Physics | Pure TypeScript Apple fluid motion (`project`, `rubberband`, `createVelocityTracker`, `triggerHaptic`). | M1 | ORIGINAL_REQUEST §R2 |
+| 4 | Specular Dark Design System | Tailwind v4 specular dark tokens, elevation surfaces 0-4, frosted glassmorphism, spring transitions. | M1 | ORIGINAL_REQUEST §R2 |
+| 5 | WCAG 2.2 AAA Accessibility | Contrast >= 7.1:1 (foreground 18.7:1), touch targets >= 44px, `:focus-visible` rings, skip-links, ARIA live. | M2 | ORIGINAL_REQUEST §R3 |
+| 6 | 9-Language i18n & RTL | 9 languages (`en`, `te`, `hi`, `es`, `fr`, `de`, `ar`, `zh`, `ru`) with real-time bidirectional layout switching. | M2 | ORIGINAL_REQUEST §R3 |
+| 7 | Authentication & Login | Split-screen glass hero, OCR auto-solve, PoW challenge, ComplianceModal standard badges, prefetching. | M3 | ORIGINAL_REQUEST §R4 |
+| 8 | Shell Navigation | Collapsible desktop sidebar (260px <-> 64px), top status bar with profile avatar, mobile gesture dock. | M3 | ORIGINAL_REQUEST §R4 |
+| 9 | 11 Dashboard Module Routes | Overview, Attendance (LTPS rollup, bunk forecast, SVG chart), Timetable (matrix grid), Marks & CGPA (SVG trend chart), Profile, Fee Management (SVG donut), Tools (calculators), Circulars, Hostels, Library, Exam Seating. | M3 | ORIGINAL_REQUEST §R4 |
+| 10 | AI Copilot Integration | Floating trigger, `Cmd+K` / `Ctrl+Shift+A` shortcuts, gesture drawer sheet, Zod-validated tool execution. | M4 | ORIGINAL_REQUEST §R5 |
+| 11 | Interactive Execution Cards | 4 interactive execution cards for Attendance target, Fee balance, CGPA goal predictor, and timetable queries. | M4 | ORIGINAL_REQUEST §R5 |
+| 12 | 100% E2E Test Pass & Adversarial Hardening | 4-Tier opaque-box test suite (Tiers 1-4) + Tier 5 white-box adversarial stress tests + 9/9 Agent-as-Judge. | M5 | ORIGINAL_REQUEST Acceptance Criteria |
 
 ## Milestones
-
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| M1 | Core Repository & Documentation Foundation | Generate `README.md`, `CONTRIBUTING.md`, `LICENSE` | none | DONE |
-| M2 | Agent Integration & Deep Architectural Reference Suite | Generate `CLAUDE.md` and `full-stack-dev-github-repos.md` | M1 (contracts defined) | DONE |
-| M3 | Automated Verification & CI Suite | Implement `scripts/verify-links.ts`, `tests/verify-links.test.ts`, `.github/workflows/ci.yml` | none | DONE |
-| M4 | Final Acceptance & Adversarial Hardening | End-to-end execution of verification suite, reviewer approval, adversarial stress tests, forensic audit clean verdict | M1, M2, M3 | DONE |
+| 1 | Foundation, Primitives & Fluid Motion (M1) | `src/components/ui/`, `src/lib/fluid-motion.ts`, `src/app/globals.css`, icons, tokens | none | DONE |
+| 2 | Accessibility (WCAG AAA) & i18n RTL Engine (M2) | `src/lib/i18n/`, `src/components/ui/LanguageSelector.tsx`, WCAG contrast & touch targets | M1 | DONE |
+| 3 | Authentication & 12 Dashboard Modules (M3) | `src/app/page.tsx`, `src/components/Navigation.tsx`, `src/app/dashboard/**` | M1, M2 | DONE |
+| 4 | AI Copilot & Interactive Execution Cards (M4) | `src/components/ai/**`, `src/lib/ai/**`, `src/app/api/ai/chat/route.ts` | M1, M2, M3 | DONE |
+| 5 | Dual Track E2E Acceptance & Adversarial Hardening (M5) | 4-Tier E2E Suites, Tier 5 Adversarial Stress, 9/9 Agent-as-Judge, Turbopack Build | M1, M2, M3, M4 | IN_PROGRESS |
 
-## Interface Contracts & Layout
-### Code Layout & File Boundaries
-- `README.md`: Root documentation file (Created & Verified)
-- `CONTRIBUTING.md`: Root contributor guidelines (Created & Verified)
-- `LICENSE`: Root MIT license (Created & Verified)
-- `CLAUDE.md`: Root AI agent operational reference (Created & Verified)
-- `full-stack-dev-github-repos.md`: Root architectural reference (Created & Verified)
-- `scripts/verify-links.ts`: Verification script (Created & Verified)
-- `tests/verify-links.test.ts`: Verification unit tests (Created & Verified)
-- `.github/workflows/ci.yml`: CI workflow (Configured & Verified)
-- `.github/workflows/verify-links.yml`: Verification workflow (Configured & Verified)
+## Interface Contracts
+### `src/components/ui/icons.tsx` ↔ All Components
+- Function signatures: `export const <IconName> = createIcon(...)` (React.ForwardRefExoticComponent<IconProps>)
+- Props: `IconProps { size?: number | string; className?: string; strokeWidth?: number; ... }`
 
-### Verification Summary
-- `scripts/verify-links.ts --offline --strict`: 351 links in 11 files verified with 0 errors, 0 warnings (100% pass).
-- `tests/verify-links.test.ts`: 27/27 unit tests pass (100% pass).
-- `tests/challenger-pipeline-adversarial.test.ts`: 6/6 adversarial stress tests pass (100% pass).
-- `npx tsc --noEmit`: 0 TypeScript compiler errors.
-- Reviewer 1 & 2: APPROVE.
-- Challenger 1 & 2: APPROVE.
-- Forensic Auditor: CLEAN (Zero integrity violations).
+### `src/lib/fluid-motion.ts` ↔ UI Components
+- `project(initialVelocity: number, decelerationRate?: number): number`
+- `rubberband(overshoot: number, dimension: number, constant?: number): number`
+- `triggerHaptic(type: 'selection' | 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error'): boolean`
+- `createVelocityTracker(): { addSample(position: number): void; getVelocity(): number; reset(): void }`
+
+### `src/lib/i18n/index.ts` ↔ UI Components
+- `t(key: TranslationKey, params?: Record<string, string | number>): string`
+- `getLocale(): SupportedLocale`
+- `setLocale(locale: SupportedLocale): void`
+- `getDirection(locale?: SupportedLocale): 'ltr' | 'rtl'`
+
+### `src/hooks/useNativeQuery.ts` ↔ Dashboard Pages
+- `useNativeQuery<T>(key: string, fetcher: () => Promise<T>, options?: QueryOptions<T>): QueryResult<T>`
+
+### `src/lib/ai/tools.ts` & `executor.ts` ↔ AI Copilot UI
+- `executeTool(toolName: string, args: Record<string, unknown>, sessionContext: SessionContext): Promise<ToolResult>`
+
+## Code Layout
+```
+src/
+├── app/
+│   ├── api/
+│   │   ├── ai/chat/route.ts
+│   │   ├── captcha/route.ts
+│   │   ├── erp-proxy/route.ts
+│   │   ├── fetch-photo/route.ts
+│   │   └── login/route.ts
+│   ├── dashboard/
+│   │   ├── attendance/
+│   │   ├── circulars/
+│   │   ├── exam-seating/
+│   │   ├── fee/
+│   │   ├── hostels/
+│   │   ├── library/
+│   │   ├── marks/
+│   │   ├── overview/
+│   │   ├── profile/
+│   │   ├── timetable/
+│   │   ├── tools/
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx
+├── components/
+│   ├── ai/
+│   │   ├── AIChatMessageList.tsx
+│   │   ├── AIChatSheet.tsx
+│   │   ├── AICopilot.tsx
+│   │   └── ExecutionCards.tsx
+│   ├── compliance/
+│   │   └── ComplianceModal.tsx
+│   ├── ui/
+│   │   ├── icons.tsx
+│   │   ├── LanguageSelector.tsx
+│   │   ├── button.tsx
+│   │   ├── card.tsx
+│   │   ├── dialog.tsx
+│   │   ├── sheet.tsx
+│   │   └── ...
+│   ├── Captcha.tsx
+│   └── Navigation.tsx
+├── e2e/
+│   ├── tier1-feature-coverage.test.ts
+│   ├── tier2-boundary-corner-cases.test.ts
+│   ├── tier3-cross-feature-combinations.test.ts
+│   └── tier4-real-world-scenarios.test.ts
+├── hooks/
+│   ├── useAcademicSession.ts
+│   ├── useAriaAnnounce.ts
+│   └── useNativeQuery.ts
+├── lib/
+│   ├── ai/
+│   ├── compliance/
+│   ├── i18n/
+│   ├── crypto.ts
+│   ├── data-prefetcher.ts
+│   └── fluid-motion.ts
+└── types/
+```

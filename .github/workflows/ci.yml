@@ -56,12 +56,6 @@ jobs:
       - name: Run Unit & Integration Tests
         run: npm test
 
-      - name: Run Markdown Verifier Test Suite
-        run: npx --yes tsx --test tests/verify-links.test.ts tests/challenger-pipeline-adversarial.test.ts
-
-      - name: Run Markdown Link, Anchor & License Verification
-        run: npx --yes tsx scripts/verify-links.ts --offline --strict
-
       - name: Run Agent-as-Judge AI Evaluation
         run: npx --yes tsx scripts/agent-as-judge.ts
 

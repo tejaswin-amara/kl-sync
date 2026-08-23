@@ -1,21 +1,61 @@
-﻿MIT License
+# Strict Proprietary & Source-Available License
 
-Copyright (c) 2026 Awesome Dev Pipeline Contributors
+**Copyright © 2026–present Tejaswin Amara. All Rights Reserved.**
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+---
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+### ⚠️ IMPORTANT NOTICE
+This software is proprietary and source-available strictly for personal educational evaluation and local development. It is **NOT** open source software under OSI definitions, and no general public distribution, hosting, or commercial exploitation rights are granted.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+---
+
+### 🚫 STRICT PROHIBITIONS
+
+Under this license, you are **STRICTLY PROHIBITED** from:
+
+1. **Public Hosting & Cloud Deployment**:
+   - You may **NOT** deploy, host, mirror, run, or distribute this software, or any fork or derivative work thereof, on any public web domain, subdomain, or cloud platform (including, but not limited to, **Vercel, AWS, Cloudflare Pages/Workers, Netlify, Render, Railway, Google Cloud Platform, Microsoft Azure, Docker Hub**, or private VPS infrastructure) accessible to third parties.
+   - The only authorized public deployment of this project is maintained directly by the copyright holder at **`https://klhb.vercel.app`**.
+
+2. **Commercial Exploitation & Monetization**:
+   - You may **NOT** sell, rent, lease, sublicense, charge access fees, display commercial advertisements, solicit donations, or derive revenue directly or indirectly from this software, its APIs, or its architecture.
+
+3. **Rebranding, Plagiarism & Misattribution**:
+   - You may **NOT** remove, alter, or obscure any copyright notices, trademark identifiers, author credits (**Tejaswin Amara**), or project references (**KL Sync**, **KLH**).
+   - You may **NOT** rebrand, republish, or claim authorship or copyright of this software under any other name, brand, or organization.
+
+4. **Automated Abuse & Malicious Usage**:
+   - You may **NOT** use this software or its scraping routines to perform distributed denial of service (DDoS), automated credential stuffing, abusive crawling, or unauthorized high-concurrency requests against KL University infrastructure or any third-party systems.
+
+5. **Unauthorized Redistribution & Sublicensing**:
+   - You may **NOT** distribute, bundle, package, or share binaries, container images, or modified source code to third parties without prior explicit written permission.
+
+---
+
+### ✅ PERMITTED USES
+
+You are granted a limited, revocable, non-transferable, and non-exclusive license solely to:
+
+1. **Personal Educational Review**: Clone and read the source code locally on your private device to study Next.js App Router, TypeScript, native SVG engines, and secure session architectures.
+2. **Personal Local Execution**: Run a single local instance strictly bound to `localhost` for your own personal student academic tracking.
+3. **Academic Citation**: Reference or link to the official repository (`https://github.com/tejaswin-amara/kl-sync`) in research papers, documentation, or educational tutorials.
+
+---
+
+### 📝 PERMISSION & CUSTOM LICENSING INQUIRIES
+
+If you wish to:
+- Deploy or integrate KL Sync into an institutional platform
+- Fork and distribute modifications for a student organization
+- Reuse core scrapers or modules in another project
+
+You must obtain explicit prior written consent from the author.  
+📬 **Contact**: `tejaswinamara@gmail.com`
+
+---
+
+### ⚖️ DISCLAIMER OF WARRANTY & LIMITATION OF LIABILITY
+
+THE SOFTWARE IS PROVIDED **"AS IS"**, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+
+IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY CLAIM, DAMAGES, DISCIPLINARY ACTIONS, LOSS OF DATA, SERVICE INTERRUPTIONS, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. USERS ASSUME ALL ACADEMIC AND TECHNICAL RESPONSIBILITY FOR THEIR OWN USE.
