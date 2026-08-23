@@ -9,10 +9,10 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "verify:links": "npx tsx scripts/verify-links.ts --offline --strict",
-    "test:links": "npx tsx --test tests/verify-links.test.ts tests/challenger-pipeline-adversarial.test.ts",
-    "test": "KL_SYNC_DEMO_MODE=true KL_SYNC_AI_MODE=offline npx tsx --test src/**/*.test.ts",
-    "test:api": "KL_SYNC_DEMO_MODE=true KL_SYNC_AI_MODE=offline npx tsx --test src/e2e/tier1-feature-coverage.test.ts src/e2e/tier2-boundary-corner-cases.test.ts src/e2e/tier3-cross-feature-combinations.test.ts src/e2e/tier4-real-world-scenarios.test.ts",
+    "verify:links": "npx --yes tsx scripts/verify-links.ts --offline --strict",
+    "test:links": "npx --yes tsx --test tests/verify-links.test.ts tests/challenger-pipeline-adversarial.test.ts",
+    "test": "KL_SYNC_DEMO_MODE=true KL_SYNC_AI_MODE=offline npx --yes tsx --test src/**/*.test.ts",
+    "test:api": "KL_SYNC_DEMO_MODE=true KL_SYNC_AI_MODE=offline npx --yes tsx --test src/e2e/tier1-feature-coverage.test.ts src/e2e/tier2-boundary-corner-cases.test.ts src/e2e/tier3-cross-feature-combinations.test.ts src/e2e/tier4-real-world-scenarios.test.ts",
     "verify": "npm run typecheck && npm run verify:links && npm run test:links"
   },
   "dependencies": {
@@ -35,6 +35,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",
+    "tsx": "^4.19.3",
     "typescript": "^5"
   }
 }

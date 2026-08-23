@@ -4,7 +4,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { parseMarkdownContent, GitHubSlugifier, RESTRICTED_LICENSE_RULES, auditDocumentLicense } from '../scripts/verify-links';
 
-const rootDir = path.resolve(__dirname, '..');
+const rootDir = process.cwd();
 const readmePath = path.join(rootDir, 'README.md');
 const claudePath = path.join(rootDir, 'CLAUDE.md');
 const deepDocPath = path.join(rootDir, 'full-stack-dev-github-repos.md');
@@ -16,7 +16,7 @@ const claudeContent = fs.readFileSync(claudePath, 'utf-8');
 const deepDocContent = fs.readFileSync(deepDocPath, 'utf-8');
 const contributingContent = fs.readFileSync(contributingPath, 'utf-8');
 
-test('Adversarial Challenge 1: CLAUDE.md Tabular Quick-References Completeness & Usability', (t) => {
+test('Adversarial Challenge 1: CLAUDE.md Tabular Quick-References Completeness & Usability', () => {
   const scan = parseMarkdownContent(claudeContent, 'CLAUDE.md', rootDir);
 
   const expectedHeadings = [
@@ -71,7 +71,7 @@ test('Adversarial Challenge 1: CLAUDE.md Tabular Quick-References Completeness &
   }
 });
 
-test('Adversarial Challenge 2: Concrete Default Stacks & Architecture Completeness', (t) => {
+test('Adversarial Challenge 2: Concrete Default Stacks & Architecture Completeness', () => {
   const expectedStacks = [
     'Stack A: Modern Production Web & SaaS (The Golden Baseline)',
     'Stack B: High-Throughput / Distributed Microservices',
@@ -116,7 +116,7 @@ test('Adversarial Challenge 2: Concrete Default Stacks & Architecture Completene
   assert.ok(claudeContent.includes('Agent-as-Judge'));
 });
 
-test('Adversarial Challenge 3: 14 Scale Triggers & Zero Contradictions with Defaults', (t) => {
+test('Adversarial Challenge 3: 14 Scale Triggers & Zero Contradictions with Defaults', () => {
   for (let i = 1; i <= 14; i++) {
     const triggerMarker = `| **${i}** |`;
     assert.ok(claudeContent.includes(triggerMarker), `Expected deviation rule #${i} in CLAUDE.md`);
@@ -134,7 +134,7 @@ test('Adversarial Challenge 3: 14 Scale Triggers & Zero Contradictions with Defa
   assert.ok(claudeContent.includes('Only when maintaining legacy codebases already deeply committed to the Prisma schema DSL'));
 });
 
-test('Adversarial Challenge 4: Rigorous License Risk Warning Audit Across All Documents', (t) => {
+test('Adversarial Challenge 4: Rigorous License Risk Warning Audit Across All Documents', () => {
   const docs = [
     { name: 'README.md', content: readmeContent },
     { name: 'CLAUDE.md', content: claudeContent },
@@ -162,7 +162,7 @@ test('Adversarial Challenge 4: Rigorous License Risk Warning Audit Across All Do
   }
 });
 
-test('Adversarial Challenge 5: Cross-Document Semantic & Heading Consistency', (t) => {
+test('Adversarial Challenge 5: Cross-Document Semantic & Heading Consistency', () => {
   const readmeScan = parseMarkdownContent(readmeContent, 'README.md', rootDir);
   const claudeScan = parseMarkdownContent(claudeContent, 'CLAUDE.md', rootDir);
   const deepScan = parseMarkdownContent(deepDocContent, 'full-stack-dev-github-repos.md', rootDir);
@@ -216,7 +216,7 @@ test('Adversarial Challenge 5: Cross-Document Semantic & Heading Consistency', (
   }
 });
 
-test('Adversarial Challenge 6: Relative File Link & In-Page Anchor Integrity', (t) => {
+test('Adversarial Challenge 6: Relative File Link & In-Page Anchor Integrity', () => {
   const docs = [
     { file: 'README.md', content: readmeContent },
     { file: 'CLAUDE.md', content: claudeContent },

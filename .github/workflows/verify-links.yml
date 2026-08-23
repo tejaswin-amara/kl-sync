@@ -51,14 +51,14 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Run Markdown Verifier Test Suite
-        run: npx tsx tests/verify-links.test.ts
+        run: npx --yes tsx --test tests/verify-links.test.ts tests/challenger-pipeline-adversarial.test.ts
 
       - name: Run Markdown & Link Verification (Deterministic Offline Mode)
-        run: npx tsx scripts/verify-links.ts --offline --strict --report verification-report.json
+        run: npx --yes tsx scripts/verify-links.ts --offline --strict --report verification-report.json
 
       - name: Run Live Network Reachability Check (Scheduled or Dispatch only)
         if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.check_network == true)
-        run: npx tsx scripts/verify-links.ts --online --concurrency 8 --timeout 10000
+        run: npx --yes tsx scripts/verify-links.ts --online --concurrency 8 --timeout 10000
 
       - name: Upload Verification Report Artifact
         if: always()

@@ -57,13 +57,13 @@ jobs:
         run: npm test
 
       - name: Run Markdown Verifier Test Suite
-        run: npx tsx tests/verify-links.test.ts
+        run: npx --yes tsx --test tests/verify-links.test.ts tests/challenger-pipeline-adversarial.test.ts
 
       - name: Run Markdown Link, Anchor & License Verification
-        run: npx tsx scripts/verify-links.ts --offline --strict
+        run: npx --yes tsx scripts/verify-links.ts --offline --strict
 
       - name: Run Agent-as-Judge AI Evaluation
-        run: npx tsx scripts/agent-as-judge.ts
+        run: npx --yes tsx scripts/agent-as-judge.ts
 
       - name: Build Next.js Production Bundle
         run: npm run build
