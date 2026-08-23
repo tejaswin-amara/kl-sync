@@ -30,8 +30,7 @@ async function setupAuth(page: Page) {
   await page.context().addCookies([
     {
       name: 'kl_erp_session',
-      value:
-        'b64.eyJjb29raWVzIjpbIHsgIm5hbWUiOiAiUEhQU0VTU0lEIiwgInZhbHVlIjogImRlbW9fcGhwc2Vzc2lkXzEyMyIgfSBdLCAiY3NyZlRva2VuIjogImRlbW9fY3NyZlRva2VuXzEyMyIsICJ1c2VyQWdlbnQiOiAiTW96aWxsYS81LjAiIH0=',
+      value: 'enc.demo_session_data',
       url: 'http://localhost:3000',
     },
   ]);
@@ -149,7 +148,15 @@ async function runChallengerStress() {
           domDetails = { viewTogglesWorking: true };
         } else if (r.path === '/dashboard/attendance') {
           await page.getByText(/Overall|Classes Attended/i).first().waitFor({ state: 'visible', timeout: 5000 });
-          await page.locator('table').first().waitFor({ state: 'visible', timeout: 5000 });
+          const tableBtn = page.getByRole('button', { name: /Table/i });
+          const cardsBtn = page.getByRole('button', { name: /Cards/i });
+          if (await tableBtn.isVisible()) {
+            await tableBtn.click();
+            await page.waitForTimeout(100);
+            await page.locator('table').first().waitFor({ state: 'visible', timeout: 5000 });
+            await cardsBtn.click();
+            await page.waitForTimeout(100);
+          }
           domDetails = { attendanceCards: true };
         } else if (r.path === '/dashboard/marks') {
           const searchInput = page.getByPlaceholder(/Search courses/i);
