@@ -21,12 +21,10 @@ import {
   CardHeader,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { triggerHaptic } from '@/lib/fluid-motion';
 import { prefetchAllUserData } from '@/lib/data-prefetcher';
 import { useI18n } from '@/lib/i18n';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
-import { ComplianceModal } from '@/components/compliance/ComplianceModal';
 import { Captcha } from '@/components/Captcha';
 
 export default function LoginPage() {
@@ -45,7 +43,6 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [autoSolveFailed, setAutoSolveFailed] = useState(false);
-  const [complianceOpen, setComplianceOpen] = useState(false);
 
   const fetchCaptcha = async (preserveError = false): Promise<string> => {
     setCaptchaLoading(true);
@@ -218,61 +215,14 @@ export default function LoginPage() {
       <h1 className="sr-only">KL Sync Student Portal</h1>
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_0%,rgba(79,70,200,0.10),transparent_35%),radial-gradient(circle_at_90%_100%,rgba(19,138,99,0.08),transparent_36%)]" />
       <div className="absolute right-4 top-4 z-30 flex items-center gap-2 sm:right-6 sm:top-6">
-        <button
-          type="button"
-          onClick={() => {
-            triggerHaptic('light');
-            setComplianceOpen(true);
-          }}
-          className="flex min-h-[44px] items-center gap-2 rounded-full border border-border bg-surface-1/90 px-3 text-xs font-bold text-success shadow-xs backdrop-blur-md hover:bg-surface-2"
-          aria-label="View Privacy & Accessibility Compliance"
-        >
-          <ShieldCheck className="h-4 w-4" />
-          <span className="hidden sm:inline">Privacy first</span>
-        </button>
         <LanguageSelector />
       </div>
 
-      <section className="relative z-10 hidden min-h-[100dvh] w-[46%] flex-col justify-between border-r border-border/70 bg-[#111922] p-6 lg:flex xl:p-10">
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(33,46,59,0.78),transparent_52%),radial-gradient(circle_at_80%_10%,rgba(79,70,200,0.13),transparent_32%)]" />
-        <div className="relative z-10">
-          <div className="mb-8 flex items-center gap-3">
-            <img
-              src="/logo.webp"
-              alt="KLH"
-              className="h-10 rounded-xl bg-surface-1 p-1.5 shadow-sm"
-            />
-            <div>
-              <p className="font-heading text-lg font-bold tracking-tight">
-                KL Sync
-              </p>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                Student workspace
-              </p>
-            </div>
-          </div>
-          <Badge
-            variant="success"
-            dot
-            className="mb-5 rounded-full px-3 py-1.5 text-[11px]"
-          >
-            Live ERP sync
-          </Badge>
-          <h2 className="display-title max-w-xl text-5xl xl:text-6xl">
-            Your academic day,{' '}
-            <span className="text-gradient-brand">in one clear view.</span>
-          </h2>
-          <p className="mt-4 max-w-lg text-sm leading-relaxed text-muted-foreground">
-            A focused student portal for the information you check most: today’s
-            classes, attendance, marks, fees, profile details, and campus
-            updates.
-          </p>
-        </div>
-      </section>
+
 
       <section className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center overflow-y-auto px-4 py-5 sm:px-8 lg:overflow-visible lg:py-3">
         <div className="w-full max-w-[460px] animate-spring-up">
-          <div className="mb-4 lg:hidden">
+          <div className="mb-4">
             <img
               src="/logo.webp"
               alt="KLH"
@@ -461,10 +411,6 @@ export default function LoginPage() {
           </div>
         </div>
       </section>
-      <ComplianceModal
-        isOpen={complianceOpen}
-        onClose={() => setComplianceOpen(false)}
-      />
-    </main>
+      </main>
   );
 }

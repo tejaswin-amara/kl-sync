@@ -4,7 +4,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   User,
@@ -21,7 +21,6 @@ import {
   MoreHorizontal,
   X,
   ChevronLeft,
-  ShieldCheck,
   MapPin,
 } from '@/components/ui/icons';
 import { AICopilot } from '@/components/ai/AICopilot';
@@ -30,7 +29,6 @@ import { triggerHaptic } from '@/lib/fluid-motion';
 import { prefetchAllUserData } from '@/lib/data-prefetcher';
 import { useI18n } from '@/lib/i18n';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
-import { ComplianceModal } from '@/components/compliance/ComplianceModal';
 
 function ProfileAvatar({
   user,
@@ -86,10 +84,10 @@ export default function Navigation({
 }) {
   const { t } = useI18n();
   const pathname = usePathname();
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [complianceOpen, setComplianceOpen] = useState(false);
   const [user, setUser] = useState({
     name: 'Student',
     initials: 'ST',
@@ -227,7 +225,7 @@ export default function Navigation({
       'kl_erp_sem',
       'remember_username',
     ].forEach((key) => localStorage.removeItem(key));
-    window.location.href = '/';
+    router.push('/');
   };
 
   const toggleCollapse = () => {
@@ -297,13 +295,6 @@ export default function Navigation({
           </Link>
         </div>
         <div className="flex items-center gap-1">
-          <button
-            onClick={() => setComplianceOpen(true)}
-            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-success hover:bg-surface-2"
-            aria-label="Compliance and Privacy"
-          >
-            <ShieldCheck className="h-5 w-5" />
-          </button>
           <LanguageSelector />
           <Link
             href="/dashboard/profile"
@@ -357,21 +348,10 @@ export default function Navigation({
                 </p>
               </div>
             </div>
-            <nav className="custom-scrollbar flex-1 space-y-1 overflow-y-auto py-4">
+            <nav className="custom-scrollbar flex-1 overflow-y-auto py-2">
               {allNavItems.map((item) =>
                 renderNavLink(item, false, () => setSidebarOpen(false))
               )}
-              <button
-                type="button"
-                onClick={() => {
-                  setSidebarOpen(false);
-                  setComplianceOpen(true);
-                }}
-                className="flex min-h-[44px] w-full items-center gap-3 rounded-[--radius-md] px-3 text-sm font-semibold text-success hover:bg-surface-2"
-              >
-                <ShieldCheck className="h-[18px] w-[18px]" />
-                {t('compliance', 'Privacy & compliance')}
-              </button>
             </nav>
             <div className="border-t pt-3">
               <button
@@ -421,22 +401,13 @@ export default function Navigation({
             </>
           )}
         </div>
-        <nav className="custom-scrollbar flex-1 space-y-1 overflow-y-auto px-2 py-5">
+        <nav className="custom-scrollbar flex-1 overflow-y-auto px-2 py-3">
           {!collapsed && (
-            <p className="caption-label px-3 pb-3 text-muted-foreground">
+            <p className="caption-label px-3 pb-1 text-muted-foreground">
               Workspace
             </p>
           )}
           {allNavItems.map((item) => renderNavLink(item, collapsed))}
-          <button
-            type="button"
-            onClick={() => setComplianceOpen(true)}
-            title={collapsed ? 'Privacy & compliance' : undefined}
-            className={`flex min-h-[44px] w-full items-center gap-3 rounded-[--radius-md] text-sm font-semibold text-success hover:bg-surface-2 ${collapsed ? 'mx-1 justify-center' : 'px-3'}`}
-          >
-            <ShieldCheck className="h-[18px] w-[18px] shrink-0" />
-            {!collapsed && <span>Privacy & compliance</span>}
-          </button>
         </nav>
         <div className="space-y-2 border-t p-3">
           {collapsed ? (
@@ -565,14 +536,6 @@ export default function Navigation({
               <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-info" />
               Current semester
             </Badge>
-            <button
-              type="button"
-              onClick={() => setComplianceOpen(true)}
-              className="flex min-h-[44px] items-center gap-2 rounded-full px-3 text-sm font-semibold text-success hover:bg-surface-2"
-            >
-              <ShieldCheck className="h-4 w-4" />
-              <span className="hidden xl:inline">Privacy</span>
-            </button>
             <LanguageSelector />
             <Link
               href="/dashboard/circulars"
@@ -606,10 +569,6 @@ export default function Navigation({
       </main>
 
       <AICopilot />
-      <ComplianceModal
-        isOpen={complianceOpen}
-        onClose={() => setComplianceOpen(false)}
-      />
     </div>
   );
 }
