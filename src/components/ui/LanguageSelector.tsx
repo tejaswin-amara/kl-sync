@@ -44,7 +44,7 @@ export function LanguageSelector({ className = '' }: { className?: string }) {
 
       {open && (
         <div
-          className="apple-modal absolute end-0 top-full z-50 mt-2 max-h-64 w-48 overflow-y-auto py-1 animate-spring-up"
+          className="apple-modal absolute end-0 top-full z-50 mt-2 w-48 py-1 animate-spring-up"
           role="listbox"
           aria-label="Available languages"
         >
