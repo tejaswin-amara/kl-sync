@@ -9,6 +9,7 @@ We pledge to act and interact in ways that contribute to an open, welcoming, div
 ## Special KL Sync Context
 
 Due to the nature of KL Sync as an ERP proxy, contributors must strictly adhere to the following privacy rules:
+
 - **Never** share ERP credentials (yours or anyone else's) in issues, PRs, or discussions.
 - **Never** share unredacted session tokens, payloads, or network requests that contain sensitive data.
 - **Never** share Student Personally Identifiable Information (PII) including names, roll numbers, or academic records.
@@ -16,6 +17,7 @@ Due to the nature of KL Sync as an ERP proxy, contributors must strictly adhere 
 ## Our Standards
 
 Examples of behavior that contributes to a positive environment for our community include:
+
 - Demonstrating empathy and kindness toward other people
 - Being respectful of differing opinions, viewpoints, and experiences
 - Giving and gracefully accepting constructive feedback
@@ -23,6 +25,7 @@ Examples of behavior that contributes to a positive environment for our communit
 - Focusing on what is best not just for us as individuals, but for the overall community
 
 Examples of unacceptable behavior include:
+
 - The use of sexualized language or imagery, and sexual attention or advances of any kind
 - Trolling, insulting or derogatory comments, and personal or political attacks
 - Public or private harassment

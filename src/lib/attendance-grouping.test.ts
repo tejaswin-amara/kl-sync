@@ -7,24 +7,27 @@ describe('Unified Attendance Subject Grouping & Projections', () => {
     const rawRows = [
       {
         'Course Code': '25CS1302E-L',
-        'Course Title': 'DATABASE SYSTEMS ENGINEERING AND DISTRIBUTED BACKEND DEVELOPMENT',
-        'Component': 'Lecture',
+        'Course Title':
+          'DATABASE SYSTEMS ENGINEERING AND DISTRIBUTED BACKEND DEVELOPMENT',
+        Component: 'Lecture',
         'Conducted Hours': '5',
         'Attended Hours': '4',
         'Attendance Percentage': '80.00%',
       },
       {
         'Course Code': '25CS1302E-P',
-        'Course Title': 'DATABASE SYSTEMS ENGINEERING AND DISTRIBUTED BACKEND DEVELOPMENT',
-        'Component': 'Practical',
+        'Course Title':
+          'DATABASE SYSTEMS ENGINEERING AND DISTRIBUTED BACKEND DEVELOPMENT',
+        Component: 'Practical',
         'Conducted Hours': '2',
         'Attended Hours': '2',
         'Attendance Percentage': '100.00%',
       },
       {
         'Course Code': '25CS1302E-S',
-        'Course Title': 'DATABASE SYSTEMS ENGINEERING AND DISTRIBUTED BACKEND DEVELOPMENT',
-        'Component': 'Skilling',
+        'Course Title':
+          'DATABASE SYSTEMS ENGINEERING AND DISTRIBUTED BACKEND DEVELOPMENT',
+        Component: 'Skilling',
         'Conducted Hours': '8',
         'Attended Hours': '8',
         'Attendance Percentage': '100.00%',
@@ -36,7 +39,10 @@ describe('Unified Attendance Subject Grouping & Projections', () => {
 
     const subject = grouped[0];
     assert.strictEqual(subject.subjectCode, '25CS1302E');
-    assert.strictEqual(subject.subjectTitle, 'DATABASE SYSTEMS ENGINEERING AND DISTRIBUTED BACKEND DEVELOPMENT');
+    assert.strictEqual(
+      subject.subjectTitle,
+      'DATABASE SYSTEMS ENGINEERING AND DISTRIBUTED BACKEND DEVELOPMENT'
+    );
     assert.strictEqual(subject.components.length, 3);
 
     // Verify component breakdown
@@ -63,7 +69,8 @@ describe('Unified Attendance Subject Grouping & Projections', () => {
     const rawRows = [
       {
         'Course Code': '25CS1302E',
-        'Course Title': 'DATABASE SYSTEMS ENGINEERING AND DISTRIBUTED BACKEND DEVELOPMENT',
+        'Course Title':
+          'DATABASE SYSTEMS ENGINEERING AND DISTRIBUTED BACKEND DEVELOPMENT',
         'Conducted Hours': '15',
         'Attended Hours': '14',
         'Attendance Percentage': '89.00%',

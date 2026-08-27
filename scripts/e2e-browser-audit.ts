@@ -24,7 +24,8 @@ async function runBrowserAudit() {
 
   const page = await context.newPage();
 
-  const allConsoleMessages: { type: string; text: string; route: string }[] = [];
+  const allConsoleMessages: { type: string; text: string; route: string }[] =
+    [];
   let currentRoute = '/';
 
   page.on('console', (msg) => {
@@ -44,16 +45,27 @@ async function runBrowserAudit() {
   });
 
   page.on('request', (req) => {
-    if (req.url().includes('/api/login') || req.url().includes('/api/captcha')) {
+    if (
+      req.url().includes('/api/login') ||
+      req.url().includes('/api/captcha')
+    ) {
       console.log(`  [REQ ${req.method()}] ${req.url()}`, req.postData() || '');
     }
   });
 
   page.on('response', async (res) => {
-    if (res.url().includes('/api/login') || res.url().includes('/api/captcha')) {
+    if (
+      res.url().includes('/api/login') ||
+      res.url().includes('/api/captcha')
+    ) {
       let bodyText = '';
-      try { bodyText = await res.text(); } catch {}
-      console.log(`  [RES ${res.status()}] ${res.url()} ->`, bodyText.slice(0, 120));
+      try {
+        bodyText = await res.text();
+      } catch {}
+      console.log(
+        `  [RES ${res.status()}] ${res.url()} ->`,
+        bodyText.slice(0, 120)
+      );
     }
   });
 
@@ -87,13 +99,20 @@ async function runBrowserAudit() {
     visualCaptchaValue = 'abcd';
   }
 
-  console.log(`  ✓ Login form filled with Student ID: 2100030000, Captcha: ${visualCaptchaValue}`);
+  console.log(
+    `  ✓ Login form filled with Student ID: 2100030000, Captcha: ${visualCaptchaValue}`
+  );
 
   // Wait for submit button to become enabled after PoW / captcha solving
-  await page.waitForFunction(() => {
-    const btn = document.querySelector('button[type="submit"]') as HTMLButtonElement | null;
-    return btn !== null && !btn.disabled;
-  }, { timeout: 10000 });
+  await page.waitForFunction(
+    () => {
+      const btn = document.querySelector(
+        'button[type="submit"]'
+      ) as HTMLButtonElement | null;
+      return btn !== null && !btn.disabled;
+    },
+    { timeout: 10000 }
+  );
 
   // Click submit and wait for navigation
   try {
@@ -104,13 +123,17 @@ async function runBrowserAudit() {
   } catch (err) {
     const alerts = await page.locator('[role="alert"]').allTextContents();
     console.log('  ⚠️ Alerts on page:', alerts);
-    const formErr = await page.locator('.text-destructive, .text-red-500').allTextContents();
+    const formErr = await page
+      .locator('.text-destructive, .text-red-500')
+      .allTextContents();
     console.log('  ⚠️ Form errors:', formErr);
     throw err;
   }
 
   const loginDuration = Date.now() - loginStart;
-  console.log(`  ✓ Successfully authenticated and navigated to /dashboard in ${loginDuration}ms`);
+  console.log(
+    `  ✓ Successfully authenticated and navigated to /dashboard in ${loginDuration}ms`
+  );
 
   // 2. Setup standard authenticated state
   await page.context().addCookies([
@@ -157,16 +180,44 @@ async function runBrowserAudit() {
 
   const routesToTest = [
     { route: '/dashboard', name: 'Overview', heading: 'Welcome back' },
-    { route: '/dashboard/attendance', name: 'Attendance', heading: 'Attendance' },
-    { route: '/dashboard/timetable', name: 'Timetable Matrix', heading: 'Student Timetable' },
-    { route: '/dashboard/marks', name: 'Internal Marks', heading: 'Marks & Grades' },
-    { route: '/dashboard/profile', name: 'Student Profile', heading: 'Profile' },
+    {
+      route: '/dashboard/attendance',
+      name: 'Attendance',
+      heading: 'Attendance',
+    },
+    {
+      route: '/dashboard/timetable',
+      name: 'Timetable Matrix',
+      heading: 'Student Timetable',
+    },
+    {
+      route: '/dashboard/marks',
+      name: 'Internal Marks',
+      heading: 'Marks & Grades',
+    },
+    {
+      route: '/dashboard/profile',
+      name: 'Student Profile',
+      heading: 'Profile',
+    },
     { route: '/dashboard/fee', name: 'Fee Details', heading: 'Fee Details' },
-    { route: '/dashboard/tools', name: 'Tools & Calculators', heading: 'Tools & Calculators' },
-    { route: '/dashboard/circulars', name: 'Circulars & Notices', heading: 'Circulars' },
+    {
+      route: '/dashboard/tools',
+      name: 'Tools & Calculators',
+      heading: 'Tools & Calculators',
+    },
+    {
+      route: '/dashboard/circulars',
+      name: 'Circulars & Notices',
+      heading: 'Circulars',
+    },
     { route: '/dashboard/hostels', name: 'Hostel Info', heading: 'Hostel' },
     { route: '/dashboard/library', name: 'Library', heading: 'Library' },
-    { route: '/dashboard/exam-seating', name: 'Exam Seating', heading: 'Exam Seating' },
+    {
+      route: '/dashboard/exam-seating',
+      name: 'Exam Seating',
+      heading: 'Exam Seating',
+    },
   ];
 
   const results: RouteAuditResult[] = [];
@@ -177,7 +228,10 @@ async function runBrowserAudit() {
     const routeConsoleErrors: string[] = [];
     const routePageErrors: string[] = [];
 
-    const consoleListener = (msg: { type: () => string; text: () => string }) => {
+    const consoleListener = (msg: {
+      type: () => string;
+      text: () => string;
+    }) => {
       if (msg.type() === 'error') {
         const text = msg.text();
         if (!text.includes('navigator.vibrate')) {
@@ -205,13 +259,20 @@ async function runBrowserAudit() {
     const svgCount = await page.locator('svg').count();
 
     // Check main heading / content
-    const headingElem = page.locator('#main-content').getByRole('heading', { level: 1 }).first();
+    const headingElem = page
+      .locator('#main-content')
+      .getByRole('heading', { level: 1 })
+      .first();
     let headingFound = '';
     try {
       if (await headingElem.isVisible()) {
         headingFound = (await headingElem.textContent()) || '';
       } else {
-        headingFound = (await page.getByText(new RegExp(item.heading, 'i')).first().textContent()) || '';
+        headingFound =
+          (await page
+            .getByText(new RegExp(item.heading, 'i'))
+            .first()
+            .textContent()) || '';
       }
     } catch {
       headingFound = 'Not Found';
@@ -245,11 +306,15 @@ async function runBrowserAudit() {
     );
     if (routeConsoleErrors.length > 0) {
       console.log(`    ⚠️ Console Errors (${routeConsoleErrors.length}):`);
-      routeConsoleErrors.slice(0, 5).forEach((err) => console.log(`       - ${err}`));
+      routeConsoleErrors
+        .slice(0, 5)
+        .forEach((err) => console.log(`       - ${err}`));
     }
     if (routePageErrors.length > 0) {
       console.log(`    ⚠️ Page Errors (${routePageErrors.length}):`);
-      routePageErrors.slice(0, 5).forEach((err) => console.log(`       - ${err}`));
+      routePageErrors
+        .slice(0, 5)
+        .forEach((err) => console.log(`       - ${err}`));
     }
   }
 
@@ -263,10 +328,16 @@ async function runBrowserAudit() {
   const totalDuration = results.reduce((acc, r) => acc + r.durationMs, 0);
 
   console.log(`Total Routes Verified : ${results.length}`);
-  console.log(`Passed Routes         : ${results.filter((r) => r.passed).length}`);
-  console.log(`Failed Routes         : ${results.filter((r) => !r.passed).length}`);
+  console.log(
+    `Passed Routes         : ${results.filter((r) => r.passed).length}`
+  );
+  console.log(
+    `Failed Routes         : ${results.filter((r) => !r.passed).length}`
+  );
   console.log(`Total Navigation Time : ${totalDuration}ms`);
-  console.log(`Overall Result        : ${allPassed ? '🎉 100% PASSED' : '❌ FAILED'}`);
+  console.log(
+    `Overall Result        : ${allPassed ? '🎉 100% PASSED' : '❌ FAILED'}`
+  );
 
   if (!allPassed) {
     process.exit(1);

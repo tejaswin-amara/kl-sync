@@ -1,7 +1,13 @@
 'use client';
 
 import { Sparkles, Maximize2, Trash2 } from '@/components/ui/icons';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { AIChatMessageList, ChatMessage } from './AIChatMessageList';
 import { AIChatSuggestionChips } from './AIChatSuggestionChips';
@@ -47,7 +53,10 @@ export function AIChatSheet({
             <div>
               <SheetTitle className="text-base font-semibold text-foreground flex items-center gap-2 tracking-tight">
                 <span>AI Copilot</span>
-                <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-mono apple-pill">
+                <Badge
+                  variant="outline"
+                  className="text-[10px] py-0 px-1.5 font-mono apple-pill"
+                >
                   Agentic v1.0
                 </Badge>
               </SheetTitle>
@@ -90,13 +99,21 @@ export function AIChatSheet({
 
         {/* Message Container */}
         <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
-          <AIChatMessageList messages={messages} onSelectSuggestion={onSendMessage} />
-          {isBusy && <AIToolExecutionIndicator status={status} toolName={activeTool} />}
+          <AIChatMessageList
+            messages={messages}
+            onSelectSuggestion={onSendMessage}
+          />
+          {isBusy && (
+            <AIToolExecutionIndicator status={status} toolName={activeTool} />
+          )}
         </div>
 
         {/* Suggestions & Input Footer */}
         <div className="space-y-2 border-t border-border bg-surface-2/60 p-3">
-          <AIChatSuggestionChips onSelectSuggestion={onSendMessage} disabled={isBusy} />
+          <AIChatSuggestionChips
+            onSelectSuggestion={onSendMessage}
+            disabled={isBusy}
+          />
           <AIChatInput onSendMessage={onSendMessage} disabled={isBusy} />
         </div>
       </SheetContent>

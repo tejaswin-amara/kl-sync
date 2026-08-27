@@ -38,7 +38,10 @@ test('fetchProfileData limits sub-tab request concurrency to maximum 3 simultane
       const urlStr = input.toString();
 
       // Main profile fetch
-      if (urlStr.includes('/StudentProfile/viewprofile') || urlStr.includes('viewprofile')) {
+      if (
+        urlStr.includes('/StudentProfile/viewprofile') ||
+        urlStr.includes('viewprofile')
+      ) {
         return new Response(mockMainProfileHtml, { status: 200 });
       }
 
@@ -54,9 +57,12 @@ test('fetchProfileData limits sub-tab request concurrency to maximum 3 simultane
         await new Promise((resolve) => setTimeout(resolve, 20));
 
         activeRequests--;
-        return new Response(`<table><tr><th>Field</th><th>Value</th></tr><tr><td>Data</td><td>Val</td></tr></table>`, {
-          status: 200,
-        });
+        return new Response(
+          `<table><tr><th>Field</th><th>Value</th></tr><tr><td>Data</td><td>Val</td></tr></table>`,
+          {
+            status: 200,
+          }
+        );
       }
 
       return new Response('', { status: 404 });
@@ -70,7 +76,11 @@ test('fetchProfileData limits sub-tab request concurrency to maximum 3 simultane
     const result = await fetchProfileData(session);
 
     assert.strictEqual(result.success, true, 'fetchProfileData should succeed');
-    assert.strictEqual(totalSubTabRequests, 9, 'Should have requested all 9 sub-tabs');
+    assert.strictEqual(
+      totalSubTabRequests,
+      9,
+      'Should have requested all 9 sub-tabs'
+    );
     assert.strictEqual(
       maxConcurrentSeen <= 3,
       true,

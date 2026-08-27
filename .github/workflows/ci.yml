@@ -67,5 +67,3 @@ jobs:
         env:
           NODE_ENV: 'production'
           SESSION_SECRET: 'ci-secret-key-testing-minimum-32-bytes-long'
-
-

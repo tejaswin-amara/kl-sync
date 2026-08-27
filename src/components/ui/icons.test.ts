@@ -69,7 +69,11 @@ describe('Native SVG Icons Suite - Ponytail R2 Verification', () => {
     for (const name of iconNames) {
       const Component = Icons[name];
       assert.ok(Component, `Icon ${name} should be exported`);
-      assert.strictEqual(typeof Component, 'object', `Icon ${name} should be a forwardRef component`);
+      assert.strictEqual(
+        typeof Component,
+        'object',
+        `Icon ${name} should be a forwardRef component`
+      );
     }
   });
 
@@ -82,32 +86,52 @@ describe('Native SVG Icons Suite - Ponytail R2 Verification', () => {
     for (const name of iconNames) {
       const IconComponent = Icons[name] as Icons.LucideIcon;
       const html = renderToString(React.createElement(IconComponent));
-      assert.match(html, /<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/, `${name} missing svg tag or xmlns`);
+      assert.match(
+        html,
+        /<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/,
+        `${name} missing svg tag or xmlns`
+      );
       assert.match(html, /viewBox="0 0 24 24"/, `${name} missing viewBox`);
       assert.match(html, /fill="none"/, `${name} missing fill="none"`);
-      assert.match(html, /stroke="currentColor"/, `${name} missing stroke="currentColor"`);
-      assert.match(html, /stroke-width="2"/, `${name} missing default stroke-width="2"`);
+      assert.match(
+        html,
+        /stroke="currentColor"/,
+        `${name} missing stroke="currentColor"`
+      );
+      assert.match(
+        html,
+        /stroke-width="2"/,
+        `${name} missing default stroke-width="2"`
+      );
       assert.match(html, /width="24"/, `${name} missing default width="24"`);
       assert.match(html, /height="24"/, `${name} missing default height="24"`);
     }
   });
 
   test('supports custom size, width, height, and strokeWidth props', () => {
-    const html1 = renderToString(React.createElement(Icons.Sparkles, { size: 32 }));
+    const html1 = renderToString(
+      React.createElement(Icons.Sparkles, { size: 32 })
+    );
     assert.match(html1, /width="32"/);
     assert.match(html1, /height="32"/);
 
-    const html2 = renderToString(React.createElement(Icons.Sparkles, { width: 16, height: 16 }));
+    const html2 = renderToString(
+      React.createElement(Icons.Sparkles, { width: 16, height: 16 })
+    );
     assert.match(html2, /width="16"/);
     assert.match(html2, /height="16"/);
 
-    const html3 = renderToString(React.createElement(Icons.Activity, { strokeWidth: 1.5 }));
+    const html3 = renderToString(
+      React.createElement(Icons.Activity, { strokeWidth: 1.5 })
+    );
     assert.match(html3, /stroke-width="1.5"/);
   });
 
   test('supports custom className including Tailwind animation classes', () => {
     const html = renderToString(
-      React.createElement(Icons.Loader2, { className: 'w-4 h-4 animate-spin text-sky-400' })
+      React.createElement(Icons.Loader2, {
+        className: 'w-4 h-4 animate-spin text-sky-400',
+      })
     );
     assert.match(html, /class="w-4 h-4 animate-spin text-sky-400"/);
   });

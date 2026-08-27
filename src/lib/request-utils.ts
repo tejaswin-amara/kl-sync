@@ -7,7 +7,9 @@ export function resolveSessionToken(request: NextRequest): string | undefined {
   const headerValue = request.headers.get('x-session-id');
   if (headerValue) return headerValue;
 
-  const authHeader = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
+  const authHeader = request.headers
+    .get('authorization')
+    ?.replace(/^Bearer\s+/i, '');
   if (authHeader) return authHeader;
 
   return undefined;
@@ -47,11 +49,19 @@ export function checkRateLimit(
   }
 
   if (current.count >= safeLimit) {
-    return { allowed: false, remaining: 0, resetMs: Math.max(0, current.resetAt - now) };
+    return {
+      allowed: false,
+      remaining: 0,
+      resetMs: Math.max(0, current.resetAt - now),
+    };
   }
 
   current.count += 1;
-  return { allowed: true, remaining: safeLimit - current.count, resetMs: Math.max(0, current.resetAt - now) };
+  return {
+    allowed: true,
+    remaining: safeLimit - current.count,
+    resetMs: Math.max(0, current.resetAt - now),
+  };
 }
 
 async function checkUpstashRateLimit(
@@ -81,7 +91,7 @@ async function checkUpstashRateLimit(
       signal: AbortSignal.timeout(1500),
     });
     if (!response.ok) return null;
-    const payload = await response.json() as { result?: unknown };
+    const payload = (await response.json()) as { result?: unknown };
     const result = Array.isArray(payload.result) ? payload.result : [];
     const count = Number(result[0]);
     const ttl = Number(result[1]);
@@ -102,7 +112,11 @@ export async function checkRateLimitDistributed(
   limit: number = 60,
   windowMs: number = 60_000
 ): Promise<RateLimitResult> {
-  const distributed = await checkUpstashRateLimit(key, Math.max(1, Math.floor(limit)), Math.max(1_000, Math.floor(windowMs)));
+  const distributed = await checkUpstashRateLimit(
+    key,
+    Math.max(1, Math.floor(limit)),
+    Math.max(1_000, Math.floor(windowMs))
+  );
   if (distributed) return distributed;
   return checkRateLimit(key, limit, windowMs);
 }

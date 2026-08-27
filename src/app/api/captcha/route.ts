@@ -13,18 +13,31 @@ const CAPTCHA_COOKIE = 'kl_captcha_session';
 
 /** Returns cleaned lowercase a-z string if it looks like a valid KLU captcha, else '' */
 function validateCaptchaResult(raw: string): string {
-  const cleaned = raw.trim().toLowerCase().replace(/[^a-z]/g, '');
-  return cleaned.length >= KLU_CAPTCHA_MIN && cleaned.length <= KLU_CAPTCHA_MAX ? cleaned : '';
+  const cleaned = raw
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z]/g, '');
+  return cleaned.length >= KLU_CAPTCHA_MIN && cleaned.length <= KLU_CAPTCHA_MAX
+    ? cleaned
+    : '';
 }
 
-async function runOcrEngine(base64: string, engine: string, apiKey: string, signal: AbortSignal): Promise<string> {
+async function runOcrEngine(
+  base64: string,
+  engine: string,
+  apiKey: string,
+  signal: AbortSignal
+): Promise<string> {
   const formData = new URLSearchParams();
   formData.append('base64Image', `data:image/png;base64,${base64}`);
   formData.append('OCREngine', engine);
 
   const res = await fetch('https://api.ocr.space/parse/image', {
     method: 'POST',
-    headers: { apikey: apiKey, 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: {
+      apikey: apiKey,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
     body: formData.toString(),
     signal,
   });
@@ -34,7 +47,10 @@ async function runOcrEngine(base64: string, engine: string, apiKey: string, sign
   return validateCaptchaResult(ocrData?.ParsedResults?.[0]?.ParsedText || '');
 }
 
-async function solveCaptchaImage(base64: string, apiKey: string): Promise<string> {
+async function solveCaptchaImage(
+  base64: string,
+  apiKey: string
+): Promise<string> {
   const controller2 = new AbortController();
   const timer2 = setTimeout(() => controller2.abort(), OCR_TIMEOUT_MS);
   const controller1 = new AbortController();
@@ -55,7 +71,10 @@ async function solveCaptchaImage(base64: string, apiKey: string): Promise<string
   return '';
 }
 
-function withCaptchaCookie(response: NextResponse, sessionId: string): NextResponse {
+function withCaptchaCookie(
+  response: NextResponse,
+  sessionId: string
+): NextResponse {
   response.headers.set('x-session-id', sessionId);
   response.cookies.set(CAPTCHA_COOKIE, sessionId, {
     httpOnly: true,
@@ -68,12 +87,26 @@ function withCaptchaCookie(response: NextResponse, sessionId: string): NextRespo
 }
 
 export async function GET(request?: NextRequest) {
-  const effectiveRequest = request ?? new NextRequest('http://localhost/api/captcha');
-  const limit = await checkRateLimitDistributed(`captcha:ip:${getClientIP(effectiveRequest)}`, 30, 60_000);
+  const effectiveRequest =
+    request ?? new NextRequest('http://localhost/api/captcha');
+  const limit = await checkRateLimitDistributed(
+    `captcha:ip:${getClientIP(effectiveRequest)}`,
+    30,
+    60_000
+  );
   if (!limit.allowed) {
     return NextResponse.json(
-      { success: false, error: 'Too many captcha requests. Please try again later.' },
-      { status: 429, headers: { 'Cache-Control': 'no-store, max-age=0', 'Retry-After': String(Math.ceil(limit.resetMs / 1000)) } }
+      {
+        success: false,
+        error: 'Too many captcha requests. Please try again later.',
+      },
+      {
+        status: 429,
+        headers: {
+          'Cache-Control': 'no-store, max-age=0',
+          'Retry-After': String(Math.ceil(limit.resetMs / 1000)),
+        },
+      }
     );
   }
 
@@ -90,29 +123,45 @@ export async function GET(request?: NextRequest) {
       solvedCaptcha = 'abcd';
     } else {
       try {
-        const captchaRes = await getCaptcha({ signal: AbortSignal.timeout(8000) });
+        const captchaRes = await getCaptcha({
+          signal: AbortSignal.timeout(8000),
+        });
         captchaImage = captchaRes.captchaImage;
         session = captchaRes.session;
       } catch (error) {
         console.error('[CAPTCHA] ERP unreachable:', error);
-        return NextResponse.json({ success: false, error: 'Captcha service is temporarily unavailable.' }, { status: 503 });
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Captcha service is temporarily unavailable.',
+          },
+          { status: 503 }
+        );
       }
     }
 
     if (demoMode && session.csrfToken.includes('demo_csrf_token_123')) {
       solvedCaptcha = 'abcd';
     } else if (apiKey && !solvedCaptcha) {
-      const cleanBase64 = captchaImage.replace(/^data:image\/[a-z]+;base64,/, '').replace(/[\r\n\s]/g, '');
+      const cleanBase64 = captchaImage
+        .replace(/^data:image\/[a-z]+;base64,/, '')
+        .replace(/[\r\n\s]/g, '');
       solvedCaptcha = await solveCaptchaImage(cleanBase64, apiKey);
     }
 
     const sessionId = await encodeSession(session);
     return withCaptchaCookie(
-      NextResponse.json({ captchaImage, solvedCaptcha, rule: 'lowercase_letters_only' }, { headers: { 'Cache-Control': 'no-store, max-age=0' } }),
+      NextResponse.json(
+        { captchaImage, solvedCaptcha, rule: 'lowercase_letters_only' },
+        { headers: { 'Cache-Control': 'no-store, max-age=0' } }
+      ),
       sessionId
     );
   } catch (error) {
     console.error('[CAPTCHA] Unexpected error:', error);
-    return NextResponse.json({ success: false, error: 'Failed to fetch captcha.' }, { status: 503 });
+    return NextResponse.json(
+      { success: false, error: 'Failed to fetch captcha.' },
+      { status: 503 }
+    );
   }
 }

@@ -3,7 +3,13 @@
 import * as React from 'react';
 import { useToast, ToastItem } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { X, CheckCircle2, AlertTriangle, AlertCircle, Info } from '@/components/ui/icons';
+import {
+  X,
+  CheckCircle2,
+  AlertTriangle,
+  AlertCircle,
+  Info,
+} from '@/components/ui/icons';
 import { triggerHaptic } from '@/lib/fluid-motion';
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
@@ -27,13 +33,23 @@ export function Toaster() {
       className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full p-4 pointer-events-none"
     >
       {toasts.map((toast) => (
-        <ToastSingle key={toast.id} toast={toast} onDismiss={() => dismiss(toast.id)} />
+        <ToastSingle
+          key={toast.id}
+          toast={toast}
+          onDismiss={() => dismiss(toast.id)}
+        />
       ))}
     </div>
   );
 }
 
-function ToastSingle({ toast, onDismiss }: { toast: ToastItem; onDismiss: () => void }) {
+function ToastSingle({
+  toast,
+  onDismiss,
+}: {
+  toast: ToastItem;
+  onDismiss: () => void;
+}) {
   const { variant = 'default', title, description, action } = toast;
 
   React.useEffect(() => {
@@ -49,22 +65,40 @@ function ToastSingle({ toast, onDismiss }: { toast: ToastItem; onDismiss: () => 
       aria-live={variant === 'destructive' ? 'assertive' : 'polite'}
       className={cn(
         'pointer-events-auto flex items-start gap-3 p-4 rounded-[--radius-xl] border shadow-2xl animate-spring-up apple-modal transition-all duration-[--duration-normal] ease-[--ease-spring-default]',
-        variant === 'default' && 'border-border/80 bg-surface-2/95 text-foreground',
-        variant === 'destructive' && 'border-destructive/35 bg-destructive/15 text-foreground',
-        variant === 'success' && 'border-success/35 bg-success/15 text-foreground',
-        variant === 'warning' && 'border-warning/35 bg-warning/15 text-foreground',
+        variant === 'default' &&
+          'border-border/80 bg-surface-2/95 text-foreground',
+        variant === 'destructive' &&
+          'border-destructive/35 bg-destructive/15 text-foreground',
+        variant === 'success' &&
+          'border-success/35 bg-success/15 text-foreground',
+        variant === 'warning' &&
+          'border-warning/35 bg-warning/15 text-foreground',
         variant === 'info' && 'border-primary/35 bg-primary/15 text-foreground'
       )}
     >
       <div className="shrink-0 mt-0.5">
-        {variant === 'success' && <CheckCircle2 className="w-5 h-5 text-success" />}
-        {variant === 'warning' && <AlertTriangle className="w-5 h-5 text-warning" />}
-        {variant === 'destructive' && <AlertCircle className="w-5 h-5 text-destructive" />}
+        {variant === 'success' && (
+          <CheckCircle2 className="w-5 h-5 text-success" />
+        )}
+        {variant === 'warning' && (
+          <AlertTriangle className="w-5 h-5 text-warning" />
+        )}
+        {variant === 'destructive' && (
+          <AlertCircle className="w-5 h-5 text-destructive" />
+        )}
         {variant === 'info' && <Info className="w-5 h-5 text-primary" />}
       </div>
       <div className="flex-1 min-w-0">
-        {title && <div className="text-sm font-semibold tracking-[-0.012em] font-heading">{title}</div>}
-        {description && <div className="text-xs text-muted-foreground mt-0.5 leading-relaxed font-normal">{description}</div>}
+        {title && (
+          <div className="text-sm font-semibold tracking-[-0.012em] font-heading">
+            {title}
+          </div>
+        )}
+        {description && (
+          <div className="text-xs text-muted-foreground mt-0.5 leading-relaxed font-normal">
+            {description}
+          </div>
+        )}
         {action && <div className="mt-2">{action}</div>}
       </div>
       <button

@@ -8,22 +8,46 @@ import { GpaTrendChart } from '@/app/dashboard/marks/GpaTrendChart';
 import { FeeBreakdownChart } from '@/app/dashboard/fee/FeeBreakdownChart';
 import { AriaLiveRegion } from '@/components/ui/aria-live';
 import { Toast } from '@/components/ui/toast';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet';
 
 describe('Challenger M2 - Empirical Chart & WCAG Verification', () => {
-
   describe('1. AttendanceChart Empirical Boundary & Edge Cases', () => {
     test('returns null for empty, null, or undefined data', () => {
-      assert.strictEqual(renderToString(React.createElement(AttendanceChart, { data: [] })), '');
+      assert.strictEqual(
+        renderToString(React.createElement(AttendanceChart, { data: [] })),
+        ''
+      );
       // @ts-expect-error testing invalid input
-      assert.strictEqual(renderToString(React.createElement(AttendanceChart, { data: null })), '');
+      assert.strictEqual(
+        renderToString(React.createElement(AttendanceChart, { data: null })),
+        ''
+      );
       // @ts-expect-error testing invalid input
-      assert.strictEqual(renderToString(React.createElement(AttendanceChart, { data: undefined })), '');
+      assert.strictEqual(
+        renderToString(
+          React.createElement(AttendanceChart, { data: undefined })
+        ),
+        ''
+      );
     });
 
     test('renders correctly for a single entry dataset', () => {
-      const singleData = [{ 'Course Code': 'CS101', 'Subject Title': 'Computer Science', 'Attendance %': '95%' }];
-      const html = renderToString(React.createElement(AttendanceChart, { data: singleData }));
+      const singleData = [
+        {
+          'Course Code': 'CS101',
+          'Subject Title': 'Computer Science',
+          'Attendance %': '95%',
+        },
+      ];
+      const html = renderToString(
+        React.createElement(AttendanceChart, { data: singleData })
+      );
       assert.match(html, /aria-label="Attendance Bar Chart"/);
       assert.match(html, /CS101/);
       assert.match(html, /95/);
@@ -35,7 +59,9 @@ describe('Challenger M2 - Empirical Chart & WCAG Verification', () => {
         { 'Course Code': 'SUBJ0', 'Attendance %': '0%' },
         { 'Course Code': 'SUBJ100', 'Attendance %': '100%' },
       ];
-      const html = renderToString(React.createElement(AttendanceChart, { data: boundaryData }));
+      const html = renderToString(
+        React.createElement(AttendanceChart, { data: boundaryData })
+      );
       assert.match(html, /SUBJ0/);
       assert.match(html, /SUBJ100/);
       assert.match(html, /0/);
@@ -44,9 +70,11 @@ describe('Challenger M2 - Empirical Chart & WCAG Verification', () => {
 
     test('handles unrecognized keys and truncated long course names safely', () => {
       const weirdData = [
-        { 'UnknownField': 'EXCEEDINGLY_LONG_SUBJECT_TITLE_HERO', 'pct': 88 },
+        { UnknownField: 'EXCEEDINGLY_LONG_SUBJECT_TITLE_HERO', pct: 88 },
       ];
-      const html = renderToString(React.createElement(AttendanceChart, { data: weirdData }));
+      const html = renderToString(
+        React.createElement(AttendanceChart, { data: weirdData })
+      );
       assert.match(html, /88/);
       assert.match(html, /EXCEEDINGL…/);
     });
@@ -54,16 +82,27 @@ describe('Challenger M2 - Empirical Chart & WCAG Verification', () => {
 
   describe('2. GpaTrendChart Empirical Boundary & Edge Cases', () => {
     test('returns null for empty, null, or undefined data', () => {
-      assert.strictEqual(renderToString(React.createElement(GpaTrendChart, { data: [] })), '');
+      assert.strictEqual(
+        renderToString(React.createElement(GpaTrendChart, { data: [] })),
+        ''
+      );
       // @ts-expect-error testing invalid input
-      assert.strictEqual(renderToString(React.createElement(GpaTrendChart, { data: null })), '');
+      assert.strictEqual(
+        renderToString(React.createElement(GpaTrendChart, { data: null })),
+        ''
+      );
       // @ts-expect-error testing invalid input
-      assert.strictEqual(renderToString(React.createElement(GpaTrendChart, { data: undefined })), '');
+      assert.strictEqual(
+        renderToString(React.createElement(GpaTrendChart, { data: undefined })),
+        ''
+      );
     });
 
     test('renders single-entry dataset without division by zero', () => {
       const singleData = [{ 'Course Code': 'CS201', Marks: '85' }];
-      const html = renderToString(React.createElement(GpaTrendChart, { data: singleData }));
+      const html = renderToString(
+        React.createElement(GpaTrendChart, { data: singleData })
+      );
       assert.match(html, /aria-label="GPA Performance Trend Chart"/);
       assert.match(html, /CS201/);
       assert.match(html, /85/);
@@ -75,7 +114,9 @@ describe('Challenger M2 - Empirical Chart & WCAG Verification', () => {
         { 'Course Code': 'ZERO', Marks: '0' },
         { 'Course Code': 'MAX', Marks: '100' },
       ];
-      const html = renderToString(React.createElement(GpaTrendChart, { data: boundaryData }));
+      const html = renderToString(
+        React.createElement(GpaTrendChart, { data: boundaryData })
+      );
       assert.match(html, /Max:.*100/);
       assert.match(html, />0</);
       assert.match(html, />100</);
@@ -84,30 +125,44 @@ describe('Challenger M2 - Empirical Chart & WCAG Verification', () => {
 
   describe('3. FeeBreakdownChart Empirical Boundary & Edge Cases', () => {
     test('renders default 0 total/pending gracefully without crash or NaN', () => {
-      const html = renderToString(React.createElement(FeeBreakdownChart, { data: [] }));
+      const html = renderToString(
+        React.createElement(FeeBreakdownChart, { data: [] })
+      );
       assert.match(html, /100.*% Paid/);
       assert.match(html, /₹.*0/);
       assert.doesNotMatch(html, /NaN/);
     });
 
     test('renders single paid fee item accurately', () => {
-      const singleData = [{ 'Fee Type': 'Tuition', Amount: '45000', Status: 'PAID' }];
-      const html = renderToString(React.createElement(FeeBreakdownChart, { data: singleData }));
+      const singleData = [
+        { 'Fee Type': 'Tuition', Amount: '45000', Status: 'PAID' },
+      ];
+      const html = renderToString(
+        React.createElement(FeeBreakdownChart, { data: singleData })
+      );
       assert.match(html, /100.*% Paid/);
       assert.match(html, /45,000/);
     });
 
     test('renders 100% unpaid/pending fee items accurately', () => {
-      const unpaidData = [{ 'Fee Type': 'Hostel', Amount: '20000', Status: 'UNPAID' }];
-      const html = renderToString(React.createElement(FeeBreakdownChart, { data: unpaidData }));
+      const unpaidData = [
+        { 'Fee Type': 'Hostel', Amount: '20000', Status: 'UNPAID' },
+      ];
+      const html = renderToString(
+        React.createElement(FeeBreakdownChart, { data: unpaidData })
+      );
       assert.match(html, /0.*% Paid/);
       assert.match(html, /20,000/);
       assert.match(html, /Pending Due/);
     });
 
     test('formats large currency numbers correctly', () => {
-      const largeData = [{ 'Fee Type': 'Building Fund', Amount: '1000000', Status: 'PAID' }];
-      const html = renderToString(React.createElement(FeeBreakdownChart, { data: largeData }));
+      const largeData = [
+        { 'Fee Type': 'Building Fund', Amount: '1000000', Status: 'PAID' },
+      ];
+      const html = renderToString(
+        React.createElement(FeeBreakdownChart, { data: largeData })
+      );
       assert.match(html, /1,000,000/);
     });
   });
@@ -115,7 +170,11 @@ describe('Challenger M2 - Empirical Chart & WCAG Verification', () => {
   describe('4. WCAG 2.2 Accessibility Primitives Empirical Tests', () => {
     test('AriaLiveRegion renders polite and assertive containers with sr-only', () => {
       const html = renderToString(
-        React.createElement(AriaLiveRegion, null, React.createElement('div', null, 'App Body'))
+        React.createElement(
+          AriaLiveRegion,
+          null,
+          React.createElement('div', null, 'App Body')
+        )
       );
       assert.match(html, /aria-live="polite"/);
       assert.match(html, /aria-live="assertive"/);
@@ -152,7 +211,11 @@ describe('Challenger M2 - Empirical Chart & WCAG Verification', () => {
           React.createElement(
             SheetContent,
             { side: 'right' },
-            React.createElement(SheetHeader, null, React.createElement(SheetTitle, null, 'Accessibility Test')),
+            React.createElement(
+              SheetHeader,
+              null,
+              React.createElement(SheetTitle, null, 'Accessibility Test')
+            ),
             React.createElement(SheetDescription, null, 'Test modal body')
           )
         )

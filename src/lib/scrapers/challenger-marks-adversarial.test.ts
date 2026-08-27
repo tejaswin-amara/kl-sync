@@ -3,17 +3,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { NextRequest } from 'next/server';
-import {
-  fetchMarksData,
-  fetchEndExamResults,
-  fetchCGPAData,
-} from './marks';
+import { fetchMarksData, fetchEndExamResults, fetchCGPAData } from './marks';
 import { ScraperSession, ERP_ENDPOINTS } from './http-jar';
-import {
-  executeGetMarks,
-  executeTool,
-  processAIChat,
-} from '@/lib/ai/executor';
+import { executeGetMarks, executeTool, processAIChat } from '@/lib/ai/executor';
 import { GET, POST } from '@/app/api/erp-proxy/[module]/route';
 import { DEMO_MARKS } from '@/lib/fixtures';
 
@@ -66,7 +58,10 @@ describe('Empirical Challenger Suite: Marks Scraper & Ponytail Debt Neutralizati
     const capturedBodies: URLSearchParams[] = [];
 
     try {
-      globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      globalThis.fetch = async (
+        input: RequestInfo | URL,
+        init?: RequestInit
+      ) => {
         capturedUrl = input.toString();
         if (init?.body instanceof URLSearchParams) {
           capturedBodies.push(init.body);
@@ -126,7 +121,10 @@ describe('Empirical Challenger Suite: Marks Scraper & Ponytail Debt Neutralizati
     const capturedBodies: URLSearchParams[] = [];
 
     try {
-      globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      globalThis.fetch = async (
+        input: RequestInfo | URL,
+        init?: RequestInit
+      ) => {
         capturedUrl = input.toString();
         if (init?.body instanceof URLSearchParams) {
           capturedBodies.push(init.body);
@@ -169,7 +167,10 @@ describe('Empirical Challenger Suite: Marks Scraper & Ponytail Debt Neutralizati
     const capturedBodies: URLSearchParams[] = [];
 
     try {
-      globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+      globalThis.fetch = async (
+        _input: RequestInfo | URL,
+        init?: RequestInit
+      ) => {
         if (init?.body instanceof URLSearchParams) {
           capturedBodies.push(init.body);
         } else if (typeof init?.body === 'string') {
@@ -213,7 +214,10 @@ describe('Empirical Challenger Suite: Marks Scraper & Ponytail Debt Neutralizati
     let getCalled = false;
 
     try {
-      globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+      globalThis.fetch = async (
+        _input: RequestInfo | URL,
+        init?: RequestInit
+      ) => {
         if (init?.method === 'POST') {
           if (init.body instanceof URLSearchParams) {
             capturedBodies.push(init.body);
@@ -256,7 +260,10 @@ describe('Empirical Challenger Suite: Marks Scraper & Ponytail Debt Neutralizati
     const capturedBodies: URLSearchParams[] = [];
 
     try {
-      globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+      globalThis.fetch = async (
+        _input: RequestInfo | URL,
+        init?: RequestInit
+      ) => {
         if (init?.body instanceof URLSearchParams) {
           capturedBodies.push(init.body);
         } else if (typeof init?.body === 'string') {
@@ -344,7 +351,10 @@ describe('Empirical Challenger Suite: Marks Scraper & Ponytail Debt Neutralizati
 
     // 3. AI Chat Offline Matcher for Marks
     const aiChatRes = await processAIChat([
-      { role: 'user', content: 'What are my internal marks in Operating Systems?' },
+      {
+        role: 'user',
+        content: 'What are my internal marks in Operating Systems?',
+      },
     ]);
     assert.ok(aiChatRes.assistantResponseText.length > 0);
     assert.ok(
@@ -409,15 +419,18 @@ describe('Empirical Challenger Suite: Marks Scraper & Ponytail Debt Neutralizati
     assert.strictEqual(badJson.error, 'Missing academicYear or semesterId');
 
     // 5. POST /api/erp-proxy/end-exam with demo session
-    const endExamReq = new NextRequest('http://localhost/api/erp-proxy/end-exam', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        academicYear: '2025-2026',
-        semesterId: 'EVEN',
-        csrfToken: 'demo_csrf',
-      }),
-    });
+    const endExamReq = new NextRequest(
+      'http://localhost/api/erp-proxy/end-exam',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          academicYear: '2025-2026',
+          semesterId: 'EVEN',
+          csrfToken: 'demo_csrf',
+        }),
+      }
+    );
     const endExamRes = await POST(endExamReq, {
       params: Promise.resolve({ module: 'end-exam' }),
     });
@@ -426,7 +439,13 @@ describe('Empirical Challenger Suite: Marks Scraper & Ponytail Debt Neutralizati
   });
 
   test('Verification: Zero ponytail debt comments in src/lib/scrapers/marks.ts', () => {
-    const marksFilePath = join(process.cwd(), 'src', 'lib', 'scrapers', 'marks.ts');
+    const marksFilePath = join(
+      process.cwd(),
+      'src',
+      'lib',
+      'scrapers',
+      'marks.ts'
+    );
     const content = readFileSync(marksFilePath, 'utf-8');
     const ponytailDebtPattern = /(#|\/\/)\s*ponytail:/i;
     assert.strictEqual(

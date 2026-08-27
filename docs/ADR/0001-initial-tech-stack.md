@@ -4,9 +4,11 @@
 **Date**: 2026-08-02
 
 ## Context
+
 Building an unofficial ERP client for KL University students that proxies a legacy ASP.NET Web Forms application (`newerp.kluniversity.in`). The client must be exceptionally fast, reliable, privacy-respecting, and require low maintenance.
 
 ## Decision
+
 We have selected the following technology stack:
 
 - **Next.js 16 App Router + Turbopack**: Provides edge functions, API routes, SSR, and excellent DX.
@@ -20,12 +22,14 @@ We have selected the following technology stack:
 - **Native SVG icon engine**: Custom SVGs with zero runtime, avoiding large icon packs like `lucide-react`.
 
 ## Consequences
+
 - Minimal dependency footprint (~8 production dependencies).
 - Extremely fast cold starts.
 - Low client bundle size, adhering to strict performance budgets.
 - Highly maintainable with the "Ponytail Philosophy" (YAGNI, zero bloat, stdlib over deps).
 
 ## Alternatives Considered
+
 - **Remix**: Rejected due to no Turbopack equivalent and a smaller ecosystem for serverless deployment optimizations on edge.
 - **SWR/TanStack Query**: Rejected as an unnecessary abstraction. A custom simple fetch + cache implementation (`useNativeQuery`) is sufficient and lighter.
 - **Jest**: Rejected as it is heavier, slower, and unnecessary for a project of this size. Native Node.js `node:test` is preferred.

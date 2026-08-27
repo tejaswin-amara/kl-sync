@@ -30,16 +30,22 @@ test('findStatusKey locates status columns accurately', () => {
     findStatusKey({ Status: 'PENDING', Amount: '1000' }),
     'Status'
   );
-  assert.strictEqual(
-    findStatusKey({ Remarks: 'Unpaid fee order' }),
-    'Remarks'
-  );
+  assert.strictEqual(findStatusKey({ Remarks: 'Unpaid fee order' }), 'Remarks');
 });
 
 test('isSummaryRow identifies summary or total rows', () => {
-  assert.strictEqual(isSummaryRow({ 'Fee Head': 'Total', Amount: '50000' }), true);
-  assert.strictEqual(isSummaryRow({ 'Fee Head': 'Grand Total:', Amount: '50000' }), true);
-  assert.strictEqual(isSummaryRow({ 'Fee Head': 'Tuition Fee', Amount: '50000' }), false);
+  assert.strictEqual(
+    isSummaryRow({ 'Fee Head': 'Total', Amount: '50000' }),
+    true
+  );
+  assert.strictEqual(
+    isSummaryRow({ 'Fee Head': 'Grand Total:', Amount: '50000' }),
+    true
+  );
+  assert.strictEqual(
+    isSummaryRow({ 'Fee Head': 'Tuition Fee', Amount: '50000' }),
+    false
+  );
 });
 
 test('isRowUnpaid and calculatePendingFee correctly compute pending amounts', () => {

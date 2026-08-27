@@ -11,9 +11,12 @@
  * @param decelerationRate Rate of exponential decay (0.998 for standard scroll, 0.99 for snappy)
  * @returns Projected offset distance in px from current position
  */
-export function project(initialVelocity: number, decelerationRate = 0.998): number {
+export function project(
+  initialVelocity: number,
+  decelerationRate = 0.998
+): number {
   if (Math.abs(initialVelocity) < 1) return 0;
-  return (initialVelocity / 1000) * decelerationRate / (1 - decelerationRate);
+  return ((initialVelocity / 1000) * decelerationRate) / (1 - decelerationRate);
 }
 
 /**
@@ -25,22 +28,22 @@ export function project(initialVelocity: number, decelerationRate = 0.998): numb
  * @param constant Resistance constant (Apple default = 0.55)
  * @returns Dampened visual offset in px
  */
-export function rubberband(overshoot: number, dimension = 300, constant = 0.55): number {
+export function rubberband(
+  overshoot: number,
+  dimension = 300,
+  constant = 0.55
+): number {
   if (dimension <= 0) return 0;
   const sign = overshoot < 0 ? -1 : 1;
   const absOvershoot = Math.abs(overshoot);
-  const dampened = (absOvershoot * dimension * constant) / (dimension + constant * absOvershoot);
+  const dampened =
+    (absOvershoot * dimension * constant) /
+    (dimension + constant * absOvershoot);
   return sign * dampened;
 }
 
 export type HapticType =
-  | 'light'
-  | 'medium'
-  | 'heavy'
-  | 'selection'
-  | 'success'
-  | 'warning'
-  | 'error';
+  'light' | 'medium' | 'heavy' | 'selection' | 'success' | 'warning' | 'error';
 
 /**
  * Multimodal haptic feedback via Web Vibration API.
@@ -48,7 +51,8 @@ export type HapticType =
  */
 export function triggerHaptic(type: HapticType = 'light'): void {
   if (typeof window === 'undefined' || typeof navigator === 'undefined') return;
-  if (!('vibrate' in navigator) || typeof navigator.vibrate !== 'function') return;
+  if (!('vibrate' in navigator) || typeof navigator.vibrate !== 'function')
+    return;
 
   try {
     switch (type) {

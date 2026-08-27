@@ -23,8 +23,14 @@ describe('Challenger M3 Suite — AI Chat API Route (/api/ai/chat/route.ts)', ()
     assert.strictEqual(json.success, true);
     assert.ok(json.message, 'Response body must contain message object');
     assert.strictEqual(json.message.role, 'assistant');
-    assert.ok(typeof json.message.content === 'string' && json.message.content.length > 0);
-    assert.ok(Array.isArray(json.toolCalls), 'toolCalls must be an array when tool is executed');
+    assert.ok(
+      typeof json.message.content === 'string' &&
+        json.message.content.length > 0
+    );
+    assert.ok(
+      Array.isArray(json.toolCalls),
+      'toolCalls must be an array when tool is executed'
+    );
   });
 
   // 2. Tool Call Execution Across All 7 Tools
@@ -113,7 +119,9 @@ describe('Challenger M3 Suite — AI Chat API Route (/api/ai/chat/route.ts)', ()
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        messages: [{ role: 'user', content: 'How many classes can I miss in OS?' }],
+        messages: [
+          { role: 'user', content: 'How many classes can I miss in OS?' },
+        ],
       }),
     });
     const res = await POST(req);
@@ -146,7 +154,8 @@ describe('Challenger M3 Suite — AI Chat API Route (/api/ai/chat/route.ts)', ()
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Cookie: 'kl_erp_session=b64.eyJjb29raWVzIjpbXSwiY3NyZlRva2VuIjoiZGVtb19jc3JmXzEyMyJ9',
+        Cookie:
+          'kl_erp_session=b64.eyJjb29raWVzIjpbXSwiY3NyZlRva2VuIjoiZGVtb19jc3JmXzEyMyJ9',
       },
       body: JSON.stringify({
         messages: [{ role: 'user', content: 'Show fee balance' }],
@@ -166,7 +175,8 @@ describe('Challenger M3 Suite — AI Chat API Route (/api/ai/chat/route.ts)', ()
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-session-id': 'b64.eyJjb29raWVzIjpbXSwiY3NyZlRva2VuIjoiZGVtb19jc3JmXzEyMyJ9',
+        'x-session-id':
+          'b64.eyJjb29raWVzIjpbXSwiY3NyZlRva2VuIjoiZGVtb19jc3JmXzEyMyJ9',
       },
       body: JSON.stringify({
         messages: [{ role: 'user', content: 'Show fee balance' }],
@@ -207,7 +217,10 @@ describe('Challenger M3 Suite — AI Chat API Route (/api/ai/chat/route.ts)', ()
 
     const json = await res.json();
     assert.strictEqual(json.success, false);
-    assert.strictEqual(json.error, 'Request body must contain a non-empty messages array');
+    assert.strictEqual(
+      json.error,
+      'Request body must contain a non-empty messages array'
+    );
   });
 
   test('4.3 Invalid last message string content returns status 400', async () => {
@@ -222,7 +235,10 @@ describe('Challenger M3 Suite — AI Chat API Route (/api/ai/chat/route.ts)', ()
 
     const json = await res.json();
     assert.strictEqual(json.success, false);
-    assert.strictEqual(json.error, 'Last message in conversation must contain valid string content');
+    assert.strictEqual(
+      json.error,
+      'Last message in conversation must contain valid string content'
+    );
   });
 
   test('4.4 Offline mode gracefully uses demo fallbacks without throwing 500 errors', async () => {
@@ -275,8 +291,14 @@ describe('Challenger M3 Suite — Copilot UI Integration Contracts', () => {
 
     for (const query of queries) {
       const res = await processAIChat([{ role: 'user', content: query }]);
-      assert.ok(res.toolCalls && res.toolCalls.length > 0, `Query "${query}" failed to produce tool call`);
-      assert.ok(res.toolCalls[0].tool, `Query "${query}" returned empty toolName`);
+      assert.ok(
+        res.toolCalls && res.toolCalls.length > 0,
+        `Query "${query}" failed to produce tool call`
+      );
+      assert.ok(
+        res.toolCalls[0].tool,
+        `Query "${query}" returned empty toolName`
+      );
     }
   });
 

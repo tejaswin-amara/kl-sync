@@ -1,5 +1,8 @@
 import { useNativeQuery } from './useNativeQuery';
-import { AttendanceSubject, attendanceResponseSchema } from '@/lib/schemas/attendance';
+import {
+  AttendanceSubject,
+  attendanceResponseSchema,
+} from '@/lib/schemas/attendance';
 import { registerCourseTitles } from '@/lib/course-utils';
 
 export interface UseAttendanceResult {
@@ -32,9 +35,20 @@ async function attendanceFetcher(key: unknown) {
   return json.attendanceData || json.data || [];
 }
 
-export function useAttendance(academicYear?: string, semesterId?: string): UseAttendanceResult {
-  const key = academicYear && semesterId ? (['/api/erp-proxy/attendance', academicYear, semesterId] as const) : null;
-  const { data: rawData, error, isLoading, mutate } = useNativeQuery<AttendanceSubject[]>(key, attendanceFetcher);
+export function useAttendance(
+  academicYear?: string,
+  semesterId?: string
+): UseAttendanceResult {
+  const key =
+    academicYear && semesterId
+      ? (['/api/erp-proxy/attendance', academicYear, semesterId] as const)
+      : null;
+  const {
+    data: rawData,
+    error,
+    isLoading,
+    mutate,
+  } = useNativeQuery<AttendanceSubject[]>(key, attendanceFetcher);
 
   const data = rawData || null;
 
@@ -46,7 +60,11 @@ export function useAttendance(academicYear?: string, semesterId?: string): UseAt
     data.forEach((row) => {
       const condKey = Object.keys(row).find((k) => {
         const kl = k.toLowerCase();
-        return kl.includes('conducted') || kl.includes('held') || (kl.includes('total') && !kl.includes('%'));
+        return (
+          kl.includes('conducted') ||
+          kl.includes('held') ||
+          (kl.includes('total') && !kl.includes('%'))
+        );
       });
       const attKey = Object.keys(row).find((k) => {
         const kl = k.toLowerCase();
@@ -59,7 +77,8 @@ export function useAttendance(academicYear?: string, semesterId?: string): UseAt
     });
   }
 
-  const overallPercentage = totalConducted > 0 ? Math.round((totalAttended / totalConducted) * 100) : 0;
+  const overallPercentage =
+    totalConducted > 0 ? Math.round((totalAttended / totalConducted) * 100) : 0;
 
   return {
     data,

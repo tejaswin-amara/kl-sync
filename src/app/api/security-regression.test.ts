@@ -16,7 +16,10 @@ test('production CAPTCHA verification rejects demo and structural legacy tokens'
   try {
     assert.strictEqual(await verifyCaptchaToken('demo_token'), false);
     assert.strictEqual(await verifyCaptchaToken('demo_csrf_token_123'), false);
-    assert.strictEqual(await verifyCaptchaToken('aabbccdd:0011223344556677'), false);
+    assert.strictEqual(
+      await verifyCaptchaToken('aabbccdd:0011223344556677'),
+      false
+    );
   } finally {
     if (originalDemoMode === undefined) delete env.KL_SYNC_DEMO_MODE;
     else env.KL_SYNC_DEMO_MODE = originalDemoMode;
@@ -30,7 +33,9 @@ test('ERP proxy unauthenticated response is explicitly private and non-cacheable
   env.KL_SYNC_DEMO_MODE = 'false';
   try {
     const response = await getErpProxy(
-      new NextRequest('http://localhost/api/erp-proxy/attendance?academicYear=2025-2026&semesterId=1'),
+      new NextRequest(
+        'http://localhost/api/erp-proxy/attendance?academicYear=2025-2026&semesterId=1'
+      ),
       { params: Promise.resolve({ module: 'attendance' }) }
     );
     assert.strictEqual(response.status, 401);

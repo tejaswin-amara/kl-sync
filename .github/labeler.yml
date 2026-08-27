@@ -1,83 +1,83 @@
 # Requires: actions/labeler@v5 in a workflow
 
-"core: app":
+'core: app':
   - changed-files:
-    - any-glob-to-any-file: 'src/app/**'
+      - any-glob-to-any-file: 'src/app/**'
 
-"core: components":
+'core: components':
   - changed-files:
-    - any-glob-to-any-file: 'src/components/**'
+      - any-glob-to-any-file: 'src/components/**'
 
-"core: scrapers":
+'core: scrapers':
   - changed-files:
-    - any-glob-to-any-file: 'src/lib/scrapers/**'
+      - any-glob-to-any-file: 'src/lib/scrapers/**'
 
-"core: api":
+'core: api':
   - changed-files:
-    - any-glob-to-any-file: 'src/app/api/**'
+      - any-glob-to-any-file: 'src/app/api/**'
 
-"security":
+'security':
   - changed-files:
-    - any-glob-to-any-file:
-      - 'src/lib/session.ts'
-      - 'src/app/api/login/**'
-      - 'src/app/api/captcha/**'
-      - 'SECURITY.md'
+      - any-glob-to-any-file:
+          - 'src/lib/session.ts'
+          - 'src/app/api/login/**'
+          - 'src/app/api/captcha/**'
+          - 'SECURITY.md'
 
-"accessibility":
+'accessibility':
   - changed-files:
-    - any-glob-to-any-file:
-      - 'src/app/globals.css'
-      - 'DESIGN.md'
+      - any-glob-to-any-file:
+          - 'src/app/globals.css'
+          - 'DESIGN.md'
 
-"ai":
+'ai':
   - changed-files:
-    - any-glob-to-any-file:
-      - 'src/lib/ai/**'
-      - 'src/components/ai/**'
-      - 'src/app/api/ai/**'
+      - any-glob-to-any-file:
+          - 'src/lib/ai/**'
+          - 'src/components/ai/**'
+          - 'src/app/api/ai/**'
 
-"i18n":
+'i18n':
   - changed-files:
-    - any-glob-to-any-file:
-      - 'src/lib/i18n/**'
-      - 'src/components/ui/LanguageSelector.tsx'
+      - any-glob-to-any-file:
+          - 'src/lib/i18n/**'
+          - 'src/components/ui/LanguageSelector.tsx'
 
-"compliance":
+'compliance':
   - changed-files:
-    - any-glob-to-any-file:
-      - 'src/lib/compliance/**'
-      - 'src/components/compliance/**'
+      - any-glob-to-any-file:
+          - 'src/lib/compliance/**'
+          - 'src/components/compliance/**'
 
-"tests":
+'tests':
   - changed-files:
-    - any-glob-to-any-file:
-      - '**/*.test.ts'
-      - 'scripts/**'
-      - 'e2e/**'
+      - any-glob-to-any-file:
+          - '**/*.test.ts'
+          - 'scripts/**'
+          - 'e2e/**'
 
-"documentation":
+'documentation':
   - changed-files:
-    - any-glob-to-any-file:
-      - '**/*.md'
-      - 'docs/**'
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - 'docs/**'
 
-"ci":
+'ci':
   - changed-files:
-    - any-glob-to-any-file: '.github/**'
+      - any-glob-to-any-file: '.github/**'
 
-"dependencies":
+'dependencies':
   - changed-files:
-    - any-glob-to-any-file:
-      - 'package.json'
-      - 'package-lock.json'
+      - any-glob-to-any-file:
+          - 'package.json'
+          - 'package-lock.json'
 
-"config":
+'config':
   - changed-files:
-    - any-glob-to-any-file:
-      - 'tsconfig.json'
-      - 'next.config.ts'
-      - 'eslint.config.mjs'
-      - 'postcss.config.mjs'
-      - '.prettierrc'
-      - '.editorconfig'
+      - any-glob-to-any-file:
+          - 'tsconfig.json'
+          - 'next.config.ts'
+          - 'eslint.config.mjs'
+          - 'postcss.config.mjs'
+          - '.prettierrc'
+          - '.editorconfig'

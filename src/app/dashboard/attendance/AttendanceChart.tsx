@@ -11,13 +11,16 @@ export function AttendanceChart({ data }: AttendanceChartProps) {
   if (!data || data.length === 0) return null;
 
   // Group by base code/title so each subject has one consolidated chart bar
-  const subjectMap = new Map<string, {
-    subjectName: string;
-    shortName: string;
-    subjectCode: string;
-    weightedPctSum: number;
-    weightSum: number;
-  }>();
+  const subjectMap = new Map<
+    string,
+    {
+      subjectName: string;
+      shortName: string;
+      subjectCode: string;
+      weightedPctSum: number;
+      weightSum: number;
+    }
+  >();
 
   data.forEach((row) => {
     let rawCode = '';
@@ -31,16 +34,29 @@ export function AttendanceChart({ data }: AttendanceChartProps) {
 
       if (k.includes('code') || k.includes('coursecode')) {
         if (!rawCode) rawCode = strVal;
-      } else if (k.includes('title') || k.includes('subject') || k.includes('coursename') || k.includes('coursedesc')) {
+      } else if (
+        k.includes('title') ||
+        k.includes('subject') ||
+        k.includes('coursename') ||
+        k.includes('coursedesc')
+      ) {
         if (!rawTitle) rawTitle = strVal;
-      } else if (!rawCode && !rawTitle && /^[0-9]{2}[A-Z]{2,5}[0-9]{3,4}[A-Z]?$/i.test(strVal)) {
+      } else if (
+        !rawCode &&
+        !rawTitle &&
+        /^[0-9]{2}[A-Z]{2,5}[0-9]{3,4}[A-Z]?$/i.test(strVal)
+      ) {
         rawCode = strVal;
       }
 
       if (typeof val === 'string' && val.includes('%')) {
         const num = parseFloat(val);
         if (!isNaN(num)) pct = num;
-      } else if (k.includes('percentage') || k.includes('pct') || k.includes('att %')) {
+      } else if (
+        k.includes('percentage') ||
+        k.includes('pct') ||
+        k.includes('att %')
+      ) {
         const num = parseFloat(String(val));
         if (!isNaN(num)) pct = num;
       }
@@ -48,7 +64,8 @@ export function AttendanceChart({ data }: AttendanceChartProps) {
       if (k.includes('component') || k.includes('type')) {
         const t = strVal.toLowerCase();
         if (t.includes('skil') || t === 's') weight = 0.25;
-        else if (t.includes('prac') || t.includes('lab') || t === 'p') weight = 0.5;
+        else if (t.includes('prac') || t.includes('lab') || t === 'p')
+          weight = 0.5;
         else if (t.includes('tut') || t === 't') weight = 0.25;
         else if (t.includes('lec') || t === 'l') weight = 1.0;
       }
@@ -86,7 +103,10 @@ export function AttendanceChart({ data }: AttendanceChartProps) {
       subjectName: item.subjectName,
       shortName: item.shortName,
       subjectCode: item.subjectCode,
-      pct: item.weightSum > 0 ? Math.round((item.weightedPctSum / item.weightSum) * 100) / 100 : 100,
+      pct:
+        item.weightSum > 0
+          ? Math.round((item.weightedPctSum / item.weightSum) * 100) / 100
+          : 100,
     }))
     .filter((item) => item.pct >= 0);
 
@@ -100,7 +120,10 @@ export function AttendanceChart({ data }: AttendanceChartProps) {
 
   // Dynamically expand SVG width according to item count to ensure zero text collision
   const minItemWidth = 65;
-  const svgWidth = Math.max(680, paddingLeft + paddingRight + items.length * minItemWidth);
+  const svgWidth = Math.max(
+    680,
+    paddingLeft + paddingRight + items.length * minItemWidth
+  );
   const innerWidth = svgWidth - paddingLeft - paddingRight;
   const innerHeight = chartHeight - paddingTop - paddingBottom;
 
@@ -111,13 +134,26 @@ export function AttendanceChart({ data }: AttendanceChartProps) {
     <div className="rounded-[--radius-2xl] border border-border apple-card p-6 space-y-4 shadow-xl overflow-hidden">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-foreground font-heading tracking-tight">Subject Attendance Breakdown</h3>
-          <p className="text-xs text-muted-foreground/80 font-normal">Percentage overview per subject</p>
+          <h3 className="text-sm font-semibold text-foreground font-heading tracking-tight">
+            Subject Attendance Breakdown
+          </h3>
+          <p className="text-xs text-muted-foreground/80 font-normal">
+            Percentage overview per subject
+          </p>
         </div>
         <div className="flex items-center gap-3 text-[11px] font-semibold">
-          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-success inline-block shadow-xs" /> ≥85%</span>
-          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-warning inline-block shadow-xs" /> 75-84%</span>
-          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-destructive inline-block shadow-xs" /> &lt;75%</span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-success inline-block shadow-xs" />{' '}
+            ≥85%
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-warning inline-block shadow-xs" />{' '}
+            75-84%
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-destructive inline-block shadow-xs" />{' '}
+            &lt;75%
+          </span>
         </div>
       </div>
 
@@ -138,7 +174,11 @@ export function AttendanceChart({ data }: AttendanceChartProps) {
                   y1={y}
                   x2={svgWidth - paddingRight}
                   y2={y}
-                  stroke={val === 75 ? 'rgba(245, 158, 11, 0.4)' : 'rgba(255, 255, 255, 0.10)'}
+                  stroke={
+                    val === 75
+                      ? 'rgba(245, 158, 11, 0.4)'
+                      : 'rgba(255, 255, 255, 0.10)'
+                  }
                   strokeDasharray={val === 75 ? '4 4' : undefined}
                 />
                 <text
@@ -163,8 +203,8 @@ export function AttendanceChart({ data }: AttendanceChartProps) {
               item.pct >= 85
                 ? 'var(--color-success, #10b981)'
                 : item.pct >= 75
-                ? 'var(--color-warning, #f59e0b)'
-                : 'var(--color-error, #ef4444)';
+                  ? 'var(--color-warning, #f59e0b)'
+                  : 'var(--color-error, #ef4444)';
 
             const labelX = x + barWidth / 2;
 

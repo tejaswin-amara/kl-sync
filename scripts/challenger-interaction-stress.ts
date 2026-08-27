@@ -1,6 +1,6 @@
 /**
  * EMPIRICAL CHALLENGER 2: INTERACTION, MOTION & BROWSER STRESS HARNESS
- * 
+ *
  * Deeply audits:
  * 1. WWDC Fluid Motion Physics Math (project, rubberband, triggerHaptic, velocity tracker)
  * 2. CSS & Design System Motion Tokens (WWDC springs, touch-press scale(0.965), tabular numerals, accessibility triple-gate)
@@ -13,7 +13,13 @@ import { chromium, Browser, Page } from 'playwright';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { project, rubberband, triggerHaptic, createVelocityTracker, type HapticType } from '../src/lib/fluid-motion';
+import {
+  project,
+  rubberband,
+  triggerHaptic,
+  createVelocityTracker,
+  type HapticType,
+} from '../src/lib/fluid-motion';
 
 interface StressResult {
   suite: string;
@@ -29,15 +35,35 @@ const results: StressResult[] = [];
 const DASHBOARD_ROUTES = [
   { path: '/dashboard', name: 'Overview', heading: 'Welcome back' },
   { path: '/dashboard/attendance', name: 'Attendance', heading: 'Attendance' },
-  { path: '/dashboard/timetable', name: 'Timetable', heading: 'Student Timetable' },
-  { path: '/dashboard/marks', name: 'Marks & Grades', heading: 'Marks & Grades' },
+  {
+    path: '/dashboard/timetable',
+    name: 'Timetable',
+    heading: 'Student Timetable',
+  },
+  {
+    path: '/dashboard/marks',
+    name: 'Marks & Grades',
+    heading: 'Marks & Grades',
+  },
   { path: '/dashboard/profile', name: 'Profile', heading: 'Profile' },
   { path: '/dashboard/fee', name: 'Fee Details', heading: 'Fee Details' },
-  { path: '/dashboard/tools', name: 'Tools & Calculators', heading: 'Tools & Calculators' },
+  {
+    path: '/dashboard/tools',
+    name: 'Tools & Calculators',
+    heading: 'Tools & Calculators',
+  },
   { path: '/dashboard/circulars', name: 'Circulars', heading: 'Circulars' },
-  { path: '/dashboard/hostels', name: 'Hostel Information', heading: 'Hostel Information' },
+  {
+    path: '/dashboard/hostels',
+    name: 'Hostel Information',
+    heading: 'Hostel Information',
+  },
   { path: '/dashboard/library', name: 'Library', heading: 'Library' },
-  { path: '/dashboard/exam-seating', name: 'Exam Seating', heading: 'Exam Seating' },
+  {
+    path: '/dashboard/exam-seating',
+    name: 'Exam Seating',
+    heading: 'Exam Seating',
+  },
 ];
 
 async function setupAuth(page: Page) {
@@ -82,7 +108,9 @@ async function setupAuth(page: Page) {
 }
 
 function runFluidMotionMathStress() {
-  console.log('\n--- [TEST SUITE 1] Fluid Motion Math & Physics Boundary Stress ---');
+  console.log(
+    '\n--- [TEST SUITE 1] Fluid Motion Math & Physics Boundary Stress ---'
+  );
 
   // 1. project() mathematical properties & edge cases
   {
@@ -103,20 +131,31 @@ function runFluidMotionMathStress() {
 
       // Linearity property: project(2v) == 2 * project(v)
       const p2000 = project(2000, 0.998);
-      assert.ok(Math.abs(p2000 - 2 * p1000) < 0.001, `Linearity failed: ${p2000} vs ${2 * p1000}`);
+      assert.ok(
+        Math.abs(p2000 - 2 * p1000) < 0.001,
+        `Linearity failed: ${p2000} vs ${2 * p1000}`
+      );
 
       // Direction symmetry: project(-v) == -project(v)
       const pNeg1000 = project(-1000, 0.998);
-      assert.ok(Math.abs(pNeg1000 - (-499)) < 0.001, `Symmetry failed: ${pNeg1000}`);
+      assert.ok(
+        Math.abs(pNeg1000 - -499) < 0.001,
+        `Symmetry failed: ${pNeg1000}`
+      );
 
       // Snappy decay (0.99): x = 1 * 0.99 / 0.01 = 99px
       const pSnappy = project(1000, 0.99);
-      assert.ok(Math.abs(pSnappy - 99) < 0.001, `Snappy decay failed: ${pSnappy}`);
+      assert.ok(
+        Math.abs(pSnappy - 99) < 0.001,
+        `Snappy decay failed: ${pSnappy}`
+      );
 
       // Extreme velocity (100,000 px/s)
       const pExtreme = project(100000, 0.998);
-      assert.ok(Number.isFinite(pExtreme) && pExtreme > 0, `Extreme velocity not finite: ${pExtreme}`);
-
+      assert.ok(
+        Number.isFinite(pExtreme) && pExtreme > 0,
+        `Extreme velocity not finite: ${pExtreme}`
+      );
     } catch (err) {
       passed = false;
       errorMsg = err instanceof Error ? err.message : String(err);
@@ -140,27 +179,48 @@ function runFluidMotionMathStress() {
 
     try {
       // Zero overshoot
-      assert.strictEqual(rubberband(0, 300, 0.55), 0, 'rubberband(0) must return 0');
+      assert.strictEqual(
+        rubberband(0, 300, 0.55),
+        0,
+        'rubberband(0) must return 0'
+      );
 
       // Negative/zero dimension boundary safety
-      assert.strictEqual(rubberband(100, 0, 0.55), 0, 'rubberband with 0 dimension must return 0');
-      assert.strictEqual(rubberband(100, -100, 0.55), 0, 'rubberband with negative dimension must return 0');
+      assert.strictEqual(
+        rubberband(100, 0, 0.55),
+        0,
+        'rubberband with 0 dimension must return 0'
+      );
+      assert.strictEqual(
+        rubberband(100, -100, 0.55),
+        0,
+        'rubberband with negative dimension must return 0'
+      );
 
       // Symmetry: rubberband(-x) == -rubberband(x)
       const pos100 = rubberband(100, 300, 0.55);
       const neg100 = rubberband(-100, 300, 0.55);
-      assert.ok(Math.abs(pos100 + neg100) < 0.0001, `Symmetry failed: ${pos100} and ${neg100}`);
+      assert.ok(
+        Math.abs(pos100 + neg100) < 0.0001,
+        `Symmetry failed: ${pos100} and ${neg100}`
+      );
 
       // Asymptotic bound: dampened offset MUST always be strictly less than dimension (300px)
       const hugeOffset = rubberband(1000000, 300, 0.55);
-      assert.ok(hugeOffset < 300, `Asymptotic bound violated: ${hugeOffset} >= 300`);
+      assert.ok(
+        hugeOffset < 300,
+        `Asymptotic bound violated: ${hugeOffset} >= 300`
+      );
       assert.ok(hugeOffset > 295, `Asymptotic limit too small: ${hugeOffset}`);
 
       // Monotonicity: strictly increasing with overshoot
       let prev = 0;
       for (let x = 10; x <= 1000; x += 20) {
         const curr = rubberband(x, 400, 0.45);
-        assert.ok(curr > prev, `Monotonicity violated at x=${x}: curr=${curr} <= prev=${prev}`);
+        assert.ok(
+          curr > prev,
+          `Monotonicity violated at x=${x}: curr=${curr} <= prev=${prev}`
+        );
         prev = curr;
       }
 
@@ -168,8 +228,10 @@ function runFluidMotionMathStress() {
       const d1 = rubberband(50, 400, 0.55) - rubberband(0, 400, 0.55);
       const d2 = rubberband(100, 400, 0.55) - rubberband(50, 400, 0.55);
       const d3 = rubberband(150, 400, 0.55) - rubberband(100, 400, 0.55);
-      assert.ok(d1 > d2 && d2 > d3, `Diminishing returns violated: ${d1} > ${d2} > ${d3}`);
-
+      assert.ok(
+        d1 > d2 && d2 > d3,
+        `Diminishing returns violated: ${d1} > ${d2} > ${d3}`
+      );
     } catch (err) {
       passed = false;
       errorMsg = err instanceof Error ? err.message : String(err);
@@ -182,7 +244,9 @@ function runFluidMotionMathStress() {
       durationMs: Date.now() - start,
       error: errorMsg || undefined,
     });
-    console.log(`  ${passed ? '✓' : '✗'} rubberband() UIKit Resistance & Asymptote Bounds`);
+    console.log(
+      `  ${passed ? '✓' : '✗'} rubberband() UIKit Resistance & Asymptote Bounds`
+    );
   }
 
   // 3. triggerHaptic() multi-modal signatures & fallback resilience
@@ -193,15 +257,29 @@ function runFluidMotionMathStress() {
 
     try {
       // 1. Verify it runs cleanly in Node.js environment without throwing
-      const types: HapticType[] = ['light', 'medium', 'heavy', 'selection', 'success', 'warning', 'error'];
+      const types: HapticType[] = [
+        'light',
+        'medium',
+        'heavy',
+        'selection',
+        'success',
+        'warning',
+        'error',
+      ];
       for (const t of types) {
-        assert.doesNotThrow(() => triggerHaptic(t), `triggerHaptic('${t}') threw in Node environment`);
+        assert.doesNotThrow(
+          () => triggerHaptic(t),
+          `triggerHaptic('${t}') threw in Node environment`
+        );
       }
 
       // 2. Mock vibration API via defineProperty on navigator
       const recordedVibrations: (number | number[])[] = [];
-      const origVibrate = (globalThis.navigator as unknown as Record<string, unknown>).vibrate;
-      const origWindow = (globalThis as unknown as Record<string, unknown>).window;
+      const origVibrate = (
+        globalThis.navigator as unknown as Record<string, unknown>
+      ).vibrate;
+      const origWindow = (globalThis as unknown as Record<string, unknown>)
+        .window;
 
       (globalThis as unknown as Record<string, unknown>).window = globalThis;
       Object.defineProperty(globalThis.navigator, 'vibrate', {
@@ -214,25 +292,53 @@ function runFluidMotionMathStress() {
       });
 
       triggerHaptic('selection');
-      assert.deepStrictEqual(recordedVibrations[recordedVibrations.length - 1], 6, 'selection haptic duration');
+      assert.deepStrictEqual(
+        recordedVibrations[recordedVibrations.length - 1],
+        6,
+        'selection haptic duration'
+      );
 
       triggerHaptic('light');
-      assert.deepStrictEqual(recordedVibrations[recordedVibrations.length - 1], 10, 'light haptic duration');
+      assert.deepStrictEqual(
+        recordedVibrations[recordedVibrations.length - 1],
+        10,
+        'light haptic duration'
+      );
 
       triggerHaptic('medium');
-      assert.deepStrictEqual(recordedVibrations[recordedVibrations.length - 1], 18, 'medium haptic duration');
+      assert.deepStrictEqual(
+        recordedVibrations[recordedVibrations.length - 1],
+        18,
+        'medium haptic duration'
+      );
 
       triggerHaptic('heavy');
-      assert.deepStrictEqual(recordedVibrations[recordedVibrations.length - 1], 28, 'heavy haptic duration');
+      assert.deepStrictEqual(
+        recordedVibrations[recordedVibrations.length - 1],
+        28,
+        'heavy haptic duration'
+      );
 
       triggerHaptic('success');
-      assert.deepStrictEqual(recordedVibrations[recordedVibrations.length - 1], [10, 40, 15], 'success haptic pattern');
+      assert.deepStrictEqual(
+        recordedVibrations[recordedVibrations.length - 1],
+        [10, 40, 15],
+        'success haptic pattern'
+      );
 
       triggerHaptic('warning');
-      assert.deepStrictEqual(recordedVibrations[recordedVibrations.length - 1], [18, 50, 18], 'warning haptic pattern');
+      assert.deepStrictEqual(
+        recordedVibrations[recordedVibrations.length - 1],
+        [18, 50, 18],
+        'warning haptic pattern'
+      );
 
       triggerHaptic('error');
-      assert.deepStrictEqual(recordedVibrations[recordedVibrations.length - 1], [24, 40, 24, 40, 32], 'error haptic pattern');
+      assert.deepStrictEqual(
+        recordedVibrations[recordedVibrations.length - 1],
+        [24, 40, 24, 40, 32],
+        'error haptic pattern'
+      );
 
       // Graceful error recovery: navigator.vibrate throwing exception
       Object.defineProperty(globalThis.navigator, 'vibrate', {
@@ -242,18 +348,25 @@ function runFluidMotionMathStress() {
         configurable: true,
         writable: true,
       });
-      assert.doesNotThrow(() => triggerHaptic('light'), 'triggerHaptic failed to catch navigator.vibrate exception');
+      assert.doesNotThrow(
+        () => triggerHaptic('light'),
+        'triggerHaptic failed to catch navigator.vibrate exception'
+      );
 
       // Cleanup mocks
       if (origVibrate) {
-        Object.defineProperty(globalThis.navigator, 'vibrate', { value: origVibrate, configurable: true, writable: true });
+        Object.defineProperty(globalThis.navigator, 'vibrate', {
+          value: origVibrate,
+          configurable: true,
+          writable: true,
+        });
       } else {
-        delete (globalThis.navigator as unknown as Record<string, unknown>).vibrate;
+        delete (globalThis.navigator as unknown as Record<string, unknown>)
+          .vibrate;
       }
       if (!origWindow) {
         delete (globalThis as unknown as Record<string, unknown>).window;
       }
-
     } catch (err) {
       passed = false;
       errorMsg = err instanceof Error ? err.message : String(err);
@@ -266,7 +379,9 @@ function runFluidMotionMathStress() {
       durationMs: Date.now() - start,
       error: errorMsg || undefined,
     });
-    console.log(`  ${passed ? '✓' : '✗'} triggerHaptic() Multi-Modal Vibration Signatures & Fallbacks`);
+    console.log(
+      `  ${passed ? '✓' : '✗'} triggerHaptic() Multi-Modal Vibration Signatures & Fallbacks`
+    );
   }
 
   // 4. PointerVelocityTracker sliding window & velocity calculation
@@ -277,29 +392,46 @@ function runFluidMotionMathStress() {
 
     try {
       const tracker = createVelocityTracker();
-      
+
       // Empty tracker
-      assert.deepStrictEqual(tracker.getVelocity(), { vx: 0, vy: 0 }, 'Empty tracker must return 0 velocity');
+      assert.deepStrictEqual(
+        tracker.getVelocity(),
+        { vx: 0, vy: 0 },
+        'Empty tracker must return 0 velocity'
+      );
 
       // 1 point
       tracker.addPoint(100, 100, 1000);
-      assert.deepStrictEqual(tracker.getVelocity(), { vx: 0, vy: 0 }, '1-point tracker must return 0 velocity');
+      assert.deepStrictEqual(
+        tracker.getVelocity(),
+        { vx: 0, vy: 0 },
+        '1-point tracker must return 0 velocity'
+      );
 
       // 2 points: 100px move in 100ms = 1000 px/s
       tracker.addPoint(200, 150, 1100);
       const vel = tracker.getVelocity();
-      assert.ok(Math.abs(vel.vx - 1000) < 1, `Expected vx ~1000, got ${vel.vx}`);
+      assert.ok(
+        Math.abs(vel.vx - 1000) < 1,
+        `Expected vx ~1000, got ${vel.vx}`
+      );
       assert.ok(Math.abs(vel.vy - 500) < 1, `Expected vy ~500, got ${vel.vy}`);
 
       // History pruning (>100ms cutoff)
       tracker.addPoint(300, 200, 1300); // 200ms jump
       const velPruned = tracker.getVelocity();
-      assert.ok(Number.isFinite(velPruned.vx) && Number.isFinite(velPruned.vy), 'Pruned velocity must be finite');
+      assert.ok(
+        Number.isFinite(velPruned.vx) && Number.isFinite(velPruned.vy),
+        'Pruned velocity must be finite'
+      );
 
       // Reset
       tracker.reset();
-      assert.deepStrictEqual(tracker.getVelocity(), { vx: 0, vy: 0 }, 'Reset tracker must return 0 velocity');
-
+      assert.deepStrictEqual(
+        tracker.getVelocity(),
+        { vx: 0, vy: 0 },
+        'Reset tracker must return 0 velocity'
+      );
     } catch (err) {
       passed = false;
       errorMsg = err instanceof Error ? err.message : String(err);
@@ -312,12 +444,16 @@ function runFluidMotionMathStress() {
       durationMs: Date.now() - start,
       error: errorMsg || undefined,
     });
-    console.log(`  ${passed ? '✓' : '✗'} PointerVelocityTracker Sliding Window Velocity`);
+    console.log(
+      `  ${passed ? '✓' : '✗'} PointerVelocityTracker Sliding Window Velocity`
+    );
   }
 }
 
 function runCssTokensAndDesignStandardsStress() {
-  console.log('\n--- [TEST SUITE 2] CSS Design Tokens, Springs & Accessibility Audit ---');
+  console.log(
+    '\n--- [TEST SUITE 2] CSS Design Tokens, Springs & Accessibility Audit ---'
+  );
   const start = Date.now();
   let passed = true;
   let errorMsg = '';
@@ -328,39 +464,79 @@ function runCssTokensAndDesignStandardsStress() {
     const css = fs.readFileSync(cssPath, 'utf8');
 
     // 1. WWDC Spring Curves
-    assert.ok(css.includes('--ease-spring-default: cubic-bezier(0.2, 0.9, 0.3, 1)'), 'Missing --ease-spring-default cubic-bezier token');
-    assert.ok(css.includes('--ease-spring-sheet: cubic-bezier(0.32, 0.72, 0, 1)'), 'Missing --ease-spring-sheet cubic-bezier token');
-    assert.ok(css.includes('--ease-apple-out: cubic-bezier(0.16, 1, 0.3, 1)'), 'Missing --ease-apple-out cubic-bezier token');
+    assert.ok(
+      css.includes('--ease-spring-default: cubic-bezier(0.2, 0.9, 0.3, 1)'),
+      'Missing --ease-spring-default cubic-bezier token'
+    );
+    assert.ok(
+      css.includes('--ease-spring-sheet: cubic-bezier(0.32, 0.72, 0, 1)'),
+      'Missing --ease-spring-sheet cubic-bezier token'
+    );
+    assert.ok(
+      css.includes('--ease-apple-out: cubic-bezier(0.16, 1, 0.3, 1)'),
+      'Missing --ease-apple-out cubic-bezier token'
+    );
     auditedTokens['springCurves'] = true;
 
     // 2. Active Touch-Press Scaling (.touch-press scale(0.97))
-    assert.ok(css.includes('.touch-press'), 'Missing .touch-press utility class');
-    assert.ok(css.includes('transform: scale(0.97)'), 'Missing scale(0.97) in .touch-press:active');
-    assert.ok(css.includes('touch-action: manipulation'), 'Missing touch-action: manipulation in .touch-press');
+    assert.ok(
+      css.includes('.touch-press'),
+      'Missing .touch-press utility class'
+    );
+    assert.ok(
+      css.includes('transform: scale(0.97)'),
+      'Missing scale(0.97) in .touch-press:active'
+    );
+    assert.ok(
+      css.includes('touch-action: manipulation'),
+      'Missing touch-action: manipulation in .touch-press'
+    );
     auditedTokens['touchPress'] = true;
 
     // 3. Apple Translucent Materials
     assert.ok(css.includes('.apple-chrome'), 'Missing .apple-chrome token');
-    assert.ok(css.includes('backdrop-filter: blur(20px) saturate(125%)'), 'Missing blur(20px) in .apple-chrome');
+    assert.ok(
+      css.includes('backdrop-filter: blur(20px) saturate(125%)'),
+      'Missing blur(20px) in .apple-chrome'
+    );
     assert.ok(css.includes('.apple-card'), 'Missing .apple-card token');
-    assert.ok(css.includes('--shadow-specular: inset 0 1px 0 rgba(255, 255, 255, 0.08)'), 'Missing specular rim highlight shadow');
+    assert.ok(
+      css.includes(
+        '--shadow-specular: inset 0 1px 0 rgba(255, 255, 255, 0.08)'
+      ),
+      'Missing specular rim highlight shadow'
+    );
     auditedTokens['translucentMaterials'] = true;
 
     // 4. OpenType Tabular Numerals
-    assert.ok(css.includes('.tabular-numbers'), 'Missing .tabular-numbers utility');
-    assert.ok(css.includes('font-feature-settings: "tnum" 1'), 'Missing tnum font-feature-settings');
-    assert.ok(css.includes('font-variant-numeric: tabular-nums'), 'Missing font-variant-numeric');
+    assert.ok(
+      css.includes('.tabular-numbers'),
+      'Missing .tabular-numbers utility'
+    );
+    assert.ok(
+      css.includes('font-feature-settings: "tnum" 1'),
+      'Missing tnum font-feature-settings'
+    );
+    assert.ok(
+      css.includes('font-variant-numeric: tabular-nums'),
+      'Missing font-variant-numeric'
+    );
     auditedTokens['tabularNumbers'] = true;
 
     // 5. Accessibility Media Queries
-    assert.ok(css.includes('@media (prefers-reduced-motion: reduce)'), 'Missing prefers-reduced-motion media query');
+    assert.ok(
+      css.includes('@media (prefers-reduced-motion: reduce)'),
+      'Missing prefers-reduced-motion media query'
+    );
     auditedTokens['accessibilityTripleGate'] = true;
 
     // 6. Focus Ring Standards
     assert.ok(css.includes(':focus-visible'), 'Missing :focus-visible rules');
-    assert.ok(css.includes('outline: 3px solid rgba(163, 166, 255, 0.5)'), 'Missing high-visibility focus outline');
+    assert.ok(
+      css.includes('outline: 3px solid rgba(163, 166, 255, 0.5)'),
+      'Missing high-visibility focus outline'
+    );
     auditedTokens['focusRing'] = true;
-
   } catch (err) {
     passed = false;
     errorMsg = err instanceof Error ? err.message : String(err);
@@ -374,16 +550,22 @@ function runCssTokensAndDesignStandardsStress() {
     details: auditedTokens,
     error: errorMsg || undefined,
   });
-  console.log(`  ${passed ? '✓' : '✗'} CSS Token Suite (Springs, Specular Highlights, Tabular Numerals, Triple-Gate)`);
+  console.log(
+    `  ${passed ? '✓' : '✗'} CSS Token Suite (Springs, Specular Highlights, Tabular Numerals, Triple-Gate)`
+  );
 }
 
 async function runBrowserInteractionAndLayoutStress(browser: Browser) {
-  console.log('\n--- [TEST SUITE 3] Browser Touch Targets & Zero Layout Shifts across 11 Routes ---');
+  console.log(
+    '\n--- [TEST SUITE 3] Browser Touch Targets & Zero Layout Shifts across 11 Routes ---'
+  );
 
   // Test 1: Button & Interactive Action Touch Target Audit (min-h >= 44px)
   {
     const start = Date.now();
-    const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    const context = await browser.newContext({
+      viewport: { width: 1280, height: 800 },
+    });
     const page = await context.newPage();
     await setupAuth(page);
 
@@ -395,29 +577,40 @@ async function runBrowserInteractionAndLayoutStress(browser: Browser) {
 
     try {
       for (const route of DASHBOARD_ROUTES) {
-        await page.goto(`http://localhost:3000${route.path}`, { waitUntil: 'domcontentloaded', timeout: 10000 });
+        await page.goto(`http://localhost:3000${route.path}`, {
+          waitUntil: 'domcontentloaded',
+          timeout: 10000,
+        });
         await page.waitForTimeout(200);
 
         const buttons = await page.evaluate(() => {
           const btns = Array.from(
-            document.querySelectorAll('button, input[type="button"], input[type="submit"], [role="button"]')
+            document.querySelectorAll(
+              'button, input[type="button"], input[type="submit"], [role="button"]'
+            )
           ) as HTMLElement[];
 
-          return btns.map((el) => {
-            const rect = el.getBoundingClientRect();
-            const comp = window.getComputedStyle(el);
-            const isVisible = rect.width > 0 && rect.height > 0 && comp.display !== 'none' && comp.visibility !== 'hidden';
-            return {
-              tag: el.tagName.toLowerCase(),
-              id: el.id,
-              ariaLabel: el.getAttribute('aria-label') || '',
-              text: (el.innerText || '').slice(0, 30).trim(),
-              width: Math.round(rect.width),
-              height: Math.round(rect.height),
-              minHeight: comp.minHeight,
-              isVisible,
-            };
-          }).filter(e => e.isVisible);
+          return btns
+            .map((el) => {
+              const rect = el.getBoundingClientRect();
+              const comp = window.getComputedStyle(el);
+              const isVisible =
+                rect.width > 0 &&
+                rect.height > 0 &&
+                comp.display !== 'none' &&
+                comp.visibility !== 'hidden';
+              return {
+                tag: el.tagName.toLowerCase(),
+                id: el.id,
+                ariaLabel: el.getAttribute('aria-label') || '',
+                text: (el.innerText || '').slice(0, 30).trim(),
+                width: Math.round(rect.width),
+                height: Math.round(rect.height),
+                minHeight: comp.minHeight,
+                isVisible,
+              };
+            })
+            .filter((e) => e.isVisible);
         });
 
         for (const btn of buttons) {
@@ -427,14 +620,19 @@ async function runBrowserInteractionAndLayoutStress(browser: Browser) {
           if (isCompliant) {
             compliantButtons++;
           } else {
-            buttonAuditLog.push(`[${route.path}] <${btn.tag}> "${btn.text || btn.ariaLabel || btn.id}" (${btn.width}x${btn.height}px)`);
+            buttonAuditLog.push(
+              `[${route.path}] <${btn.tag}> "${btn.text || btn.ariaLabel || btn.id}" (${btn.width}x${btn.height}px)`
+            );
           }
         }
       }
 
-      const complianceRate = totalButtons > 0 ? compliantButtons / totalButtons : 1;
-      assert.ok(complianceRate >= 0.85, `Button touch target compliance rate ${Math.round(complianceRate * 100)}% < 85%`);
-
+      const complianceRate =
+        totalButtons > 0 ? compliantButtons / totalButtons : 1;
+      assert.ok(
+        complianceRate >= 0.85,
+        `Button touch target compliance rate ${Math.round(complianceRate * 100)}% < 85%`
+      );
     } catch (err) {
       passed = false;
       errorMsg = err instanceof Error ? err.message : String(err);
@@ -447,16 +645,24 @@ async function runBrowserInteractionAndLayoutStress(browser: Browser) {
       name: `Action Buttons Touch Target Audit across 11 routes (${totalButtons} audited, ${compliantButtons} compliant)`,
       passed,
       durationMs: Date.now() - start,
-      details: { totalButtons, compliantButtons, nonCompliantSample: buttonAuditLog.slice(0, 5) },
+      details: {
+        totalButtons,
+        compliantButtons,
+        nonCompliantSample: buttonAuditLog.slice(0, 5),
+      },
       error: errorMsg || undefined,
     });
-    console.log(`  ${passed ? '✓' : '✗'} Action Buttons Touch Target Audit (${compliantButtons}/${totalButtons} compliant | ${Math.round(compliantButtons / totalButtons * 100)}%)`);
+    console.log(
+      `  ${passed ? '✓' : '✗'} Action Buttons Touch Target Audit (${compliantButtons}/${totalButtons} compliant | ${Math.round((compliantButtons / totalButtons) * 100)}%)`
+    );
   }
 
   // Test 2: Zero Layout Shift (CLS) and Bounding Box Stability
   {
     const start = Date.now();
-    const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    const context = await browser.newContext({
+      viewport: { width: 1280, height: 800 },
+    });
     const page = await context.newPage();
     await setupAuth(page);
 
@@ -471,9 +677,13 @@ async function runBrowserInteractionAndLayoutStress(browser: Browser) {
           try {
             const observer = new PerformanceObserver((entryList) => {
               for (const entry of entryList.getEntries()) {
-                const layoutShift = entry as PerformanceEntry & { value?: number; hadRecentInput?: boolean };
+                const layoutShift = entry as PerformanceEntry & {
+                  value?: number;
+                  hadRecentInput?: boolean;
+                };
                 if (!layoutShift.hadRecentInput && layoutShift.value) {
-                  (window as unknown as { __clsScore: number }).__clsScore += layoutShift.value;
+                  (window as unknown as { __clsScore: number }).__clsScore +=
+                    layoutShift.value;
                 }
               }
             });
@@ -481,7 +691,10 @@ async function runBrowserInteractionAndLayoutStress(browser: Browser) {
           } catch {}
         });
 
-        await page.goto(`http://localhost:3000${route.path}`, { waitUntil: 'domcontentloaded', timeout: 10000 });
+        await page.goto(`http://localhost:3000${route.path}`, {
+          waitUntil: 'domcontentloaded',
+          timeout: 10000,
+        });
         await page.waitForTimeout(400);
 
         const cls = await page.evaluate(() => {
@@ -489,9 +702,11 @@ async function runBrowserInteractionAndLayoutStress(browser: Browser) {
         });
 
         routeLayoutShifts[route.path] = cls;
-        assert.ok(cls < 0.1, `Route ${route.path} exceeded CLS limit: ${cls} >= 0.1`);
+        assert.ok(
+          cls < 0.1,
+          `Route ${route.path} exceeded CLS limit: ${cls} >= 0.1`
+        );
       }
-
     } catch (err) {
       passed = false;
       errorMsg = err instanceof Error ? err.message : String(err);
@@ -507,13 +722,17 @@ async function runBrowserInteractionAndLayoutStress(browser: Browser) {
       details: { routeLayoutShifts },
       error: errorMsg || undefined,
     });
-    console.log(`  ${passed ? '✓' : '✗'} Zero Layout Shift (CLS) across all 11 Routes (Max CLS < 0.1)`);
+    console.log(
+      `  ${passed ? '✓' : '✗'} Zero Layout Shift (CLS) across all 11 Routes (Max CLS < 0.1)`
+    );
   }
 
   // Test 3: Tab Switching & Filter Typing Dimensional Stability
   {
     const start = Date.now();
-    const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    const context = await browser.newContext({
+      viewport: { width: 1280, height: 800 },
+    });
     const page = await context.newPage();
     await setupAuth(page);
 
@@ -522,33 +741,51 @@ async function runBrowserInteractionAndLayoutStress(browser: Browser) {
 
     try {
       // 1. Timetable Grid <-> List view toggle stability
-      await page.goto('http://localhost:3000/dashboard/timetable', { waitUntil: 'domcontentloaded' });
+      await page.goto('http://localhost:3000/dashboard/timetable', {
+        waitUntil: 'domcontentloaded',
+      });
       await page.waitForSelector('table', { timeout: 10000 });
 
       const listBtn = page.getByRole('button', { name: /List/i });
       const gridBtn = page.getByRole('button', { name: /Grid/i });
       await listBtn.click();
       await page.waitForSelector('table', { timeout: 10000 });
-      assert.ok(await page.locator('table').first().isVisible(), 'Timetable list view visible');
+      assert.ok(
+        await page.locator('table').first().isVisible(),
+        'Timetable list view visible'
+      );
 
       await gridBtn.click();
       await page.waitForSelector('table', { timeout: 10000 });
-      assert.ok(await page.locator('table').first().isVisible(), 'Timetable grid view restored');
+      assert.ok(
+        await page.locator('table').first().isVisible(),
+        'Timetable grid view restored'
+      );
 
       // 2. Marks page search filtering stability
-      await page.goto('http://localhost:3000/dashboard/marks', { waitUntil: 'domcontentloaded' });
+      await page.goto('http://localhost:3000/dashboard/marks', {
+        waitUntil: 'domcontentloaded',
+      });
       await page.waitForSelector('table', { timeout: 10000 });
 
       const searchInput = page.getByPlaceholder(/Search courses/i);
       await searchInput.fill('CS');
       await page.waitForTimeout(150);
-      assert.ok(await page.locator('table').first().isVisible(), 'Marks table visible after filter');
+      assert.ok(
+        await page.locator('table').first().isVisible(),
+        'Marks table visible after filter'
+      );
       await searchInput.fill('');
       await page.waitForTimeout(150);
-      assert.ok(await page.locator('table').first().isVisible(), 'Marks table visible after clear filter');
+      assert.ok(
+        await page.locator('table').first().isVisible(),
+        'Marks table visible after clear filter'
+      );
 
       // 3. Tools page calculation input interactions
-      await page.goto('http://localhost:3000/dashboard/tools', { waitUntil: 'domcontentloaded' });
+      await page.goto('http://localhost:3000/dashboard/tools', {
+        waitUntil: 'domcontentloaded',
+      });
       await page.waitForSelector('input[type="number"]', { timeout: 10000 });
       const inputs = page.locator('input[type="number"]');
       const count = await inputs.count();
@@ -556,8 +793,13 @@ async function runBrowserInteractionAndLayoutStress(browser: Browser) {
         await inputs.first().fill('85');
         await page.waitForTimeout(100);
       }
-      assert.ok(await page.getByText(/Attendance Target/i).first().isVisible(), 'Tools page responsive to inputs');
-
+      assert.ok(
+        await page
+          .getByText(/Attendance Target/i)
+          .first()
+          .isVisible(),
+        'Tools page responsive to inputs'
+      );
     } catch (err) {
       passed = false;
       errorMsg = err instanceof Error ? err.message : String(err);
@@ -572,13 +814,17 @@ async function runBrowserInteractionAndLayoutStress(browser: Browser) {
       durationMs: Date.now() - start,
       error: errorMsg || undefined,
     });
-    console.log(`  ${passed ? '✓' : '✗'} Dynamic View Toggles, Search Filters & Form Tools Interaction ${errorMsg ? `(${errorMsg})` : ''}`);
+    console.log(
+      `  ${passed ? '✓' : '✗'} Dynamic View Toggles, Search Filters & Form Tools Interaction ${errorMsg ? `(${errorMsg})` : ''}`
+    );
   }
 
   // Test 4: Tabular Numbers CSS Rendering Check on Metric Elements
   {
     const start = Date.now();
-    const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    const context = await browser.newContext({
+      viewport: { width: 1280, height: 800 },
+    });
     const page = await context.newPage();
     await setupAuth(page);
 
@@ -587,13 +833,19 @@ async function runBrowserInteractionAndLayoutStress(browser: Browser) {
     let tabularElementsCount = 0;
 
     try {
-      await page.goto('http://localhost:3000/dashboard', { waitUntil: 'domcontentloaded' });
+      await page.goto('http://localhost:3000/dashboard', {
+        waitUntil: 'domcontentloaded',
+      });
       await page.waitForTimeout(300);
 
-      const count = await page.locator('.tabular-numbers, [class*="tabular-numbers"]').count();
+      const count = await page
+        .locator('.tabular-numbers, [class*="tabular-numbers"]')
+        .count();
       tabularElementsCount = count;
-      assert.ok(tabularElementsCount > 0, 'Expected tabular numbers elements on dashboard');
-
+      assert.ok(
+        tabularElementsCount > 0,
+        'Expected tabular numbers elements on dashboard'
+      );
     } catch (err) {
       passed = false;
       errorMsg = err instanceof Error ? err.message : String(err);
@@ -609,13 +861,17 @@ async function runBrowserInteractionAndLayoutStress(browser: Browser) {
       details: { tabularElementsCount },
       error: errorMsg || undefined,
     });
-    console.log(`  ${passed ? '✓' : '✗'} Tabular Numbers Elements Verified (${tabularElementsCount} elements)`);
+    console.log(
+      `  ${passed ? '✓' : '✗'} Tabular Numbers Elements Verified (${tabularElementsCount} elements)`
+    );
   }
 }
 
 async function main() {
   console.log('='.repeat(80));
-  console.log('⚔️  CHALLENGER 2: INTERACTION, MOTION PHYSICS & BROWSER STRESS SUITE');
+  console.log(
+    '⚔️  CHALLENGER 2: INTERACTION, MOTION PHYSICS & BROWSER STRESS SUITE'
+  );
   console.log('='.repeat(80));
 
   // Run Unit & CSS tokens suites synchronously
@@ -644,7 +900,9 @@ async function main() {
   console.log(`Passed Suites       : ${passedCount}`);
   console.log(`Failed Suites       : ${failedCount}`);
   console.log(`Total Time          : ${totalDuration}ms`);
-  console.log(`Verdict             : ${failedCount === 0 ? '🏆 100% EMPIRICAL PASS (APPROVE)' : '❌ FAILURES DETECTED (REQUEST_CHANGES)'}`);
+  console.log(
+    `Verdict             : ${failedCount === 0 ? '🏆 100% EMPIRICAL PASS (APPROVE)' : '❌ FAILURES DETECTED (REQUEST_CHANGES)'}`
+  );
   console.log('='.repeat(80));
 
   if (failedCount > 0) {

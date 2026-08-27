@@ -1,7 +1,11 @@
 import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium, Browser, Page } from 'playwright';
-import { decodeSession, encodeSession, isDemoSession } from '../src/lib/session';
+import {
+  decodeSession,
+  encodeSession,
+  isDemoSession,
+} from '../src/lib/session';
 import { DEMO_SESSION } from '../src/lib/fixtures';
 
 describe('Milestone 3 Empirical Challenger 2 Verification Suite', () => {
@@ -55,47 +59,64 @@ describe('Milestone 3 Empirical Challenger 2 Verification Suite', () => {
 
   describe('2. SSRF & Path Traversal Deep Security Probe (/api/fetch-photo)', () => {
     test('Rejects request without session with 401 Unauthorized', async () => {
-      const res = await fetch('http://localhost:3000/api/fetch-photo?id=2100030000');
+      const res = await fetch(
+        'http://localhost:3000/api/fetch-photo?id=2100030000'
+      );
       assert.strictEqual(res.status, 401);
     });
 
     test('Rejects path traversal via relative dots in id', async () => {
       const demoToken = await encodeSession(DEMO_SESSION);
-      const res = await fetch('http://localhost:3000/api/fetch-photo?id=../../etc/passwd', {
-        headers: { Cookie: `kl_erp_session=${demoToken}` },
-      });
+      const res = await fetch(
+        'http://localhost:3000/api/fetch-photo?id=../../etc/passwd',
+        {
+          headers: { Cookie: `kl_erp_session=${demoToken}` },
+        }
+      );
       assert.strictEqual(res.status, 400);
     });
 
     test('Rejects arbitrary absolute URL in path (SSRF prevention)', async () => {
       const demoToken = await encodeSession(DEMO_SESSION);
-      const res = await fetch('http://localhost:3000/api/fetch-photo?path=https://attacker.com/evil.jpg', {
-        headers: { Cookie: `kl_erp_session=${demoToken}` },
-      });
+      const res = await fetch(
+        'http://localhost:3000/api/fetch-photo?path=https://attacker.com/evil.jpg',
+        {
+          headers: { Cookie: `kl_erp_session=${demoToken}` },
+        }
+      );
       assert.strictEqual(res.status, 400);
     });
 
     test('Rejects path traversal via %2e encoded dots in path', async () => {
       const demoToken = await encodeSession(DEMO_SESSION);
-      const res = await fetch('http://localhost:3000/api/fetch-photo?path=/uploads/%2e%2e/etc/passwd', {
-        headers: { Cookie: `kl_erp_session=${demoToken}` },
-      });
+      const res = await fetch(
+        'http://localhost:3000/api/fetch-photo?path=/uploads/%2e%2e/etc/passwd',
+        {
+          headers: { Cookie: `kl_erp_session=${demoToken}` },
+        }
+      );
       assert.strictEqual(res.status, 400);
     });
 
     test('Rejects protocol-relative path (//169.254.169.254/secret)', async () => {
       const demoToken = await encodeSession(DEMO_SESSION);
-      const res = await fetch('http://localhost:3000/api/fetch-photo?path=//169.254.169.254/latest/meta-data', {
-        headers: { Cookie: `kl_erp_session=${demoToken}` },
-      });
+      const res = await fetch(
+        'http://localhost:3000/api/fetch-photo?path=//169.254.169.254/latest/meta-data',
+        {
+          headers: { Cookie: `kl_erp_session=${demoToken}` },
+        }
+      );
       assert.strictEqual(res.status, 400);
     });
 
     test('Returns SVG dummy photo for demo session', async () => {
       const demoToken = await encodeSession(DEMO_SESSION);
-      const res = await fetch('http://localhost:3000/api/fetch-photo?id=2100030000', {
-        headers: { Cookie: `kl_erp_session=${demoToken}` },
-      });
+      const res = await fetch(
+        'http://localhost:3000/api/fetch-photo?id=2100030000',
+        {
+          headers: { Cookie: `kl_erp_session=${demoToken}` },
+        }
+      );
       assert.strictEqual(res.status, 200);
       assert.ok(res.headers.get('content-type')?.includes('image/svg+xml'));
       const text = await res.text();
@@ -115,7 +136,9 @@ describe('Milestone 3 Empirical Challenger 2 Verification Suite', () => {
       ]);
 
       await page.addInitScript(() => {
-        const years = JSON.stringify([{ value: '2025-2026', label: '2025-2026' }]);
+        const years = JSON.stringify([
+          { value: '2025-2026', label: '2025-2026' },
+        ]);
         const sems = JSON.stringify([{ value: '1', label: 'Odd Semester' }]);
         const ttMock = JSON.stringify([
           {
@@ -137,7 +160,10 @@ describe('Milestone 3 Empirical Challenger 2 Verification Suite', () => {
         window.localStorage.setItem('kl_timetable_2025-2026_1', ttMock);
 
         window.sessionStorage.setItem('kl_erp_session_id', 'demo_session_123');
-        window.sessionStorage.setItem('kl_erp_csrf_token', 'demo_csrf_token_123');
+        window.sessionStorage.setItem(
+          'kl_erp_csrf_token',
+          'demo_csrf_token_123'
+        );
         window.sessionStorage.setItem('kl_erp_year', '2025-2026');
         window.sessionStorage.setItem('kl_erp_sem', '1');
         window.sessionStorage.setItem('kl_erp_academic_years', years);
@@ -147,7 +173,9 @@ describe('Milestone 3 Empirical Challenger 2 Verification Suite', () => {
     }
 
     test('Navigates sequentially across all valid dashboard routes with 0 console errors', async () => {
-      const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+      const context = await browser.newContext({
+        viewport: { width: 1280, height: 800 },
+      });
       const page = await context.newPage();
       const consoleErrors: string[] = [];
       const pageErrors: string[] = [];
@@ -176,21 +204,36 @@ describe('Milestone 3 Empirical Challenger 2 Verification Suite', () => {
       ];
 
       for (const route of routes) {
-        const res = await page.goto(`http://localhost:3000${route}`, { waitUntil: 'domcontentloaded' });
-        assert.ok(res && res.status() < 400, `Route ${route} returned status ${res?.status()}`);
+        const res = await page.goto(`http://localhost:3000${route}`, {
+          waitUntil: 'domcontentloaded',
+        });
+        assert.ok(
+          res && res.status() < 400,
+          `Route ${route} returned status ${res?.status()}`
+        );
         await page.waitForTimeout(150);
         const svgCount = await page.locator('svg').count();
         assert.ok(svgCount > 0, `Expected SVGs on ${route}, found 0`);
       }
 
-      assert.strictEqual(consoleErrors.length, 0, `Console errors logged: ${consoleErrors.join(', ')}`);
-      assert.strictEqual(pageErrors.length, 0, `Page errors logged: ${pageErrors.join(', ')}`);
+      assert.strictEqual(
+        consoleErrors.length,
+        0,
+        `Console errors logged: ${consoleErrors.join(', ')}`
+      );
+      assert.strictEqual(
+        pageErrors.length,
+        0,
+        `Page errors logged: ${pageErrors.join(', ')}`
+      );
 
       await context.close();
     });
 
     test('Handles unmapped routes (/dashboard/analytics & /dashboard/courses) gracefully with 404', async () => {
-      const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+      const context = await browser.newContext({
+        viewport: { width: 1280, height: 800 },
+      });
       const page = await context.newPage();
       const pageErrors: string[] = [];
 
@@ -201,16 +244,25 @@ describe('Milestone 3 Empirical Challenger 2 Verification Suite', () => {
       await setupAuthenticatedPage(page);
 
       // Navigate to /dashboard/analytics
-      const res1 = await page.goto('http://localhost:3000/dashboard/analytics', { waitUntil: 'domcontentloaded' });
+      const res1 = await page.goto(
+        'http://localhost:3000/dashboard/analytics',
+        { waitUntil: 'domcontentloaded' }
+      );
       assert.ok(res1 !== null);
       assert.strictEqual(res1.status(), 404);
 
       // Navigate to /dashboard/courses
-      const res2 = await page.goto('http://localhost:3000/dashboard/courses', { waitUntil: 'domcontentloaded' });
+      const res2 = await page.goto('http://localhost:3000/dashboard/courses', {
+        waitUntil: 'domcontentloaded',
+      });
       assert.ok(res2 !== null);
       assert.strictEqual(res2.status(), 404);
 
-      assert.strictEqual(pageErrors.length, 0, `Unhandled exceptions on 404 routes: ${pageErrors.join(', ')}`);
+      assert.strictEqual(
+        pageErrors.length,
+        0,
+        `Unhandled exceptions on 404 routes: ${pageErrors.join(', ')}`
+      );
 
       await context.close();
     });

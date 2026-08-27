@@ -17,17 +17,31 @@ export function GpaTrendChart({ data }: GpaTrendChartProps) {
 
       for (const [key, val] of Object.entries(row)) {
         const k = key.toLowerCase();
-        if (k.includes('code') || k.includes('subject') || k.includes('title')) {
+        if (
+          k.includes('code') ||
+          k.includes('subject') ||
+          k.includes('title')
+        ) {
           if (!label) label = String(val);
         }
-        if (k.includes('grade') || k.includes('marks') || k.includes('cgpa') || k.includes('total') || k.includes('score')) {
+        if (
+          k.includes('grade') ||
+          k.includes('marks') ||
+          k.includes('cgpa') ||
+          k.includes('total') ||
+          k.includes('score')
+        ) {
           const num = parseFloat(String(val));
           if (!isNaN(num)) score = num;
         }
       }
 
       if (!label) label = `Course ${idx + 1}`;
-      return { label: label.length > 10 ? label.substring(0, 8) + '…' : label, fullLabel: label, score };
+      return {
+        label: label.length > 10 ? label.substring(0, 8) + '…' : label,
+        fullLabel: label,
+        score,
+      };
     })
     .filter((p) => p.score >= 0);
 
@@ -43,7 +57,8 @@ export function GpaTrendChart({ data }: GpaTrendChartProps) {
   const innerWidth = svgWidth - paddingLeft - paddingRight;
   const innerHeight = chartHeight - paddingTop - paddingBottom;
 
-  const step = points.length > 1 ? innerWidth / (points.length - 1) : innerWidth;
+  const step =
+    points.length > 1 ? innerWidth / (points.length - 1) : innerWidth;
 
   const svgPoints = points.map((p, i) => {
     const x = paddingLeft + (points.length > 1 ? i * step : innerWidth / 2);
@@ -64,8 +79,12 @@ export function GpaTrendChart({ data }: GpaTrendChartProps) {
     <div className="rounded-[--radius-2xl] border border-border apple-card p-6 space-y-4 shadow-xl overflow-hidden">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-foreground font-heading tracking-tight">Performance Trend</h3>
-          <p className="text-xs text-muted-foreground/80 font-normal">Subject performance scores</p>
+          <h3 className="text-sm font-semibold text-foreground font-heading tracking-tight">
+            Performance Trend
+          </h3>
+          <p className="text-xs text-muted-foreground/80 font-normal">
+            Subject performance scores
+          </p>
         </div>
         <div className="text-xs font-mono font-bold text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full apple-pill">
           Max: {maxScore}

@@ -29,8 +29,13 @@ test('Copilot suggestion chip queries map directly to valid ERP tools', async ()
 
   for (const query of suggestions) {
     const res = await processAIChat([{ role: 'user', content: query }]);
-    assert.ok(res.toolCalls && res.toolCalls.length > 0, `Expected tool call for query: ${query}`);
-    assert.ok(res.toolCalls[0].tool, `Matched tool name should exist for: ${query}`);
+    assert.ok(
+      res.toolCalls && res.toolCalls.length > 0,
+      `Expected tool call for query: ${query}`
+    );
+    assert.ok(
+      res.toolCalls[0].tool,
+      `Matched tool name should exist for: ${query}`
+    );
   }
 });
-

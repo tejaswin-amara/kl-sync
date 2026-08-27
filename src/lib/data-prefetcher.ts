@@ -8,154 +8,171 @@ export interface PrefetchOptions {
 }
 
 let isPrefetching = false;
+let hasPrefetchedThisSession = false;
+
+/** Fetch with a single retry on transient 502/504 errors, but NEVER retry on 429 rate limits */
+async function fetchWithRetry(
+  url: string,
+  init?: RequestInit
+): Promise<Response> {
+  const res = await fetch(url, init);
+  if (res.status === 429) {
+    return res;
+  }
+  if (res.status === 502 || res.status === 504) {
+    await new Promise((r) => setTimeout(r, 2000));
+    return fetch(url, init);
+  }
+  return res;
+}
 
 /**
- * Prefetches all student ERP data concurrently in the background and populates
- * the SWR query cache so dashboard navigation occurs with zero loading screens.
+ * Prefetches essential academic ERP data gently in the background with inter-request delays
+ * to protect the student's official ERP account from rate limiting.
  */
-export async function prefetchAllUserData(options: PrefetchOptions = {}): Promise<void> {
+export async function prefetchAllUserData(
+  options: PrefetchOptions & { force?: boolean } = {}
+): Promise<void> {
   if (typeof window === 'undefined' || isPrefetching) return;
+  if (hasPrefetchedThisSession && !options.force) return;
+
   isPrefetching = true;
 
   const academicYear =
-    options.academicYear ||
-    localStorage.getItem('kl_erp_year') ||
-    '';
+    options.academicYear || localStorage.getItem('kl_erp_year') || '';
 
   const semesterId =
-    options.semesterId ||
-    localStorage.getItem('kl_erp_sem') ||
-    '';
+    options.semesterId || localStorage.getItem('kl_erp_sem') || '';
 
   const postHeaders = { 'Content-Type': 'application/json' };
 
-  const fetchTasks: Promise<void>[] = [];
+  const taskList: Array<() => Promise<void>> = [];
 
-  // 1. Profile Prefetch
-  fetchTasks.push(
-    fetch('/api/erp-proxy/profile')
-      .then((r) => r.ok ? r.json() : null)
-      .then((json) => {
+  // 1. Profile Prefetch (Essential for student identity)
+  taskList.push(async () => {
+    try {
+      const res = await fetchWithRetry('/api/erp-proxy/profile');
+      if (res.ok) {
+        const json = await res.json();
         if (json?.success && json?.data) {
           setCachedValue('/api/erp-proxy/profile', json.data);
           if (json.data.studentId) {
-            try { localStorage.setItem('studentId', json.data.studentId); } catch {}
+            try {
+              localStorage.setItem('studentId', json.data.studentId);
+            } catch {}
+          }
+          if (json.data.name) {
+            try {
+              localStorage.setItem('kl_student_name', json.data.name);
+            } catch {}
+          }
+          if (json.data.photoUrl) {
+            try {
+              localStorage.setItem('kl_student_photo', json.data.photoUrl);
+            } catch {}
+          }
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new Event('kl_profile_updated'));
           }
         }
-      })
-      .catch(() => {})
-  );
+      }
+    } catch {}
+  });
 
-  // 2. Fee Prefetch
-  fetchTasks.push(
-    fetch('/api/erp-proxy/fee')
-      .then((r) => r.ok ? r.json() : null)
-      .then((json) => {
-        if (json?.success && json?.data) {
-          setCachedValue('/api/erp-proxy/fee', json.data);
-        }
-      })
-      .catch(() => {})
-  );
-
-  // 3. Circulars Prefetch
-  fetchTasks.push(
-    fetch('/api/erp-proxy/circulars')
-      .then((r) => r.ok ? r.json() : null)
-      .then((json) => {
-        if (json?.success && json?.data) {
-          setCachedValue('/api/erp-proxy/circulars', json.data);
-        }
-      })
-      .catch(() => {})
-  );
-
-  // 4. Hostels Prefetch
-  fetchTasks.push(
-    fetch('/api/erp-proxy/hostels')
-      .then((r) => r.ok ? r.json() : null)
-      .then((json) => {
-        if (json?.success && json?.data) {
-          setCachedValue('/api/erp-proxy/hostels', json.data);
-        }
-      })
-      .catch(() => {})
-  );
-
-  // 5. Library Prefetch
-  fetchTasks.push(
-    fetch('/api/erp-proxy/library')
-      .then((r) => r.ok ? r.json() : null)
-      .then((json) => {
-        if (json?.success && json?.data) {
-          setCachedValue('/api/erp-proxy/library', json.data);
-        }
-      })
-      .catch(() => {})
-  );
-
-  // 6. Exam Seating Prefetch
-  fetchTasks.push(
-    fetch('/api/erp-proxy/exam-seating')
-      .then((r) => r.ok ? r.json() : null)
-      .then((json) => {
-        if (json?.success && json?.data) {
-          setCachedValue('/api/erp-proxy/exam-seating', json.data);
-        }
-      })
-      .catch(() => {})
-  );
-
-  // Academic Modules (Attendance, Timetable, Marks)
+  // 2. Attendance Prefetch
   if (academicYear && semesterId) {
     const payload = JSON.stringify({ academicYear, semesterId });
+    const attKey = [
+      '/api/erp-proxy/attendance',
+      academicYear,
+      semesterId,
+    ] as const;
 
-    // 7. Attendance
-    const attKey = ['/api/erp-proxy/attendance', academicYear, semesterId] as const;
-    fetchTasks.push(
-      fetch('/api/erp-proxy/attendance', { method: 'POST', headers: postHeaders, body: payload })
-        .then((r) => r.ok ? r.json() : null)
-        .then((json) => {
+    taskList.push(async () => {
+      try {
+        const res = await fetchWithRetry('/api/erp-proxy/attendance', {
+          method: 'POST',
+          headers: postHeaders,
+          body: payload,
+        });
+        if (res.ok) {
+          const json = await res.json();
           if (json?.success && (json?.attendanceData || json?.data)) {
             const data = json.attendanceData || json.data;
             registerCourseTitles(data);
             setCachedValue(attKey, data);
           }
-        })
-        .catch(() => {})
-    );
+        }
+      } catch {}
+    });
 
-    // 8. Timetable
-    const ttKey = ['/api/erp-proxy/timetable', academicYear, semesterId] as const;
-    fetchTasks.push(
-      fetch('/api/erp-proxy/timetable', { method: 'POST', headers: postHeaders, body: payload })
-        .then((r) => r.ok ? r.json() : null)
-        .then((json) => {
+    // 3. Timetable Prefetch
+    const ttKey = [
+      '/api/erp-proxy/timetable',
+      academicYear,
+      semesterId,
+    ] as const;
+    taskList.push(async () => {
+      try {
+        const res = await fetchWithRetry('/api/erp-proxy/timetable', {
+          method: 'POST',
+          headers: postHeaders,
+          body: payload,
+        });
+        if (res.ok) {
+          const json = await res.json();
           if (json?.success && json?.data) {
             const parsed = parseTimetable(json.data);
             setCachedValue(ttKey, parsed);
           }
-        })
-        .catch(() => {})
-    );
+        }
+      } catch {}
+    });
 
-    // 9. Marks
-    const marksKey = ['/api/erp-proxy/marks', academicYear, semesterId] as const;
-    fetchTasks.push(
-      fetch('/api/erp-proxy/marks', { method: 'POST', headers: postHeaders, body: payload })
-        .then((r) => r.ok ? r.json() : null)
-        .then((json) => {
+    // 4. Marks Prefetch
+    const marksKey = [
+      '/api/erp-proxy/marks',
+      academicYear,
+      semesterId,
+    ] as const;
+    taskList.push(async () => {
+      try {
+        const res = await fetchWithRetry('/api/erp-proxy/marks', {
+          method: 'POST',
+          headers: postHeaders,
+          body: payload,
+        });
+        if (res.ok) {
+          const json = await res.json();
           if (json?.success && json?.data) {
             registerCourseTitles(json.data);
             setCachedValue(marksKey, json.data);
           }
-        })
-        .catch(() => {})
-    );
+        }
+      } catch {}
+    });
   }
 
+  // 5. Fee Prefetch
+  taskList.push(async () => {
+    try {
+      const res = await fetchWithRetry('/api/erp-proxy/fee');
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.success && json?.data) {
+          setCachedValue('/api/erp-proxy/fee', json.data);
+        }
+      }
+    } catch {}
+  });
+
   try {
-    await Promise.allSettled(fetchTasks);
+    // Run sequentially with a gentle 450ms gap between requests
+    for (const task of taskList) {
+      await task();
+      await new Promise((resolve) => setTimeout(resolve, 450));
+    }
+    hasPrefetchedThisSession = true;
   } finally {
     isPrefetching = false;
   }

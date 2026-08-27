@@ -1,7 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertCircle, CheckCircle2, XCircle, Calculator, Bookmark, Trash2 } from '@/components/ui/icons';
+import {
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+  Calculator,
+  Bookmark,
+  Trash2,
+} from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { triggerHaptic } from '@/lib/fluid-motion';
@@ -67,14 +74,16 @@ export function SimpleCalculator({
     <div className="space-y-6">
       <div className="apple-card rounded-[--radius-2xl] p-6 shadow-xl border border-border relative overflow-hidden">
         <div className="flex flex-col space-y-2 mb-6">
-          <h3 className="section-title text-foreground">
-            Attendance Analysis
-          </h3>
+          <h3 className="section-title text-foreground">Attendance Analysis</h3>
           <div className="flex items-baseline gap-3">
-            <span className={`text-4xl font-bold tabular-numbers tracking-tight font-heading ${attendanceColor}`}>
+            <span
+              className={`text-4xl font-bold tabular-numbers tracking-tight font-heading ${attendanceColor}`}
+            >
               {percentage.toFixed(2)}%
             </span>
-            <span className={`text-sm font-semibold tracking-tight ${attendanceColor}`}>
+            <span
+              className={`text-sm font-semibold tracking-tight ${attendanceColor}`}
+            >
               ({attendanceStatus})
             </span>
           </div>
@@ -84,15 +93,33 @@ export function SimpleCalculator({
           <div className="flex items-start gap-3.5 p-3 rounded-[--radius-lg] bg-surface-2 border border-border">
             <div className="w-2.5 h-2.5 rounded-full bg-primary mt-1.5 shrink-0 shadow-[0_0_8px_rgba(129,140,248,0.8)]" />
             <div className="min-w-0 flex-1">
-              <h4 className="text-xs font-semibold text-foreground tracking-tight">Classes you can miss</h4>
+              <h4 className="text-xs font-semibold text-foreground tracking-tight">
+                Classes you can miss
+              </h4>
               <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                 {classesCanMiss > 0 ? (
                   <>
-                    You can miss <strong className="text-foreground font-semibold tabular-numbers">{classesCanMiss}</strong> more
-                    classes and still maintain 75% attendance.
+                    You can miss{' '}
+                    <strong className="text-foreground font-semibold tabular-numbers">
+                      {classesCanMiss}
+                    </strong>{' '}
+                    more classes and still maintain 75% attendance.
                     <br />
                     <span className="font-mono text-[11px] text-muted-foreground/80">
-                      Current: <span className="tabular-numbers text-foreground">{presents}/{totalClasses}</span> ({percentage.toFixed(2)}%) → After: <span className="tabular-numbers text-foreground">{presents}/{totalClasses + classesCanMiss}</span> ({((presents / (totalClasses + classesCanMiss)) * 100).toFixed(2)}%)
+                      Current:{' '}
+                      <span className="tabular-numbers text-foreground">
+                        {presents}/{totalClasses}
+                      </span>{' '}
+                      ({percentage.toFixed(2)}%) → After:{' '}
+                      <span className="tabular-numbers text-foreground">
+                        {presents}/{totalClasses + classesCanMiss}
+                      </span>{' '}
+                      (
+                      {(
+                        (presents / (totalClasses + classesCanMiss)) *
+                        100
+                      ).toFixed(2)}
+                      %)
                     </span>
                   </>
                 ) : (
@@ -105,14 +132,35 @@ export function SimpleCalculator({
           <div className="flex items-start gap-3.5 p-3 rounded-[--radius-lg] bg-surface-2 border border-border">
             <div className="w-2.5 h-2.5 rounded-full bg-warning mt-1.5 shrink-0 shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
             <div className="min-w-0 flex-1">
-              <h4 className="text-xs font-semibold text-foreground tracking-tight">Classes needed for 75%</h4>
+              <h4 className="text-xs font-semibold text-foreground tracking-tight">
+                Classes needed for 75%
+              </h4>
               <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                 {classesToAttend75 > 0 ? (
                   <>
-                    You need to attend <strong className="text-foreground font-semibold tabular-numbers">{classesToAttend75}</strong> more classes to reach 75% attendance.
+                    You need to attend{' '}
+                    <strong className="text-foreground font-semibold tabular-numbers">
+                      {classesToAttend75}
+                    </strong>{' '}
+                    more classes to reach 75% attendance.
                     <br />
                     <span className="font-mono text-[11px] text-muted-foreground/80">
-                      Current: <span className="tabular-numbers text-foreground">{presents}/{totalClasses}</span> ({percentage.toFixed(2)}%) → After: <span className="tabular-numbers text-foreground">{presents + classesToAttend75}/{totalClasses + classesToAttend75}</span> ({(((presents + classesToAttend75) / (totalClasses + classesToAttend75)) * 100).toFixed(2)}%)
+                      Current:{' '}
+                      <span className="tabular-numbers text-foreground">
+                        {presents}/{totalClasses}
+                      </span>{' '}
+                      ({percentage.toFixed(2)}%) → After:{' '}
+                      <span className="tabular-numbers text-foreground">
+                        {presents + classesToAttend75}/
+                        {totalClasses + classesToAttend75}
+                      </span>{' '}
+                      (
+                      {(
+                        ((presents + classesToAttend75) /
+                          (totalClasses + classesToAttend75)) *
+                        100
+                      ).toFixed(2)}
+                      %)
                     </span>
                   </>
                 ) : (
@@ -125,14 +173,35 @@ export function SimpleCalculator({
           <div className="flex items-start gap-3.5 p-3 rounded-[--radius-lg] bg-surface-2 border border-border">
             <div className="w-2.5 h-2.5 rounded-full bg-success mt-1.5 shrink-0 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
             <div className="min-w-0 flex-1">
-              <h4 className="text-xs font-semibold text-foreground tracking-tight">Classes needed for 85%</h4>
+              <h4 className="text-xs font-semibold text-foreground tracking-tight">
+                Classes needed for 85%
+              </h4>
               <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                 {classesToAttend85 > 0 ? (
                   <>
-                    You need to attend <strong className="text-foreground font-semibold tabular-numbers">{classesToAttend85}</strong> more classes to reach 85% attendance.
+                    You need to attend{' '}
+                    <strong className="text-foreground font-semibold tabular-numbers">
+                      {classesToAttend85}
+                    </strong>{' '}
+                    more classes to reach 85% attendance.
                     <br />
                     <span className="font-mono text-[11px] text-muted-foreground/80">
-                      Current: <span className="tabular-numbers text-foreground">{presents}/{totalClasses}</span> ({percentage.toFixed(2)}%) → After: <span className="tabular-numbers text-foreground">{presents + classesToAttend85}/{totalClasses + classesToAttend85}</span> ({(((presents + classesToAttend85) / (totalClasses + classesToAttend85)) * 100).toFixed(2)}%)
+                      Current:{' '}
+                      <span className="tabular-numbers text-foreground">
+                        {presents}/{totalClasses}
+                      </span>{' '}
+                      ({percentage.toFixed(2)}%) → After:{' '}
+                      <span className="tabular-numbers text-foreground">
+                        {presents + classesToAttend85}/
+                        {totalClasses + classesToAttend85}
+                      </span>{' '}
+                      (
+                      {(
+                        ((presents + classesToAttend85) /
+                          (totalClasses + classesToAttend85)) *
+                        100
+                      ).toFixed(2)}
+                      %)
                     </span>
                   </>
                 ) : (
@@ -151,9 +220,12 @@ export function SimpleCalculator({
         >
           <CheckCircle2 className="h-5 w-5 text-success shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
-            <h5 className="font-semibold text-foreground tracking-tight">Eligible</h5>
+            <h5 className="font-semibold text-foreground tracking-tight">
+              Eligible
+            </h5>
             <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-              Your attendance is above the minimum required 85%. You are eligible to appear for the examination.
+              Your attendance is above the minimum required 85%. You are
+              eligible to appear for the examination.
             </p>
           </div>
         </div>
@@ -164,9 +236,12 @@ export function SimpleCalculator({
         >
           <AlertCircle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
-            <h5 className="font-semibold text-foreground tracking-tight">Conditional Eligibility</h5>
+            <h5 className="font-semibold text-foreground tracking-tight">
+              Conditional Eligibility
+            </h5>
             <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-              Your attendance is between 75% and 85%. You need to pay a condonation fine to be eligible for the examination.
+              Your attendance is between 75% and 85%. You need to pay a
+              condonation fine to be eligible for the examination.
             </p>
           </div>
         </div>
@@ -177,9 +252,12 @@ export function SimpleCalculator({
         >
           <XCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
-            <h5 className="font-semibold text-foreground tracking-tight">Not Eligible</h5>
+            <h5 className="font-semibold text-foreground tracking-tight">
+              Not Eligible
+            </h5>
             <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-              Your attendance is below 75%. You may face detention and will not be eligible to appear for the examination.
+              Your attendance is below 75%. You may face detention and will not
+              be eligible to appear for the examination.
             </p>
           </div>
         </div>
@@ -212,7 +290,8 @@ export function calculateLTPS(state: LTPSState): LTPSCalculationResult | null {
 
   let weightedSum = 0;
   let totalWeight = 0;
-  const activeComponents: { name: string; weight: number; value: number }[] = [];
+  const activeComponents: { name: string; weight: number; value: number }[] =
+    [];
 
   if (!isNaN(l)) {
     weightedSum += l * 1.0;
@@ -237,7 +316,8 @@ export function calculateLTPS(state: LTPSState): LTPSCalculationResult | null {
 
   if (totalWeight === 0) return null;
 
-  const weightedPercentage = Math.round((weightedSum / totalWeight) * 100) / 100;
+  const weightedPercentage =
+    Math.round((weightedSum / totalWeight) * 100) / 100;
 
   let status: 'Eligible' | 'Conditional' | 'Not Eligible' = 'Not Eligible';
   let color = 'text-destructive';
@@ -266,7 +346,9 @@ export function LTPSAttendanceCalculator() {
   const [skilling, setSkilling] = useState('');
   const [subjectName, setSubjectName] = useState('');
   const [result, setResult] = useState<LTPSCalculationResult | null>(null);
-  const [drafts, setDrafts] = useState<{ id: string; name: string; state: LTPSState; pct: number }[]>(() => {
+  const [drafts, setDrafts] = useState<
+    { id: string; name: string; state: LTPSState; pct: number }[]
+  >(() => {
     if (typeof window === 'undefined') return [];
     try {
       const stored = localStorage.getItem('kl_ltps_drafts');
@@ -279,17 +361,32 @@ export function LTPSAttendanceCalculator() {
   const handleCalculate = (e?: React.FormEvent) => {
     e?.preventDefault();
     triggerHaptic('light');
-    const res = calculateLTPS({ lecture, tutorial, practical, skilling, subjectName });
+    const res = calculateLTPS({
+      lecture,
+      tutorial,
+      practical,
+      skilling,
+      subjectName,
+    });
     setResult(res);
 
     if (res && subjectName.trim()) {
       const newDraft = {
         id: Date.now().toString(),
         name: subjectName.trim(),
-        state: { lecture, tutorial, practical, skilling, subjectName: subjectName.trim() },
+        state: {
+          lecture,
+          tutorial,
+          practical,
+          skilling,
+          subjectName: subjectName.trim(),
+        },
         pct: res.weightedPercentage,
       };
-      const updated = [newDraft, ...drafts.filter((d) => d.name !== subjectName.trim())].slice(0, 5);
+      const updated = [
+        newDraft,
+        ...drafts.filter((d) => d.name !== subjectName.trim()),
+      ].slice(0, 5);
       setDrafts(updated);
       try {
         localStorage.setItem('kl_ltps_drafts', JSON.stringify(updated));
@@ -327,7 +424,9 @@ export function LTPSAttendanceCalculator() {
 
       <div className="apple-card rounded-[--radius-2xl] p-6 sm:p-8 border border-border shadow-2xl space-y-6">
         <div>
-          <h3 className="text-xl font-bold text-foreground font-heading">Calculate Attendance</h3>
+          <h3 className="text-xl font-bold text-foreground font-heading">
+            Calculate Attendance
+          </h3>
           <p className="text-xs text-muted-foreground mt-1">
             Enter your attendance percentages for each component
           </p>
@@ -338,7 +437,10 @@ export function LTPSAttendanceCalculator() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {/* Lecture */}
             <div className="space-y-2">
-              <label htmlFor="ltps-lecture" className="text-xs font-semibold text-foreground/90 block">
+              <label
+                htmlFor="ltps-lecture"
+                className="text-xs font-semibold text-foreground/90 block"
+              >
                 Lecture (100%)
               </label>
               <Input
@@ -356,7 +458,10 @@ export function LTPSAttendanceCalculator() {
 
             {/* Tutorial */}
             <div className="space-y-2">
-              <label htmlFor="ltps-tutorial" className="text-xs font-semibold text-foreground/90 block">
+              <label
+                htmlFor="ltps-tutorial"
+                className="text-xs font-semibold text-foreground/90 block"
+              >
                 Tutorial (25%)
               </label>
               <Input
@@ -374,7 +479,10 @@ export function LTPSAttendanceCalculator() {
 
             {/* Practical */}
             <div className="space-y-2">
-              <label htmlFor="ltps-practical" className="text-xs font-semibold text-foreground/90 block">
+              <label
+                htmlFor="ltps-practical"
+                className="text-xs font-semibold text-foreground/90 block"
+              >
                 Practical (50%)
               </label>
               <Input
@@ -392,7 +500,10 @@ export function LTPSAttendanceCalculator() {
 
             {/* Skilling */}
             <div className="space-y-2">
-              <label htmlFor="ltps-skilling" className="text-xs font-semibold text-foreground/90 block">
+              <label
+                htmlFor="ltps-skilling"
+                className="text-xs font-semibold text-foreground/90 block"
+              >
                 Skilling (25%)
               </label>
               <Input
@@ -411,8 +522,14 @@ export function LTPSAttendanceCalculator() {
 
           {/* Subject Name Draft Field */}
           <div className="space-y-2">
-            <label htmlFor="ltps-subject" className="text-xs font-semibold text-foreground/90 flex items-center gap-2">
-              Subject Name <span className="text-muted-foreground font-normal">(Optional - to save as draft)</span>
+            <label
+              htmlFor="ltps-subject"
+              className="text-xs font-semibold text-foreground/90 flex items-center gap-2"
+            >
+              Subject Name{' '}
+              <span className="text-muted-foreground font-normal">
+                (Optional - to save as draft)
+              </span>
             </label>
             <Input
               id="ltps-subject"
@@ -439,12 +556,18 @@ export function LTPSAttendanceCalculator() {
           <div className="pt-6 border-t border-border space-y-4 animate-spring-scale">
             <div className="flex items-baseline justify-between gap-4 p-4 rounded-[--radius-xl] bg-surface-2/60 border border-border">
               <div>
-                <p className="caption-label text-muted-foreground">Weighted LTPS Percentage</p>
+                <p className="caption-label text-muted-foreground">
+                  Weighted LTPS Percentage
+                </p>
                 <div className="flex items-baseline gap-3 mt-1">
-                  <span className={`text-4xl font-extrabold tabular-numbers font-heading tracking-tight ${result.color}`}>
+                  <span
+                    className={`text-4xl font-extrabold tabular-numbers font-heading tracking-tight ${result.color}`}
+                  >
                     {result.weightedPercentage.toFixed(2)}%
                   </span>
-                  <span className={`text-sm font-semibold tracking-tight ${result.color}`}>
+                  <span
+                    className={`text-sm font-semibold tracking-tight ${result.color}`}
+                  >
                     ({result.status})
                   </span>
                 </div>
@@ -459,9 +582,12 @@ export function LTPSAttendanceCalculator() {
               >
                 <CheckCircle2 className="h-5 w-5 text-success shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <h5 className="font-semibold text-foreground tracking-tight">Eligible for Examinations</h5>
+                  <h5 className="font-semibold text-foreground tracking-tight">
+                    Eligible for Examinations
+                  </h5>
                   <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                    Your weighted LTPS attendance is above 85%. You meet the standard eligibility requirement with no condonation fee.
+                    Your weighted LTPS attendance is above 85%. You meet the
+                    standard eligibility requirement with no condonation fee.
                   </p>
                 </div>
               </div>
@@ -472,9 +598,13 @@ export function LTPSAttendanceCalculator() {
               >
                 <AlertCircle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <h5 className="font-semibold text-foreground tracking-tight">Condonation Range (75% – 85%)</h5>
+                  <h5 className="font-semibold text-foreground tracking-tight">
+                    Condonation Range (75% – 85%)
+                  </h5>
                   <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                    Your weighted attendance is in the condonation range. You will be permitted to sit for examinations upon paying the university condonation fine.
+                    Your weighted attendance is in the condonation range. You
+                    will be permitted to sit for examinations upon paying the
+                    university condonation fine.
                   </p>
                 </div>
               </div>
@@ -485,9 +615,13 @@ export function LTPSAttendanceCalculator() {
               >
                 <XCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <h5 className="font-semibold text-foreground tracking-tight">Detention Risk (&lt; 75%)</h5>
+                  <h5 className="font-semibold text-foreground tracking-tight">
+                    Detention Risk (&lt; 75%)
+                  </h5>
                   <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                    Your weighted attendance is below the mandatory 75% cutoff. You are at high risk of academic detention unless immediate attendance is recovered.
+                    Your weighted attendance is below the mandatory 75% cutoff.
+                    You are at high risk of academic detention unless immediate
+                    attendance is recovered.
                   </p>
                 </div>
               </div>
@@ -506,7 +640,7 @@ export function LTPSAttendanceCalculator() {
               {drafts.map((d) => (
                 <div
                   key={d.id}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-[--radius-lg] bg-surface-2 border border-border text-xs hover:border-primary/2520 transition-all"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-[--radius-lg] bg-surface-2 border border-border text-xs hover:border-primary/25 transition-all"
                 >
                   <button
                     type="button"
@@ -514,15 +648,17 @@ export function LTPSAttendanceCalculator() {
                     className="font-medium text-foreground hover:text-primary transition-colors flex items-center gap-1.5"
                   >
                     <span>{d.name}</span>
-                    <span className="text-muted-foreground font-mono tabular-numbers font-normal">({d.pct}%)</span>
+                    <span className="text-muted-foreground font-mono tabular-numbers font-normal">
+                      ({d.pct}%)
+                    </span>
                   </button>
                   <button
                     type="button"
                     onClick={() => deleteDraft(d.id)}
-                    className="text-muted-foreground/60 hover:text-destructive transition-colors p-0.5"
+                    className="text-muted-foreground hover:text-destructive transition-colors min-h-[44px] min-w-[44px] p-2"
                     aria-label={`Delete ${d.name}`}
                   >
-                    <Trash2 className="w-3 h-3" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               ))}

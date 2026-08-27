@@ -32,13 +32,22 @@ describe('Course Utils & Title Resolution', () => {
   });
 
   test('handles suffix codes e.g. 25CS1302E-L and 25CS1302E_LAB', () => {
-    assert.equal(getSubjectTitle('25CS1302E-L'), 'Data Structures & Algorithms');
-    assert.equal(getSubjectTitle('25CS1302E_LAB'), 'Data Structures & Algorithms');
+    assert.equal(
+      getSubjectTitle('25CS1302E-L'),
+      'Data Structures & Algorithms'
+    );
+    assert.equal(
+      getSubjectTitle('25CS1302E_LAB'),
+      'Data Structures & Algorithms'
+    );
   });
 
   test('resolves core department code for new/unknown academic year prefixes', () => {
     assert.equal(getSubjectTitle('26CS2104E'), 'Operating Systems');
-    assert.equal(getSubjectTitle('26CS1302E-LAB'), 'Data Structures & Algorithms');
+    assert.equal(
+      getSubjectTitle('26CS1302E-LAB'),
+      'Data Structures & Algorithms'
+    );
     assert.equal(extractCoreCode('26CS2104E-L1'), 'CS2104');
   });
 
@@ -67,7 +76,10 @@ describe('Course Utils & Title Resolution', () => {
 
   test('isValidSubjectTitle rejects non-subject strings (rooms, faculty, periods, status, sections)', () => {
     assert.equal(isValidSubjectTitle('Dr. Ramesh Kumar', '25CS1302E'), false);
-    assert.equal(isValidSubjectTitle('Prof. Sarah Jenkins', '25CS1302E'), false);
+    assert.equal(
+      isValidSubjectTitle('Prof. Sarah Jenkins', '25CS1302E'),
+      false
+    );
     assert.equal(isValidSubjectTitle('RoomNo-101', '25CS1302E'), false);
     assert.equal(isValidSubjectTitle('H-005', '25CS1302E'), false);
     assert.equal(isValidSubjectTitle('Period 1', '25CS1302E'), false);
@@ -78,15 +90,33 @@ describe('Course Utils & Title Resolution', () => {
     assert.equal(isValidSubjectTitle('S-10', '25CS1302E'), false);
     assert.equal(isValidSubjectTitle('25CS1302E', '25CS1302E'), false);
 
-    assert.equal(isValidSubjectTitle('Data Structures & Algorithms', '25CS1302E'), true);
-    assert.equal(isValidSubjectTitle('Object-Oriented Programming', '25CS1101E'), true);
-    assert.equal(isValidSubjectTitle('Database Management Systems', '25CS2103E'), true);
+    assert.equal(
+      isValidSubjectTitle('Data Structures & Algorithms', '25CS1302E'),
+      true
+    );
+    assert.equal(
+      isValidSubjectTitle('Object-Oriented Programming', '25CS1101E'),
+      true
+    );
+    assert.equal(
+      isValidSubjectTitle('Database Management Systems', '25CS2103E'),
+      true
+    );
   });
 
   test('getSubjectTitle ignores invalid faculty/room titles and falls back to genuine subject name', () => {
-    assert.equal(getSubjectTitle('25CS1302E', 'Dr. Smith'), 'Data Structures & Algorithms');
-    assert.equal(getSubjectTitle('25CS1302E', 'RoomNo-101'), 'Data Structures & Algorithms');
-    assert.equal(getSubjectTitle('25CS1302E', 'Period 1'), 'Data Structures & Algorithms');
+    assert.equal(
+      getSubjectTitle('25CS1302E', 'Dr. Smith'),
+      'Data Structures & Algorithms'
+    );
+    assert.equal(
+      getSubjectTitle('25CS1302E', 'RoomNo-101'),
+      'Data Structures & Algorithms'
+    );
+    assert.equal(
+      getSubjectTitle('25CS1302E', 'Period 1'),
+      'Data Structures & Algorithms'
+    );
     assert.equal(getSubjectTitle('25CS2104E', 'Free'), 'Operating Systems');
   });
 });

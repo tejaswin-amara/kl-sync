@@ -28,9 +28,18 @@ async function marksFetcher(key: unknown) {
   return (json.data as MarksSubject[]) || [];
 }
 
-export function useMarks(academicYear?: string, semesterId?: string): UseMarksResult {
-  const key = academicYear && semesterId ? (['/api/erp-proxy/marks', academicYear, semesterId] as const) : null;
-  const { data, error, isLoading, mutate } = useNativeQuery<MarksSubject[]>(key, marksFetcher);
+export function useMarks(
+  academicYear?: string,
+  semesterId?: string
+): UseMarksResult {
+  const key =
+    academicYear && semesterId
+      ? (['/api/erp-proxy/marks', academicYear, semesterId] as const)
+      : null;
+  const { data, error, isLoading, mutate } = useNativeQuery<MarksSubject[]>(
+    key,
+    marksFetcher
+  );
 
   if (data && Array.isArray(data)) {
     registerCourseTitles(data);

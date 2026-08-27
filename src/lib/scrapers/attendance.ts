@@ -13,6 +13,7 @@ import {
   fetchWithJar,
   mergeSetCookies,
   parseGenericTable,
+  checkRateLimitText,
 } from './http-jar';
 
 export interface CaptchaResponse {
@@ -20,7 +21,9 @@ export interface CaptchaResponse {
   session: ScraperSession;
 }
 
-export async function getCaptcha(options?: { signal?: AbortSignal }): Promise<CaptchaResponse> {
+export async function getCaptcha(options?: {
+  signal?: AbortSignal;
+}): Promise<CaptchaResponse> {
   try {
     const jar: CookieJar = {};
     const signal = options?.signal || AbortSignal.timeout(8000);
@@ -30,7 +33,9 @@ export async function getCaptcha(options?: { signal?: AbortSignal }): Promise<Ca
 
     let csrfToken = ($('input[name="_csrf"]').val() as string) || '';
     if (!csrfToken) {
-      const csrfMatch = html.match(/name=["']_csrf["'][^>]*value=["']([^"']+)["']/i);
+      const csrfMatch = html.match(
+        /name=["']_csrf["'][^>]*value=["']([^"']+)["']/i
+      );
       if (csrfMatch) csrfToken = csrfMatch[1];
     }
     if (!csrfToken) {
@@ -217,16 +222,22 @@ export async function loginAndFetchSemesters(
 
   const academicYears: SemesterOption[] = [];
   let selectedYearValue = '';
-  $('select[name="DynamicModel[academicyear]"], select[name="academicyear"], select[name*="[academicyear]"] option').first().parent().find('option').each((_i, el) => {
-    const value = $(el).attr('value');
-    const label = $(el).text().trim();
-    if (value) {
-      academicYears.push({ value, label });
-      if ($(el).attr('selected')) {
-        selectedYearValue = value;
+  $(
+    'select[name="DynamicModel[academicyear]"], select[name="academicyear"], select[name*="[academicyear]"] option'
+  )
+    .first()
+    .parent()
+    .find('option')
+    .each((_i, el) => {
+      const value = $(el).attr('value');
+      const label = $(el).text().trim();
+      if (value) {
+        academicYears.push({ value, label });
+        if ($(el).attr('selected')) {
+          selectedYearValue = value;
+        }
       }
-    }
-  });
+    });
 
   if (selectedYearValue) {
     const idx = academicYears.findIndex((y) => y.value === selectedYearValue);
@@ -238,16 +249,22 @@ export async function loginAndFetchSemesters(
 
   const semesters: SemesterOption[] = [];
   let selectedSemValue = '';
-  $('select[name="DynamicModel[semesterid]"], select[name="semesterid"], select[name*="[semesterid]"] option').first().parent().find('option').each((_i, el) => {
-    const value = $(el).attr('value');
-    const label = $(el).text().trim();
-    if (value) {
-      semesters.push({ value, label });
-      if ($(el).attr('selected')) {
-        selectedSemValue = value;
+  $(
+    'select[name="DynamicModel[semesterid]"], select[name="semesterid"], select[name*="[semesterid]"] option'
+  )
+    .first()
+    .parent()
+    .find('option')
+    .each((_i, el) => {
+      const value = $(el).attr('value');
+      const label = $(el).text().trim();
+      if (value) {
+        semesters.push({ value, label });
+        if ($(el).attr('selected')) {
+          selectedSemValue = value;
+        }
       }
-    }
-  });
+    });
 
   if (selectedSemValue) {
     const idx = semesters.findIndex((s) => s.value === selectedSemValue);
@@ -302,6 +319,7 @@ export async function fetchAttendanceData(
   }
 
   const text = await res.text();
+  checkRateLimitText(text);
   if (
     text.includes('id="login-form"') ||
     text.includes(
@@ -336,8 +354,13 @@ export async function fetchAttendanceData(
   }
 
   const attendanceData = parseGenericTable(text);
-  if (attendanceData.length === 0 && /<\/?(?:html|body|main|section)\b/i.test(text)) {
-    throw new Error('Attendance data format changed or no attendance table was returned.');
+  if (
+    attendanceData.length === 0 &&
+    /<\/?(?:html|body|main|section)\b/i.test(text)
+  ) {
+    throw new Error(
+      'Attendance data format changed or no attendance table was returned.'
+    );
   }
   registerCourseTitles(attendanceData);
   return {

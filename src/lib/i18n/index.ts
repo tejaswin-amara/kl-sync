@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 
-export type Locale = 'en' | 'te' | 'hi' | 'es' | 'fr' | 'de' | 'ar' | 'zh' | 'ru';
+export type Locale =
+  'en' | 'te' | 'hi' | 'es' | 'fr' | 'de' | 'ar' | 'zh' | 'ru';
 
 export interface LanguageInfo {
   code: Locale;
@@ -13,15 +14,39 @@ export interface LanguageInfo {
 }
 
 export const SUPPORTED_LANGUAGES: LanguageInfo[] = [
-  { code: 'en', name: 'English', nativeName: 'English', dir: 'ltr', flag: '🇺🇸' },
+  {
+    code: 'en',
+    name: 'English',
+    nativeName: 'English',
+    dir: 'ltr',
+    flag: '🇺🇸',
+  },
   { code: 'te', name: 'Telugu', nativeName: 'తెలుగు', dir: 'ltr', flag: '🇮🇳' },
   { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी', dir: 'ltr', flag: '🇮🇳' },
-  { code: 'es', name: 'Spanish', nativeName: 'Español', dir: 'ltr', flag: '🇪🇸' },
-  { code: 'fr', name: 'French', nativeName: 'Français', dir: 'ltr', flag: '🇫🇷' },
+  {
+    code: 'es',
+    name: 'Spanish',
+    nativeName: 'Español',
+    dir: 'ltr',
+    flag: '🇪🇸',
+  },
+  {
+    code: 'fr',
+    name: 'French',
+    nativeName: 'Français',
+    dir: 'ltr',
+    flag: '🇫🇷',
+  },
   { code: 'de', name: 'German', nativeName: 'Deutsch', dir: 'ltr', flag: '🇩🇪' },
   { code: 'ar', name: 'Arabic', nativeName: 'العربية', dir: 'rtl', flag: '🇸🇦' },
   { code: 'zh', name: 'Chinese', nativeName: '中文', dir: 'ltr', flag: '🇨🇳' },
-  { code: 'ru', name: 'Russian', nativeName: 'Русский', dir: 'ltr', flag: '🇷🇺' },
+  {
+    code: 'ru',
+    name: 'Russian',
+    nativeName: 'Русский',
+    dir: 'ltr',
+    flag: '🇷🇺',
+  },
 ];
 
 export const TRANSLATIONS: Record<Locale, Record<string, string>> = {
@@ -175,7 +200,7 @@ export const TRANSLATIONS: Record<Locale, Record<string, string>> = {
     circulars: 'Circulaires',
     hostels: 'Résidences',
     library: 'Bibliothèque',
-    examSeating: 'Placement d\'examen',
+    examSeating: "Placement d'examen",
     tools: 'Outils',
     compliance: 'Conformité et Accessibilité',
     privacyAndData: 'Confidentialité et Données',
@@ -384,7 +409,9 @@ export function useI18n() {
   }, []);
 
   const t = (key: string, defaultText?: string): string => {
-    return TRANSLATIONS[locale]?.[key] || TRANSLATIONS.en[key] || defaultText || key;
+    return (
+      TRANSLATIONS[locale]?.[key] || TRANSLATIONS.en[key] || defaultText || key
+    );
   };
 
   const changeLocale = (newLocale: Locale) => {
@@ -392,8 +419,17 @@ export function useI18n() {
     setLocaleState(newLocale);
   };
 
-  const currentLanguage = SUPPORTED_LANGUAGES.find((l) => l.code === locale) || SUPPORTED_LANGUAGES[0];
+  const currentLanguage =
+    SUPPORTED_LANGUAGES.find((l) => l.code === locale) ||
+    SUPPORTED_LANGUAGES[0];
   const isRtl = currentLanguage.dir === 'rtl';
 
-  return { locale, t, changeLocale, currentLanguage, isRtl, supportedLanguages: SUPPORTED_LANGUAGES };
+  return {
+    locale,
+    t,
+    changeLocale,
+    currentLanguage,
+    isRtl,
+    supportedLanguages: SUPPORTED_LANGUAGES,
+  };
 }

@@ -25,7 +25,7 @@ describe('Challenger M1 Schema Validation & .passthrough() Suite', () => {
       // Unmapped / Dynamic ERP columns
       'Faculty Name': 'Dr. Smith',
       'Section Code': 'S-10',
-      '__erp_meta_id': 998823,
+      __erp_meta_id: 998823,
     };
 
     const parsed = attendanceSubjectSchema.safeParse(rawERPPayload);
@@ -45,13 +45,20 @@ describe('Challenger M1 Schema Validation & .passthrough() Suite', () => {
     const validWithAttendanceData = {
       success: true,
       attendanceData: [
-        { 'Course Code': 'CS101', 'Attended Hours': '20', ExtraField: 'Value1' },
+        {
+          'Course Code': 'CS101',
+          'Attended Hours': '20',
+          ExtraField: 'Value1',
+        },
       ],
     };
     const parsed1 = attendanceResponseSchema.safeParse(validWithAttendanceData);
     assert.strictEqual(parsed1.success, true);
     if (parsed1.success && parsed1.data.attendanceData) {
-      assert.strictEqual(parsed1.data.attendanceData[0]['ExtraField'], 'Value1');
+      assert.strictEqual(
+        parsed1.data.attendanceData[0]['ExtraField'],
+        'Value1'
+      );
     }
 
     const validWithData = {
@@ -148,7 +155,7 @@ describe('Challenger M1 Schema Validation & .passthrough() Suite', () => {
       'Day / Period': 'Monday',
       '1': '23CS2101R-L - S-10 - Room 101',
       '2': '23CS2102R-P - S-10 - Lab 1',
-      'ArbitraryCol': 'ArbitraryVal',
+      ArbitraryCol: 'ArbitraryVal',
     };
 
     const parsedRaw = rawTimetableRowSchema.safeParse(rawRow);
@@ -194,6 +201,9 @@ describe('Challenger M1 Schema Validation & .passthrough() Suite', () => {
     assert.strictEqual(loginRequestSchema.safeParse(emptyPass).success, false);
 
     const emptyCaptcha = { ...validLogin, captcha: '' };
-    assert.strictEqual(loginRequestSchema.safeParse(emptyCaptcha).success, false);
+    assert.strictEqual(
+      loginRequestSchema.safeParse(emptyCaptcha).success,
+      false
+    );
   });
 });

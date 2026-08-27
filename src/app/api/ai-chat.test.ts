@@ -30,7 +30,10 @@ test('POST /api/ai/chat returns 400 Bad Request when messages array is missing',
 
   const json = await res.json();
   assert.strictEqual(json.success, false);
-  assert.strictEqual(json.error, 'Request body must contain a non-empty messages array');
+  assert.strictEqual(
+    json.error,
+    'Request body must contain a non-empty messages array'
+  );
 });
 
 test('POST /api/ai/chat processes natural language query and executes getAttendance tool', async () => {
@@ -80,7 +83,8 @@ test('POST /api/ai/chat handles session cookie propagation correctly', async () 
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Cookie: 'kl_erp_session=b64.eyJjb29raWVzIjpbXSwiY3NyZlRva2VuIjoiZGVtb19jc3JmXzEyMyJ9',
+      Cookie:
+        'kl_erp_session=b64.eyJjb29raWVzIjpbXSwiY3NyZlRva2VuIjoiZGVtb19jc3JmXzEyMyJ9',
     },
     body: JSON.stringify({
       messages: [{ role: 'user', content: 'What classes do I have today?' }],

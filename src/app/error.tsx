@@ -15,9 +15,10 @@ export default function RootError({
   }, [error]);
 
   const isDev = process.env.NODE_ENV === 'development';
-  const displayMessage = isDev && error?.message
-    ? error.message
-    : 'An unexpected application error occurred. Please try refreshing or logging in again.';
+  const displayMessage =
+    isDev && error?.message
+      ? error.message
+      : 'An unexpected application error occurred. Please try refreshing or logging in again.';
 
   return (
     <div className="min-h-[50vh] flex flex-col items-center justify-center p-6 text-center animate-up">

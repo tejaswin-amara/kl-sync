@@ -5,7 +5,12 @@ import { useNativeQuery } from '@/hooks/useNativeQuery';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Armchair, ChevronDown, ChevronUp, GraduationCap } from '@/components/ui/icons';
+import {
+  Armchair,
+  ChevronDown,
+  ChevronUp,
+  GraduationCap,
+} from '@/components/ui/icons';
 import { triggerHaptic } from '@/lib/fluid-motion';
 
 const fetcher = async (url: unknown) => {
@@ -32,7 +37,11 @@ function ExamSeatingMobileCard({ row }: { row: Record<string, unknown> }) {
   entries.forEach(([k, v]) => {
     const key = k.toLowerCase();
     if (key.includes('seat')) seatNo = String(v);
-    if (key.includes('course') || key.includes('subject') || key.includes('code')) {
+    if (
+      key.includes('course') ||
+      key.includes('subject') ||
+      key.includes('code')
+    ) {
       if (!course) course = String(v);
     }
   });
@@ -68,7 +77,11 @@ function ExamSeatingMobileCard({ row }: { row: Record<string, unknown> }) {
             aria-label={`Toggle details for ${course || String(primaryVal)}`}
             className="p-2 rounded-full hover:bg-surface-3 text-muted-foreground hover:text-foreground transition-all min-w-[44px] min-h-[44px] flex items-center justify-center -mr-1 -mt-1 touch-manipulation active:scale-90 cursor-pointer"
           >
-            {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            {expanded ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
           </button>
         )}
       </div>
@@ -77,8 +90,12 @@ function ExamSeatingMobileCard({ row }: { row: Record<string, unknown> }) {
         <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border">
           {secondaryEntries.map(([key, val]) => (
             <div key={key} className="min-w-0">
-              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{key}</div>
-              <div className="text-xs font-medium text-foreground truncate tracking-tight mt-0.5 tabular-numbers">{String(val)}</div>
+              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                {key}
+              </div>
+              <div className="text-xs font-medium text-foreground truncate tracking-tight mt-0.5 tabular-numbers">
+                {String(val)}
+              </div>
             </div>
           ))}
         </div>
@@ -87,9 +104,14 @@ function ExamSeatingMobileCard({ row }: { row: Record<string, unknown> }) {
       {expanded && remainingEntries.length > 0 && (
         <div className="pt-3 border-t border-border space-y-2 animate-spring-scale">
           {remainingEntries.map(([key, val]) => (
-            <div key={key} className="flex justify-between items-center text-xs py-1 border-b border-border/60 last:border-0">
+            <div
+              key={key}
+              className="flex justify-between items-center text-xs py-1 border-b border-border/60 last:border-0"
+            >
               <span className="text-muted-foreground font-medium">{key}</span>
-              <span className="text-foreground font-semibold text-right max-w-[60%] truncate tabular-numbers">{String(val)}</span>
+              <span className="text-foreground font-semibold text-right max-w-[60%] truncate tabular-numbers">
+                {String(val)}
+              </span>
             </div>
           ))}
         </div>
@@ -99,10 +121,12 @@ function ExamSeatingMobileCard({ row }: { row: Record<string, unknown> }) {
 }
 
 export default function ExamSeatingPage() {
-  const { data: rawData, isLoading: loading, error: fetchError, mutate } = useNativeQuery(
-    '/api/erp-proxy/exam-seating',
-    fetcher
-  );
+  const {
+    data: rawData,
+    isLoading: loading,
+    error: fetchError,
+    mutate,
+  } = useNativeQuery('/api/erp-proxy/exam-seating', fetcher);
   const data = rawData || [];
   const error = fetchError ? fetchError.message : null;
 
@@ -161,7 +185,10 @@ export default function ExamSeatingPage() {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {data.map((row, idx) => (
-                    <tr key={idx} className="hover:bg-surface-2 transition-colors">
+                    <tr
+                      key={idx}
+                      className="hover:bg-surface-2 transition-colors"
+                    >
                       {Object.values(row).map((val: unknown, j) => {
                         const colName = Object.keys(row)[j].toLowerCase();
                         let displayVal: React.ReactNode = String(val);

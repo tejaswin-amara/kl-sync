@@ -22,6 +22,7 @@ Instead, report it privately via email to **tejaswinamara@gmail.com**. You may o
 ## SLA Timeline
 
 We aim to adhere to the following timeline for security vulnerabilities:
+
 - **Day 0**: Vulnerability submitted.
 - **Days 1-3**: Triage and acknowledgment of the report.
 - **Days 4-14**: Remediation and patch development.
@@ -30,6 +31,7 @@ We aim to adhere to the following timeline for security vulnerabilities:
 ## Threat Model
 
 KL Sync operates as a stateless edge proxy. Our threat model focuses on:
+
 - **Session Encryption**: Protecting ephemeral credentials via AES-256-GCM.
 - **MITM (Man-in-the-Middle)**: Ensuring secure transit between the client, edge proxy, and upstream ERP.
 - **Supply Chain**: Maintaining zero-bloat, strict dependency minimization to reduce supply chain risks.
@@ -38,6 +40,7 @@ KL Sync operates as a stateless edge proxy. Our threat model focuses on:
 ## Out of Scope
 
 The following are considered out of scope for our bug bounty and vulnerability disclosure:
+
 - Social engineering (phishing, vishing, etc.) against KL Sync users or maintainers.
 - Physical access to user devices or servers.
 - Vulnerabilities in the upstream university ERP system itself (report those to the university).
@@ -46,6 +49,7 @@ The following are considered out of scope for our bug bounty and vulnerability d
 ## Security Architecture
 
 KL Sync is built with a security-first architecture:
+
 - **Stateless Edge**: No databases. No user data is stored persistently.
 - **AES-256-GCM**: Used via the Web Crypto API to securely encrypt session tokens.
 - **SSRF Protection**: Hardened fetch wrappers to prevent Server-Side Request Forgery against internal networks.

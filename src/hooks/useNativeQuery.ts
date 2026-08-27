@@ -66,7 +66,10 @@ export function clearGlobalCache(): void {
   }
 }
 
-function fetchWithDedupe<T>(keyStr: string, fetcherFn: () => Promise<T>): Promise<T> {
+function fetchWithDedupe<T>(
+  keyStr: string,
+  fetcherFn: () => Promise<T>
+): Promise<T> {
   const existing = inFlightDedupeMap.get(keyStr);
   if (existing) return existing as Promise<T>;
 
@@ -83,12 +86,17 @@ export function useNativeQuery<T>(
 ) {
   const url = Array.isArray(key) ? key[0] : key;
   const shouldFetch =
-    key !== null && url !== null && (Array.isArray(key) ? key.every(Boolean) : true);
+    key !== null &&
+    url !== null &&
+    (Array.isArray(key) ? key.every(Boolean) : true);
   const keyStr = getCacheKeyStr(key);
 
   const [data, setData] = useState<T | undefined>(undefined);
   const [error, setError] = useState<Error | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(() => Boolean(shouldFetch));
+  const [isLoading, setIsLoading] = useState<boolean>(() =>
+    Boolean(shouldFetch)
+  );
+  const [isStale, setIsStale] = useState(false);
 
   const mountedRef = useRef(true);
   const keyRef = useRef(key);
@@ -104,10 +112,9 @@ export function useNativeQuery<T>(
     };
   }, []);
 
-
   const mutate = useCallback(async () => {
     if (!shouldFetch || !url) return;
-    
+
     // Only show loading if we have no cached data at all
     const cached = getCachedValue<T>(keyRef.current);
     if (mountedRef.current && cached === undefined) {
@@ -115,17 +122,35 @@ export function useNativeQuery<T>(
     }
 
     try {
-      const result = await fetchWithDedupe(keyStr, () => fetcher(keyRef.current));
+      const result = await fetchWithDedupe(keyStr, () =>
+        fetcher(keyRef.current)
+      );
       setCachedValue(keyRef.current, result);
       if (mountedRef.current) {
         setData(result);
         setError(null);
+        setIsStale(false);
       }
     } catch (err: unknown) {
-      const normalizedError = err instanceof Error ? err : new Error(String(err));
-      if (/session expired|authentication required|sign in again/i.test(normalizedError.message)) {
+      const normalizedError =
+        err instanceof Error ? err : new Error(String(err));
+      const isSessionError =
+        /session expired|authentication required|sign in again/i.test(
+          normalizedError.message
+        );
+      if (isSessionError) {
         clearGlobalCache();
-        if (mountedRef.current) setData(undefined);
+        if (mountedRef.current) {
+          setData(undefined);
+          setIsStale(false);
+        }
+      } else if (mountedRef.current) {
+        // Transient error (502, 504, network): preserve stale cached data
+        const staleData = getCachedValue<T>(keyRef.current);
+        if (staleData !== undefined) {
+          setData(staleData);
+          setIsStale(true);
+        }
       }
       if (mountedRef.current) {
         setError(normalizedError);
@@ -143,5 +168,5 @@ export function useNativeQuery<T>(
     }
   }, [mutate, shouldFetch]);
 
-  return { data, error, isLoading, mutate };
+  return { data, error, isLoading, isStale, mutate };
 }

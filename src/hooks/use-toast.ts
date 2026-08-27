@@ -38,7 +38,9 @@ export function toast(props: Omit<ToastItem, 'id'>) {
 
 function subscribe(listener: () => void) {
   listeners.add(listener);
-  return () => { listeners.delete(listener); };
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 function getSnapshot() {
@@ -46,7 +48,11 @@ function getSnapshot() {
 }
 
 export function useToast() {
-  const activeToasts = React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  const activeToasts = React.useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getSnapshot
+  );
   return {
     toasts: activeToasts,
     toast,

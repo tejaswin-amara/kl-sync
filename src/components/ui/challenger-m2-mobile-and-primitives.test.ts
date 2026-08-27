@@ -5,10 +5,15 @@ import { renderToString } from 'react-dom/server';
 
 import ERPTablePage from '@/components/ERPTablePage';
 import { Toast } from '@/components/ui/toast';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet';
 
 describe('Adversarial M2 Mobile Layout & UI Components Verification', () => {
-
   describe('1. Dashboard Routes Mobile Card (<640px) vs Desktop Table (>=640px) Verification', () => {
     test('ERPTablePage renders desktop table (hidden sm:block) and mobile cards (block sm:hidden)', () => {
       // Mock ERP data array directly rendered via components
@@ -28,7 +33,12 @@ describe('Adversarial M2 Mobile Layout & UI Components Verification', () => {
 
     test('Mobile drawer buttons meet WCAG 44px minimum touch target size and aria-expanded accessibility', () => {
       // Test mobile card markup structure
-      const sampleRow = { 'Subject Code': 'CS301', 'Subject Title': 'Database Systems', Marks: '92', Grade: 'O' };
+      const sampleRow = {
+        'Subject Code': 'CS301',
+        'Subject Title': 'Database Systems',
+        Marks: '92',
+        Grade: 'O',
+      };
       // Verify button attributes when expanded/collapsed in card layout
       assert.ok(sampleRow['Subject Code']);
     });
@@ -50,7 +60,11 @@ describe('Adversarial M2 Mobile Layout & UI Components Verification', () => {
 
     test('Native tooltip title attributes provide accessible tooltips on interactive elements', () => {
       const html = renderToString(
-        React.createElement('button', { title: 'More info text', 'aria-label': 'More info' }, 'Info')
+        React.createElement(
+          'button',
+          { title: 'More info text', 'aria-label': 'More info' },
+          'Info'
+        )
       );
       assert.match(html, /title="More info text"/);
       assert.match(html, /aria-label="More info"/);
@@ -64,7 +78,11 @@ describe('Adversarial M2 Mobile Layout & UI Components Verification', () => {
           React.createElement(
             SheetContent,
             { side: 'right' },
-            React.createElement(SheetHeader, null, React.createElement(SheetTitle, null, 'Filter Options')),
+            React.createElement(
+              SheetHeader,
+              null,
+              React.createElement(SheetTitle, null, 'Filter Options')
+            ),
             React.createElement(SheetDescription, null, 'Select filters below')
           )
         )
@@ -78,7 +96,11 @@ describe('Adversarial M2 Mobile Layout & UI Components Verification', () => {
 
     test('Native search input provides 44px minimum touch targets and accessibility', () => {
       const html = renderToString(
-        React.createElement('input', { type: 'search', placeholder: 'Type a command...', className: 'min-h-[44px]' })
+        React.createElement('input', {
+          type: 'search',
+          placeholder: 'Type a command...',
+          className: 'min-h-[44px]',
+        })
       );
       assert.match(html, /placeholder="Type a command\.\.\."/);
       assert.match(html, /min-h-\[44px\]/);

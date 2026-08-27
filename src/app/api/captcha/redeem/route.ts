@@ -1,7 +1,7 @@
-import { validateChallenge } from "capjs-core";
-import { NextResponse } from "next/server";
-import { createHmac, randomBytes } from "node:crypto";
-import { consumeNonce, storeRedeemedToken, getCapSecret } from "@/lib/captcha";
+import { validateChallenge } from 'capjs-core';
+import { NextResponse } from 'next/server';
+import { createHmac, randomBytes } from 'node:crypto';
+import { consumeNonce, storeRedeemedToken, getCapSecret } from '@/lib/captcha';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     const secret = getCapSecret();
 
     const result = await validateChallenge(secret, body, {
-      scope: "login",
+      scope: 'login',
       consumeNonce,
       signToken: ({ scope, expires, iat }) => {
         const payload = JSON.stringify({
@@ -21,7 +21,9 @@ export async function POST(req: Request) {
           rnd: randomBytes(8).toString('hex'),
         });
         const b64 = Buffer.from(payload, 'utf8').toString('base64url');
-        const sig = createHmac('sha256', secret).update(b64).digest('base64url');
+        const sig = createHmac('sha256', secret)
+          .update(b64)
+          .digest('base64url');
         return `signed:${b64}.${sig}`;
       },
     });
@@ -36,9 +38,9 @@ export async function POST(req: Request) {
       },
     });
   } catch (error) {
-    console.error("Captcha redemption failed:", error);
+    console.error('Captcha redemption failed:', error);
     return NextResponse.json(
-      { success: false, error: "Failed to redeem captcha token" },
+      { success: false, error: 'Failed to redeem captcha token' },
       { status: 500 }
     );
   }

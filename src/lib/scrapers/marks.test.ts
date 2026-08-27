@@ -1,10 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  fetchMarksData,
-  fetchEndExamResults,
-  fetchCGPAData,
-} from './marks';
+import { fetchMarksData, fetchEndExamResults, fetchCGPAData } from './marks';
 import { ERP_ENDPOINTS, ERP_URL, ScraperSession } from './http-jar';
 
 describe('Marks Scraper Parameter Serialization & Dual Binding Suite', () => {
@@ -147,10 +143,7 @@ describe('Marks Scraper Parameter Serialization & Dual Binding Suite', () => {
         parsedBody.get('DynamicModel[academicyear]'),
         '2023-2024'
       );
-      assert.strictEqual(
-        parsedBody.get('DynamicModel[semester]'),
-        'ODD_SEM_1'
-      );
+      assert.strictEqual(parsedBody.get('DynamicModel[semester]'), 'ODD_SEM_1');
       assert.strictEqual(
         parsedBody.get('DynamicModel[semesterid]'),
         'ODD_SEM_1'
@@ -204,7 +197,10 @@ describe('Marks Scraper Parameter Serialization & Dual Binding Suite', () => {
     let capturedBody = '';
 
     const originalFetch = globalThis.fetch;
-    globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+    globalThis.fetch = async (
+      _input: RequestInfo | URL,
+      init?: RequestInit
+    ) => {
       if (init?.body instanceof URLSearchParams) {
         capturedBody = init.body.toString();
       }
@@ -264,7 +260,12 @@ describe('Marks Scraper Parameter Serialization & Dual Binding Suite', () => {
     };
 
     try {
-      const res = await fetchCGPAData(sampleSession, 'csrf_fallback', '2024-2025', '1');
+      const res = await fetchCGPAData(
+        sampleSession,
+        'csrf_fallback',
+        '2024-2025',
+        '1'
+      );
       assert.strictEqual(res.success, true);
       assert.strictEqual(fetchCalls.length, 2);
       assert.strictEqual(fetchCalls[0].method, 'POST');
@@ -279,7 +280,10 @@ describe('Marks Scraper Parameter Serialization & Dual Binding Suite', () => {
     let capturedBody = '';
 
     const originalFetch = globalThis.fetch;
-    globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+    globalThis.fetch = async (
+      _input: RequestInfo | URL,
+      init?: RequestInit
+    ) => {
       if (init?.body instanceof URLSearchParams) {
         capturedBody = init.body.toString();
       }
@@ -307,7 +311,10 @@ describe('Marks Scraper Parameter Serialization & Dual Binding Suite', () => {
     let capturedBody = '';
 
     const originalFetch = globalThis.fetch;
-    globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+    globalThis.fetch = async (
+      _input: RequestInfo | URL,
+      init?: RequestInit
+    ) => {
       if (init?.body instanceof URLSearchParams) {
         capturedBody = init.body.toString();
       }

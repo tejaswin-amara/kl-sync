@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { encodeSession, decodeSession, ScraperSession, SessionDecodeError } from './session';
+import {
+  encodeSession,
+  decodeSession,
+  ScraperSession,
+  SessionDecodeError,
+} from './session';
 
 test('Challenger M1 Session - Valid Sessions Roundtrip', async () => {
   // 1. Standard session
@@ -14,7 +19,10 @@ test('Challenger M1 Session - Valid Sessions Roundtrip', async () => {
   };
 
   const encodedStd = await encodeSession(standardSession);
-  assert.ok(encodedStd.startsWith('enc.'), 'Standard session encoding must start with enc.');
+  assert.ok(
+    encodedStd.startsWith('enc.'),
+    'Standard session encoding must start with enc.'
+  );
   const decodedStd = await decodeSession(encodedStd);
   assert.deepEqual(decodedStd, standardSession);
 
@@ -50,7 +58,10 @@ test('Challenger M1 Session - Valid Sessions Roundtrip', async () => {
     csrfToken: 'large_csrf_' + 'X'.repeat(5000),
     userAgent: 'Large User Agent ' + 'Y'.repeat(5000),
   };
-  await assert.rejects(() => encodeSession(largeSession), /maximum allowed size/);
+  await assert.rejects(
+    () => encodeSession(largeSession),
+    /maximum allowed size/
+  );
 });
 
 test('Challenger M1 Session - Invalid Tokens & Corrupted Payloads reject closed', async () => {
@@ -75,7 +86,7 @@ test('Challenger M1 Session - Invalid Tokens & Corrupted Payloads reject closed'
   const validToken = await encodeSession(validSession);
   const rawBase64 = validToken.slice(4);
   const rawBuffer = Buffer.from(rawBase64, 'base64');
-  
+
   // Flip bits in tag / ciphertext area
   rawBuffer[rawBuffer.length - 1] ^= 0xff;
   const tamperedToken = 'enc.' + rawBuffer.toString('base64');
@@ -114,11 +125,18 @@ test('Challenger M1 Session - Environment Secret Permutations & Key Mismatch', a
     };
     const encodedSecretA = await encodeSession(sampleSession);
     const decodedSecretA = await decodeSession(encodedSecretA);
-    assert.deepEqual(decodedSecretA, sampleSession, 'Custom SESSION_SECRET encode/decode roundtrip');
+    assert.deepEqual(
+      decodedSecretA,
+      sampleSession,
+      'Custom SESSION_SECRET encode/decode roundtrip'
+    );
 
     // Scenario B: Key mismatch (decode with Secret B)
     process.env.SESSION_SECRET = 'completely_different_secret_bbb_67890';
-    await assert.rejects(() => decodeSession(encodedSecretA), SessionDecodeError);
+    await assert.rejects(
+      () => decodeSession(encodedSecretA),
+      SessionDecodeError
+    );
 
     // Scenario C: Fallback secret (no env vars set)
     delete process.env.SESSION_SECRET;
@@ -132,16 +150,18 @@ test('Challenger M1 Session - Environment Secret Permutations & Key Mismatch', a
       sampleSession,
       'Encode/decode with default fallback secret key works'
     );
-
   } finally {
     // Restore original env state
-    if (originalEnvSecret !== undefined) process.env.SESSION_SECRET = originalEnvSecret;
+    if (originalEnvSecret !== undefined)
+      process.env.SESSION_SECRET = originalEnvSecret;
     else delete process.env.SESSION_SECRET;
 
-    if (originalNextAuthSecret !== undefined) process.env.NEXTAUTH_SECRET = originalNextAuthSecret;
+    if (originalNextAuthSecret !== undefined)
+      process.env.NEXTAUTH_SECRET = originalNextAuthSecret;
     else delete process.env.NEXTAUTH_SECRET;
 
-    if (originalVercelUrl !== undefined) process.env.VERCEL_URL = originalVercelUrl;
+    if (originalVercelUrl !== undefined)
+      process.env.VERCEL_URL = originalVercelUrl;
     else delete process.env.VERCEL_URL;
   }
 });

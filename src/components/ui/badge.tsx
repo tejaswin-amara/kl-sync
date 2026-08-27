@@ -59,7 +59,19 @@ const dotColorStyles: Record<string, string> = {
 };
 
 export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
-  ({ className, variant = 'default', size = 'md', dot, pulse, icon, children, ...props }, ref) => {
+  (
+    {
+      className,
+      variant = 'default',
+      size = 'md',
+      dot,
+      pulse,
+      icon,
+      children,
+      ...props
+    },
+    ref
+  ) => {
     return (
       <span
         ref={ref}

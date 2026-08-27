@@ -14,7 +14,8 @@ export function parseCurrency(val: unknown): number {
   let str = String(val).trim();
   if (!str || /^(n\/a|nil|none|null|undefined|-)$/i.test(str)) return 0;
 
-  const isNegative = /^\(.*\)$/.test(str) || /^-\s*\d/.test(str.replace(/^[^\d-]*/, ''));
+  const isNegative =
+    /^\(.*\)$/.test(str) || /^-\s*\d/.test(str.replace(/^[^\d-]*/, ''));
   str = str.replace(/\/-\s*$/, '').replace(/,/g, '');
   const match = str.match(/\d+(?:\.\d+)?/);
   if (!match) return 0;
@@ -117,9 +118,7 @@ export function findStatusKey(
 /**
  * Finds explicit due / balance column key (Tier 1).
  */
-function findExplicitDueKey(
-  row: Record<string, unknown>
-): string | undefined {
+function findExplicitDueKey(row: Record<string, unknown>): string | undefined {
   if (!row || typeof row !== 'object') return undefined;
 
   const keys = Object.keys(row);
@@ -187,9 +186,7 @@ function findExplicitDueKey(
  * while excluding paid/concession/scholarship/date/id columns.
  * Prioritizes explicit due/balance columns (Tier 1) over gross fee/total columns (Tier 2).
  */
-function findDueAmountKey(
-  row: Record<string, unknown>
-): string | undefined {
+function findDueAmountKey(row: Record<string, unknown>): string | undefined {
   if (!row || typeof row !== 'object') return undefined;
 
   const explicit = findExplicitDueKey(row);
@@ -350,7 +347,11 @@ export function isRowUnpaid(row: Record<string, unknown>): boolean {
       });
       const balanceKey = Object.keys(row).find((k) => {
         const norm = normalizeKey(k);
-        return norm.includes('balance') || norm.includes('pending') || norm.includes('remaining');
+        return (
+          norm.includes('balance') ||
+          norm.includes('pending') ||
+          norm.includes('remaining')
+        );
       });
 
       if (balanceKey) {
@@ -408,7 +409,11 @@ export function isRowUnpaid(row: Record<string, unknown>): boolean {
 function getPendingAmountForRow(row: Record<string, unknown>): number {
   const balanceKey = Object.keys(row).find((k) => {
     const norm = normalizeKey(k);
-    return norm.includes('balance') || norm.includes('pending') || norm.includes('remaining');
+    return (
+      norm.includes('balance') ||
+      norm.includes('pending') ||
+      norm.includes('remaining')
+    );
   });
   if (balanceKey) {
     const bal = parseCurrency(row[balanceKey]);

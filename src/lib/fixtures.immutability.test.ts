@@ -31,9 +31,16 @@ test('Adversarial Mutation Stress Test for Fixtures', async () => {
   const snapshotLoginResult = JSON.stringify(DEMO_LOGIN_RESULT);
 
   // 1. Invoke executeGetAttendance with filters
-  const attRes = await executeGetAttendance({ subject: 'OS' }, { isDemo: true });
+  const attRes = await executeGetAttendance(
+    { subject: 'OS' },
+    { isDemo: true }
+  );
   assert.ok(attRes.attendance.length > 0);
-  assert.strictEqual(JSON.stringify(DEMO_ATTENDANCE), snapshotAttendance, 'DEMO_ATTENDANCE was mutated during executeGetAttendance!');
+  assert.strictEqual(
+    JSON.stringify(DEMO_ATTENDANCE),
+    snapshotAttendance,
+    'DEMO_ATTENDANCE was mutated during executeGetAttendance!'
+  );
 
   // 2. Attempt mutation on returned array elements (checking if returns references vs clones)
   const attAll = await executeGetAttendance({}, { isDemo: true });
@@ -42,22 +49,38 @@ test('Adversarial Mutation Stress Test for Fixtures', async () => {
   // 3. Invoke executeGetTimetable with day filters
   const ttRes = await executeGetTimetable({ day: 'Monday' }, { isDemo: true });
   assert.ok(ttRes.schedule.length > 0);
-  assert.strictEqual(JSON.stringify(DEMO_TIMETABLE_RAW), snapshotTimetable, 'DEMO_TIMETABLE_RAW was mutated during executeGetTimetable!');
+  assert.strictEqual(
+    JSON.stringify(DEMO_TIMETABLE_RAW),
+    snapshotTimetable,
+    'DEMO_TIMETABLE_RAW was mutated during executeGetTimetable!'
+  );
 
   // 4. Invoke executeGetMarks
   const marksRes = await executeGetMarks({}, { isDemo: true });
   assert.strictEqual(marksRes.marks.length, 4);
-  assert.strictEqual(JSON.stringify(DEMO_MARKS), snapshotMarks, 'DEMO_MARKS was mutated during executeGetMarks!');
+  assert.strictEqual(
+    JSON.stringify(DEMO_MARKS),
+    snapshotMarks,
+    'DEMO_MARKS was mutated during executeGetMarks!'
+  );
 
   // 5. Invoke executeGetFeeDetails
   const feeRes = await executeGetFeeDetails({}, { isDemo: true });
   assert.ok(feeRes.breakdown.items.length > 0);
-  assert.strictEqual(JSON.stringify(DEMO_FEE_ITEMS), snapshotFeeItems, 'DEMO_FEE_ITEMS was mutated during executeGetFeeDetails!');
+  assert.strictEqual(
+    JSON.stringify(DEMO_FEE_ITEMS),
+    snapshotFeeItems,
+    'DEMO_FEE_ITEMS was mutated during executeGetFeeDetails!'
+  );
 
   // 6. Invoke executeGetStudentProfile
   const profileRes = await executeGetStudentProfile({}, { isDemo: true });
   assert.strictEqual(profileRes.profile.name, 'Alex Student');
-  assert.strictEqual(JSON.stringify(DEMO_PROFILE), snapshotProfile, 'DEMO_PROFILE was mutated during executeGetStudentProfile!');
+  assert.strictEqual(
+    JSON.stringify(DEMO_PROFILE),
+    snapshotProfile,
+    'DEMO_PROFILE was mutated during executeGetStudentProfile!'
+  );
 
   // 7. Invoke main executeTool router for all tools multiple times
   await executeTool('getAttendance', { subject: 'dsa' }, { isDemo: true });
@@ -67,12 +90,44 @@ test('Adversarial Mutation Stress Test for Fixtures', async () => {
   await executeTool('getStudentProfile', {}, { isDemo: true });
 
   // 8. Re-verify snapshot integrity after all executions
-  assert.strictEqual(JSON.stringify(DEMO_SESSION), snapshotSession, 'DEMO_SESSION mutated');
-  assert.strictEqual(JSON.stringify(DEMO_ATTENDANCE), snapshotAttendance, 'DEMO_ATTENDANCE mutated');
-  assert.strictEqual(JSON.stringify(DEMO_TIMETABLE_RAW), snapshotTimetable, 'DEMO_TIMETABLE_RAW mutated');
-  assert.strictEqual(JSON.stringify(DEMO_MARKS), snapshotMarks, 'DEMO_MARKS mutated');
-  assert.strictEqual(JSON.stringify(DEMO_FEE_ITEMS), snapshotFeeItems, 'DEMO_FEE_ITEMS mutated');
-  assert.strictEqual(JSON.stringify(DEMO_PROFILE), snapshotProfile, 'DEMO_PROFILE mutated');
-  assert.strictEqual(JSON.stringify(DEMO_CGPA), snapshotCGPA, 'DEMO_CGPA mutated');
-  assert.strictEqual(JSON.stringify(DEMO_LOGIN_RESULT), snapshotLoginResult, 'DEMO_LOGIN_RESULT mutated');
+  assert.strictEqual(
+    JSON.stringify(DEMO_SESSION),
+    snapshotSession,
+    'DEMO_SESSION mutated'
+  );
+  assert.strictEqual(
+    JSON.stringify(DEMO_ATTENDANCE),
+    snapshotAttendance,
+    'DEMO_ATTENDANCE mutated'
+  );
+  assert.strictEqual(
+    JSON.stringify(DEMO_TIMETABLE_RAW),
+    snapshotTimetable,
+    'DEMO_TIMETABLE_RAW mutated'
+  );
+  assert.strictEqual(
+    JSON.stringify(DEMO_MARKS),
+    snapshotMarks,
+    'DEMO_MARKS mutated'
+  );
+  assert.strictEqual(
+    JSON.stringify(DEMO_FEE_ITEMS),
+    snapshotFeeItems,
+    'DEMO_FEE_ITEMS mutated'
+  );
+  assert.strictEqual(
+    JSON.stringify(DEMO_PROFILE),
+    snapshotProfile,
+    'DEMO_PROFILE mutated'
+  );
+  assert.strictEqual(
+    JSON.stringify(DEMO_CGPA),
+    snapshotCGPA,
+    'DEMO_CGPA mutated'
+  );
+  assert.strictEqual(
+    JSON.stringify(DEMO_LOGIN_RESULT),
+    snapshotLoginResult,
+    'DEMO_LOGIN_RESULT mutated'
+  );
 });

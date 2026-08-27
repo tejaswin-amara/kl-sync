@@ -5,6 +5,7 @@ First off, thank you for considering contributing to KL Sync. It's people like y
 ## The Ponytail Philosophy
 
 KL Sync strictly adheres to the "Ponytail Philosophy":
+
 - **YAGNI (You Aren't Gonna Need It)**: Do not add features or complexity anticipating future needs.
 - **Stdlib over dependencies**: We prefer native web APIs, Node.js built-ins, and vanilla CSS over third-party libraries.
 - **Deletion over addition**: Removing code is better than adding code.
@@ -13,6 +14,7 @@ KL Sync strictly adheres to the "Ponytail Philosophy":
 ## Banned Dependencies
 
 Do **NOT** add the following dependencies. PRs introducing them will be rejected.
+
 - `lucide-react`, `@heroicons/react` (Use the native zero-runtime SVG library)
 - `swr`, `@tanstack/react-query` (Use native React features and Next.js data fetching)
 - `clsx`, `tailwind-merge` (Use template literals)

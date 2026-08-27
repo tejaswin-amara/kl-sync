@@ -26,7 +26,11 @@ export interface DialogProps {
   children?: React.ReactNode;
 }
 
-export function Dialog({ open: controlledOpen, onOpenChange, children }: DialogProps) {
+export function Dialog({
+  open: controlledOpen,
+  onOpenChange,
+  children,
+}: DialogProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : uncontrolledOpen;
@@ -60,7 +64,10 @@ export function DialogTrigger({
   return (
     <button
       type="button"
-      className={cn('touch-manipulation active:scale-95 transition-transform duration-[--duration-fast]', className)}
+      className={cn(
+        'touch-manipulation active:scale-95 transition-transform duration-[--duration-fast]',
+        className
+      )}
       onClick={() => setOpen(true)}
       {...props}
     >
@@ -109,6 +116,7 @@ export function DialogContent({
       <div
         role="dialog"
         aria-modal="true"
+        aria-labelledby={props['aria-labelledby']}
         className={cn(
           'relative z-50 w-full max-w-lg apple-modal rounded-[--radius-2xl] p-6 shadow-xl animate-spring-up',
           className
@@ -121,7 +129,7 @@ export function DialogContent({
             triggerHaptic('light');
             setOpen(false);
           }}
-          className="absolute right-4 top-4 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 text-muted-foreground transition-colors duration-[--duration-fast] hover:bg-surface-2 hover:text-foreground"
+          className="absolute end-4 top-4 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 text-muted-foreground transition-colors duration-[--duration-fast] hover:bg-surface-2 hover:text-foreground"
           aria-label="Close dialog"
         >
           <X className="w-4 h-4" />
@@ -132,33 +140,76 @@ export function DialogContent({
   );
 }
 
-export function DialogHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('flex flex-col space-y-1.5 text-left mb-4', className)} {...props} />;
-}
-
-export function DialogTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
-  return <h2 className={cn('text-lg font-semibold leading-tight tracking-[-0.015em] text-foreground font-heading', className)} {...props} />;
-}
-
-export function DialogDescription({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
-  return <p className={cn('text-xs text-muted-foreground/90 leading-relaxed font-normal', className)} {...props} />;
-}
-
-export function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+export function DialogHeader({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn('flex flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-6 pt-4 border-t border-border/40', className)}
+      className={cn('flex flex-col space-y-1.5 text-left mb-4', className)}
       {...props}
     />
   );
 }
 
-export function DialogClose({ children, className, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+export function DialogTitle({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLHeadingElement>) {
+  return (
+    <h2
+      className={cn(
+        'text-lg font-semibold leading-tight tracking-[-0.015em] text-foreground font-heading',
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+export function DialogDescription({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement>) {
+  return (
+    <p
+      className={cn(
+        'text-xs text-muted-foreground/90 leading-relaxed font-normal',
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+export function DialogFooter({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn(
+        'flex flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-6 pt-4 border-t border-border/40',
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+export function DialogClose({
+  children,
+  className,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   const { setOpen } = useDialog();
   return (
     <button
       type="button"
-      className={cn('touch-manipulation active:scale-95 transition-transform duration-[--duration-fast]', className)}
+      className={cn(
+        'touch-manipulation active:scale-95 transition-transform duration-[--duration-fast]',
+        className
+      )}
       onClick={() => {
         triggerHaptic('light');
         setOpen(false);

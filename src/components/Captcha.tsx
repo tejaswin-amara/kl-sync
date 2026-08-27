@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Loader2 } from '@/components/ui/icons';
-import { Badge } from "@/components/ui/badge";
-import type { CapWidget } from "cap-widget";
-import { triggerHaptic } from "@/lib/fluid-motion";
+import { Badge } from '@/components/ui/badge';
+import type { CapWidget } from 'cap-widget';
+import { triggerHaptic } from '@/lib/fluid-motion';
 
 const emptySubscribe = () => () => {};
 
@@ -23,7 +23,7 @@ export function Captcha({ onVerify }: { onVerify: (token: string) => void }) {
 
     let cleanup: (() => void) | undefined;
 
-    import("cap-widget")
+    import('cap-widget')
       .then(() => {
         const widget = widgetRef.current;
         if (!widget) return;
@@ -40,17 +40,17 @@ export function Captcha({ onVerify }: { onVerify: (token: string) => void }) {
         };
 
         const handleError = (e: Event) => {
-          console.warn("Cap widget error event:", e);
+          console.warn('Cap widget error event:', e);
           setVerified(false);
           setSolving(false);
         };
 
-        widget.addEventListener("solve", handleSolve);
-        widget.addEventListener("error", handleError);
+        widget.addEventListener('solve', handleSolve);
+        widget.addEventListener('error', handleError);
 
         cleanup = () => {
-          widget.removeEventListener("solve", handleSolve);
-          widget.removeEventListener("error", handleError);
+          widget.removeEventListener('solve', handleSolve);
+          widget.removeEventListener('error', handleError);
         };
 
         setSolving(true);
@@ -65,13 +65,13 @@ export function Captcha({ onVerify }: { onVerify: (token: string) => void }) {
             }
           })
           .catch((err) => {
-            console.warn("Auto CAPTCHA solve error:", err);
+            console.warn('Auto CAPTCHA solve error:', err);
             setVerified(false);
             setSolving(false);
           });
       })
       .catch((err) => {
-        console.warn("Failed to load cap-widget:", err);
+        console.warn('Failed to load cap-widget:', err);
         setVerified(false);
         setSolving(false);
       });
@@ -85,13 +85,14 @@ export function Captcha({ onVerify }: { onVerify: (token: string) => void }) {
 
   return (
     <div className="space-y-2">
-      <cap-widget
-        ref={widgetRef}
-        data-cap-api-endpoint="/api/captcha/"
-      />
+      <cap-widget ref={widgetRef} data-cap-api-endpoint="/api/captcha/" />
       <div className="flex items-center justify-between px-1">
         {verified ? (
-          <Badge variant="emerald" dot className="px-2.5 py-1 text-[11px] font-medium tracking-wide apple-pill">
+          <Badge
+            variant="emerald"
+            dot
+            className="px-2.5 py-1 text-[11px] font-medium tracking-wide apple-pill"
+          >
             Browser verification complete
           </Badge>
         ) : solving ? (

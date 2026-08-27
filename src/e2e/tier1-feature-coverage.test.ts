@@ -37,7 +37,11 @@ import {
   loginRequestSchema,
 } from '@/lib/schemas';
 import { encodeSession, decodeSession } from '@/lib/session';
-import { verifyCaptchaToken, consumeNonce, storeRedeemedToken } from '@/lib/captcha';
+import {
+  verifyCaptchaToken,
+  consumeNonce,
+  storeRedeemedToken,
+} from '@/lib/captcha';
 import { parseCurrency, calculatePendingFee } from '@/lib/fee-utils';
 import { mapGradeToPoints } from '@/lib/cgpa';
 
@@ -110,7 +114,9 @@ test('Tier 1 - Feature 2: Zod Runtime Schema Validation Contracts', () => {
 test('Tier 1 - Feature 3: Backend Scraper Resilience & Error Status Mapping', async () => {
   // Test proxy error handling for non-existent module
   const req = new NextRequest('http://localhost/api/erp-proxy/invalid-module');
-  const res = await handleErpProxyGet(req, { params: Promise.resolve({ module: 'invalid-module' }) });
+  const res = await handleErpProxyGet(req, {
+    params: Promise.resolve({ module: 'invalid-module' }),
+  });
   assert.strictEqual(res.status, 404);
   const json = await res.json();
   assert.strictEqual(json.success, false);
@@ -119,8 +125,12 @@ test('Tier 1 - Feature 3: Backend Scraper Resilience & Error Status Mapping', as
 
 test('Tier 1 - Feature 4: Profile Sub-tab Concurrency Queue Pool', async () => {
   // Verify ERP proxy profile fetch returns valid profile in demo session mode
-  const req = new NextRequest('http://localhost/api/erp-proxy/profile?csrfToken=demo_csrf');
-  const res = await handleErpProxyGet(req, { params: Promise.resolve({ module: 'profile' }) });
+  const req = new NextRequest(
+    'http://localhost/api/erp-proxy/profile?csrfToken=demo_csrf'
+  );
+  const res = await handleErpProxyGet(req, {
+    params: Promise.resolve({ module: 'profile' }),
+  });
   assert.strictEqual(res.status, 200);
 
   const json = await res.json();
@@ -155,26 +165,43 @@ test('Tier 1 - Feature 6: API Route & Security Tests (/api/login, /api/erp-proxy
   // 2. /api/login POST happy path demo login
   const loginReq = new NextRequest('http://localhost/api/login', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', cookie: captchaCookie || '' },
-    body: JSON.stringify({ username: '2100030000', password: 'password123', captcha: 'ABCD' }),
+    headers: {
+      'Content-Type': 'application/json',
+      cookie: captchaCookie || '',
+    },
+    body: JSON.stringify({
+      username: '2100030000',
+      password: 'password123',
+      captcha: 'ABCD',
+    }),
   });
   const loginRes = await handleLogin(loginReq);
   assert.strictEqual(loginRes.status, 200);
   const loginJson = await loginRes.json();
   assert.strictEqual(loginJson.success, true);
-  const authCookie = loginRes.headers.get('set-cookie')?.match(/kl_erp_session=[^;]+/)?.[0];
+  const authCookie = loginRes.headers
+    .get('set-cookie')
+    ?.match(/kl_erp_session=[^;]+/)?.[0];
   assert.ok(authCookie?.startsWith('kl_erp_session='));
 
   // 3. /api/erp-proxy/attendance GET demo mode
-  const proxyReq = new NextRequest('http://localhost/api/erp-proxy/attendance?academicYear=2025-2026&semesterId=1', { headers: { cookie: authCookie || '' } });
-  const proxyRes = await handleErpProxyGet(proxyReq, { params: Promise.resolve({ module: 'attendance' }) });
+  const proxyReq = new NextRequest(
+    'http://localhost/api/erp-proxy/attendance?academicYear=2025-2026&semesterId=1',
+    { headers: { cookie: authCookie || '' } }
+  );
+  const proxyRes = await handleErpProxyGet(proxyReq, {
+    params: Promise.resolve({ module: 'attendance' }),
+  });
   assert.strictEqual(proxyRes.status, 200);
   const proxyJson = await proxyRes.json();
   assert.strictEqual(proxyJson.success, true);
   assert.ok(Array.isArray(proxyJson.attendanceData));
 
   // 4. /api/fetch-photo GET demo photo endpoint validation
-  const photoReq = new NextRequest('http://localhost/api/fetch-photo?id=2100030000', { headers: { cookie: authCookie || '' } });
+  const photoReq = new NextRequest(
+    'http://localhost/api/fetch-photo?id=2100030000',
+    { headers: { cookie: authCookie || '' } }
+  );
   const photoRes = await handleFetchPhotoGet(photoReq);
   assert.ok(photoRes.status === 200 || photoRes.status === 404);
 });
@@ -273,16 +300,22 @@ test('Tier 1 - Feature 14: AI Copilot Widget & Executor Integration', async () =
 });
 
 test('Tier 1 - Feature 15: Natural Language Data Querying Intent Parser', async () => {
-  const resAtt = await processAIChat([{ role: 'user', content: 'What is my OS attendance?' }]);
+  const resAtt = await processAIChat([
+    { role: 'user', content: 'What is my OS attendance?' },
+  ]);
   assert.ok(resAtt.toolCalls && resAtt.toolCalls.length > 0);
   assert.strictEqual(resAtt.toolCalls[0].tool, 'getAttendance');
   assert.strictEqual(resAtt.toolCalls[0].args.subject, 'OS');
 
-  const resFee = await processAIChat([{ role: 'user', content: 'Show my fee balance and pending dues' }]);
+  const resFee = await processAIChat([
+    { role: 'user', content: 'Show my fee balance and pending dues' },
+  ]);
   assert.ok(resFee.toolCalls && resFee.toolCalls.length > 0);
   assert.strictEqual(resFee.toolCalls[0].tool, 'getFeeDetails');
 
-  const resTT = await processAIChat([{ role: 'user', content: 'What classes do I have tomorrow?' }]);
+  const resTT = await processAIChat([
+    { role: 'user', content: 'What classes do I have tomorrow?' },
+  ]);
   assert.ok(resTT.toolCalls && resTT.toolCalls.length > 0);
   assert.strictEqual(resTT.toolCalls[0].tool, 'getTimetable');
   assert.strictEqual(resTT.toolCalls[0].args.day, 'Tomorrow');

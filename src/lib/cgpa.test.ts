@@ -30,11 +30,11 @@ test('processERPDataForCGPA extracts official CGPA from profile data if missing 
 
 test('processERPDataForCGPA dynamically calculates weighted GPA from grade strings and credits', () => {
   const rawRows = [
-    { Grade: 'S', Credits: '4' },  // 10 * 4 = 40
+    { Grade: 'S', Credits: '4' }, // 10 * 4 = 40
     { Grade: 'A+', Credits: '4' }, // 9 * 4 = 36
-    { Grade: 'A', Credits: '3' },  // 8 * 3 = 24
+    { Grade: 'A', Credits: '3' }, // 8 * 3 = 24
     { Grade: 'B+', Credits: '3' }, // 7 * 3 = 21
-    { Grade: 'F', Credits: '2' },  // 0 * 2 = 0
+    { Grade: 'F', Credits: '2' }, // 0 * 2 = 0
   ];
   // Total points: 40 + 36 + 24 + 21 + 0 = 121
   // Total credits: 4 + 4 + 3 + 3 + 2 = 16
@@ -47,9 +47,9 @@ test('processERPDataForCGPA dynamically calculates weighted GPA from grade strin
 
 test('processERPDataForCGPA excludes non-credit/audit courses from calculation', () => {
   const rawRows = [
-    { Grade: 'O', Credits: '4' },    // 10 * 4 = 40
+    { Grade: 'O', Credits: '4' }, // 10 * 4 = 40
     { Grade: 'PASS', Credits: '0' }, // 0 credits -> ignored
-    { Grade: 'NC', Credits: '2' },   // Non-credit -> ignored grade
+    { Grade: 'NC', Credits: '2' }, // Non-credit -> ignored grade
   ];
   const result = processERPDataForCGPA(rawRows);
   assert.strictEqual(result.isOfficial, false);

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { decodeSession, isDemoModeEnabled, isDemoSession } from '@/lib/session';
-import { resolveSessionToken, checkRateLimitDistributed, getClientIP } from '@/lib/request-utils';
+import {
+  resolveSessionToken,
+  checkRateLimitDistributed,
+  getClientIP,
+} from '@/lib/request-utils';
 import {
   fetchAttendanceData,
   fetchTimetableData,
@@ -12,6 +16,7 @@ import {
   fetchGenericModuleData,
   ERP_ENDPOINTS,
   ScraperSession,
+  ERPRateLimitError,
 } from '@/lib/scraper';
 import {
   DEMO_SESSION,
@@ -24,6 +29,37 @@ import {
 } from '@/lib/fixtures';
 
 export const dynamic = 'force-dynamic';
+
+interface CacheEntry {
+  data: unknown;
+  timestamp: number;
+}
+const serverProxyCache = new Map<string, CacheEntry>();
+const inFlightProxyRequests = new Map<string, Promise<unknown>>();
+const sessionQueues = new Map<string, Promise<unknown>>();
+const lastRequestTime = new Map<string, number>();
+
+function throttleForSession<T>(
+  sessionKey: string,
+  fn: () => Promise<T>
+): Promise<T> {
+  const prev = sessionQueues.get(sessionKey) || Promise.resolve();
+  const next = prev.then(async () => {
+    const last = lastRequestTime.get(sessionKey) || 0;
+    const elapsed = Date.now() - last;
+    const minGap = 400; // Minimum 400ms between outbound ERP calls per session
+    if (elapsed < minGap) {
+      await new Promise((r) => setTimeout(r, minGap - elapsed));
+    }
+    lastRequestTime.set(sessionKey, Date.now());
+    return fn();
+  });
+  sessionQueues.set(
+    sessionKey,
+    next.catch(() => {})
+  );
+  return next;
+}
 
 function apiJson(data: unknown, init?: ResponseInit) {
   const headers = new Headers(init?.headers);
@@ -41,7 +77,11 @@ async function handleProxy(
     const moduleName = resolvedParams.module;
 
     const clientIP = getClientIP(request);
-    const rl = await checkRateLimitDistributed(`erp-proxy:${clientIP}`, 1000, 60_000);
+    const rl = await checkRateLimitDistributed(
+      `erp-proxy:${clientIP}`,
+      1000,
+      60_000
+    );
     if (!rl.allowed) {
       return apiJson(
         { success: false, error: 'Too many requests. Please slow down.' },
@@ -69,7 +109,10 @@ async function handleProxy(
 
     if (!sessionValue) {
       if (!demoMode) {
-        return apiJson({ success: false, error: 'Authentication required.' }, { status: 401 });
+        return apiJson(
+          { success: false, error: 'Authentication required.' },
+          { status: 401 }
+        );
       }
       session = DEMO_SESSION;
     } else {
@@ -79,7 +122,10 @@ async function handleProxy(
         if (demoMode && sessionValue.includes('demo')) {
           session = DEMO_SESSION;
         } else {
-          return apiJson({ success: false, error: 'Session expired. Please sign in again.' }, { status: 401 });
+          return apiJson(
+            { success: false, error: 'Session expired. Please sign in again.' },
+            { status: 401 }
+          );
         }
       }
     }
@@ -151,7 +197,10 @@ async function handleProxy(
     }
 
     if (isDemoSession(session) && !demoMode) {
-      return apiJson({ success: false, error: 'Authentication required.' }, { status: 401 });
+      return apiJson(
+        { success: false, error: 'Authentication required.' },
+        { status: 401 }
+      );
     }
 
     if (demoMode && isDemoSession(session)) {
@@ -262,92 +311,137 @@ async function handleProxy(
       }
     }
 
-    let result;
-
-    switch (moduleName) {
-      case 'attendance':
-        if (!academicYear || !semesterId)
-          return apiJson(
-            { success: false, error: 'Missing academicYear or semesterId' },
-            { status: 400 }
-          );
-        result = await fetchAttendanceData(
-          session,
-          resolvedCsrf,
-          academicYear,
-          semesterId
-        );
-        break;
-      case 'timetable':
-        if (!academicYear || !semesterId)
-          return apiJson(
-            { success: false, error: 'Missing academicYear or semesterId' },
-            { status: 400 }
-          );
-        result = await fetchTimetableData(
-          session,
-          resolvedCsrf,
-          academicYear,
-          semesterId
-        );
-        break;
-      case 'marks':
-        if (!academicYear || !semesterId)
-          return apiJson(
-            { success: false, error: 'Missing academicYear or semesterId' },
-            { status: 400 }
-          );
-        result = await fetchMarksData(
-          session,
-          resolvedCsrf,
-          academicYear,
-          semesterId
-        );
-        break;
-      case 'end-exam':
-        if (!academicYear || !semesterId)
-          return apiJson(
-            { success: false, error: 'Missing academicYear or semesterId' },
-            { status: 400 }
-          );
-        result = await fetchEndExamResults(
-          session,
-          resolvedCsrf,
-          academicYear,
-          semesterId
-        );
-        break;
-      case 'profile':
-        result = await fetchProfileData(session);
-        break;
-      case 'cgpa':
-        result = await fetchCGPAData(
-          session,
-          resolvedCsrf,
-          academicYear,
-          semesterId
-        );
-        break;
-      case 'fee':
-        result = await fetchFeeData(session);
-        break;
-      default:
-        // Handle generic GET requests using the ERP_ENDPOINTS map
-        if (ERP_ENDPOINTS[moduleName]) {
-          result = await fetchGenericModuleData(
+    const executeScraper = async () => {
+      let result;
+      switch (moduleName) {
+        case 'attendance':
+          if (!academicYear || !semesterId)
+            return apiJson(
+              { success: false, error: 'Missing academicYear or semesterId' },
+              { status: 400 }
+            );
+          result = await fetchAttendanceData(
             session,
-            ERP_ENDPOINTS[moduleName]
+            resolvedCsrf,
+            academicYear,
+            semesterId
           );
-        } else {
-          return apiJson(
-            { success: false, error: `Unknown module: ${moduleName}` },
-            { status: 404 }
+          break;
+        case 'timetable':
+          if (!academicYear || !semesterId)
+            return apiJson(
+              { success: false, error: 'Missing academicYear or semesterId' },
+              { status: 400 }
+            );
+          result = await fetchTimetableData(
+            session,
+            resolvedCsrf,
+            academicYear,
+            semesterId
           );
-        }
-        break;
+          break;
+        case 'marks':
+          if (!academicYear || !semesterId)
+            return apiJson(
+              { success: false, error: 'Missing academicYear or semesterId' },
+              { status: 400 }
+            );
+          result = await fetchMarksData(
+            session,
+            resolvedCsrf,
+            academicYear,
+            semesterId
+          );
+          break;
+        case 'end-exam':
+          if (!academicYear || !semesterId)
+            return apiJson(
+              { success: false, error: 'Missing academicYear or semesterId' },
+              { status: 400 }
+            );
+          result = await fetchEndExamResults(
+            session,
+            resolvedCsrf,
+            academicYear,
+            semesterId
+          );
+          break;
+        case 'profile':
+          result = await fetchProfileData(session);
+          break;
+        case 'cgpa':
+          result = await fetchCGPAData(
+            session,
+            resolvedCsrf,
+            academicYear,
+            semesterId
+          );
+          break;
+        case 'fee':
+          result = await fetchFeeData(session);
+          break;
+        default:
+          if (ERP_ENDPOINTS[moduleName]) {
+            result = await fetchGenericModuleData(
+              session,
+              ERP_ENDPOINTS[moduleName]
+            );
+          } else {
+            return apiJson(
+              { success: false, error: `Unknown module: ${moduleName}` },
+              { status: 404 }
+            );
+          }
+          break;
+      }
+      return result;
+    };
+
+    // If demo session, bypass queuing and caching
+    if (session === DEMO_SESSION) {
+      const demoResult = await executeScraper();
+      return demoResult instanceof NextResponse
+        ? demoResult
+        : apiJson(demoResult);
     }
 
-    return apiJson(result);
+    const sessionKey = sessionValue ? sessionValue.slice(0, 32) : 'anon';
+    const cacheKey = `${sessionKey}:${moduleName}:${academicYear || ''}:${semesterId || ''}`;
+
+    // 1. Check server-side memory cache (45s TTL)
+    const cached = serverProxyCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < 45_000) {
+      return apiJson(cached.data);
+    }
+
+    // 2. Check in-flight deduplication
+    const existingPromise = inFlightProxyRequests.get(cacheKey);
+    if (existingPromise) {
+      const dedupedResult = await existingPromise;
+      return dedupedResult instanceof NextResponse
+        ? dedupedResult
+        : apiJson(dedupedResult);
+    }
+
+    // 3. Queue and throttle request per student session (ensuring >= 400ms spacing to ERP)
+    const runPromise = throttleForSession(sessionKey, executeScraper);
+    inFlightProxyRequests.set(cacheKey, runPromise);
+
+    let result;
+    try {
+      result = await runPromise;
+      if (
+        result &&
+        typeof result === 'object' &&
+        !(result instanceof NextResponse)
+      ) {
+        serverProxyCache.set(cacheKey, { data: result, timestamp: Date.now() });
+      }
+    } finally {
+      inFlightProxyRequests.delete(cacheKey);
+    }
+
+    return result instanceof NextResponse ? result : apiJson(result);
   } catch (error: unknown) {
     let modName = 'unknown';
     try {
@@ -356,6 +450,32 @@ async function handleProxy(
     } catch {}
     console.error(`[erp-proxy/${modName}] Error:`, error);
     const errMessage = error instanceof Error ? error.message : '';
+
+    // 0. ERP Rate Limit Check -> 429 Too Many Requests
+    const isRateLimit =
+      error instanceof ERPRateLimitError ||
+      (error instanceof Error && error.name === 'ERPRateLimitError') ||
+      errMessage.includes('Too many requests') ||
+      errMessage.includes('Please try again in one minute') ||
+      errMessage.includes('HTTP 429');
+    if (isRateLimit) {
+      return apiJson(
+        {
+          success: false,
+          error:
+            'Too many requests on official college ERP. Please wait 1 minute before retrying.',
+          retryAfter: 60,
+          isRateLimit: true,
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': '60',
+            'Cache-Control': 'no-store, max-age=0',
+          },
+        }
+      );
+    }
 
     // 1. Session Expiration Check -> 401 Unauthorized
     const isSessionExpired =
@@ -394,7 +514,9 @@ async function handleProxy(
       {
         success: false,
         error: 'ERP Bad Gateway',
-        details: errMessage || 'The ERP service could not complete the request. Please try again later.',
+        details:
+          errMessage ||
+          'The ERP service could not complete the request. Please try again later.',
       },
       { status: 502 }
     );

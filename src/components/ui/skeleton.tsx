@@ -21,7 +21,8 @@ function Skeleton({
         variant === 'circle' && 'rounded-full',
         variant === 'text' && 'h-4 rounded-[--radius-sm]',
         variant === 'avatar' && 'w-10 h-10 rounded-full shrink-0',
-        variant === 'card' && 'h-32 w-full rounded-[--radius-xl] border border-border p-4',
+        variant === 'card' &&
+          'h-32 w-full rounded-[--radius-xl] border border-border p-4',
         variant === 'table-row' && 'h-12 w-full rounded-[--radius-md]',
         className
       )}
@@ -30,7 +31,10 @@ function Skeleton({
   );
 }
 
-function SkeletonCard({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+function SkeletonCard({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
@@ -45,19 +49,40 @@ function SkeletonCard({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
       </div>
       <Skeleton variant="text" className="w-2/3 h-4" animation="pulse" />
       <div className="pt-2 flex gap-2">
-        <Skeleton variant="text" className="w-16 h-6 rounded-full" animation="pulse" />
-        <Skeleton variant="text" className="w-20 h-6 rounded-full" animation="pulse" />
+        <Skeleton
+          variant="text"
+          className="w-16 h-6 rounded-full"
+          animation="pulse"
+        />
+        <Skeleton
+          variant="text"
+          className="w-20 h-6 rounded-full"
+          animation="pulse"
+        />
       </div>
     </div>
   );
 }
 
-function SkeletonTable({ rows = 4, className }: { rows?: number; className?: string }) {
+function SkeletonTable({
+  rows = 4,
+  className,
+}: {
+  rows?: number;
+  className?: string;
+}) {
   return (
     <div className={cn('w-full space-y-3', className)}>
-      <Skeleton variant="table-row" className="h-10 bg-surface-3/50 rounded-[--radius-lg]" />
+      <Skeleton
+        variant="table-row"
+        className="h-10 bg-surface-3/50 rounded-[--radius-lg]"
+      />
       {Array.from({ length: rows }).map((_, i) => (
-        <Skeleton key={i} variant="table-row" className="h-12 opacity-80 rounded-[--radius-lg]" />
+        <Skeleton
+          key={i}
+          variant="table-row"
+          className="h-12 opacity-80 rounded-[--radius-lg]"
+        />
       ))}
     </div>
   );

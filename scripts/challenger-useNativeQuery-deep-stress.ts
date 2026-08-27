@@ -6,7 +6,10 @@ import { chromium, Browser, Page } from 'playwright';
 describe('useNativeQuery Deep State & Concurrency Simulation', () => {
   // In-flight dedupe map simulation
   const inFlightDedupeMap = new Map<string, Promise<unknown>>();
-  function fetchWithDedupe<T>(keyStr: string, fetcherFn: () => Promise<T>): Promise<T> {
+  function fetchWithDedupe<T>(
+    keyStr: string,
+    fetcherFn: () => Promise<T>
+  ): Promise<T> {
     const existing = inFlightDedupeMap.get(keyStr);
     if (existing) return existing as Promise<T>;
 
@@ -25,15 +28,25 @@ describe('useNativeQuery Deep State & Concurrency Simulation', () => {
       return { key, data: 'result' };
     };
 
-    const keyStr = JSON.stringify(['/api/erp-proxy/attendance', '2025-2026', '1']);
+    const keyStr = JSON.stringify([
+      '/api/erp-proxy/attendance',
+      '2025-2026',
+      '1',
+    ]);
 
     // 10 concurrent requests
     const promises = Array.from({ length: 10 }).map(() =>
-      fetchWithDedupe(keyStr, () => slowFetcher(['/api/erp-proxy/attendance', '2025-2026', '1']))
+      fetchWithDedupe(keyStr, () =>
+        slowFetcher(['/api/erp-proxy/attendance', '2025-2026', '1'])
+      )
     );
 
     const results = await Promise.all(promises);
-    assert.strictEqual(executionCount, 1, 'Concurrent fetches for identical key must execute fetcher exactly once');
+    assert.strictEqual(
+      executionCount,
+      1,
+      'Concurrent fetches for identical key must execute fetcher exactly once'
+    );
     assert.strictEqual(results.length, 10);
     assert.strictEqual(results[0].data, 'result');
   });
@@ -46,8 +59,16 @@ describe('useNativeQuery Deep State & Concurrency Simulation', () => {
       return { key };
     };
 
-    const key1 = JSON.stringify(['/api/erp-proxy/attendance', '2025-2026', '1']);
-    const key2 = JSON.stringify(['/api/erp-proxy/attendance', '2025-2026', '2']);
+    const key1 = JSON.stringify([
+      '/api/erp-proxy/attendance',
+      '2025-2026',
+      '1',
+    ]);
+    const key2 = JSON.stringify([
+      '/api/erp-proxy/attendance',
+      '2025-2026',
+      '2',
+    ]);
     const key3 = JSON.stringify(['/api/erp-proxy/marks', '2025-2026', '1']);
 
     const [r1, r2, r3] = await Promise.all([
@@ -56,17 +77,27 @@ describe('useNativeQuery Deep State & Concurrency Simulation', () => {
       fetchWithDedupe(key3, () => fetcher(key3)),
     ]);
 
-    assert.strictEqual(executionCount, 3, 'Distinct keys must execute their respective fetchers');
+    assert.strictEqual(
+      executionCount,
+      3,
+      'Distinct keys must execute their respective fetchers'
+    );
     assert.notStrictEqual(r1, r2);
     assert.notStrictEqual(r2, r3);
   });
 
   test('shouldFetch correctly validates null, undefined, and partial tuple keys', () => {
-    const testCases: { key: string | null | readonly (string | null | undefined)[]; expected: boolean }[] = [
+    const testCases: {
+      key: string | null | readonly (string | null | undefined)[];
+      expected: boolean;
+    }[] = [
       { key: null, expected: false },
       { key: '/api/erp-proxy/fee', expected: true },
       { key: ['/api/erp-proxy/attendance', '2025-2026', '1'], expected: true },
-      { key: ['/api/erp-proxy/attendance', '2025-2026', null], expected: false },
+      {
+        key: ['/api/erp-proxy/attendance', '2025-2026', null],
+        expected: false,
+      },
       { key: ['/api/erp-proxy/attendance', null, '1'], expected: false },
       { key: ['/api/erp-proxy/attendance', '', '1'], expected: false },
       { key: ['/api/erp-proxy/attendance', '2025-2026', ''], expected: false },
@@ -75,7 +106,9 @@ describe('useNativeQuery Deep State & Concurrency Simulation', () => {
     for (const { key, expected } of testCases) {
       const url = Array.isArray(key) ? key[0] : key;
       const shouldFetch =
-        key !== null && url !== null && (Array.isArray(key) ? key.every(Boolean) : true);
+        key !== null &&
+        url !== null &&
+        (Array.isArray(key) ? key.every(Boolean) : true);
       assert.strictEqual(
         shouldFetch,
         expected,
@@ -192,11 +225,16 @@ describe('Browser Real-Interaction Dynamic Key Stress Suite', () => {
     });
 
     // 1. Initial load of Attendance (1 from Navigation prefetch + 1 from useAttendance)
-    await page.goto('http://localhost:3000/dashboard/attendance', { waitUntil: 'domcontentloaded' });
+    await page.goto('http://localhost:3000/dashboard/attendance', {
+      waitUntil: 'domcontentloaded',
+    });
     await page.waitForTimeout(1000);
 
     const initialReqCount = erpRequests.length;
-    assert.ok(initialReqCount >= 1 && initialReqCount <= 2, `Initial load must trigger 1-2 requests (including prefetch), got ${initialReqCount}`);
+    assert.ok(
+      initialReqCount >= 1 && initialReqCount <= 2,
+      `Initial load must trigger 1-2 requests (including prefetch), got ${initialReqCount}`
+    );
 
     // Verify post data contains initial session values
     if (erpRequests[0].postData) {
@@ -254,7 +292,11 @@ describe('Browser Real-Interaction Dynamic Key Stress Suite', () => {
       finalCount,
       `Request count must remain stable during idle (no loops), got ${erpRequests.length}`
     );
-    assert.strictEqual(consoleErrors.length, 0, `No console errors allowed: ${consoleErrors.join('; ')}`);
+    assert.strictEqual(
+      consoleErrors.length,
+      0,
+      `No console errors allowed: ${consoleErrors.join('; ')}`
+    );
 
     await context.close();
     await browser.close();
@@ -286,17 +328,29 @@ describe('Browser Real-Interaction Dynamic Key Stress Suite', () => {
     // Rapidly switch routes before fetch has a chance to settle
     for (let cycle = 0; cycle < 3; cycle++) {
       for (const route of routes) {
-        await page.goto(`http://localhost:3000${route}`, { waitUntil: 'commit' });
+        await page.goto(`http://localhost:3000${route}`, {
+          waitUntil: 'commit',
+        });
         await page.waitForTimeout(50); // fast unmount interruption
       }
     }
 
     // Finally land on attendance and let it settle
-    await page.goto('http://localhost:3000/dashboard/attendance', { waitUntil: 'domcontentloaded' });
+    await page.goto('http://localhost:3000/dashboard/attendance', {
+      waitUntil: 'domcontentloaded',
+    });
     await page.waitForTimeout(1000);
 
-    assert.strictEqual(pageErrors.length, 0, `Unmounted update page errors: ${pageErrors.join('; ')}`);
-    assert.strictEqual(consoleErrors.length, 0, `Console errors during rapid unmounts: ${consoleErrors.join('; ')}`);
+    assert.strictEqual(
+      pageErrors.length,
+      0,
+      `Unmounted update page errors: ${pageErrors.join('; ')}`
+    );
+    assert.strictEqual(
+      consoleErrors.length,
+      0,
+      `Console errors during rapid unmounts: ${consoleErrors.join('; ')}`
+    );
 
     await context.close();
     await browser.close();
@@ -315,23 +369,37 @@ describe('Browser Real-Interaction Dynamic Key Stress Suite', () => {
       }
     });
 
-    await page.goto('http://localhost:3000/dashboard/attendance', { waitUntil: 'domcontentloaded' });
+    await page.goto('http://localhost:3000/dashboard/attendance', {
+      waitUntil: 'domcontentloaded',
+    });
     await page.waitForTimeout(1000);
 
-    assert.ok(proxyReqCount >= 1 && proxyReqCount <= 2, `Initial count is 1-2, got ${proxyReqCount}`);
+    assert.ok(
+      proxyReqCount >= 1 && proxyReqCount <= 2,
+      `Initial count is 1-2, got ${proxyReqCount}`
+    );
 
     const countBeforeRefresh = proxyReqCount;
     // Trigger re-fetch if a refresh / reload button exists or by triggering mutate in window
-    const refreshBtn = page.getByRole('button', { name: /Refresh|Sync|Reload/i }).first();
+    const refreshBtn = page
+      .getByRole('button', { name: /Refresh|Sync|Reload/i })
+      .first();
     if (await refreshBtn.isVisible()) {
       await refreshBtn.click();
       await page.waitForTimeout(1000);
-      assert.strictEqual(proxyReqCount, countBeforeRefresh + 1, `Refresh click must trigger 1 additional request, got ${proxyReqCount}`);
+      assert.strictEqual(
+        proxyReqCount,
+        countBeforeRefresh + 1,
+        `Refresh click must trigger 1 additional request, got ${proxyReqCount}`
+      );
     }
 
     // Idle observe for 2 seconds
     await page.waitForTimeout(2000);
-    assert.ok(proxyReqCount <= countBeforeRefresh + 1, `Proxy requests did not cascade into infinite loop: total=${proxyReqCount}`);
+    assert.ok(
+      proxyReqCount <= countBeforeRefresh + 1,
+      `Proxy requests did not cascade into infinite loop: total=${proxyReqCount}`
+    );
 
     await context.close();
     await browser.close();

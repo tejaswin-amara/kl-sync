@@ -1,7 +1,7 @@
-name: "✨ Feature Request"
+name: '✨ Feature Request'
 description: Suggest a new feature or enhancement for KL Sync
-title: "[Feature]: "
-labels: ["enhancement", "triage"]
+title: '[Feature]: '
+labels: ['enhancement', 'triage']
 assignees:
   - tejaswin-amara
 body:
@@ -51,8 +51,8 @@ body:
       label: Ponytail Compliance
       description: Does this feature add new dependencies?
       options:
-        - "No new dependencies (Ponytail-compliant ✅)"
-        - "Requires new dependency (justify in description)"
+        - 'No new dependencies (Ponytail-compliant ✅)'
+        - 'Requires new dependency (justify in description)'
     validations:
       required: true
   - type: checkboxes

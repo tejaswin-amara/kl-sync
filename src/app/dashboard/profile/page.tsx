@@ -3,12 +3,18 @@
 
 import { useState } from 'react';
 import { useProfile } from '@/hooks/useProfile';
-import { Loader2, AlertCircle } from '@/components/ui/icons';
+import { Loader2 } from '@/components/ui/icons';
 import { triggerHaptic } from '@/lib/fluid-motion';
+import { EmptyState } from '@/components/ui/empty-state';
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<string | null>(null);
-  const { data: profileData, isLoading: loading, error: fetchError } = useProfile();
+  const {
+    data: profileData,
+    isLoading: loading,
+    error: fetchError,
+    mutate,
+  } = useProfile();
   const data = (profileData as Record<string, unknown>) || null;
   const error = fetchError ? fetchError.message : null;
 
@@ -31,15 +37,11 @@ export default function ProfilePage() {
           </span>
         </div>
       ) : error ? (
-        <div className="apple-card rounded-[--radius-2xl] min-h-[300px] flex flex-col items-center justify-center p-8 text-center shadow-xl border border-border">
-          <div className="w-16 h-16 rounded-[--radius-2xl] bg-destructive/15 border border-destructive/25 flex items-center justify-center text-destructive mb-4 shadow-inner">
-            <AlertCircle className="w-8 h-8" />
-          </div>
-          <p className="text-lg font-semibold text-destructive tracking-tight">Failed to load profile</p>
-          <p className="text-xs text-muted-foreground mt-2 max-w-md font-normal leading-relaxed">
-            {error}
-          </p>
-        </div>
+        <EmptyState
+          variant="error"
+          description={error}
+          action={{ label: 'Retry', onClick: () => mutate() }}
+        />
       ) : data ? (
         <div className="apple-card rounded-[--radius-2xl] shadow-2xl border border-border overflow-hidden">
           {/* Profile Header */}
@@ -274,7 +276,12 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
-      ) : null}
+      ) : (
+        <EmptyState
+          title="No profile data"
+          description="Profile information will appear once available from the ERP."
+        />
+      )}
     </div>
   );
 }

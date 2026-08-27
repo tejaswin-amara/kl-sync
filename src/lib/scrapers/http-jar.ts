@@ -32,7 +32,11 @@ export interface ScraperSession {
 export type CookieJar = Record<string, string>;
 
 export function getSetCookies(res: Response): string[] {
-  return res.headers.getSetCookie?.() ?? (res.headers.get('set-cookie')?.split(/,(?=\s*[^=;,]+=)/) ?? []);
+  return (
+    res.headers.getSetCookie?.() ??
+    res.headers.get('set-cookie')?.split(/,(?=\s*[^=;,]+=)/) ??
+    []
+  );
 }
 
 export function mergeSetCookies(jar: CookieJar, res: Response): void {
@@ -66,6 +70,28 @@ export function arrayToJar(
     if (c && c.name) jar[c.name] = c.value;
   }
   return jar;
+}
+
+export class ERPRateLimitError extends Error {
+  readonly retryAfter: number;
+  constructor(
+    message = 'Too many requests. Please try again in one minute.',
+    retryAfter = 60
+  ) {
+    super(message);
+    this.name = 'ERPRateLimitError';
+    this.retryAfter = retryAfter;
+  }
+}
+
+export function checkRateLimitText(html: string): void {
+  if (
+    html.includes('Too many requests') ||
+    html.includes('Please try again in one minute') ||
+    html.includes('try again in 1 minute')
+  ) {
+    throw new ERPRateLimitError();
+  }
 }
 
 export async function fetchWithJar(
@@ -107,6 +133,15 @@ export async function fetchWithJar(
     mergeSetCookies(jar, res);
 
     const status = res.status;
+    if (status === 429) {
+      const retryHeader = res.headers.get('Retry-After');
+      const retrySec = retryHeader ? parseInt(retryHeader, 10) || 60 : 60;
+      throw new ERPRateLimitError(
+        'Too many requests. Please try again in one minute.',
+        retrySec
+      );
+    }
+
     const location = res.headers.get('location');
     if (status >= 300 && status < 400 && location) {
       const nextUrl = new URL(location, currentUrl);

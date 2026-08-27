@@ -1,12 +1,16 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Form Submissions & Auto-Solving CAPTCHAs', () => {
-  test('Visual OCR CAPTCHA and Cap CAPTCHA auto-solve seamlessly on load and form submission', async ({ page }) => {
+  test('Visual OCR CAPTCHA and Cap CAPTCHA auto-solve seamlessly on load and form submission', async ({
+    page,
+  }) => {
     // 1. Navigate to login page and await initial captcha response
-    const captchaPromise = page.waitForResponse(
-      (res) => res.url().includes('/api/captcha') && res.status() === 200,
-      { timeout: 15000 }
-    ).catch(() => null);
+    const captchaPromise = page
+      .waitForResponse(
+        (res) => res.url().includes('/api/captcha') && res.status() === 200,
+        { timeout: 15000 }
+      )
+      .catch(() => null);
 
     await page.goto('/');
     await captchaPromise;
@@ -15,7 +19,9 @@ test.describe('Form Submissions & Auto-Solving CAPTCHAs', () => {
     const studentIdInput = page.locator('#student-id-field');
     const passwordInput = page.locator('#password-field');
     const captchaInput = page.locator('#captcha-field');
-    const submitBtn = page.getByRole('button', { name: /Sign in|Continue to Dashboard/i });
+    const submitBtn = page.getByRole('button', {
+      name: /Sign in|Continue to Dashboard/i,
+    });
 
     await expect(studentIdInput).toBeVisible();
     await expect(passwordInput).toBeVisible();

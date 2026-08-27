@@ -37,14 +37,22 @@ test('executeTool: getAttendance returns structured attendance dataset', async (
 });
 
 test('executeTool: getAttendance with subject filter filters correctly', async () => {
-  const result = await executeTool('getAttendance', { subject: 'OS' }, { isDemo: true });
+  const result = await executeTool(
+    'getAttendance',
+    { subject: 'OS' },
+    { isDemo: true }
+  );
   assert.strictEqual(result.success, true);
 
   const res = result.result as {
     attendance: Array<{ 'Course Title': string; 'Course Code': string }>;
   };
   assert.ok(Array.isArray(res.attendance));
-  assert.ok(res.attendance.some((item) => item['Course Title'].includes('Operating Systems')));
+  assert.ok(
+    res.attendance.some((item) =>
+      item['Course Title'].includes('Operating Systems')
+    )
+  );
 });
 
 test('executeTool: getTimetable returns normalized class sessions', async () => {
@@ -143,25 +151,34 @@ test('executePredictCGPA: computes weighted predicted CGPA correctly', () => {
 });
 
 test('processAIChat: correctly resolves tools via Vercel AI SDK for natural language queries', async () => {
-  const c1 = await processAIChat([{ role: 'user', content: 'What is my attendance in OS?' }]);
+  const c1 = await processAIChat([
+    { role: 'user', content: 'What is my attendance in OS?' },
+  ]);
   assert.ok(c1.toolCalls && c1.toolCalls.length > 0);
   assert.strictEqual(c1.toolCalls[0].tool, 'getAttendance');
   assert.strictEqual(c1.toolCalls[0].args.subject, 'OS');
 
-  const c2 = await processAIChat([{ role: 'user', content: 'Show fee breakdown' }]);
+  const c2 = await processAIChat([
+    { role: 'user', content: 'Show fee breakdown' },
+  ]);
   assert.ok(c2.toolCalls && c2.toolCalls.length > 0);
   assert.strictEqual(c2.toolCalls[0].tool, 'getFeeDetails');
 
-  const c3 = await processAIChat([{ role: 'user', content: 'What classes do I have today?' }]);
+  const c3 = await processAIChat([
+    { role: 'user', content: 'What classes do I have today?' },
+  ]);
   assert.ok(c3.toolCalls && c3.toolCalls.length > 0);
   assert.strictEqual(c3.toolCalls[0].tool, 'getTimetable');
 
-  const c4 = await processAIChat([{ role: 'user', content: 'How many classes can I miss in OS?' }]);
+  const c4 = await processAIChat([
+    { role: 'user', content: 'How many classes can I miss in OS?' },
+  ]);
   assert.ok(c4.toolCalls && c4.toolCalls.length > 0);
   assert.strictEqual(c4.toolCalls[0].tool, 'calculateAttendanceTarget');
 
-  const c5 = await processAIChat([{ role: 'user', content: 'Predict CGPA for next semester' }]);
+  const c5 = await processAIChat([
+    { role: 'user', content: 'Predict CGPA for next semester' },
+  ]);
   assert.ok(c5.toolCalls && c5.toolCalls.length > 0);
   assert.strictEqual(c5.toolCalls[0].tool, 'predictCGPA');
 });
-

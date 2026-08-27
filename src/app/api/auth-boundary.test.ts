@@ -22,14 +22,20 @@ test('protected ERP, AI, and photo routes reject missing sessions', async () => 
     );
     assert.equal(erpResponse.status, 401);
 
-    const aiResponse = await handleAiChat(new NextRequest('http://localhost/api/ai/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ role: 'user', content: 'Show my attendance' }] }),
-    }));
+    const aiResponse = await handleAiChat(
+      new NextRequest('http://localhost/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: 'Show my attendance' }],
+        }),
+      })
+    );
     assert.equal(aiResponse.status, 401);
 
-    const photoResponse = await handlePhoto(new Request('http://localhost/api/fetch-photo?id=2100030000'));
+    const photoResponse = await handlePhoto(
+      new Request('http://localhost/api/fetch-photo?id=2100030000')
+    );
     assert.equal(photoResponse.status, 401);
   });
 });
@@ -37,7 +43,9 @@ test('protected ERP, AI, and photo routes reject missing sessions', async () => 
 test('protected ERP routes reject malformed session cookies', async () => {
   await withoutDemoMode(async () => {
     const response = await handleErpProxy(
-      new NextRequest('http://localhost/api/erp-proxy/profile', { headers: { cookie: 'kl_erp_session=enc.corrupted' } }),
+      new NextRequest('http://localhost/api/erp-proxy/profile', {
+        headers: { cookie: 'kl_erp_session=enc.corrupted' },
+      }),
       { params: Promise.resolve({ module: 'profile' }) }
     );
     assert.equal(response.status, 401);

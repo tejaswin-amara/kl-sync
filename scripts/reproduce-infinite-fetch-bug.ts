@@ -2,7 +2,9 @@ import { chromium } from 'playwright';
 
 async function reproduce() {
   console.log('='.repeat(80));
-  console.log('🔍 EMPIRICAL REPRODUCTION: useNativeQuery Infinite Request Loop');
+  console.log(
+    '🔍 EMPIRICAL REPRODUCTION: useNativeQuery Infinite Request Loop'
+  );
   console.log('='.repeat(80));
 
   const browser = await chromium.launch({ headless: true });
@@ -24,15 +26,27 @@ async function reproduce() {
     window.localStorage.setItem('kl_student_name', 'Alex Student');
     window.localStorage.setItem('kl_erp_year', '2025-2026');
     window.localStorage.setItem('kl_erp_sem', '1');
-    window.localStorage.setItem('kl_erp_academic_years', JSON.stringify([{ value: '2025-2026', label: '2025-2026' }]));
-    window.localStorage.setItem('kl_erp_semesters', JSON.stringify([{ value: '1', label: 'Odd Semester' }]));
+    window.localStorage.setItem(
+      'kl_erp_academic_years',
+      JSON.stringify([{ value: '2025-2026', label: '2025-2026' }])
+    );
+    window.localStorage.setItem(
+      'kl_erp_semesters',
+      JSON.stringify([{ value: '1', label: 'Odd Semester' }])
+    );
     window.localStorage.setItem('kl_erp_csrf_token', 'demo_csrf_token_123');
     window.sessionStorage.setItem('kl_erp_session_id', 'demo_session_123');
     window.sessionStorage.setItem('kl_erp_csrf_token', 'demo_csrf_token_123');
     window.sessionStorage.setItem('kl_erp_year', '2025-2026');
     window.sessionStorage.setItem('kl_erp_sem', '1');
-    window.sessionStorage.setItem('kl_erp_academic_years', JSON.stringify([{ value: '2025-2026', label: '2025-2026' }]));
-    window.sessionStorage.setItem('kl_erp_semesters', JSON.stringify([{ value: '1', label: 'Odd Semester' }]));
+    window.sessionStorage.setItem(
+      'kl_erp_academic_years',
+      JSON.stringify([{ value: '2025-2026', label: '2025-2026' }])
+    );
+    window.sessionStorage.setItem(
+      'kl_erp_semesters',
+      JSON.stringify([{ value: '1', label: 'Odd Semester' }])
+    );
   });
 
   let requestCount = 0;
@@ -54,7 +68,9 @@ async function reproduce() {
   });
 
   console.log('Navigating to http://localhost:3000/dashboard/attendance...');
-  await page.goto('http://localhost:3000/dashboard/attendance', { waitUntil: 'domcontentloaded' });
+  await page.goto('http://localhost:3000/dashboard/attendance', {
+    waitUntil: 'domcontentloaded',
+  });
 
   // Observe for 3 seconds
   console.log('Observing network requests over 3000ms window...');
@@ -63,13 +79,17 @@ async function reproduce() {
   await browser.close();
 
   console.log(`\nResults:`);
-  console.log(`Total /api/erp-proxy/ requests intercepted in 3s: ${requestCount}`);
+  console.log(
+    `Total /api/erp-proxy/ requests intercepted in 3s: ${requestCount}`
+  );
   console.log(`Console errors captured: ${consoleErrors.length}`);
   if (consoleErrors.length > 0) {
     console.log(`Sample console error:`, consoleErrors[0]);
   }
   if (requestCount > 5) {
-    console.log(`\n❌ CONFIRMED BUG: Page generated ${requestCount} network requests in 3 seconds (expected 1 request).`);
+    console.log(
+      `\n❌ CONFIRMED BUG: Page generated ${requestCount} network requests in 3 seconds (expected 1 request).`
+    );
   } else {
     console.log(`\n✓ Normal behavior: ${requestCount} requests.`);
   }

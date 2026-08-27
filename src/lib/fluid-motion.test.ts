@@ -18,7 +18,10 @@ describe('Apple Fluid Motion Physics & Algorithms', () => {
 
     // Snappy decelerationRate (0.99) projects shorter distance
     const p2 = project(1000, 0.99);
-    assert.ok(p2 < p1, 'Higher deceleration should result in shorter projected distance');
+    assert.ok(
+      p2 < p1,
+      'Higher deceleration should result in shorter projected distance'
+    );
 
     // Negative flick projects negative distance
     const pNeg = project(-800, 0.998);
@@ -30,12 +33,18 @@ describe('Apple Fluid Motion Physics & Algorithms', () => {
 
     // Past boundary, rubber-banded value is strictly less than overshoot
     const r100 = rubberband(100, 300, 0.55);
-    assert.ok(r100 > 0 && r100 < 100, `Rubberband for 100px overshoot should be < 100, got ${r100}`);
+    assert.ok(
+      r100 > 0 && r100 < 100,
+      `Rubberband for 100px overshoot should be < 100, got ${r100}`
+    );
 
     // Diminishing returns: doubling overshoot produces less than double output
     const r200 = rubberband(200, 300, 0.55);
     assert.ok(r200 > r100, 'Larger overshoot gives larger dampened offset');
-    assert.ok(r200 < 2 * r100, 'Resistance curve must be concave (progressive dampening)');
+    assert.ok(
+      r200 < 2 * r100,
+      'Resistance curve must be concave (progressive dampening)'
+    );
 
     // Negative overshoot retains sign
     const rNeg = rubberband(-100, 300, 0.55);

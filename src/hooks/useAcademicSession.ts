@@ -62,12 +62,14 @@ export function useAcademicSession() {
         ];
 
         const finalYears = parsedYears.length > 0 ? parsedYears : DEFAULT_YEARS;
-        const finalSems = parsedSems.length > 0 ? parsedSems : DEFAULT_SEMESTERS;
+        const finalSems =
+          parsedSems.length > 0 ? parsedSems : DEFAULT_SEMESTERS;
 
         // Restore from localStorage or pick the first available option
         const savedYear = localStorage.getItem(LS_ERP_YEAR);
         const targetYear =
-          savedYear || (finalYears.length > 0 ? finalYears[0].value : '2025-2026');
+          savedYear ||
+          (finalYears.length > 0 ? finalYears[0].value : '2025-2026');
 
         const savedSem = localStorage.getItem(LS_ERP_SEM);
         const targetSem =

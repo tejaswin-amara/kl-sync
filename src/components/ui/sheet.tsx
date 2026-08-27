@@ -3,7 +3,12 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { X } from '@/components/ui/icons';
-import { project, rubberband, createVelocityTracker, triggerHaptic } from '@/lib/fluid-motion';
+import {
+  project,
+  rubberband,
+  createVelocityTracker,
+  triggerHaptic,
+} from '@/lib/fluid-motion';
 
 interface SheetContextType {
   open: boolean;
@@ -12,7 +17,9 @@ interface SheetContextType {
   descriptionId: string;
 }
 
-const SheetContext = React.createContext<SheetContextType | undefined>(undefined);
+const SheetContext = React.createContext<SheetContextType | undefined>(
+  undefined
+);
 
 function useSheetContext() {
   const context = React.useContext(SheetContext);
@@ -28,7 +35,11 @@ export interface SheetProps {
   children?: React.ReactNode;
 }
 
-export function Sheet({ open: controlledOpen, onOpenChange, children }: SheetProps) {
+export function Sheet({
+  open: controlledOpen,
+  onOpenChange,
+  children,
+}: SheetProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : uncontrolledOpen;
@@ -71,7 +82,10 @@ export const SheetTrigger = React.forwardRef<
         onClick?.(e);
         setOpen(!open);
       }}
-      className={cn('inline-flex items-center justify-center min-w-[44px] min-h-[44px] touch-manipulation active:scale-95 transition-transform duration-[--duration-fast]', className)}
+      className={cn(
+        'inline-flex items-center justify-center min-w-[44px] min-h-[44px] touch-manipulation active:scale-95 transition-transform duration-[--duration-fast]',
+        className
+      )}
       {...props}
     >
       {children}
@@ -114,7 +128,12 @@ export const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
       if (side !== 'bottom') return;
       // Only initiate gesture drag if grabbed near top header / handle
       const target = e.target as HTMLElement;
-      if (target.closest('button') || target.closest('input') || target.closest('select')) return;
+      if (
+        target.closest('button') ||
+        target.closest('input') ||
+        target.closest('select')
+      )
+        return;
 
       const rect = sheetRef.current?.getBoundingClientRect();
       if (!rect) return;
@@ -159,7 +178,10 @@ export const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
     if (!open) return null;
 
     const dragStyle = isDragging
-      ? { transform: `translateY(${Math.max(dragOffset, -40)}px)`, transition: 'none' }
+      ? {
+          transform: `translateY(${Math.max(dragOffset, -40)}px)`,
+          transition: 'none',
+        }
       : { transform: undefined };
 
     return (
@@ -187,7 +209,9 @@ export const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
           ref={(node) => {
             sheetRef.current = node;
             if (typeof ref === 'function') ref(node);
-            else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+            else if (ref)
+              (ref as React.MutableRefObject<HTMLDivElement | null>).current =
+                node;
           }}
           role="dialog"
           aria-modal="true"
@@ -200,15 +224,21 @@ export const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
           style={dragStyle}
           className={cn(
             'fixed z-50 flex flex-col gap-4 apple-sheet p-6 shadow-xl transition-all duration-[--duration-normal] ease-[--ease-spring-sheet]',
-            side === 'right' && 'inset-y-0 right-0 h-full w-3/4 max-w-sm border-l border-border animate-slide-in-right rounded-l-2xl',
-            side === 'left' && 'inset-y-0 left-0 h-full w-3/4 max-w-sm border-r border-border animate-slide-in-left rounded-r-2xl',
-            side === 'top' && 'inset-x-0 top-0 w-full border-b border-border animate-slide-in-top rounded-b-2xl',
-            side === 'bottom' && 'inset-x-0 bottom-0 w-full border-t border-border animate-sheet-enter rounded-t-[28px] max-h-[92vh]',
+            side === 'right' &&
+              'inset-y-0 right-0 h-full w-3/4 max-w-sm border-l border-border animate-slide-in-right rounded-l-2xl',
+            side === 'left' &&
+              'inset-y-0 left-0 h-full w-3/4 max-w-sm border-r border-border animate-slide-in-left rounded-r-2xl',
+            side === 'top' &&
+              'inset-x-0 top-0 w-full border-b border-border animate-slide-in-top rounded-b-2xl',
+            side === 'bottom' &&
+              'inset-x-0 bottom-0 w-full border-t border-border animate-sheet-enter rounded-t-[28px] max-h-[92vh]',
             className
           )}
           {...props}
         >
-          {side === 'bottom' && <div className="drag-handle" aria-hidden="true" />}
+          {side === 'bottom' && (
+            <div className="drag-handle" aria-hidden="true" />
+          )}
           {children}
           <button
             type="button"
@@ -228,33 +258,78 @@ export const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
 );
 SheetContent.displayName = 'SheetContent';
 
-export function SheetHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('flex flex-col space-y-1.5 text-left', className)} {...props} />;
+export function SheetHeader({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn('flex flex-col space-y-1.5 text-left', className)}
+      {...props}
+    />
+  );
 }
 
-export function SheetTitle({ className, children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
+export function SheetTitle({
+  className,
+  children,
+  ...props
+}: React.HTMLAttributes<HTMLHeadingElement>) {
   const { titleId } = useSheetContext();
   return (
-    <h2 id={titleId} className={cn('text-lg font-semibold text-foreground tracking-[-0.015em] font-heading', className)} {...props}>
+    <h2
+      id={titleId}
+      className={cn(
+        'text-lg font-semibold text-foreground tracking-[-0.015em] font-heading',
+        className
+      )}
+      {...props}
+    >
       {children}
     </h2>
   );
 }
 
-export function SheetDescription({ className, children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
+export function SheetDescription({
+  className,
+  children,
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement>) {
   const { descriptionId } = useSheetContext();
   return (
-    <p id={descriptionId} className={cn('text-xs text-muted-foreground/90 leading-relaxed font-normal', className)} {...props}>
+    <p
+      id={descriptionId}
+      className={cn(
+        'text-xs text-muted-foreground/90 leading-relaxed font-normal',
+        className
+      )}
+      {...props}
+    >
       {children}
     </p>
   );
 }
 
-export function SheetFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 mt-auto pt-4 border-t border-border/40', className)} {...props} />;
+export function SheetFooter({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn(
+        'flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 mt-auto pt-4 border-t border-border/40',
+        className
+      )}
+      {...props}
+    />
+  );
 }
 
-export function SheetClose({ className, children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+export function SheetClose({
+  className,
+  children,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   const { setOpen } = useSheetContext();
   return (
     <button
@@ -263,7 +338,10 @@ export function SheetClose({ className, children, ...props }: React.ButtonHTMLAt
         triggerHaptic('light');
         setOpen(false);
       }}
-      className={cn('inline-flex items-center justify-center min-w-[44px] min-h-[44px] touch-manipulation active:scale-95 transition-transform duration-[--duration-fast]', className)}
+      className={cn(
+        'inline-flex items-center justify-center min-w-[44px] min-h-[44px] touch-manipulation active:scale-95 transition-transform duration-[--duration-fast]',
+        className
+      )}
       {...props}
     >
       {children}

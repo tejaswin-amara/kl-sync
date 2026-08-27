@@ -26,17 +26,30 @@ async function feeFetcher(url: unknown) {
 }
 
 export function useFee(): UseFeeResult {
-  const { data: rawData, error, isLoading, mutate } = useNativeQuery<FeeItem[]>('/api/erp-proxy/fee', feeFetcher);
+  const {
+    data: rawData,
+    error,
+    isLoading,
+    mutate,
+  } = useNativeQuery<FeeItem[]>('/api/erp-proxy/fee', feeFetcher);
 
   const data = rawData || null;
-  const totalPending = data ? calculatePendingFee(data as Record<string, unknown>[]) : 0;
+  const totalPending = data
+    ? calculatePendingFee(data as Record<string, unknown>[])
+    : 0;
 
   let totalPaid = 0;
   if (data && Array.isArray(data)) {
     data.forEach((row) => {
       const paidKey = Object.keys(row).find((k) => {
         const norm = k.toLowerCase();
-        return (norm.includes('paid') || norm.includes('received') || norm.includes('cleared')) && !norm.includes('status') && !norm.includes('unpaid');
+        return (
+          (norm.includes('paid') ||
+            norm.includes('received') ||
+            norm.includes('cleared')) &&
+          !norm.includes('status') &&
+          !norm.includes('unpaid')
+        );
       });
       if (paidKey) {
         totalPaid += parseCurrency(row[paidKey]);

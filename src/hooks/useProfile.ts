@@ -26,7 +26,10 @@ async function profileFetcher(url: unknown) {
 }
 
 export function useProfile(): UseProfileResult {
-  const { data, error, isLoading, mutate } = useNativeQuery<ProfileData | null>('/api/erp-proxy/profile', profileFetcher);
+  const { data, error, isLoading, mutate } = useNativeQuery<ProfileData | null>(
+    '/api/erp-proxy/profile',
+    profileFetcher
+  );
 
   return {
     data: data || null,

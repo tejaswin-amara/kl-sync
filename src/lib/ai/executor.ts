@@ -60,11 +60,20 @@ export interface ToolExecutionResult {
   error?: string;
 }
 
-const SUPPORTED_AI_MODELS = new Set(['gpt-5-nano', 'gpt-5-mini', 'gpt-5', 'gpt-5.5', 'gpt-4.1-mini', 'gpt-4.1-nano']);
+const SUPPORTED_AI_MODELS = new Set([
+  'gpt-5-nano',
+  'gpt-5-mini',
+  'gpt-5',
+  'gpt-5.5',
+  'gpt-4.1-mini',
+  'gpt-4.1-nano',
+]);
 
 function getConfiguredAIModel(): string {
   const configured = process.env.KL_SYNC_AI_MODEL?.trim();
-  return configured && SUPPORTED_AI_MODELS.has(configured) ? configured : 'gpt-5-mini';
+  return configured && SUPPORTED_AI_MODELS.has(configured)
+    ? configured
+    : 'gpt-5-mini';
 }
 
 // ============================================================================
@@ -122,7 +131,9 @@ export async function executeGetAttendance(
     attendanceList = attendanceList.filter((item) => {
       const code = String(item['Course Code'] || '').toLowerCase();
       const title = String(item['Course Title'] || '').toLowerCase();
-      return searchTerms.some((term) => code.includes(term) || title.includes(term));
+      return searchTerms.some(
+        (term) => code.includes(term) || title.includes(term)
+      );
     });
   }
 
@@ -134,7 +145,9 @@ export async function executeGetAttendance(
   attendanceList.forEach((item) => {
     const cond = parseFloat(String(item['Conducted Hours'] || '0'));
     const att = parseFloat(String(item['Attended Hours'] || '0'));
-    const pct = parseFloat(String(item['Attendance Percentage'] || '0').replace('%', ''));
+    const pct = parseFloat(
+      String(item['Attendance Percentage'] || '0').replace('%', '')
+    );
 
     if (!isNaN(cond)) totalConducted += cond;
     if (!isNaN(att)) totalAttended += att;
@@ -201,7 +214,15 @@ export async function executeGetTimetable(
     let targetDay = parsedArgs.day.trim();
     const lower = targetDay.toLowerCase();
 
-    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const daysOfWeek = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ];
     const now = new Date();
 
     if (lower === 'today') {
@@ -300,7 +321,9 @@ export async function executeGetFeeDetails(
     const amountStr = String(row['Amount'] || row['Total'] || '0');
     const paidStr = String(row['Paid Amount'] || row['Paid'] || '0');
     const balStr = String(row['Balance Amount'] || row['Balance'] || '0');
-    const status = String(row['Status'] || (parseCurrency(balStr) > 0 ? 'PENDING' : 'PAID'));
+    const status = String(
+      row['Status'] || (parseCurrency(balStr) > 0 ? 'PENDING' : 'PAID')
+    );
 
     totalAmount += parseCurrency(amountStr);
     totalPaid += parseCurrency(paidStr);
@@ -358,13 +381,19 @@ export async function executeGetStudentProfile(
       success?: boolean;
     };
 
-    if (rawRes && (rawRes.success !== false) && rawRes.name && rawRes.universityId) {
+    if (
+      rawRes &&
+      rawRes.success !== false &&
+      rawRes.name &&
+      rawRes.universityId
+    ) {
       let ext: Record<string, unknown> | undefined = undefined;
       if (rawRes.extendedProfile) {
         try {
-          ext = typeof rawRes.extendedProfile === 'string'
-            ? JSON.parse(rawRes.extendedProfile)
-            : (rawRes.extendedProfile as Record<string, unknown>);
+          ext =
+            typeof rawRes.extendedProfile === 'string'
+              ? JSON.parse(rawRes.extendedProfile)
+              : (rawRes.extendedProfile as Record<string, unknown>);
         } catch {}
       }
 
@@ -434,7 +463,8 @@ export function executeCalculateAttendanceTarget(
   // Target met. Calculate max bunkable b: (100 * A - target * T) / target
   const numerator = 100 * currentAttended - targetPercent * currentTotal;
   const denominator = targetPercent;
-  const maxBunkable = denominator > 0 ? Math.max(0, Math.floor(numerator / denominator)) : 0;
+  const maxBunkable =
+    denominator > 0 ? Math.max(0, Math.floor(numerator / denominator)) : 0;
 
   return {
     success: true,
@@ -471,7 +501,9 @@ export function executePredictCGPA(
   const totalPoints = currentPoints + newPoints;
 
   const predictedCGPA =
-    totalCredits > 0 ? Number((totalPoints / totalCredits).toFixed(2)) : currentCGPA;
+    totalCredits > 0
+      ? Number((totalPoints / totalCredits).toFixed(2))
+      : currentCGPA;
 
   const gpaDelta = Number((predictedCGPA - currentCGPA).toFixed(2));
 
@@ -495,10 +527,9 @@ export async function executeTool(
   args: unknown,
   context?: ToolExecutionContext
 ): Promise<ToolExecutionResult> {
-  const safeArgs = (typeof args === 'object' && args !== null ? args : {}) as Record<
-    string,
-    unknown
-  >;
+  const safeArgs = (
+    typeof args === 'object' && args !== null ? args : {}
+  ) as Record<string, unknown>;
 
   try {
     switch (toolName) {
@@ -559,43 +590,51 @@ export function createErpTools(context?: ToolExecutionContext) {
       description:
         'Fetch attendance records for the student. Optionally filter by course code or subject title.',
       parameters: getAttendanceArgsSchema,
-      execute: async (args: z.infer<typeof getAttendanceArgsSchema>) => executeGetAttendance(args, context),
+      execute: async (args: z.infer<typeof getAttendanceArgsSchema>) =>
+        executeGetAttendance(args, context),
     } as unknown as Parameters<typeof tool>[0]),
     getTimetable: tool({
       description:
         'Fetch class timetable and schedule. Optionally filter by day of the week.',
       parameters: getTimetableArgsSchema,
-      execute: async (args: z.infer<typeof getTimetableArgsSchema>) => executeGetTimetable(args, context),
+      execute: async (args: z.infer<typeof getTimetableArgsSchema>) =>
+        executeGetTimetable(args, context),
     } as unknown as Parameters<typeof tool>[0]),
     getMarks: tool({
       description:
         'Fetch internal examination and assignment marks for student courses.',
       parameters: getMarksArgsSchema,
-      execute: async (args: z.infer<typeof getMarksArgsSchema>) => executeGetMarks(args, context),
+      execute: async (args: z.infer<typeof getMarksArgsSchema>) =>
+        executeGetMarks(args, context),
     } as unknown as Parameters<typeof tool>[0]),
     getFeeDetails: tool({
       description:
         'Fetch fee payment details, fee heads, total fee, paid amount, and pending balance.',
       parameters: getFeeDetailsArgsSchema,
-      execute: async (args: z.infer<typeof getFeeDetailsArgsSchema>) => executeGetFeeDetails(args, context),
+      execute: async (args: z.infer<typeof getFeeDetailsArgsSchema>) =>
+        executeGetFeeDetails(args, context),
     } as unknown as Parameters<typeof tool>[0]),
     getStudentProfile: tool({
       description:
         'Fetch student profile details including name, university ID, program, and department.',
       parameters: getStudentProfileArgsSchema,
-      execute: async (args: z.infer<typeof getStudentProfileArgsSchema>) => executeGetStudentProfile(args, context),
+      execute: async (args: z.infer<typeof getStudentProfileArgsSchema>) =>
+        executeGetStudentProfile(args, context),
     } as unknown as Parameters<typeof tool>[0]),
     calculateAttendanceTarget: tool({
       description:
         'Calculate number of additional classes needed to reach target attendance percentage or bunkable classes.',
       parameters: calculateAttendanceTargetArgsSchema,
-      execute: async (args: z.infer<typeof calculateAttendanceTargetArgsSchema>) => executeCalculateAttendanceTarget(args),
+      execute: async (
+        args: z.infer<typeof calculateAttendanceTargetArgsSchema>
+      ) => executeCalculateAttendanceTarget(args),
     } as unknown as Parameters<typeof tool>[0]),
     predictCGPA: tool({
       description:
         'Predict future cumulative GPA (CGPA) based on current CGPA, credits, and expected grades.',
       parameters: predictCGPAArgsSchema,
-      execute: async (args: z.infer<typeof predictCGPAArgsSchema>) => executePredictCGPA(args),
+      execute: async (args: z.infer<typeof predictCGPAArgsSchema>) =>
+        executePredictCGPA(args),
     } as unknown as Parameters<typeof tool>[0]),
   };
 }
@@ -607,7 +646,11 @@ export async function processAIChat(
   const lastMessage = messages[messages.length - 1];
   const userQuery = lastMessage?.content || '';
 
-  if (process.env.KL_SYNC_AI_MODE === 'offline' || !process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.trim() === '') {
+  if (
+    process.env.KL_SYNC_AI_MODE === 'offline' ||
+    !process.env.OPENAI_API_KEY ||
+    process.env.OPENAI_API_KEY.trim() === ''
+  ) {
     const offlineResult = await matchOfflineQuery(userQuery, context);
     return {
       assistantResponseText: offlineResult.text,
@@ -617,7 +660,8 @@ export async function processAIChat(
 
   const tools = createErpTools(context);
   const formattedMessages = messages.map((m) => ({
-    role: (m.role === 'assistant' || m.role === 'system' ? m.role : 'user') as 'user' | 'assistant' | 'system',
+    role: (m.role === 'assistant' || m.role === 'system' ? m.role : 'user') as
+      'user' | 'assistant' | 'system',
     content: m.content,
   }));
 
@@ -629,7 +673,10 @@ export async function processAIChat(
       messages: formattedMessages,
     });
   } catch (error) {
-    console.error('[AI] Provider unavailable; using deterministic offline matcher:', error instanceof Error ? error.message : 'Unknown provider error');
+    console.error(
+      '[AI] Provider unavailable; using deterministic offline matcher:',
+      error instanceof Error ? error.message : 'Unknown provider error'
+    );
     const offlineResult = await matchOfflineQuery(userQuery, context);
     return {
       assistantResponseText: offlineResult.text,
@@ -645,9 +692,17 @@ export async function processAIChat(
 
   if (sdkResult.toolResults && sdkResult.toolResults.length > 0) {
     for (const tr of sdkResult.toolResults) {
-      const trObj = tr as unknown as { args?: Record<string, unknown>; input?: Record<string, unknown>; output?: Record<string, unknown>; result?: Record<string, unknown> };
+      const trObj = tr as unknown as {
+        args?: Record<string, unknown>;
+        input?: Record<string, unknown>;
+        output?: Record<string, unknown>;
+        result?: Record<string, unknown>;
+      };
       const args = (trObj.args || trObj.input || {}) as Record<string, unknown>;
-      const result = (trObj.output ?? trObj.result ?? {}) as Record<string, unknown>;
+      const result = (trObj.output ?? trObj.result ?? {}) as Record<
+        string,
+        unknown
+      >;
       toolCalls.push({
         tool: tr.toolName,
         args,
@@ -664,7 +719,11 @@ export async function processAIChat(
       case 'getAttendance': {
         const res = firstCall.result as {
           attendance?: Array<Record<string, string>>;
-          summary?: { totalSubjects: number; overallPercentage: number; atRiskCount: number };
+          summary?: {
+            totalSubjects: number;
+            overallPercentage: number;
+            atRiskCount: number;
+          };
         };
         if (res && res.attendance && res.attendance.length > 0) {
           const items = res.attendance
@@ -763,7 +822,12 @@ export async function processAIChat(
 
       case 'getStudentProfile': {
         const res = firstCall.result as {
-          profile?: { name: string; universityId: string; program?: string; department?: string };
+          profile?: {
+            name: string;
+            universityId: string;
+            program?: string;
+            department?: string;
+          };
         };
         if (res && res.profile) {
           const p = res.profile;
@@ -818,4 +882,3 @@ export async function processAIChat(
     toolCalls,
   };
 }
-

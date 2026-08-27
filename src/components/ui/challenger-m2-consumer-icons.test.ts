@@ -40,7 +40,8 @@ describe('Challenger 2: Ponytail R2 Consumer & System Verification Suite', () =>
     const allSourceFiles = scanDir(rootDir);
     const violatingFiles: string[] = [];
 
-    const lucideImportRegex = /from\s+['"]lucide-react['"]|import\s+['"]lucide-react['"]/;
+    const lucideImportRegex =
+      /from\s+['"]lucide-react['"]|import\s+['"]lucide-react['"]/;
 
     for (const file of allSourceFiles) {
       const content = fs.readFileSync(file, 'utf-8');
@@ -91,12 +92,16 @@ describe('Challenger 2: Ponytail R2 Consumer & System Verification Suite', () =>
       'components/ui/toast.tsx',
     ];
 
-    const iconImportRegex = /import\s+{([^}]+)}\s+from\s+['"](@\/components\/ui\/icons|\.\/icons)['"]/g;
+    const iconImportRegex =
+      /import\s+{([^}]+)}\s+from\s+['"](@\/components\/ui\/icons|\.\/icons)['"]/g;
     const allImportedNames = new Set<string>();
 
     for (const relPath of consumerFiles) {
       const fullPath = path.join(rootDir, relPath);
-      assert.ok(fs.existsSync(fullPath), `Consumer file should exist: ${relPath}`);
+      assert.ok(
+        fs.existsSync(fullPath),
+        `Consumer file should exist: ${relPath}`
+      );
       const content = fs.readFileSync(fullPath, 'utf-8');
 
       let match;
@@ -128,35 +133,52 @@ describe('Challenger 2: Ponytail R2 Consumer & System Verification Suite', () =>
       }
     }
 
-    assert.ok(allImportedNames.size > 20, `Expected many imported icons, got ${allImportedNames.size}`);
+    assert.ok(
+      allImportedNames.size > 20,
+      `Expected many imported icons, got ${allImportedNames.size}`
+    );
   });
 
   test('stress test all 55 icons across comprehensive props & forwardRef matrix', () => {
     const allIconKeys = Object.keys(Icons).filter(
-      (k) => k !== 'createIcon' && typeof (Icons as Record<string, unknown>)[k] === 'object'
+      (k) =>
+        k !== 'createIcon' &&
+        typeof (Icons as Record<string, unknown>)[k] === 'object'
     );
 
     for (const key of allIconKeys) {
-      const IconComp = (Icons as Record<string, React.ComponentType<Icons.IconProps>>)[key];
+      const IconComp = (
+        Icons as Record<string, React.ComponentType<Icons.IconProps>>
+      )[key];
       assert.ok(IconComp, `Icon component ${key} must exist`);
 
       // 1. Render default
       const defaultHtml = renderToString(React.createElement(IconComp));
       assert.match(defaultHtml, /<svg/, `${key} must render <svg> tag`);
-      assert.match(defaultHtml, /viewBox="0 0 24 24"/, `${key} must have viewBox`);
+      assert.match(
+        defaultHtml,
+        /viewBox="0 0 24 24"/,
+        `${key} must have viewBox`
+      );
 
       // 2. Render with numeric size
-      const numSizeHtml = renderToString(React.createElement(IconComp, { size: 18 }));
+      const numSizeHtml = renderToString(
+        React.createElement(IconComp, { size: 18 })
+      );
       assert.match(numSizeHtml, /width="18"/);
       assert.match(numSizeHtml, /height="18"/);
 
       // 3. Render with string size
-      const strSizeHtml = renderToString(React.createElement(IconComp, { size: '1.25rem' }));
+      const strSizeHtml = renderToString(
+        React.createElement(IconComp, { size: '1.25rem' })
+      );
       assert.match(strSizeHtml, /width="1.25rem"/);
       assert.match(strSizeHtml, /height="1.25rem"/);
 
       // 4. Render with width/height override
-      const overrideHtml = renderToString(React.createElement(IconComp, { width: 32, height: 48 }));
+      const overrideHtml = renderToString(
+        React.createElement(IconComp, { width: 32, height: 48 })
+      );
       assert.match(overrideHtml, /width="32"/);
       assert.match(overrideHtml, /height="48"/);
 
@@ -177,12 +199,16 @@ describe('Challenger 2: Ponytail R2 Consumer & System Verification Suite', () =>
   });
 
   test('AICopilot component renders trigger button and integrated sheet cleanly', () => {
-    const htmlClosed = renderToString(React.createElement(AICopilot, { initialOpen: false }));
+    const htmlClosed = renderToString(
+      React.createElement(AICopilot, { initialOpen: false })
+    );
     assert.match(htmlClosed, /AI Copilot/);
     assert.match(htmlClosed, /aria-label="AI Copilot ⌘K \(Ctrl\+Shift\+A\)"/);
     assert.match(htmlClosed, /aria-expanded="false"/);
 
-    const htmlOpen = renderToString(React.createElement(AICopilot, { initialOpen: true }));
+    const htmlOpen = renderToString(
+      React.createElement(AICopilot, { initialOpen: true })
+    );
     assert.match(htmlOpen, /aria-expanded="true"/);
   });
 
@@ -221,7 +247,10 @@ describe('Challenger 2: Ponytail R2 Consumer & System Verification Suite', () =>
       })
     );
     assert.match(thinkingHtml, /What is my attendance in OS\?/);
-    assert.match(thinkingHtml, /Analyzing request &amp; executing workflow\.\.\./);
+    assert.match(
+      thinkingHtml,
+      /Analyzing request &amp; executing workflow\.\.\./
+    );
 
     // Executing tool state
     const toolHtml = renderToString(
@@ -256,7 +285,8 @@ describe('Challenger 2: Ponytail R2 Consumer & System Verification Suite', () =>
       {
         id: 'msg-2',
         role: 'assistant' as const,
-        content: 'Here are your marks for **Operating Systems**:\n\n- Internal 1: 28/30\n- Internal 2: 29/30',
+        content:
+          'Here are your marks for **Operating Systems**:\n\n- Internal 1: 28/30\n- Internal 2: 29/30',
         timestamp: new Date('2026-08-16T10:00:02Z'),
         toolCalls: [
           {
@@ -268,9 +298,14 @@ describe('Challenger 2: Ponytail R2 Consumer & System Verification Suite', () =>
       },
     ];
 
-    const html = renderToString(React.createElement(AIChatMessageList, { messages }));
+    const html = renderToString(
+      React.createElement(AIChatMessageList, { messages })
+    );
     assert.match(html, /Show my marks for Operating Systems/);
-    assert.match(html, /strong class="font-semibold">Operating Systems<\/strong>/);
+    assert.match(
+      html,
+      /strong class="font-semibold">Operating Systems<\/strong>/
+    );
   });
 
   test('AIChatSuggestionChips renders all 5 suggestion chips with icons and min-h-[44px]', () => {
@@ -314,7 +349,10 @@ describe('Challenger 2: Ponytail R2 Consumer & System Verification Suite', () =>
         status: 'thinking',
       })
     );
-    assert.match(thinkingHtml, /Analyzing request &amp; executing workflow\.\.\./);
+    assert.match(
+      thinkingHtml,
+      /Analyzing request &amp; executing workflow\.\.\./
+    );
 
     const toolHtml = renderToString(
       React.createElement(AIToolExecutionIndicator, {
@@ -333,7 +371,9 @@ describe('Challenger 2: Ponytail R2 Consumer & System Verification Suite', () =>
     assert.ok(typeof useProfile === 'function');
     assert.ok(typeof useAcademicSession === 'function');
 
-    const hookExists = fs.existsSync(path.resolve(rootDir, 'hooks/useERPData.ts'));
+    const hookExists = fs.existsSync(
+      path.resolve(rootDir, 'hooks/useERPData.ts')
+    );
     assert.strictEqual(hookExists, false, 'useERPData.ts should not exist');
   });
 });

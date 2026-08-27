@@ -1,6 +1,15 @@
 'use client';
 
-import { Sparkles, User, AlertTriangle, CheckCircle2, DollarSign, Target, Award, BookOpen } from '@/components/ui/icons';
+import {
+  Sparkles,
+  User,
+  AlertTriangle,
+  CheckCircle2,
+  DollarSign,
+  Target,
+  Award,
+  BookOpen,
+} from '@/components/ui/icons';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 
@@ -29,9 +38,12 @@ export function AIChatMessageList({ messages }: AIChatMessageListProps) {
           <Sparkles className="w-6 h-6 animate-pulse" />
         </div>
         <div>
-          <h3 className="font-semibold text-foreground text-sm font-heading tracking-tight">KL Sync AI Copilot</h3>
+          <h3 className="font-semibold text-foreground text-sm font-heading tracking-tight">
+            KL Sync AI Copilot
+          </h3>
           <p className="text-xs text-muted-foreground/80 max-w-[260px] mt-1 font-normal leading-relaxed">
-            Ask natural language questions about your attendance, fees, marks, timetable, or target CGPA.
+            Ask natural language questions about your attendance, fees, marks,
+            timetable, or target CGPA.
           </p>
         </div>
       </div>
@@ -94,7 +106,11 @@ function renderFormattedText(text: string) {
     const parts = line.split(/(\*\*.*?\*\*)/g);
     const lineContent = parts.map((part, pIdx) => {
       if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={pIdx} className="font-semibold">{part.slice(2, -2)}</strong>;
+        return (
+          <strong key={pIdx} className="font-semibold">
+            {part.slice(2, -2)}
+          </strong>
+        );
       }
       return part;
     });
@@ -111,7 +127,11 @@ function renderFormattedText(text: string) {
 function ToolResultCard({
   toolCall,
 }: {
-  toolCall: { tool: string; args: Record<string, unknown>; result?: Record<string, unknown> };
+  toolCall: {
+    tool: string;
+    args: Record<string, unknown>;
+    result?: Record<string, unknown>;
+  };
 }) {
   const { tool, result } = toolCall;
   if (!result) return null;
@@ -132,19 +152,32 @@ function ToolResultCard({
         </div>
         <div className="space-y-1.5">
           {list.map((item, i) => {
-            const pct = parseFloat(String(item['Attendance Percentage'] || '0').replace('%', ''));
+            const pct = parseFloat(
+              String(item['Attendance Percentage'] || '0').replace('%', '')
+            );
             const isLow = pct < 75;
             return (
-              <div key={i} className="p-2.5 rounded-[--radius-lg] bg-surface-2/40 border border-border space-y-1.5">
+              <div
+                key={i}
+                className="p-2.5 rounded-[--radius-lg] bg-surface-2/40 border border-border space-y-1.5"
+              >
                 <div className="flex items-center justify-between text-foreground font-semibold">
-                  <span className="truncate max-w-[180px] tracking-tight">{item['Course Title'] || item['Course Code']}</span>
-                  <Badge variant={isLow ? 'danger' : pct >= 85 ? 'success' : 'warning'} className="tabular-numbers">
+                  <span className="truncate max-w-[180px] tracking-tight">
+                    {item['Course Title'] || item['Course Code']}
+                  </span>
+                  <Badge
+                    variant={
+                      isLow ? 'danger' : pct >= 85 ? 'success' : 'warning'
+                    }
+                    className="tabular-numbers"
+                  >
                     {item['Attendance Percentage']}
                   </Badge>
                 </div>
                 <Progress value={Math.min(100, pct)} className="h-1.5" />
                 <div className="text-[10px] text-muted-foreground tabular-numbers font-medium">
-                  Attended: {item['Attended Hours']} / {item['Conducted Hours']} hours
+                  Attended: {item['Attended Hours']} / {item['Conducted Hours']}{' '}
+                  hours
                 </div>
               </div>
             );
@@ -168,25 +201,41 @@ function ToolResultCard({
             <DollarSign className="w-3.5 h-3.5 text-success" />
             <span>Fee Overview</span>
           </div>
-          <Badge variant={b.hasPendingDue ? 'danger' : 'success'} className="tabular-numbers">
-            {b.hasPendingDue ? `Pending: ₹${b.totalPending.toLocaleString('en-IN')}` : 'All Paid'}
+          <Badge
+            variant={b.hasPendingDue ? 'danger' : 'success'}
+            className="tabular-numbers"
+          >
+            {b.hasPendingDue
+              ? `Pending: ₹${b.totalPending.toLocaleString('en-IN')}`
+              : 'All Paid'}
           </Badge>
         </div>
         <div className="grid grid-cols-2 gap-2 text-center pt-1">
           <div className="p-2.5 rounded-[--radius-lg] bg-surface-2/40 border border-border">
-            <span className="caption-label text-muted-foreground block mb-0.5">Paid Amount</span>
-            <span className="font-bold text-success font-mono tabular-numbers">₹{b.totalPaid.toLocaleString('en-IN')}</span>
+            <span className="caption-label text-muted-foreground block mb-0.5">
+              Paid Amount
+            </span>
+            <span className="font-bold text-success font-mono tabular-numbers">
+              ₹{b.totalPaid.toLocaleString('en-IN')}
+            </span>
           </div>
           <div className="p-2.5 rounded-[--radius-lg] bg-surface-2/40 border border-border">
-            <span className="caption-label text-muted-foreground block mb-0.5">Total Amount</span>
-            <span className="font-bold text-foreground font-mono tabular-numbers">₹{b.totalAmount.toLocaleString('en-IN')}</span>
+            <span className="caption-label text-muted-foreground block mb-0.5">
+              Total Amount
+            </span>
+            <span className="font-bold text-foreground font-mono tabular-numbers">
+              ₹{b.totalAmount.toLocaleString('en-IN')}
+            </span>
           </div>
         </div>
       </div>
     );
   }
 
-  if (tool === 'calculateAttendanceTarget' && typeof result.currentPercentage === 'number') {
+  if (
+    tool === 'calculateAttendanceTarget' &&
+    typeof result.currentPercentage === 'number'
+  ) {
     const r = result as {
       currentPercentage: number;
       targetPercent: number;
@@ -202,20 +251,31 @@ function ToolResultCard({
             <Target className="w-3.5 h-3.5 text-warning" />
             <span>Attendance Roadmap</span>
           </div>
-          <Badge variant={isBelow ? 'danger' : 'success'} className="tabular-numbers">
-            {isBelow ? `Needed: +${r.classesNeeded} classes` : `Bunkable: ${r.maxBunkable} classes`}
+          <Badge
+            variant={isBelow ? 'danger' : 'success'}
+            className="tabular-numbers"
+          >
+            {isBelow
+              ? `Needed: +${r.classesNeeded} classes`
+              : `Bunkable: ${r.maxBunkable} classes`}
           </Badge>
         </div>
         <div className="text-[11px] text-muted-foreground">
           {isBelow ? (
             <div className="flex items-center gap-1 text-destructive font-medium">
               <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-              <span>Attend next {r.classesNeeded} consecutive classes to reach {r.targetPercent}%.</span>
+              <span>
+                Attend next {r.classesNeeded} consecutive classes to reach{' '}
+                {r.targetPercent}%.
+              </span>
             </div>
           ) : (
             <div className="flex items-center gap-1 text-success font-medium">
               <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-              <span>You have met the {r.targetPercent}% target. You can skip up to {r.maxBunkable} classes.</span>
+              <span>
+                You have met the {r.targetPercent}% target. You can skip up to{' '}
+                {r.maxBunkable} classes.
+              </span>
             </div>
           )}
         </div>
@@ -237,18 +297,29 @@ function ToolResultCard({
             <Award className="w-3.5 h-3.5 text-primary" />
             <span>CGPA Forecast Roadmap</span>
           </div>
-          <Badge variant={r.gpaDelta >= 0 ? 'success' : 'danger'} className="tabular-numbers">
+          <Badge
+            variant={r.gpaDelta >= 0 ? 'success' : 'danger'}
+            className="tabular-numbers"
+          >
             {r.gpaDelta >= 0 ? `+${r.gpaDelta} GPA` : `${r.gpaDelta} GPA`}
           </Badge>
         </div>
         <div className="grid grid-cols-2 gap-2 text-center pt-1">
           <div className="p-2.5 rounded-[--radius-lg] bg-surface-2/40 border border-border">
-            <span className="caption-label text-muted-foreground block mb-0.5">Current CGPA</span>
-            <span className="font-bold text-foreground font-mono tabular-numbers">{r.currentCGPA}</span>
+            <span className="caption-label text-muted-foreground block mb-0.5">
+              Current CGPA
+            </span>
+            <span className="font-bold text-foreground font-mono tabular-numbers">
+              {r.currentCGPA}
+            </span>
           </div>
           <div className="p-2.5 rounded-[--radius-lg] bg-surface-2/40 border border-border">
-            <span className="caption-label text-muted-foreground block mb-0.5">Predicted CGPA</span>
-            <span className="font-bold text-primary font-mono tabular-numbers">{r.predictedCGPA}</span>
+            <span className="caption-label text-muted-foreground block mb-0.5">
+              Predicted CGPA
+            </span>
+            <span className="font-bold text-primary font-mono tabular-numbers">
+              {r.predictedCGPA}
+            </span>
           </div>
         </div>
       </div>

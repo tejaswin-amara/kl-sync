@@ -10,7 +10,11 @@ import { GET as handleErpProxyGet } from '@/app/api/erp-proxy/[module]/route';
 import { POST as handleAiChat } from '@/app/api/ai/chat/route';
 import { GET as handleFetchPhotoGet } from '@/app/api/fetch-photo/route';
 
-import { executeTool, executeCalculateAttendanceTarget, executePredictCGPA } from '@/lib/ai/executor';
+import {
+  executeTool,
+  executeCalculateAttendanceTarget,
+  executePredictCGPA,
+} from '@/lib/ai/executor';
 import { encodeSession } from '@/lib/session';
 import { attendanceResponseSchema, profileResponseSchema } from '@/lib/schemas';
 
@@ -23,7 +27,9 @@ test('Tier 3 - Combo 1: ERP Proxy Attendance Fetch + Attendance Target Calculati
   const req = new NextRequest(
     'http://localhost/api/erp-proxy/attendance?academicYear=2025-2026&semesterId=1&csrfToken=demo_csrf'
   );
-  const res = await handleErpProxyGet(req, { params: Promise.resolve({ module: 'attendance' }) });
+  const res = await handleErpProxyGet(req, {
+    params: Promise.resolve({ module: 'attendance' }),
+  });
   assert.strictEqual(res.status, 200);
 
   const json = await res.json();
@@ -33,11 +39,17 @@ test('Tier 3 - Combo 1: ERP Proxy Attendance Fetch + Attendance Target Calculati
 
   // Step 2: Extract OS (23CS2104R) attendance subject
   const osSubject = parsed.attendanceData.find(
-    (s) => s['Course Code'] === '23CS2104R' || s['Course Title']?.includes('Operating Systems')
+    (s) =>
+      s['Course Code'] === '23CS2104R' ||
+      s['Course Title']?.includes('Operating Systems')
   );
 
-  const conducted = parseFloat(osSubject ? String(osSubject['Conducted Hours'] || '40') : '40');
-  const attended = parseFloat(osSubject ? String(osSubject['Attended Hours'] || '33') : '33');
+  const conducted = parseFloat(
+    osSubject ? String(osSubject['Conducted Hours'] || '40') : '40'
+  );
+  const attended = parseFloat(
+    osSubject ? String(osSubject['Attended Hours'] || '33') : '33'
+  );
 
   // Step 3: Run calculateAttendanceTarget for 85% requirement
   const targetResult = executeCalculateAttendanceTarget({
@@ -50,7 +62,9 @@ test('Tier 3 - Combo 1: ERP Proxy Attendance Fetch + Attendance Target Calculati
   assert.strictEqual(targetResult.currentPercentage, 82.5);
   assert.strictEqual(targetResult.classesNeeded, 7);
   assert.strictEqual(targetResult.status, 'below_target');
-  assert.ok(targetResult.message.includes('attend the next 7 consecutive class(es)'));
+  assert.ok(
+    targetResult.message.includes('attend the next 7 consecutive class(es)')
+  );
 });
 
 test('Tier 3 - Combo 2: ERP Proxy Marks Fetch + Predict CGPA Mathematical Pipeline', async () => {
@@ -58,7 +72,9 @@ test('Tier 3 - Combo 2: ERP Proxy Marks Fetch + Predict CGPA Mathematical Pipeli
   const marksReq = new NextRequest(
     'http://localhost/api/erp-proxy/marks?academicYear=2025-2026&semesterId=1&csrfToken=demo_csrf'
   );
-  const marksRes = await handleErpProxyGet(marksReq, { params: Promise.resolve({ module: 'marks' }) });
+  const marksRes = await handleErpProxyGet(marksReq, {
+    params: Promise.resolve({ module: 'marks' }),
+  });
   assert.strictEqual(marksRes.status, 200);
 
   const marksJson = await marksRes.json();
@@ -70,7 +86,7 @@ test('Tier 3 - Combo 2: ERP Proxy Marks Fetch + Predict CGPA Mathematical Pipeli
     currentCGPA: 8.42,
     completedCredits: 72,
     newCourses: [
-      { credits: 4, expectedGrade: 'O' },  // 10 points * 4 = 40
+      { credits: 4, expectedGrade: 'O' }, // 10 points * 4 = 40
       { credits: 3, expectedGrade: 'A+' }, // 9 points * 3 = 27
     ],
   });
@@ -116,7 +132,10 @@ test('Tier 3 - Combo 3: AI Chat API Multi-Tool Execution (Fee Breakdown + Profil
   assert.strictEqual(profileRes.status, 200);
   const profileJson = await profileRes.json();
   assert.strictEqual(profileJson.toolCalls[0].tool, 'getStudentProfile');
-  assert.strictEqual(profileJson.toolCalls[0].result.profile.name, 'Alex Student');
+  assert.strictEqual(
+    profileJson.toolCalls[0].result.profile.name,
+    'Alex Student'
+  );
 });
 
 test('Tier 3 - Combo 4: Encrypted Session Creation -> Proxy Cookie Propagation -> Zod Validation', async () => {
@@ -134,7 +153,9 @@ test('Tier 3 - Combo 4: Encrypted Session Creation -> Proxy Cookie Propagation -
     },
   });
 
-  const res = await handleErpProxyGet(req, { params: Promise.resolve({ module: 'profile' }) });
+  const res = await handleErpProxyGet(req, {
+    params: Promise.resolve({ module: 'profile' }),
+  });
   assert.strictEqual(res.status, 200);
 
   const json = await res.json();
@@ -153,8 +174,15 @@ test('Tier 3 - Combo 5: Login Flow -> Session Issuance -> Photo Route Fetch', as
 
   const loginReq = new NextRequest('http://localhost/api/login', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', cookie: `kl_captcha_session=${validSessionToken}` },
-    body: JSON.stringify({ username: '2100030000', password: 'demo_password', captcha: 'ABCD' }),
+    headers: {
+      'Content-Type': 'application/json',
+      cookie: `kl_captcha_session=${validSessionToken}`,
+    },
+    body: JSON.stringify({
+      username: '2100030000',
+      password: 'demo_password',
+      captcha: 'ABCD',
+    }),
   });
 
   const loginRes = await handleLogin(loginReq);
@@ -164,8 +192,13 @@ test('Tier 3 - Combo 5: Login Flow -> Session Issuance -> Photo Route Fetch', as
   assert.strictEqual(loginJson.success, true);
 
   // Step 2: Fetch photo with returned session cookie
-  const authCookie = loginRes.headers.get('set-cookie')?.match(/kl_erp_session=[^;]+/)?.[0];
-  const photoReq = new NextRequest('http://localhost/api/fetch-photo?id=2100030000', { headers: { cookie: authCookie || '' } });
+  const authCookie = loginRes.headers
+    .get('set-cookie')
+    ?.match(/kl_erp_session=[^;]+/)?.[0];
+  const photoReq = new NextRequest(
+    'http://localhost/api/fetch-photo?id=2100030000',
+    { headers: { cookie: authCookie || '' } }
+  );
 
   const photoRes = await handleFetchPhotoGet(photoReq);
   assert.ok(photoRes.status === 200 || photoRes.status === 404);

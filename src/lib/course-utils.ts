@@ -10,7 +10,9 @@ const COURSE_TITLE_REGISTRY: Record<string, string> = {};
 function hydrateFromStorage(): void {
   if (typeof window === 'undefined') return;
   try {
-    const raw = sessionStorage.getItem('kl_course_registry') || localStorage.getItem('kl_course_registry');
+    const raw =
+      sessionStorage.getItem('kl_course_registry') ||
+      localStorage.getItem('kl_course_registry');
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === 'object') {
@@ -37,28 +39,28 @@ function persistToStorage(): void {
  */
 export const KNOWN_COURSE_MAP: Record<string, string> = {
   // Core Department & Universal Course Codes
-  'CS1302': 'Data Structures & Algorithms',
-  'CS2101': 'Data Structures & Algorithms',
-  'CS1101': 'Object Oriented Programming with Java',
-  'CS1102': 'Object Oriented Programming',
-  'CS2102': 'Computer Organization & Architecture',
-  'CS2103': 'Database Management Systems',
-  'CS2205': 'Database Management Systems',
-  'CS2104': 'Operating Systems',
-  'CS3108': 'Software Engineering & Agile',
-  'CS3109': 'Computer Networks',
-  'CS3110': 'Design & Analysis of Algorithms',
-  'CS3211': 'Cloud Computing & DevOps',
-  'CS3212': 'Artificial Intelligence & Machine Learning',
-  'EC1201': 'Basic Electrical & Electronics Engineering',
-  'EC2206': 'Signal Processing & Communication Systems',
-  'EC2102': 'Digital Logic Design & Microprocessors',
-  'SC2107': 'Discrete Mathematics & Graph Theory',
-  'SC1101': 'Linear Algebra & Calculus',
-  'SC1102': 'Probability & Statistics for Engineers',
-  'FL2112': 'Foreign Language - Elective',
-  'EN1001': 'English for Professional Communication',
-  'HS1002': 'Universal Human Values & Professional Ethics',
+  CS1302: 'Data Structures & Algorithms',
+  CS2101: 'Data Structures & Algorithms',
+  CS1101: 'Object Oriented Programming with Java',
+  CS1102: 'Object Oriented Programming',
+  CS2102: 'Computer Organization & Architecture',
+  CS2103: 'Database Management Systems',
+  CS2205: 'Database Management Systems',
+  CS2104: 'Operating Systems',
+  CS3108: 'Software Engineering & Agile',
+  CS3109: 'Computer Networks',
+  CS3110: 'Design & Analysis of Algorithms',
+  CS3211: 'Cloud Computing & DevOps',
+  CS3212: 'Artificial Intelligence & Machine Learning',
+  EC1201: 'Basic Electrical & Electronics Engineering',
+  EC2206: 'Signal Processing & Communication Systems',
+  EC2102: 'Digital Logic Design & Microprocessors',
+  SC2107: 'Discrete Mathematics & Graph Theory',
+  SC1101: 'Linear Algebra & Calculus',
+  SC1102: 'Probability & Statistics for Engineers',
+  FL2112: 'Foreign Language - Elective',
+  EN1001: 'English for Professional Communication',
+  HS1002: 'Universal Human Values & Professional Ethics',
 
   // 25 Series (Y25 Curriculum)
   '25CS1302E': 'Data Structures & Algorithms',
@@ -109,7 +111,10 @@ export function isValidSubjectTitle(title: string, code?: string): boolean {
   const cleanCode = (code || '').trim().toUpperCase();
 
   // Rejects exact or partial course code match
-  if (cleanCode && (upper === cleanCode || upper === cleanCode.replace(/[-_][LTPSS]$/, ''))) {
+  if (
+    cleanCode &&
+    (upper === cleanCode || upper === cleanCode.replace(/[-_][LTPSS]$/, ''))
+  ) {
     return false;
   }
 
@@ -119,30 +124,48 @@ export function isValidSubjectTitle(title: string, code?: string): boolean {
   }
 
   // Reject Faculty prefixes and personal honorifics
-  if (/^(?:DR\.|PROF\.|MR\.|MRS\.|MS\.|FACULTY[-:\s]|INSTRUCTOR[-:\s]|STAFF[-:\s]|TEACHER[-:\s])/i.test(str)) {
+  if (
+    /^(?:DR\.|PROF\.|MR\.|MRS\.|MS\.|FACULTY[-:\s]|INSTRUCTOR[-:\s]|STAFF[-:\s]|TEACHER[-:\s])/i.test(
+      str
+    )
+  ) {
     return false;
   }
 
   // Reject Room / Venue / Block markers
-  if (/^(?:ROOMNO|ROOM|HALL|LAB|VENUE|BLOCK|FLOOR|FED-LAB|NEW CSE|MECHANICAL LAB)[-:\s]/i.test(upper) ||
-      /^(?:ROOMNO[-:\s]*\d+|[A-Z]-\d{2,4}|[A-Z]{1,4}[-_\s]?\d{3,4})$/i.test(upper)) {
+  if (
+    /^(?:ROOMNO|ROOM|HALL|LAB|VENUE|BLOCK|FLOOR|FED-LAB|NEW CSE|MECHANICAL LAB)[-:\s]/i.test(
+      upper
+    ) ||
+    /^(?:ROOMNO[-:\s]*\d+|[A-Z]-\d{2,4}|[A-Z]{1,4}[-_\s]?\d{3,4})$/i.test(upper)
+  ) {
     return false;
   }
 
   // Reject Timetable period / slot / day markers
-  if (/^(?:PERIOD\s*\d+|SLOT\s*\d+|DAY\s*ORDER|TIME\s*SLOT|MON(?:DAY)?|TUE(?:SDAY)?|WED(?:NESDAY)?|THU(?:RSDAY)?|FRI(?:DAY)?|SAT(?:URDAY)?|SUN(?:DAY)?)$/i.test(upper)) {
+  if (
+    /^(?:PERIOD\s*\d+|SLOT\s*\d+|DAY\s*ORDER|TIME\s*SLOT|MON(?:DAY)?|TUE(?:SDAY)?|WED(?:NESDAY)?|THU(?:RSDAY)?|FRI(?:DAY)?|SAT(?:URDAY)?|SUN(?:DAY)?)$/i.test(
+      upper
+    )
+  ) {
     return false;
   }
 
   // Reject Section & Component markers only
-  if (/^(?:SECTION|SEC)(?:\s*[-:\s]*\d+)?$/i.test(upper) ||
-      /^[SLP]-\d+$/i.test(upper) ||
-      /^(?:LECTURE|PRACTICAL|SKILL|TUTORIAL)$/i.test(upper)) {
+  if (
+    /^(?:SECTION|SEC)(?:\s*[-:\s]*\d+)?$/i.test(upper) ||
+    /^[SLP]-\d+$/i.test(upper) ||
+    /^(?:LECTURE|PRACTICAL|SKILL|TUTORIAL)$/i.test(upper)
+  ) {
     return false;
   }
 
   // Reject Status / Placeholder words
-  if (/^(?:FREE|N\/A|NIL|NONE|NO CLASS|LUNCH|BREAK|COUNSELING|LIBRARY|SELF STUDY|SPORTS|GUEST LECTURE|HOLIDAY)$/i.test(upper)) {
+  if (
+    /^(?:FREE|N\/A|NIL|NONE|NO CLASS|LUNCH|BREAK|COUNSELING|LIBRARY|SELF STUDY|SPORTS|GUEST LECTURE|HOLIDAY)$/i.test(
+      upper
+    )
+  ) {
     return false;
   }
 
@@ -182,7 +205,10 @@ export function cleanTitleString(title: string, code?: string): string {
   }
 
   // Strip leading code patterns e.g. "25CS1302E - ", "CS1302: ", "23CS2101R / "
-  str = str.replace(/^(?:[0-9]{2})?[A-Z]{2,5}[0-9]{3,4}[A-Z]?(?:[-_][LTPSS])?\s*[-:_\\/]\s*/i, '');
+  str = str.replace(
+    /^(?:[0-9]{2})?[A-Z]{2,5}[0-9]{3,4}[A-Z]?(?:[-_][LTPSS])?\s*[-:_\\/]\s*/i,
+    ''
+  );
 
   return str.trim();
 }
@@ -227,12 +253,16 @@ export function registerCourseTitles(data: unknown): void {
     if (code && title) {
       const cleanedTitle = cleanTitleString(title, code);
       if (isValidSubjectTitle(cleanedTitle, code)) {
-        const baseCode = code.replace(/[-_]([LTPSS]|LAB|PRAC|THEORY|\d+)$/i, '');
+        const baseCode = code.replace(
+          /[-_]([LTPSS]|LAB|PRAC|THEORY|\d+)$/i,
+          ''
+        );
         const coreCode = extractCoreCode(code);
 
         COURSE_TITLE_REGISTRY[code] = cleanedTitle;
         if (baseCode) COURSE_TITLE_REGISTRY[baseCode] = cleanedTitle;
-        if (coreCode && !COURSE_TITLE_REGISTRY[coreCode]) COURSE_TITLE_REGISTRY[coreCode] = cleanedTitle;
+        if (coreCode && !COURSE_TITLE_REGISTRY[coreCode])
+          COURSE_TITLE_REGISTRY[coreCode] = cleanedTitle;
         updated = true;
       }
     }
@@ -268,8 +298,10 @@ export function getSubjectTitle(code: string, title?: string): string {
   const coreCode = extractCoreCode(cleanCode);
 
   // 1. Dynamic registry from live ERP data (full code or base code) - highest authority
-  if (cleanCode && COURSE_TITLE_REGISTRY[cleanCode]) return COURSE_TITLE_REGISTRY[cleanCode];
-  if (baseCode && COURSE_TITLE_REGISTRY[baseCode]) return COURSE_TITLE_REGISTRY[baseCode];
+  if (cleanCode && COURSE_TITLE_REGISTRY[cleanCode])
+    return COURSE_TITLE_REGISTRY[cleanCode];
+  if (baseCode && COURSE_TITLE_REGISTRY[baseCode])
+    return COURSE_TITLE_REGISTRY[baseCode];
 
   // 2. Explicit title if verified as genuine subject name
   if (isTitleValid) {
@@ -277,11 +309,13 @@ export function getSubjectTitle(code: string, title?: string): string {
   }
 
   // 3. Known static dictionary exact full or base code
-  if (cleanCode && KNOWN_COURSE_MAP[cleanCode]) return KNOWN_COURSE_MAP[cleanCode];
+  if (cleanCode && KNOWN_COURSE_MAP[cleanCode])
+    return KNOWN_COURSE_MAP[cleanCode];
   if (baseCode && KNOWN_COURSE_MAP[baseCode]) return KNOWN_COURSE_MAP[baseCode];
 
   // 4. Dynamic registry core code
-  if (coreCode && COURSE_TITLE_REGISTRY[coreCode]) return COURSE_TITLE_REGISTRY[coreCode];
+  if (coreCode && COURSE_TITLE_REGISTRY[coreCode])
+    return COURSE_TITLE_REGISTRY[coreCode];
 
   // 5. Static map core code
   if (coreCode && KNOWN_COURSE_MAP[coreCode]) return KNOWN_COURSE_MAP[coreCode];
@@ -303,7 +337,9 @@ export function getSubjectCode(code: string, rawText?: string): string {
     return code.trim().toUpperCase();
   }
   if (rawText) {
-    const match = rawText.match(/([0-9]{2}[A-Z]{2,5}[0-9]{3,4}[A-Z]?|[A-Z]{2,5}[0-9]{3,4}[A-Z]?)/i);
+    const match = rawText.match(
+      /([0-9]{2}[A-Z]{2,5}[0-9]{3,4}[A-Z]?|[A-Z]{2,5}[0-9]{3,4}[A-Z]?)/i
+    );
     if (match) return match[1].toUpperCase();
   }
   return '';

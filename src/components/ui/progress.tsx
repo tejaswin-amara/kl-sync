@@ -47,7 +47,10 @@ function Progress({
 
     return (
       <div
-        className={cn('relative inline-flex items-center justify-center select-none', className)}
+        className={cn(
+          'relative inline-flex items-center justify-center select-none',
+          className
+        )}
         role="progressbar"
         aria-valuenow={value}
         aria-valuemin={0}
@@ -81,11 +84,13 @@ function Progress({
           />
         </svg>
         {showLabel && (
-          <span className={cn(
-            'absolute font-bold tabular-numbers font-heading tracking-tight',
-            fonts[size],
-            colorByValue ? getProgressColor(pct) : 'text-foreground'
-          )}>
+          <span
+            className={cn(
+              'absolute font-bold tabular-numbers font-heading tracking-tight',
+              fonts[size],
+              colorByValue ? getProgressColor(pct) : 'text-foreground'
+            )}
+          >
             {Math.round(pct)}%
           </span>
         )}
@@ -97,12 +102,22 @@ function Progress({
   const heights = { sm: 'h-1.5', md: 'h-2', lg: 'h-2.5' };
 
   return (
-    <div className={cn('w-full flex items-center gap-2.5 select-none', className)} {...props}>
-      <div className={cn('flex-1 rounded-full bg-surface-3/80 overflow-hidden shadow-inner border border-border/60', heights[size])}>
+    <div
+      className={cn('w-full flex items-center gap-2.5 select-none', className)}
+      {...props}
+    >
+      <div
+        className={cn(
+          'flex-1 rounded-full bg-surface-3/80 overflow-hidden shadow-inner border border-border/60',
+          heights[size]
+        )}
+      >
         <div
           className={cn(
             'h-full rounded-full transition-all duration-[600ms] ease-[--ease-spring-default]',
-            colorByValue ? getProgressBg(pct) : 'bg-primary shadow-[0_0_12px_rgba(99,102,241,0.35)]'
+            colorByValue
+              ? getProgressBg(pct)
+              : 'bg-primary shadow-[0_0_12px_rgba(99,102,241,0.35)]'
           )}
           style={{ width: `${pct}%` }}
           role="progressbar"
@@ -112,10 +127,12 @@ function Progress({
         />
       </div>
       {showLabel && (
-        <span className={cn(
-          'text-xs font-semibold tabular-numbers tracking-tight shrink-0',
-          colorByValue ? getProgressColor(pct) : 'text-muted-foreground'
-        )}>
+        <span
+          className={cn(
+            'text-xs font-semibold tabular-numbers tracking-tight shrink-0',
+            colorByValue ? getProgressColor(pct) : 'text-muted-foreground'
+          )}
+        >
           {Math.round(pct)}%
         </span>
       )}

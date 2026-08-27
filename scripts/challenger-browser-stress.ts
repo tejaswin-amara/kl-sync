@@ -13,15 +13,35 @@ interface TestResult {
 const DASHBOARD_ROUTES = [
   { path: '/dashboard', name: 'Overview', heading: 'Welcome back' },
   { path: '/dashboard/attendance', name: 'Attendance', heading: 'Attendance' },
-  { path: '/dashboard/timetable', name: 'Timetable', heading: 'Student Timetable' },
-  { path: '/dashboard/marks', name: 'Marks & Grades', heading: 'Marks & Grades' },
+  {
+    path: '/dashboard/timetable',
+    name: 'Timetable',
+    heading: 'Student Timetable',
+  },
+  {
+    path: '/dashboard/marks',
+    name: 'Marks & Grades',
+    heading: 'Marks & Grades',
+  },
   { path: '/dashboard/profile', name: 'Profile', heading: 'Profile' },
   { path: '/dashboard/fee', name: 'Fee Details', heading: 'Fee Details' },
-  { path: '/dashboard/tools', name: 'Tools & Calculators', heading: 'Tools & Calculators' },
+  {
+    path: '/dashboard/tools',
+    name: 'Tools & Calculators',
+    heading: 'Tools & Calculators',
+  },
   { path: '/dashboard/circulars', name: 'Circulars', heading: 'Circulars' },
-  { path: '/dashboard/hostels', name: 'Hostel Information', heading: 'Hostel Information' },
+  {
+    path: '/dashboard/hostels',
+    name: 'Hostel Information',
+    heading: 'Hostel Information',
+  },
   { path: '/dashboard/library', name: 'Library', heading: 'Library' },
-  { path: '/dashboard/exam-seating', name: 'Exam Seating', heading: 'Exam Seating' },
+  {
+    path: '/dashboard/exam-seating',
+    name: 'Exam Seating',
+    heading: 'Exam Seating',
+  },
 ];
 
 const results: TestResult[] = [];
@@ -67,7 +87,12 @@ async function setupAuth(page: Page) {
   });
 }
 
-function attachStrictErrorListeners(page: Page, errors: string[], warnings: string[], pageErrors: string[]) {
+function attachStrictErrorListeners(
+  page: Page,
+  errors: string[],
+  warnings: string[],
+  pageErrors: string[]
+) {
   page.on('console', (msg) => {
     if (msg.type() === 'error') {
       errors.push(msg.text());
@@ -92,10 +117,14 @@ async function runChallengerStress() {
     // -------------------------------------------------------------------------
     // TEST SUITE 1: Deep DOM, SVG & Strict Console Audit across all 11 Routes
     // -------------------------------------------------------------------------
-    console.log('\n--- [SUITE 1] Deep DOM, SVG & Strict Console Audit (11 Routes) ---');
+    console.log(
+      '\n--- [SUITE 1] Deep DOM, SVG & Strict Console Audit (11 Routes) ---'
+    );
     for (const r of DASHBOARD_ROUTES) {
       const start = Date.now();
-      const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+      const context = await browser.newContext({
+        viewport: { width: 1280, height: 800 },
+      });
       const page = await context.newPage();
       const errors: string[] = [];
       const warnings: string[] = [];
@@ -115,14 +144,22 @@ async function runChallengerStress() {
           timeout: 10000,
         });
 
-        assert.ok(res && res.status() >= 200 && res.status() < 400, `HTTP status ${res?.status()} for ${r.path}`);
+        assert.ok(
+          res && res.status() >= 200 && res.status() < 400,
+          `HTTP status ${res?.status()} for ${r.path}`
+        );
 
         // Scoped header check
-        const mainH1 = page.locator('#main-content').getByRole('heading', { level: 1 }).first();
+        const mainH1 = page
+          .locator('#main-content')
+          .getByRole('heading', { level: 1 })
+          .first();
         if (await mainH1.isVisible()) {
           headingFound = (await mainH1.textContent()) || '';
         } else {
-          const fallbackHeading = page.getByText(new RegExp(r.heading, 'i')).first();
+          const fallbackHeading = page
+            .getByText(new RegExp(r.heading, 'i'))
+            .first();
           await fallbackHeading.waitFor({ state: 'visible', timeout: 5000 });
           headingFound = (await fallbackHeading.textContent()) || '';
         }
@@ -130,7 +167,10 @@ async function runChallengerStress() {
 
         // Specific DOM Component Checks per Route
         if (r.path === '/dashboard') {
-          await page.getByText(/Cumulative GPA|Welcome back/i).first().waitFor({ state: 'visible', timeout: 5000 });
+          await page
+            .getByText(/Cumulative GPA|Welcome back/i)
+            .first()
+            .waitFor({ state: 'visible', timeout: 5000 });
           const statCards = await page.locator('div:has(> p)').count();
           assert.ok(statCards > 0, 'Dashboard overview must render stat cards');
           domDetails = { statCards, heading: headingFound };
@@ -138,23 +178,38 @@ async function runChallengerStress() {
           const gridBtn = page.getByRole('button', { name: /Grid/i });
           const listBtn = page.getByRole('button', { name: /List/i });
           await gridBtn.waitFor({ state: 'visible', timeout: 5000 });
-          await page.locator('table').first().waitFor({ state: 'visible', timeout: 5000 });
+          await page
+            .locator('table')
+            .first()
+            .waitFor({ state: 'visible', timeout: 5000 });
           await listBtn.click();
           await page.waitForTimeout(200);
-          await page.locator('table').first().waitFor({ state: 'visible', timeout: 5000 });
+          await page
+            .locator('table')
+            .first()
+            .waitFor({ state: 'visible', timeout: 5000 });
           await gridBtn.click();
           await page.waitForTimeout(200);
-          await page.locator('table').first().waitFor({ state: 'visible', timeout: 5000 });
+          await page
+            .locator('table')
+            .first()
+            .waitFor({ state: 'visible', timeout: 5000 });
           domDetails = { viewTogglesWorking: true };
         } else if (r.path === '/dashboard/attendance') {
-          await page.getByText(/Attendance|Overall|Classes Attended/i).first().waitFor({ state: 'visible', timeout: 5000 });
+          await page
+            .getByText(/Attendance|Overall|Classes Attended/i)
+            .first()
+            .waitFor({ state: 'visible', timeout: 5000 });
           const tableBtn = page.getByRole('button', { name: /Table/i });
           const cardsBtn = page.getByRole('button', { name: /Cards/i });
           if (await tableBtn.isVisible()) {
             await tableBtn.click();
             await page.waitForTimeout(100);
-            if (await page.locator('table').count() > 0) {
-              await page.locator('table').first().waitFor({ state: 'visible', timeout: 5000 });
+            if ((await page.locator('table').count()) > 0) {
+              await page
+                .locator('table')
+                .first()
+                .waitFor({ state: 'visible', timeout: 5000 });
             }
             if (await cardsBtn.isVisible()) {
               await cardsBtn.click();
@@ -162,7 +217,10 @@ async function runChallengerStress() {
             }
           }
           const cardCount = await page.locator('.apple-card').count();
-          assert.ok(cardCount > 0, 'Attendance view must render apple-card containers');
+          assert.ok(
+            cardCount > 0,
+            'Attendance view must render apple-card containers'
+          );
           domDetails = { attendanceCards: true, cardCount };
         } else if (r.path === '/dashboard/marks') {
           const searchInput = page.getByPlaceholder(/Search courses/i);
@@ -170,35 +228,68 @@ async function runChallengerStress() {
           await searchInput.fill('CS');
           await page.waitForTimeout(100);
           await searchInput.fill('');
-          await page.locator('table').first().waitFor({ state: 'visible', timeout: 5000 });
+          await page
+            .locator('table')
+            .first()
+            .waitFor({ state: 'visible', timeout: 5000 });
           domDetails = { searchInputInteractive: true };
         } else if (r.path === '/dashboard/tools') {
-          await page.getByText(/Attendance Target/i).first().waitFor({ state: 'visible', timeout: 5000 });
-          assert.ok(await page.getByText(/CGPA Goal Predictor/i).first().isVisible(), 'CGPA predictor tool visible');
+          await page
+            .getByText(/Attendance Target/i)
+            .first()
+            .waitFor({ state: 'visible', timeout: 5000 });
+          assert.ok(
+            await page
+              .getByText(/CGPA Goal Predictor/i)
+              .first()
+              .isVisible(),
+            'CGPA predictor tool visible'
+          );
           domDetails = { toolsCalculatorsVisible: true };
         } else if (r.path === '/dashboard/profile') {
-          await page.getByText(/Alex Student|2100030000/i).first().waitFor({ state: 'visible', timeout: 5000 });
+          await page
+            .getByText(/Alex Student|2100030000/i)
+            .first()
+            .waitFor({ state: 'visible', timeout: 5000 });
           domDetails = { profileDetailsVisible: true };
         } else if (r.path === '/dashboard/fee') {
-          await page.getByText(/Total Pending|Total Paid/i).first().waitFor({ state: 'visible', timeout: 5000 });
+          await page
+            .getByText(/Total Pending|Total Paid/i)
+            .first()
+            .waitFor({ state: 'visible', timeout: 5000 });
           domDetails = { feeDetailsVisible: true };
         } else if (r.path === '/dashboard/circulars') {
-          await page.locator('table').first().waitFor({ state: 'visible', timeout: 5000 });
+          await page
+            .locator('table')
+            .first()
+            .waitFor({ state: 'visible', timeout: 5000 });
           domDetails = { circularsVisible: true };
         } else if (r.path === '/dashboard/hostels') {
-          await page.getByText(/Hostel|Block|Room/i).first().waitFor({ state: 'visible', timeout: 5000 });
+          await page
+            .getByText(/Hostel|Block|Room/i)
+            .first()
+            .waitFor({ state: 'visible', timeout: 5000 });
           domDetails = { hostelInfoVisible: true };
         } else if (r.path === '/dashboard/library') {
-          await page.getByText(/Library|Book|Issue/i).first().waitFor({ state: 'visible', timeout: 5000 });
+          await page
+            .getByText(/Library|Book|Issue/i)
+            .first()
+            .waitFor({ state: 'visible', timeout: 5000 });
           domDetails = { libraryRecordsVisible: true };
         } else if (r.path === '/dashboard/exam-seating') {
-          await page.getByText(/Exam|Seating|Desk/i).first().waitFor({ state: 'visible', timeout: 5000 });
+          await page
+            .getByText(/Exam|Seating|Desk/i)
+            .first()
+            .waitFor({ state: 'visible', timeout: 5000 });
           domDetails = { examSeatingVisible: true };
         }
 
         // SVG Audit: Verify all rendered SVGs have geometry and non-empty content
         svgCount = await page.locator('svg').count();
-        assert.ok(svgCount >= 10, `Expected >= 10 SVGs on ${r.path}, found ${svgCount}`);
+        assert.ok(
+          svgCount >= 10,
+          `Expected >= 10 SVGs on ${r.path}, found ${svgCount}`
+        );
 
         const svgAudits = await page.evaluate(() => {
           const svgs = Array.from(document.querySelectorAll('svg'));
@@ -210,14 +301,27 @@ async function runChallengerStress() {
         });
 
         for (const sa of svgAudits) {
-          assert.ok(sa.childrenCount > 0, `SVG #${sa.index} on ${r.path} has 0 child geometry elements`);
-          assert.ok(sa.innerHTML.length > 0, `SVG #${sa.index} on ${r.path} has empty innerHTML`);
+          assert.ok(
+            sa.childrenCount > 0,
+            `SVG #${sa.index} on ${r.path} has 0 child geometry elements`
+          );
+          assert.ok(
+            sa.innerHTML.length > 0,
+            `SVG #${sa.index} on ${r.path} has empty innerHTML`
+          );
         }
 
         // Strict Console and Page Errors check
-        assert.strictEqual(errors.length, 0, `Console errors on ${r.path}: ${errors.join('; ')}`);
-        assert.strictEqual(pageErrors.length, 0, `Page exceptions on ${r.path}: ${pageErrors.join('; ')}`);
-
+        assert.strictEqual(
+          errors.length,
+          0,
+          `Console errors on ${r.path}: ${errors.join('; ')}`
+        );
+        assert.strictEqual(
+          pageErrors.length,
+          0,
+          `Page exceptions on ${r.path}: ${pageErrors.join('; ')}`
+        );
       } catch (err: unknown) {
         passed = false;
         errorMsg = err instanceof Error ? err.message : String(err);
@@ -231,23 +335,35 @@ async function runChallengerStress() {
         name: `Route: ${r.path} (${r.name})`,
         passed,
         durationMs,
-        details: { svgCount, heading: headingFound, ...domDetails, errorsCount: errors.length, warningsCount: warnings.length },
+        details: {
+          svgCount,
+          heading: headingFound,
+          ...domDetails,
+          errorsCount: errors.length,
+          warningsCount: warnings.length,
+        },
         error: errorMsg || undefined,
       });
 
-      console.log(`  ${passed ? '✓' : '✗'} [${r.path}] SVGs: ${svgCount} | Time: ${durationMs}ms | Errors: ${errors.length} | Warnings: ${warnings.length}`);
+      console.log(
+        `  ${passed ? '✓' : '✗'} [${r.path}] SVGs: ${svgCount} | Time: ${durationMs}ms | Errors: ${errors.length} | Warnings: ${warnings.length}`
+      );
       if (!passed) console.log(`     Error: ${errorMsg}`);
     }
 
     // -------------------------------------------------------------------------
     // TEST SUITE 2: Concurrent Multi-Tab Simultaneous Route Bombardment
     // -------------------------------------------------------------------------
-    console.log('\n--- [SUITE 2] Concurrent Multi-Tab Simultaneous Route Bombardment ---');
+    console.log(
+      '\n--- [SUITE 2] Concurrent Multi-Tab Simultaneous Route Bombardment ---'
+    );
     {
       const start = Date.now();
       const concurrency = 3;
       const contexts = await Promise.all(
-        Array.from({ length: concurrency }).map(() => browser.newContext({ viewport: { width: 1280, height: 800 } }))
+        Array.from({ length: concurrency }).map(() =>
+          browser.newContext({ viewport: { width: 1280, height: 800 } })
+        )
       );
 
       const tabTasks = contexts.map(async (ctx, idx) => {
@@ -267,14 +383,25 @@ async function runChallengerStress() {
             waitUntil: 'domcontentloaded',
             timeout: 10000,
           });
-          assert.ok(res && res.status() < 400, `Tab ${idx} failed to load ${target.path}`);
+          assert.ok(
+            res && res.status() < 400,
+            `Tab ${idx} failed to load ${target.path}`
+          );
           await page.waitForTimeout(200);
           const svgCount = await page.locator('svg').count();
           assert.ok(svgCount > 0, `Tab ${idx} found 0 SVGs on ${target.path}`);
         }
 
-        assert.strictEqual(errors.length, 0, `Tab ${idx} logged console errors: ${errors.join(', ')}`);
-        assert.strictEqual(pageErrors.length, 0, `Tab ${idx} logged page errors: ${pageErrors.join(', ')}`);
+        assert.strictEqual(
+          errors.length,
+          0,
+          `Tab ${idx} logged console errors: ${errors.join(', ')}`
+        );
+        assert.strictEqual(
+          pageErrors.length,
+          0,
+          `Tab ${idx} logged page errors: ${pageErrors.join(', ')}`
+        );
         await ctx.close();
       });
 
@@ -295,13 +422,17 @@ async function runChallengerStress() {
         durationMs,
         error: errorMsg || undefined,
       });
-      console.log(`  ${passed ? '✓' : '✗'} 3-Tab Concurrent Load | Time: ${durationMs}ms | Result: ${passed ? 'PASSED' : errorMsg}`);
+      console.log(
+        `  ${passed ? '✓' : '✗'} 3-Tab Concurrent Load | Time: ${durationMs}ms | Result: ${passed ? 'PASSED' : errorMsg}`
+      );
     }
 
     // -------------------------------------------------------------------------
     // TEST SUITE 3: Rapid Sequential Interleaved Navigation & History Stress
     // -------------------------------------------------------------------------
-    console.log('\n--- [SUITE 3] Rapid Sequential Interleaved Navigation & History Back/Forward ---');
+    console.log(
+      '\n--- [SUITE 3] Rapid Sequential Interleaved Navigation & History Back/Forward ---'
+    );
     {
       const start = Date.now();
       const context = await browser.newContext();
@@ -318,7 +449,10 @@ async function runChallengerStress() {
       try {
         // Fast sequential navigation through all 11 routes in rapid succession
         for (const r of DASHBOARD_ROUTES) {
-          await page.goto(`http://localhost:3000${r.path}`, { waitUntil: 'domcontentloaded', timeout: 5000 });
+          await page.goto(`http://localhost:3000${r.path}`, {
+            waitUntil: 'domcontentloaded',
+            timeout: 5000,
+          });
           await page.waitForTimeout(100);
         }
 
@@ -328,12 +462,23 @@ async function runChallengerStress() {
           await page.waitForTimeout(100);
         }
         for (let i = 0; i < 5; i++) {
-          await page.goForward({ waitUntil: 'domcontentloaded', timeout: 5000 });
+          await page.goForward({
+            waitUntil: 'domcontentloaded',
+            timeout: 5000,
+          });
           await page.waitForTimeout(100);
         }
 
-        assert.strictEqual(errors.length, 0, `Rapid navigation console errors: ${errors.join(', ')}`);
-        assert.strictEqual(pageErrors.length, 0, `Rapid navigation page errors: ${pageErrors.join(', ')}`);
+        assert.strictEqual(
+          errors.length,
+          0,
+          `Rapid navigation console errors: ${errors.join(', ')}`
+        );
+        assert.strictEqual(
+          pageErrors.length,
+          0,
+          `Rapid navigation page errors: ${pageErrors.join(', ')}`
+        );
       } catch (err: unknown) {
         passed = false;
         errorMsg = err instanceof Error ? err.message : String(err);
@@ -349,16 +494,22 @@ async function runChallengerStress() {
         durationMs,
         error: errorMsg || undefined,
       });
-      console.log(`  ${passed ? '✓' : '✗'} Rapid Navigation & History Hop | Time: ${durationMs}ms | Result: ${passed ? 'PASSED' : errorMsg}`);
+      console.log(
+        `  ${passed ? '✓' : '✗'} Rapid Navigation & History Hop | Time: ${durationMs}ms | Result: ${passed ? 'PASSED' : errorMsg}`
+      );
     }
 
     // -------------------------------------------------------------------------
     // TEST SUITE 4: Interactive Touch Targets & Bounding Box WCAG Verification
     // -------------------------------------------------------------------------
-    console.log('\n--- [SUITE 4] WCAG 2.2 AAA Touch Target & Focus Rings Verification ---');
+    console.log(
+      '\n--- [SUITE 4] WCAG 2.2 AAA Touch Target & Focus Rings Verification ---'
+    );
     {
       const start = Date.now();
-      const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+      const context = await browser.newContext({
+        viewport: { width: 1280, height: 800 },
+      });
       const page = await context.newPage();
       await setupAuth(page);
 
@@ -367,23 +518,33 @@ async function runChallengerStress() {
       let interactiveCount = 0;
 
       try {
-        await page.goto('http://localhost:3000/dashboard', { waitUntil: 'domcontentloaded' });
+        await page.goto('http://localhost:3000/dashboard', {
+          waitUntil: 'domcontentloaded',
+        });
         await page.waitForTimeout(300);
 
         // Check bounding box of buttons, inputs, links in navbar and main content
         const elementsCheck = await page.evaluate(() => {
           const interactives = Array.from(
-            document.querySelectorAll('button, a[href], input, select, [role="button"]')
+            document.querySelectorAll(
+              'button, a[href], input, select, [role="button"]'
+            )
           ) as HTMLElement[];
 
           const metrics = interactives.map((el) => {
             const rect = el.getBoundingClientRect();
             return {
               tag: el.tagName,
-              text: el.innerText?.slice(0, 30) || el.getAttribute('aria-label') || '',
+              text:
+                el.innerText?.slice(0, 30) ||
+                el.getAttribute('aria-label') ||
+                '',
               width: rect.width,
               height: rect.height,
-              visible: rect.width > 0 && rect.height > 0 && window.getComputedStyle(el).display !== 'none',
+              visible:
+                rect.width > 0 &&
+                rect.height > 0 &&
+                window.getComputedStyle(el).display !== 'none',
             };
           });
 
@@ -391,11 +552,17 @@ async function runChallengerStress() {
         });
 
         interactiveCount = elementsCheck.length;
-        assert.ok(interactiveCount > 5, 'Found too few interactive elements on dashboard');
+        assert.ok(
+          interactiveCount > 5,
+          'Found too few interactive elements on dashboard'
+        );
 
         // Check that major action buttons adhere to minimum size conventions
         for (const el of elementsCheck) {
-          assert.ok(el.width >= 16 && el.height >= 16, `Interactive element ${el.tag} "${el.text}" has tiny box (${el.width}x${el.height})`);
+          assert.ok(
+            el.width >= 16 && el.height >= 16,
+            `Interactive element ${el.tag} "${el.text}" has tiny box (${el.width}x${el.height})`
+          );
         }
       } catch (err: unknown) {
         passed = false;
@@ -413,7 +580,9 @@ async function runChallengerStress() {
         details: { interactiveCount },
         error: errorMsg || undefined,
       });
-      console.log(`  ${passed ? '✓' : '✗'} Touch Target Audit (${interactiveCount} elements) | Time: ${durationMs}ms`);
+      console.log(
+        `  ${passed ? '✓' : '✗'} Touch Target Audit (${interactiveCount} elements) | Time: ${durationMs}ms`
+      );
     }
 
     // -------------------------------------------------------------------------
@@ -435,20 +604,32 @@ async function runChallengerStress() {
 
       try {
         // 1. Non-existent subroute
-        const res404 = await page.goto('http://localhost:3000/dashboard/nonexistent-route-xyz', {
-          waitUntil: 'domcontentloaded',
-        });
+        const res404 = await page.goto(
+          'http://localhost:3000/dashboard/nonexistent-route-xyz',
+          {
+            waitUntil: 'domcontentloaded',
+          }
+        );
         assert.ok(res404 !== null, '404 response received');
 
         // 2. Query param XSS injection attack on marks page
-        await page.goto('http://localhost:3000/dashboard/marks?sem=%3Cscript%3Ealert(1)%3C%2Fscript%3E&year=%22%3E%3Cimg+src%3Dx+onerror%3Dalert(2)%3E', {
-          waitUntil: 'domcontentloaded',
-        });
+        await page.goto(
+          'http://localhost:3000/dashboard/marks?sem=%3Cscript%3Ealert(1)%3C%2Fscript%3E&year=%22%3E%3Cimg+src%3Dx+onerror%3Dalert(2)%3E',
+          {
+            waitUntil: 'domcontentloaded',
+          }
+        );
         await page.waitForTimeout(300);
 
         // Verify page rendered safely without alerts or crashes
-        const marksHeading = page.locator('#main-content').getByRole('heading', { level: 1 }).first();
-        assert.ok(await marksHeading.isVisible(), 'Marks page survived XSS query string attack');
+        const marksHeading = page
+          .locator('#main-content')
+          .getByRole('heading', { level: 1 })
+          .first();
+        assert.ok(
+          await marksHeading.isVisible(),
+          'Marks page survived XSS query string attack'
+        );
 
         // 3. Corrupted session test
         await page.context().clearCookies();
@@ -459,10 +640,16 @@ async function runChallengerStress() {
             url: 'http://localhost:3000',
           },
         ]);
-        const resCorrupt = await page.goto('http://localhost:3000/dashboard', { waitUntil: 'domcontentloaded' });
+        const resCorrupt = await page.goto('http://localhost:3000/dashboard', {
+          waitUntil: 'domcontentloaded',
+        });
         assert.ok(resCorrupt !== null, 'Corrupted cookie handled gracefully');
 
-        assert.strictEqual(pageErrors.length, 0, `Page threw unhandled exception on corrupted cookie: ${pageErrors.join(', ')}`);
+        assert.strictEqual(
+          pageErrors.length,
+          0,
+          `Page threw unhandled exception on corrupted cookie: ${pageErrors.join(', ')}`
+        );
       } catch (err: unknown) {
         passed = false;
         errorMsg = err instanceof Error ? err.message : String(err);
@@ -478,9 +665,10 @@ async function runChallengerStress() {
         durationMs,
         error: errorMsg || undefined,
       });
-      console.log(`  ${passed ? '✓' : '✗'} Adversarial Boundaries & Injections | Time: ${durationMs}ms | Result: ${passed ? 'PASSED' : errorMsg}`);
+      console.log(
+        `  ${passed ? '✓' : '✗'} Adversarial Boundaries & Injections | Time: ${durationMs}ms | Result: ${passed ? 'PASSED' : errorMsg}`
+      );
     }
-
   } finally {
     await browser.close();
   }
@@ -501,7 +689,9 @@ async function runChallengerStress() {
   console.log(`Passed Items     : ${passedTests}`);
   console.log(`Failed Items     : ${failedTests}`);
   console.log(`Total Duration   : ${totalDurationMs}ms`);
-  console.log(`Verdict          : ${failedTests === 0 ? '🏆 100% EMPIRICAL PASS (APPROVE)' : '❌ FAILURES DETECTED (REQUEST_CHANGES)'}`);
+  console.log(
+    `Verdict          : ${failedTests === 0 ? '🏆 100% EMPIRICAL PASS (APPROVE)' : '❌ FAILURES DETECTED (REQUEST_CHANGES)'}`
+  );
   console.log('='.repeat(80));
 
   if (failedTests > 0) {

@@ -1,6 +1,12 @@
 'use client';
 
-import { Calendar, DollarSign, Award, Target, BookOpen } from '@/components/ui/icons';
+import {
+  Calendar,
+  DollarSign,
+  Award,
+  Target,
+  BookOpen,
+} from '@/components/ui/icons';
 import { triggerHaptic } from '@/lib/fluid-motion';
 
 interface SuggestionChip {

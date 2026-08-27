@@ -31,7 +31,11 @@ export async function matchOfflineQuery(
     q.includes('miss') ||
     q.includes('bunk')
   ) {
-    const res = await executeTool('calculateAttendanceTarget', { currentAttended: 33, currentTotal: 40, targetPercent: 75 }, context);
+    const res = await executeTool(
+      'calculateAttendanceTarget',
+      { currentAttended: 33, currentTotal: 40, targetPercent: 75 },
+      context
+    );
     const resultObj = (res.result as Record<string, unknown>) || {};
     toolCalls.push({
       tool: 'calculateAttendanceTarget',
@@ -39,7 +43,9 @@ export async function matchOfflineQuery(
       result: { success: true, ...resultObj },
     });
     return {
-      text: (resultObj.message as string) || 'You need to attend 3 more classes to reach 75% target.',
+      text:
+        (resultObj.message as string) ||
+        'You need to attend 3 more classes to reach 75% target.',
       toolCalls,
     };
   }
@@ -52,14 +58,21 @@ export async function matchOfflineQuery(
   ) {
     let subject: string | undefined = undefined;
     if (q.includes('os') || q.includes('operating system')) subject = 'OS';
-    else if (q.includes('dsa') || q.includes('data structure')) subject = '23CS2101R';
-    else if (q.includes('dbms') || q.includes('database')) subject = '23CS2103R';
-    else if (q.includes('coa') || q.includes('architecture')) subject = '23CS2102R';
+    else if (q.includes('dsa') || q.includes('data structure'))
+      subject = '23CS2101R';
+    else if (q.includes('dbms') || q.includes('database'))
+      subject = '23CS2103R';
+    else if (q.includes('coa') || q.includes('architecture'))
+      subject = '23CS2102R';
 
     const args = subject ? { subject } : {};
     const res = await executeTool('getAttendance', args, context);
     const resultObj = (res.result as Record<string, unknown>) || {};
-    toolCalls.push({ tool: 'getAttendance', args, result: { success: true, ...resultObj } });
+    toolCalls.push({
+      tool: 'getAttendance',
+      args,
+      result: { success: true, ...resultObj },
+    });
     return {
       text: 'Here is your attendance record:\n\n- **Operating Systems**: **82.5%** (33/40 hrs)',
       toolCalls,
@@ -77,7 +90,11 @@ export async function matchOfflineQuery(
     const day = q.includes('tomorrow') ? 'Tomorrow' : 'Today';
     const res = await executeTool('getTimetable', { day }, context);
     const resultObj = (res.result as Record<string, unknown>) || {};
-    toolCalls.push({ tool: 'getTimetable', args: { day }, result: { success: true, ...resultObj } });
+    toolCalls.push({
+      tool: 'getTimetable',
+      args: { day },
+      result: { success: true, ...resultObj },
+    });
     return {
       text: `Here is your schedule:\n\n- **${day}**: Operating Systems @ C-301`,
       toolCalls,
@@ -85,17 +102,30 @@ export async function matchOfflineQuery(
   }
 
   // 4. CGPA prediction check
-  if (q.includes('cgpa') || q.includes('gpa') || q.includes('predict') || q.includes('roadmap')) {
-    const res = await executeTool('predictCGPA', {
-      currentCGPA: 8.42,
-      completedCredits: 72,
-      newCourses: [
-        { credits: 4, expectedGrade: 'O' },
-        { credits: 3, expectedGrade: 'A+' },
-      ],
-    }, context);
+  if (
+    q.includes('cgpa') ||
+    q.includes('gpa') ||
+    q.includes('predict') ||
+    q.includes('roadmap')
+  ) {
+    const res = await executeTool(
+      'predictCGPA',
+      {
+        currentCGPA: 8.42,
+        completedCredits: 72,
+        newCourses: [
+          { credits: 4, expectedGrade: 'O' },
+          { credits: 3, expectedGrade: 'A+' },
+        ],
+      },
+      context
+    );
     const resultObj = (res.result as Record<string, unknown>) || {};
-    toolCalls.push({ tool: 'predictCGPA', args: {}, result: { success: true, ...resultObj } });
+    toolCalls.push({
+      tool: 'predictCGPA',
+      args: {},
+      result: { success: true, ...resultObj },
+    });
     return {
       text: '🎯 **CGPA Forecast**:\n- Current CGPA: **8.42**\n- Predicted CGPA: **8.55** (+0.13)',
       toolCalls,
@@ -104,11 +134,18 @@ export async function matchOfflineQuery(
 
   // 5. Marks check
   if (
-    q.includes('mark') || q.includes('score') || q.includes('exam') || q.includes('internal')
+    q.includes('mark') ||
+    q.includes('score') ||
+    q.includes('exam') ||
+    q.includes('internal')
   ) {
     const res = await executeTool('getMarks', {}, context);
     const resultObj = (res.result as Record<string, unknown>) || {};
-    toolCalls.push({ tool: 'getMarks', args: {}, result: { success: true, ...resultObj } });
+    toolCalls.push({
+      tool: 'getMarks',
+      args: {},
+      result: { success: true, ...resultObj },
+    });
     return {
       text: 'Here are your internal marks:\n\n- **OS**: Internal 1: 24/25, Internal 2: 23/25',
       toolCalls,
@@ -116,10 +153,20 @@ export async function matchOfflineQuery(
   }
 
   // 6. Fee details check
-  if (q.includes('fee') || q.includes('due') || q.includes('paid') || q.includes('balance') || q.includes('cost')) {
+  if (
+    q.includes('fee') ||
+    q.includes('due') ||
+    q.includes('paid') ||
+    q.includes('balance') ||
+    q.includes('cost')
+  ) {
     const res = await executeTool('getFeeDetails', {}, context);
     const resultObj = (res.result as Record<string, unknown>) || {};
-    toolCalls.push({ tool: 'getFeeDetails', args: {}, result: { success: true, ...resultObj } });
+    toolCalls.push({
+      tool: 'getFeeDetails',
+      args: {},
+      result: { success: true, ...resultObj },
+    });
     return {
       text: 'Here is your fee breakdown:\n\n- **Tuition Fee**: Paid ₹45,000 | Pending ₹0',
       toolCalls,
@@ -127,10 +174,19 @@ export async function matchOfflineQuery(
   }
 
   // 7. Profile check
-  if (q.includes('profile') || q.includes('id') || q.includes('name') || q.includes('program')) {
+  if (
+    q.includes('profile') ||
+    q.includes('id') ||
+    q.includes('name') ||
+    q.includes('program')
+  ) {
     const res = await executeTool('getStudentProfile', {}, context);
     const resultObj = (res.result as Record<string, unknown>) || {};
-    toolCalls.push({ tool: 'getStudentProfile', args: {}, result: { success: true, ...resultObj } });
+    toolCalls.push({
+      tool: 'getStudentProfile',
+      args: {},
+      result: { success: true, ...resultObj },
+    });
     return {
       text: '**Student Profile**:\n- **Name**: Demo Student\n- **ID**: 2100030000',
       toolCalls,

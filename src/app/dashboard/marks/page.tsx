@@ -9,7 +9,12 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { exportTableToCSV } from '@/lib/utils';
-import { Search, Download, ChevronDown, ChevronUp } from '@/components/ui/icons';
+import {
+  Search,
+  Download,
+  ChevronDown,
+  ChevronUp,
+} from '@/components/ui/icons';
 import { Input } from '@/components/ui/input';
 import { GpaTrendChart } from './GpaTrendChart';
 import { triggerHaptic } from '@/lib/fluid-motion';
@@ -48,7 +53,11 @@ function MarksMobileCard({ row }: { row: Record<string, unknown> }) {
             aria-label={`Toggle details for ${String(primaryVal)}`}
             className="p-2 rounded-full hover:bg-surface-3 text-muted-foreground hover:text-foreground transition-all min-w-[44px] min-h-[44px] flex items-center justify-center -mr-1 -mt-1 touch-manipulation active:scale-90 cursor-pointer"
           >
-            {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            {expanded ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
           </button>
         )}
       </div>
@@ -57,8 +66,12 @@ function MarksMobileCard({ row }: { row: Record<string, unknown> }) {
         <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border">
           {secondaryEntries.map(([key, val]) => (
             <div key={key} className="min-w-0">
-              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{key}</div>
-              <div className="text-xs font-medium text-foreground truncate tracking-tight mt-0.5">{String(val)}</div>
+              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                {key}
+              </div>
+              <div className="text-xs font-medium text-foreground truncate tracking-tight mt-0.5">
+                {String(val)}
+              </div>
             </div>
           ))}
         </div>
@@ -67,9 +80,14 @@ function MarksMobileCard({ row }: { row: Record<string, unknown> }) {
       {expanded && remainingEntries.length > 0 && (
         <div className="pt-3 border-t border-border space-y-2 animate-spring-scale">
           {remainingEntries.map(([key, val]) => (
-            <div key={key} className="flex justify-between items-center text-xs py-1 border-b border-border/60 last:border-0">
+            <div
+              key={key}
+              className="flex justify-between items-center text-xs py-1 border-b border-border/60 last:border-0"
+            >
               <span className="text-muted-foreground font-medium">{key}</span>
-              <span className="text-foreground font-semibold text-right max-w-[60%] truncate tabular-numbers">{String(val)}</span>
+              <span className="text-foreground font-semibold text-right max-w-[60%] truncate tabular-numbers">
+                {String(val)}
+              </span>
             </div>
           ))}
         </div>
@@ -80,13 +98,27 @@ function MarksMobileCard({ row }: { row: Record<string, unknown> }) {
 
 export default function MarksPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const { years, semesters, selectedYear, selectedSem, handleYearChange, handleSemChange } = useAcademicSession();
-  const { data: rawData, isLoading: loading, error: fetchError, mutate } = useMarks(selectedYear, selectedSem);
+  const {
+    years,
+    semesters,
+    selectedYear,
+    selectedSem,
+    handleYearChange,
+    handleSemChange,
+  } = useAcademicSession();
+  const {
+    data: rawData,
+    isLoading: loading,
+    error: fetchError,
+    mutate,
+  } = useMarks(selectedYear, selectedSem);
   const data = (rawData as Record<string, unknown>[]) || [];
   const error = fetchError ? fetchError.message : null;
 
   const filteredData = data.filter((row) =>
-    Object.values(row).some((val) => String(val).toLowerCase().includes(searchQuery.toLowerCase()))
+    Object.values(row).some((val) =>
+      String(val).toLowerCase().includes(searchQuery.toLowerCase())
+    )
   );
 
   return (
@@ -131,7 +163,7 @@ export default function MarksPage() {
             size="sm"
             onClick={() => {
               triggerHaptic('light');
-              exportTableToCSV(data, 'marks');
+              exportTableToCSV(filteredData, 'marks');
             }}
             className="min-h-[44px] px-4 touch-manipulation"
           >
@@ -143,12 +175,25 @@ export default function MarksPage() {
       <div className="rounded-[--radius-2xl] apple-card overflow-hidden shadow-xl border border-border">
         {loading ? (
           <div className="p-6 space-y-3">
-            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full rounded-[--radius-lg]" />)}
+            {[...Array(5)].map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full rounded-[--radius-lg]" />
+            ))}
           </div>
         ) : error ? (
-          <EmptyState variant="error" description={error} action={{ label: 'Retry', onClick: () => mutate() }} />
+          <EmptyState
+            variant="error"
+            description={error}
+            action={{ label: 'Retry', onClick: () => mutate() }}
+          />
         ) : filteredData.length === 0 ? (
-          <EmptyState title="No marks data" description={searchQuery ? 'Try a different search.' : 'Marks will appear once published.'} />
+          <EmptyState
+            title="No marks data"
+            description={
+              searchQuery
+                ? 'Try a different search.'
+                : 'Marks will appear once published.'
+            }
+          />
         ) : (
           <>
             {/* Desktop Table (>=640px) */}
@@ -169,9 +214,17 @@ export default function MarksPage() {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {filteredData.map((row, idx) => (
-                    <tr key={idx} className="hover:bg-surface-2 transition-colors">
+                    <tr
+                      key={idx}
+                      className="hover:bg-surface-2 transition-colors"
+                    >
                       {Object.values(row).map((val: unknown, j) => (
-                        <td key={j} className="px-5 py-3.5 text-sm text-foreground tabular-numbers font-medium whitespace-nowrap">{String(val)}</td>
+                        <td
+                          key={j}
+                          className="px-5 py-3.5 text-sm text-foreground tabular-numbers font-medium whitespace-nowrap"
+                        >
+                          {String(val)}
+                        </td>
                       ))}
                     </tr>
                   ))}

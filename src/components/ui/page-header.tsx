@@ -7,9 +7,21 @@ interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   actions?: React.ReactNode;
 }
 
-function PageHeader({ title, description, actions, className, ...props }: PageHeaderProps) {
+function PageHeader({
+  title,
+  description,
+  actions,
+  className,
+  ...props
+}: PageHeaderProps) {
   return (
-    <div className={cn('flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-2', className)} {...props}>
+    <div
+      className={cn(
+        'flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-2',
+        className
+      )}
+      {...props}
+    >
       <div>
         <h1 className="text-3xl font-semibold tracking-[-0.025em] text-foreground font-heading leading-tight">
           {title}

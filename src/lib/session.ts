@@ -5,15 +5,29 @@ export type { ScraperSession };
 const ENC_PREFIX = 'enc.';
 const MAX_SESSION_BYTES = 64 * 1024;
 
+let devSessionSecret: string | null = null;
+
 function getSecret(): string {
   if (process.env.SESSION_SECRET) return process.env.SESSION_SECRET;
   if (process.env.NEXTAUTH_SECRET) return process.env.NEXTAUTH_SECRET;
 
   if (process.env.NODE_ENV === 'production') {
-    throw new Error('[SECURITY FATAL] SESSION_SECRET environment variable is missing in production!');
+    throw new Error(
+      '[SECURITY FATAL] SESSION_SECRET environment variable is missing in production!'
+    );
   }
 
-  return 'kl-sync-dev-fallback-secret-do-not-use-in-prod';
+  if (!devSessionSecret) {
+    devSessionSecret =
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : Math.random().toString(36).slice(2) +
+          Math.random().toString(36).slice(2);
+    console.warn(
+      '[KL-SYNC DEV] Using ephemeral SESSION_SECRET. Sessions will reset on server restart. Set SESSION_SECRET in .env.local to persist.'
+    );
+  }
+  return devSessionSecret;
 }
 
 export class SessionDecodeError extends Error {
@@ -27,7 +41,9 @@ export function isDemoModeEnabled(): boolean {
   return process.env.KL_SYNC_DEMO_MODE === 'true';
 }
 
-export function isDemoSession(session: ScraperSession | null | undefined): boolean {
+export function isDemoSession(
+  session: ScraperSession | null | undefined
+): boolean {
   if (!session) return true;
   if (!session.csrfToken || session.csrfToken.includes('demo')) return true;
   if (!session.cookies || session.cookies.length === 0) return true;
@@ -40,34 +56,37 @@ function validateSessionShape(value: unknown): ScraperSession {
   }
 
   const candidate = value as Partial<ScraperSession>;
-  if (!Array.isArray(candidate.cookies) || typeof candidate.csrfToken !== 'string') {
+  if (
+    !Array.isArray(candidate.cookies) ||
+    typeof candidate.csrfToken !== 'string'
+  ) {
     throw new SessionDecodeError();
   }
 
   const cookies = candidate.cookies.map((cookie) => {
     if (!cookie || typeof cookie !== 'object') throw new SessionDecodeError();
     const item = cookie as { name?: unknown; value?: unknown };
-    if (typeof item.name !== 'string' || typeof item.value !== 'string') throw new SessionDecodeError();
+    if (typeof item.name !== 'string' || typeof item.value !== 'string')
+      throw new SessionDecodeError();
     return { name: item.name, value: item.value };
   });
 
   return {
     cookies,
     csrfToken: candidate.csrfToken,
-    ...(typeof candidate.userAgent === 'string' ? { userAgent: candidate.userAgent } : {}),
+    ...(typeof candidate.userAgent === 'string'
+      ? { userAgent: candidate.userAgent }
+      : {}),
   };
 }
 
 async function getCryptoKey(): Promise<CryptoKey> {
   const secretBytes = new TextEncoder().encode(getSecret());
   const hash = await crypto.subtle.digest('SHA-256', secretBytes);
-  return crypto.subtle.importKey(
-    'raw',
-    hash,
-    { name: 'AES-GCM' },
-    false,
-    ['encrypt', 'decrypt']
-  );
+  return crypto.subtle.importKey('raw', hash, { name: 'AES-GCM' }, false, [
+    'encrypt',
+    'decrypt',
+  ]);
 }
 
 export async function encodeSession(session: ScraperSession): Promise<string> {
@@ -93,14 +112,22 @@ export async function encodeSession(session: ScraperSession): Promise<string> {
   return ENC_PREFIX + Buffer.from(combined).toString('base64url');
 }
 
-export async function decodeSession(token: string | null | undefined): Promise<ScraperSession> {
+export async function decodeSession(
+  token: string | null | undefined
+): Promise<ScraperSession> {
   if (!token || !token.startsWith(ENC_PREFIX)) {
     throw new SessionDecodeError();
   }
 
-  if (isDemoModeEnabled() && (token.includes('demo') || token === 'enc.demo_session_data')) {
+  if (
+    isDemoModeEnabled() &&
+    (token.includes('demo') || token === 'enc.demo_session_data')
+  ) {
     return {
-      cookies: [{ name: 'PHPSESSID', value: 'sess_demo_123456' }, { name: 'kl_device', value: 'device_demo_123456' }],
+      cookies: [
+        { name: 'PHPSESSID', value: 'sess_demo_123456' },
+        { name: 'kl_device', value: 'device_demo_123456' },
+      ],
       csrfToken: 'demo_csrf_token_123',
       userAgent: 'Mozilla/5.0 Demo Browser',
     };
@@ -130,7 +157,11 @@ export async function decodeSession(token: string | null | undefined): Promise<S
       const rearranged = new Uint8Array(ciphertext.byteLength + tag.byteLength);
       rearranged.set(ciphertext, 0);
       rearranged.set(tag, ciphertext.byteLength);
-      decryptedBuffer = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, rearranged);
+      decryptedBuffer = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        rearranged
+      );
     }
 
     const decoded = JSON.parse(new TextDecoder().decode(decryptedBuffer));

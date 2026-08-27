@@ -14,6 +14,10 @@ test('checkRateLimit allows requests up to limit and blocks excess', () => {
   }
 
   const blockedRes = checkRateLimit(key, limit, windowMs);
-  assert.strictEqual(blockedRes.allowed, false, 'Request exceeding limit should be blocked');
+  assert.strictEqual(
+    blockedRes.allowed,
+    false,
+    'Request exceeding limit should be blocked'
+  );
   assert.strictEqual(blockedRes.remaining, 0);
 });

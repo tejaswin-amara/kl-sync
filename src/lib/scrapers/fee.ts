@@ -5,6 +5,7 @@ import {
   arrayToJar,
   fetchWithJar,
   parseGenericTable,
+  checkRateLimitText,
 } from './http-jar';
 
 export async function fetchFeeData(session: ScraperSession) {
@@ -15,6 +16,7 @@ export async function fetchFeeData(session: ScraperSession) {
     extraHeaders: { Origin: ERP_URL, Referer: ERP_URL },
   });
   const html = await res.text();
+  checkRateLimitText(html);
   if (html.includes('id="login-form"')) {
     throw new Error('Session expired or invalid ERP route.');
   }
@@ -41,6 +43,7 @@ export async function fetchGenericModuleData(
   }
 
   const html = await res.text();
+  checkRateLimitText(html);
 
   if (html.includes('id="login-form"')) {
     throw new Error('Session expired or invalid ERP route.');

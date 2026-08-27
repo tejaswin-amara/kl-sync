@@ -25,7 +25,8 @@ export default function GlobalError({
             Something went wrong!
           </h2>
           <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-            An unforeseen application error occurred. You can attempt to reload the view.
+            An unforeseen application error occurred. You can attempt to reload
+            the view.
           </p>
           <button
             onClick={() => reset()}

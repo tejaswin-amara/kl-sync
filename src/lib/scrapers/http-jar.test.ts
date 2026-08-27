@@ -45,7 +45,10 @@ test('jarToArray and arrayToJar bidirectional conversion', () => {
 test('mergeSetCookies extracts cookies from Set-Cookie headers', () => {
   const jar: CookieJar = {};
   const mockHeaders = new Headers();
-  mockHeaders.append('Set-Cookie', 'PHPSESSID=new_sess_789; Path=/; HttpOnly; Secure');
+  mockHeaders.append(
+    'Set-Cookie',
+    'PHPSESSID=new_sess_789; Path=/; HttpOnly; Secure'
+  );
   mockHeaders.append('Set-Cookie', 'remember_me=true; Path=/; SameSite=Lax');
 
   const mockResponse = new Response(null, { headers: mockHeaders });
@@ -59,20 +62,33 @@ test('fetchWithJar preserves cookies across same-origin redirects and converts P
   const originalFetch = globalThis.fetch;
   const calls: Array<{ url: string; method: string; cookie?: string }> = [];
   try {
-    globalThis.fetch = (async (input: URL | RequestInfo, init?: RequestInit) => {
+    globalThis.fetch = (async (
+      input: URL | RequestInfo,
+      init?: RequestInit
+    ) => {
       const url = String(input);
-      calls.push({ url, method: init?.method || 'GET', cookie: new Headers(init?.headers).get('Cookie') || undefined });
+      calls.push({
+        url,
+        method: init?.method || 'GET',
+        cookie: new Headers(init?.headers).get('Cookie') || undefined,
+      });
       if (calls.length === 1) {
         return new Response(null, {
           status: 302,
-          headers: { location: '/next', 'Set-Cookie': 'PHPSESSID=refreshed; Path=/' },
+          headers: {
+            location: '/next',
+            'Set-Cookie': 'PHPSESSID=refreshed; Path=/',
+          },
         });
       }
       return new Response('ok', { status: 200 });
     }) as typeof fetch;
 
     const jar: CookieJar = { PHPSESSID: 'initial' };
-    const response = await fetchWithJar(ATTENDANCE_URL, jar, { method: 'POST', body: 'academicYear=2025' });
+    const response = await fetchWithJar(ATTENDANCE_URL, jar, {
+      method: 'POST',
+      body: 'academicYear=2025',
+    });
     assert.strictEqual(response.status, 200);
     assert.strictEqual(jar.PHPSESSID, 'refreshed');
     assert.strictEqual(calls[0]?.method, 'POST');
@@ -86,10 +102,11 @@ test('fetchWithJar preserves cookies across same-origin redirects and converts P
 test('fetchWithJar rejects redirects outside the configured ERP origin', async () => {
   const originalFetch = globalThis.fetch;
   try {
-    globalThis.fetch = (async () => new Response(null, {
-      status: 302,
-      headers: { location: 'https://evil.example/collect' },
-    })) as typeof fetch;
+    globalThis.fetch = (async () =>
+      new Response(null, {
+        status: 302,
+        headers: { location: 'https://evil.example/collect' },
+      })) as typeof fetch;
     await assert.rejects(
       () => fetchWithJar(ATTENDANCE_URL, {}, { method: 'GET' }),
       /redirect left the configured origin/

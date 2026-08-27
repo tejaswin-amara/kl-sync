@@ -63,21 +63,52 @@ function normalizeBaseTitle(rawTitle: string): string {
   return rawTitle
     .trim()
     .toUpperCase()
-    .replace(/\s*[-–—]\s*(LECTURE|PRACTICAL|SKILLING|TUTORIAL|LAB|SKILL|TUT|LEC|PRAC)$/i, '')
-    .replace(/\s*\((LECTURE|PRACTICAL|SKILLING|TUTORIAL|LAB|SKILL|TUT|L|P|S|T)\)$/i, '')
-    .replace(/\s*\[(LECTURE|PRACTICAL|SKILLING|TUTORIAL|LAB|SKILL|TUT|L|P|S|T)\]$/i, '')
+    .replace(
+      /\s*[-–—]\s*(LECTURE|PRACTICAL|SKILLING|TUTORIAL|LAB|SKILL|TUT|LEC|PRAC)$/i,
+      ''
+    )
+    .replace(
+      /\s*\((LECTURE|PRACTICAL|SKILLING|TUTORIAL|LAB|SKILL|TUT|L|P|S|T)\)$/i,
+      ''
+    )
+    .replace(
+      /\s*\[(LECTURE|PRACTICAL|SKILLING|TUTORIAL|LAB|SKILL|TUT|L|P|S|T)\]$/i,
+      ''
+    )
     .trim();
 }
 
-function extractEmbeddedComponentsFromRow(row: Record<string, unknown>): AttendanceComponent[] {
+function extractEmbeddedComponentsFromRow(
+  row: Record<string, unknown>
+): AttendanceComponent[] {
   const components: AttendanceComponent[] = [];
   const entries = Object.entries(row);
 
   const defs = [
-    { name: 'Lecture', weight: 1.0, weightPercentage: 100, patterns: ['lecture', 'lec', '_l', ' l '] },
-    { name: 'Practical', weight: 0.5, weightPercentage: 50, patterns: ['practical', 'prac', 'lab', '_p', ' p '] },
-    { name: 'Skilling', weight: 0.25, weightPercentage: 25, patterns: ['skilling', 'skill', '_s', ' s '] },
-    { name: 'Tutorial', weight: 0.25, weightPercentage: 25, patterns: ['tutorial', 'tut', '_t', ' t '] },
+    {
+      name: 'Lecture',
+      weight: 1.0,
+      weightPercentage: 100,
+      patterns: ['lecture', 'lec', '_l', ' l '],
+    },
+    {
+      name: 'Practical',
+      weight: 0.5,
+      weightPercentage: 50,
+      patterns: ['practical', 'prac', 'lab', '_p', ' p '],
+    },
+    {
+      name: 'Skilling',
+      weight: 0.25,
+      weightPercentage: 25,
+      patterns: ['skilling', 'skill', '_s', ' s '],
+    },
+    {
+      name: 'Tutorial',
+      weight: 0.25,
+      weightPercentage: 25,
+      patterns: ['tutorial', 'tut', '_t', ' t '],
+    },
   ];
 
   defs.forEach(({ name, weight, weightPercentage, patterns }) => {
@@ -88,11 +119,18 @@ function extractEmbeddedComponentsFromRow(row: Record<string, unknown>): Attenda
     patterns.forEach((pat) => {
       const matchCond = entries.find(([k]) => {
         const kl = k.toLowerCase();
-        return kl.includes(pat) && (kl.includes('conduct') || kl.includes('total') || kl.includes('held'));
+        return (
+          kl.includes(pat) &&
+          (kl.includes('conduct') ||
+            kl.includes('total') ||
+            kl.includes('held'))
+        );
       });
       const matchAtt = entries.find(([k]) => {
         const kl = k.toLowerCase();
-        return kl.includes(pat) && (kl.includes('attend') || kl.includes('present'));
+        return (
+          kl.includes(pat) && (kl.includes('attend') || kl.includes('present'))
+        );
       });
 
       if (matchCond && matchAtt) {
@@ -108,14 +146,25 @@ function extractEmbeddedComponentsFromRow(row: Record<string, unknown>): Attenda
 
     if (found) {
       const pct = cond > 0 ? Math.round((att / cond) * 10000) / 100 : 100;
-      components.push({ name, weight, weightPercentage, attended: att, conducted: cond, percentage: pct });
+      components.push({
+        name,
+        weight,
+        weightPercentage,
+        attended: att,
+        conducted: cond,
+        percentage: pct,
+      });
     }
   });
 
   return components;
 }
 
-function detectComponentMeta(row: Record<string, unknown>, rawCode: string, rawTitle: string): { name: string; weight: number; weightPercentage: number } {
+function detectComponentMeta(
+  row: Record<string, unknown>,
+  rawCode: string,
+  rawTitle: string
+): { name: string; weight: number; weightPercentage: number } {
   let detected = '';
   const entries = Object.entries(row);
 
@@ -131,7 +180,8 @@ function detectComponentMeta(row: Record<string, unknown>, rawCode: string, rawT
     ) {
       const val = String(v).trim().toLowerCase();
       if (val.includes('skil') || val === 's') detected = 'Skilling';
-      else if (val.includes('prac') || val.includes('lab') || val === 'p') detected = 'Practical';
+      else if (val.includes('prac') || val.includes('lab') || val === 'p')
+        detected = 'Practical';
       else if (val.includes('tut') || val === 't') detected = 'Tutorial';
       else if (val.includes('lec') || val === 'l') detected = 'Lecture';
     }
@@ -139,18 +189,43 @@ function detectComponentMeta(row: Record<string, unknown>, rawCode: string, rawT
 
   if (!detected && rawCode) {
     const code = rawCode.trim().toUpperCase();
-    if (code.endsWith('-S') || code.endsWith('(S)') || code.endsWith(' SKILLING')) detected = 'Skilling';
-    else if (code.endsWith('-P') || code.endsWith('(P)') || code.endsWith(' PRACTICAL') || code.endsWith(' LAB')) detected = 'Practical';
-    else if (code.endsWith('-T') || code.endsWith('(T)') || code.endsWith(' TUTORIAL')) detected = 'Tutorial';
-    else if (code.endsWith('-L') || code.endsWith('(L)') || code.endsWith(' LECTURE')) detected = 'Lecture';
+    if (
+      code.endsWith('-S') ||
+      code.endsWith('(S)') ||
+      code.endsWith(' SKILLING')
+    )
+      detected = 'Skilling';
+    else if (
+      code.endsWith('-P') ||
+      code.endsWith('(P)') ||
+      code.endsWith(' PRACTICAL') ||
+      code.endsWith(' LAB')
+    )
+      detected = 'Practical';
+    else if (
+      code.endsWith('-T') ||
+      code.endsWith('(T)') ||
+      code.endsWith(' TUTORIAL')
+    )
+      detected = 'Tutorial';
+    else if (
+      code.endsWith('-L') ||
+      code.endsWith('(L)') ||
+      code.endsWith(' LECTURE')
+    )
+      detected = 'Lecture';
   }
 
   if (!detected && rawTitle) {
     const title = rawTitle.toLowerCase();
-    if (title.includes('skilling') || title.includes('skill')) detected = 'Skilling';
-    else if (title.includes('practical') || title.includes('lab')) detected = 'Practical';
-    else if (title.includes('tutorial') || title.includes('tut')) detected = 'Tutorial';
-    else if (title.includes('lecture') || title.includes('lec')) detected = 'Lecture';
+    if (title.includes('skilling') || title.includes('skill'))
+      detected = 'Skilling';
+    else if (title.includes('practical') || title.includes('lab'))
+      detected = 'Practical';
+    else if (title.includes('tutorial') || title.includes('tut'))
+      detected = 'Tutorial';
+    else if (title.includes('lecture') || title.includes('lec'))
+      detected = 'Lecture';
   }
 
   detected = detected || 'Lecture';
@@ -184,20 +259,20 @@ function expandToFullLTPSComponents(
   }
 
   const C = Math.max(1, totalConducted || 15);
-  const A = Math.max(0, Math.min(C, totalAttended || Math.round(C * (overallPct / 100 || 0.89))));
+  const A = Math.max(
+    0,
+    Math.min(C, totalAttended || Math.round(C * (overallPct / 100 || 0.89)))
+  );
 
   // Derive component hours proportionally for Lecture (100%), Practical (50%), Skilling (25%)
-  // Lecture ~ 35% of load (weight 1.0)
   const lecCond = Math.max(1, Math.round(C * 0.35));
-  const lecAtt = Math.max(0, Math.min(lecCond, Math.round(A * 0.30)));
+  const lecAtt = Math.max(0, Math.min(lecCond, Math.round(A * 0.3)));
   const lecPct = Math.round((lecAtt / lecCond) * 100);
 
-  // Practical ~ 15% of load (weight 0.5)
   const pracCond = Math.max(1, Math.round(C * 0.15));
   const pracAtt = Math.max(0, Math.min(pracCond, Math.round(A * 0.15)));
   const pracPct = Math.round((pracAtt / pracCond) * 100);
 
-  // Skilling ~ remaining load (weight 0.25)
   const skillCond = Math.max(1, C - lecCond - pracCond);
   const skillAtt = Math.max(0, Math.min(skillCond, A - lecAtt - pracAtt));
   const skillPct = Math.round((skillAtt / skillCond) * 100);
@@ -230,18 +305,23 @@ function expandToFullLTPSComponents(
   ];
 }
 
-export function groupAttendanceRows(rawRows: Record<string, unknown>[]): GroupedSubjectAttendance[] {
+export function groupAttendanceRows(
+  rawRows: Record<string, unknown>[]
+): GroupedSubjectAttendance[] {
   if (!rawRows || rawRows.length === 0) return [];
 
-  const subjectMap = new Map<string, {
-    baseCode: string;
-    baseTitle: string;
-    componentsMap: Map<string, AttendanceComponent>;
-    rawRows: Record<string, unknown>[];
-    fallbackTotalAttended: number;
-    fallbackTotalConducted: number;
-    fallbackPct: number;
-  }>();
+  const subjectMap = new Map<
+    string,
+    {
+      baseCode: string;
+      baseTitle: string;
+      componentsMap: Map<string, AttendanceComponent>;
+      rawRows: Record<string, unknown>[];
+      fallbackTotalAttended: number;
+      fallbackTotalConducted: number;
+      fallbackPct: number;
+    }
+  >();
 
   rawRows.forEach((row) => {
     let rawCode = '';
@@ -252,15 +332,27 @@ export function groupAttendanceRows(rawRows: Record<string, unknown>[]): Grouped
 
     Object.entries(row).forEach(([k, v]) => {
       const key = k.toLowerCase();
-      if (key.includes('code') || key.includes('subject code')) rawCode = String(v).trim();
-      if (key.includes('title') || key.includes('subject title') || key.includes('name') || key.includes('course name')) {
+      if (key.includes('code') || key.includes('subject code'))
+        rawCode = String(v).trim();
+      if (
+        key.includes('title') ||
+        key.includes('subject title') ||
+        key.includes('name') ||
+        key.includes('course name')
+      ) {
         rawTitle = String(v).trim();
       }
-      if (key.includes('conducted') || (key.includes('total') && !key.includes('%'))) {
+      if (
+        key.includes('conducted') ||
+        (key.includes('total') && !key.includes('%'))
+      ) {
         const num = parseFloat(String(v));
         if (!isNaN(num)) conducted = num;
       }
-      if (key.includes('attended') || (key.includes('present') && !key.includes('%'))) {
+      if (
+        key.includes('attended') ||
+        (key.includes('present') && !key.includes('%'))
+      ) {
         const num = parseFloat(String(v));
         if (!isNaN(num)) attended = num;
       }
@@ -275,7 +367,8 @@ export function groupAttendanceRows(rawRows: Record<string, unknown>[]): Grouped
     }
 
     const baseCode = normalizeBaseCode(rawCode) || getSubjectCode(rawCode);
-    const baseTitle = normalizeBaseTitle(rawTitle) || getSubjectTitle(rawCode, rawTitle);
+    const baseTitle =
+      normalizeBaseTitle(rawTitle) || getSubjectTitle(rawCode, rawTitle);
     const groupKey = baseCode ? baseCode : baseTitle;
 
     if (!subjectMap.has(groupKey)) {
@@ -304,7 +397,10 @@ export function groupAttendanceRows(rawRows: Record<string, unknown>[]): Grouped
       });
     } else {
       const compMeta = detectComponentMeta(row, rawCode, rawTitle);
-      const compPct = conducted > 0 ? Math.round((attended / conducted) * 10000) / 100 : (percentage || 100);
+      const compPct =
+        conducted > 0
+          ? Math.round((attended / conducted) * 10000) / 100
+          : percentage || 100;
 
       if (subjectEntry.componentsMap.has(compMeta.name)) {
         const existing = subjectEntry.componentsMap.get(compMeta.name)!;
@@ -314,7 +410,10 @@ export function groupAttendanceRows(rawRows: Record<string, unknown>[]): Grouped
           ...existing,
           attended: totalAtt,
           conducted: totalCond,
-          percentage: totalCond > 0 ? Math.round((totalAtt / totalCond) * 10000) / 100 : 100,
+          percentage:
+            totalCond > 0
+              ? Math.round((totalAtt / totalCond) * 10000) / 100
+              : 100,
         });
       } else {
         subjectEntry.componentsMap.set(compMeta.name, {
@@ -330,7 +429,15 @@ export function groupAttendanceRows(rawRows: Record<string, unknown>[]): Grouped
   });
 
   return Array.from(subjectMap.values()).map(
-    ({ baseCode, baseTitle, componentsMap, rawRows, fallbackTotalAttended, fallbackTotalConducted, fallbackPct }) => {
+    ({
+      baseCode,
+      baseTitle,
+      componentsMap,
+      rawRows,
+      fallbackTotalAttended,
+      fallbackTotalConducted,
+      fallbackPct,
+    }) => {
       const rawComponents = Array.from(componentsMap.values());
 
       // Ensure all course components are present together
@@ -342,8 +449,15 @@ export function groupAttendanceRows(rawRows: Record<string, unknown>[]): Grouped
       );
 
       // Sort: Lecture (100%), Practical (50%), Skilling (25%), Tutorial (25%)
-      const sortOrder: Record<string, number> = { Lecture: 1, Practical: 2, Skilling: 3, Tutorial: 4 };
-      components.sort((a, b) => (sortOrder[a.name] || 99) - (sortOrder[b.name] || 99));
+      const sortOrder: Record<string, number> = {
+        Lecture: 1,
+        Practical: 2,
+        Skilling: 3,
+        Tutorial: 4,
+      };
+      components.sort(
+        (a, b) => (sortOrder[a.name] || 99) - (sortOrder[b.name] || 99)
+      );
 
       let totalWeight = 0;
       let weightedSum = 0;
@@ -406,7 +520,7 @@ function calculateSubjectProjections(subject: GroupedSubjectAttendance): {
         count: '>50',
         targetOverall: 75,
         projectedAttended: comp.attended,
-        projectedConducted: comp.conducted + 200,
+        projectedConducted: comp.conducted + 50,
         label: `>50 ${comp.name} (maintain 75% overall)`,
       });
       totalSkipsPossible += 50;
@@ -421,7 +535,7 @@ function calculateSubjectProjections(subject: GroupedSubjectAttendance): {
           count: skips75 > 50 ? '>50' : skips75,
           targetOverall: 75,
           projectedAttended: comp.attended,
-          projectedConducted: comp.conducted + (skips75 > 50 ? 200 : skips75),
+          projectedConducted: comp.conducted + (skips75 > 50 ? 50 : skips75),
           label: `${skips75 > 50 ? '>50' : skips75} ${comp.name} (maintain 75% overall)`,
         });
       }
@@ -457,7 +571,10 @@ function calculateSubjectProjections(subject: GroupedSubjectAttendance): {
       } else if (skips85 < 0) {
         const targetFraction = required85 / (100 * comp.weight);
         if (targetFraction < 1) {
-          const needed = Math.ceil((targetFraction * comp.conducted - comp.attended) / (1 - targetFraction));
+          const needed = Math.ceil(
+            (targetFraction * comp.conducted - comp.attended) /
+              (1 - targetFraction)
+          );
           if (needed > 0) {
             projections.push({
               componentName: comp.name,
@@ -477,10 +594,10 @@ function calculateSubjectProjections(subject: GroupedSubjectAttendance): {
   const isSafe = overallPercentage >= 75;
   const statusHeader =
     totalSkipsPossible > 0
-      ? `SAFE TO SKIP (Any ${Math.min(totalSkipsPossible, 1)})`
+      ? `SAFE TO SKIP (Any ${totalSkipsPossible})`
       : overallPercentage >= 85
-      ? 'ATTENDANCE STABLE'
-      : 'ATTENDANCE REQUIRED';
+        ? 'ATTENDANCE STABLE'
+        : 'ATTENDANCE REQUIRED';
 
   return {
     statusHeader,
@@ -489,7 +606,11 @@ function calculateSubjectProjections(subject: GroupedSubjectAttendance): {
   };
 }
 
-function UnifiedSubjectCard({ subject }: { subject: GroupedSubjectAttendance }) {
+function UnifiedSubjectCard({
+  subject,
+}: {
+  subject: GroupedSubjectAttendance;
+}) {
   const pct = subject.overallPercentage;
   const isEligible = pct >= 85;
   const isConditional = pct >= 75 && pct < 85;
@@ -497,20 +618,20 @@ function UnifiedSubjectCard({ subject }: { subject: GroupedSubjectAttendance }) 
   const accentBorder = isEligible
     ? 'border-l-success'
     : isConditional
-    ? 'border-l-warning'
-    : 'border-l-error';
+      ? 'border-l-warning'
+      : 'border-l-error';
 
   const statusColor = isEligible
     ? 'text-success'
     : isConditional
-    ? 'text-warning'
-    : 'text-error';
+      ? 'text-warning'
+      : 'text-error';
 
   const statusLabel = isEligible
     ? 'Eligible'
     : isConditional
-    ? 'Conditional'
-    : 'Not Eligible';
+      ? 'Conditional'
+      : 'Not Eligible';
 
   const { statusHeader, isSafe, projections } = useMemo(
     () => calculateSubjectProjections(subject),
@@ -534,10 +655,14 @@ function UnifiedSubjectCard({ subject }: { subject: GroupedSubjectAttendance }) 
           )}
         </div>
         <div className="text-right shrink-0">
-          <div className={`text-3xl sm:text-4xl font-extrabold tabular-numbers font-heading tracking-tight ${statusColor}`}>
+          <div
+            className={`text-3xl sm:text-4xl font-extrabold tabular-numbers font-heading tracking-tight ${statusColor}`}
+          >
             {Math.round(pct)}%
           </div>
-          <div className={`text-xs font-semibold tracking-tight mt-0.5 ${statusColor}`}>
+          <div
+            className={`text-xs font-semibold tracking-tight mt-0.5 ${statusColor}`}
+          >
             {statusLabel}
           </div>
         </div>
@@ -552,9 +677,14 @@ function UnifiedSubjectCard({ subject }: { subject: GroupedSubjectAttendance }) 
           </h4>
           <div className="space-y-3">
             {subject.components.map((comp, idx) => (
-              <div key={idx} className="flex items-center justify-between text-xs py-0.5">
+              <div
+                key={idx}
+                className="flex items-center justify-between text-xs py-0.5"
+              >
                 <span className="text-muted-foreground font-medium">
-                  <strong className="text-foreground font-semibold">{comp.name}</strong>{' '}
+                  <strong className="text-foreground font-semibold">
+                    {comp.name}
+                  </strong>{' '}
                   <span className="text-[11px] text-muted-foreground/80 font-normal">
                     (Weightage: {comp.weightPercentage}%)
                   </span>
@@ -596,10 +726,18 @@ function UnifiedSubjectCard({ subject }: { subject: GroupedSubjectAttendance }) 
                     : 'text-error';
 
                 return (
-                  <div key={idx} className="flex items-center justify-between text-xs py-0.5">
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between text-xs py-0.5"
+                  >
                     <span className="text-muted-foreground">
-                      <strong className={`font-semibold ${color}`}>{proj.count} {proj.componentName}</strong>{' '}
-                      <span className="text-[11px]">({proj.type === 'skip' ? 'maintain' : 'reach'} {proj.targetOverall}% overall)</span>
+                      <strong className={`font-semibold ${color}`}>
+                        {proj.count} {proj.componentName}
+                      </strong>{' '}
+                      <span className="text-[11px]">
+                        ({proj.type === 'skip' ? 'maintain' : 'reach'}{' '}
+                        {proj.targetOverall}% overall)
+                      </span>
                     </span>
                     <span className="text-muted-foreground/80 font-mono text-[11px] tabular-numbers">
                       ({proj.projectedAttended}/{proj.projectedConducted})
@@ -620,7 +758,14 @@ function UnifiedSubjectCard({ subject }: { subject: GroupedSubjectAttendance }) 
 }
 
 export default function AttendanceDashboard() {
-  const { years, semesters, selectedYear, selectedSem, handleYearChange, handleSemChange } = useAcademicSession();
+  const {
+    years,
+    semesters,
+    selectedYear,
+    selectedSem,
+    handleYearChange,
+    handleSemChange,
+  } = useAcademicSession();
   const {
     raw: dataRaw,
     overallPercentage: overallPct,
@@ -701,19 +846,36 @@ export default function AttendanceDashboard() {
       {!loading && !error && data.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="rounded-[--radius-2xl] apple-card p-5 flex items-center gap-4 shadow-xl border border-border">
-            <Progress value={overallPct} max={100} variant="circular" size="lg" showLabel colorByValue />
+            <Progress
+              value={overallPct}
+              max={100}
+              variant="circular"
+              size="lg"
+              showLabel
+              colorByValue
+            />
             <div>
               <p className="caption-label text-muted-foreground/80">Overall</p>
-              <p className="text-2xl font-bold text-foreground tabular-numbers tracking-tight font-heading">{overallPct}%</p>
+              <p className="text-2xl font-bold text-foreground tabular-numbers tracking-tight font-heading">
+                {overallPct}%
+              </p>
             </div>
           </div>
           <div className="rounded-[--radius-2xl] apple-card p-5 shadow-xl border border-border">
-            <p className="caption-label text-muted-foreground/80 mb-1">Classes Attended</p>
-            <p className="text-3xl font-bold text-foreground tabular-numbers tracking-tight font-heading">{overallAttended}</p>
+            <p className="caption-label text-muted-foreground/80 mb-1">
+              Classes Attended
+            </p>
+            <p className="text-3xl font-bold text-foreground tabular-numbers tracking-tight font-heading">
+              {overallAttended}
+            </p>
           </div>
           <div className="rounded-[--radius-2xl] apple-card p-5 shadow-xl border border-border">
-            <p className="caption-label text-muted-foreground/80 mb-1">Classes Held</p>
-            <p className="text-3xl font-bold text-foreground tabular-numbers tracking-tight font-heading">{overallConducted}</p>
+            <p className="caption-label text-muted-foreground/80 mb-1">
+              Classes Held
+            </p>
+            <p className="text-3xl font-bold text-foreground tabular-numbers tracking-tight font-heading">
+              {overallConducted}
+            </p>
           </div>
         </div>
       )}
@@ -725,20 +887,35 @@ export default function AttendanceDashboard() {
       <div>
         {loading ? (
           <div className="p-6 space-y-4 rounded-[--radius-2xl] apple-card border border-border shadow-xl">
-            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-44 w-full rounded-[--radius-2xl]" />)}
+            {[...Array(4)].map((_, i) => (
+              <Skeleton
+                key={i}
+                className="h-44 w-full rounded-[--radius-2xl]"
+              />
+            ))}
           </div>
         ) : error ? (
           <div className="rounded-[--radius-2xl] apple-card overflow-hidden shadow-xl border border-border p-4">
-            <EmptyState variant="error" description={error} action={{ label: 'Retry', onClick: () => mutate() }} />
+            <EmptyState
+              variant="error"
+              description={error}
+              action={{ label: 'Retry', onClick: () => mutate() }}
+            />
           </div>
         ) : data.length === 0 ? (
           <div className="rounded-[--radius-2xl] apple-card overflow-hidden shadow-xl border border-border p-4">
-            <EmptyState title="No attendance records" description="Records will appear once available in the ERP." />
+            <EmptyState
+              title="No attendance records"
+              description="Records will appear once available in the ERP."
+            />
           </div>
         ) : viewMode === 'cards' ? (
           <div className="space-y-5">
             {unifiedSubjects.map((subject, idx) => (
-              <UnifiedSubjectCard key={subject.subjectCode || idx} subject={subject} />
+              <UnifiedSubjectCard
+                key={subject.subjectCode || idx}
+                subject={subject}
+              />
             ))}
           </div>
         ) : (
@@ -760,26 +937,45 @@ export default function AttendanceDashboard() {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {data.map((row, idx) => (
-                    <tr key={idx} className="hover:bg-surface-2 transition-colors">
+                    <tr
+                      key={idx}
+                      className="hover:bg-surface-2 transition-colors"
+                    >
                       {Object.values(row).map((val: unknown, j: number) => {
                         let displayVal: React.ReactNode = String(val);
 
                         if (typeof val === 'string' && val.includes('%')) {
                           const num = parseFloat(val);
                           if (!isNaN(num)) {
-                            const Icon = num >= 85 ? TrendingUp : num >= 75 ? AlertTriangle : TrendingDown;
-                            const colorClass = num >= 85 ? 'bg-success/15 text-success border border-success/25' : num >= 75 ? 'bg-warning/15 text-warning border border-warning/25' : 'bg-destructive/15 text-destructive border border-destructive/25';
+                            const Icon =
+                              num >= 85
+                                ? TrendingUp
+                                : num >= 75
+                                  ? AlertTriangle
+                                  : TrendingDown;
+                            const colorClass =
+                              num >= 85
+                                ? 'bg-success/15 text-success border border-success/25'
+                                : num >= 75
+                                  ? 'bg-warning/15 text-warning border border-warning/25'
+                                  : 'bg-destructive/15 text-destructive border border-destructive/25';
 
                             displayVal = (
-                              <span className={`inline-flex items-center gap-1 ${colorClass} px-2.5 py-0.5 rounded-full text-xs font-bold tabular-numbers apple-pill`}>
-                                <Icon className="w-3 h-3" />{val}
+                              <span
+                                className={`inline-flex items-center gap-1 ${colorClass} px-2.5 py-0.5 rounded-full text-xs font-bold tabular-numbers apple-pill`}
+                              >
+                                <Icon className="w-3 h-3" />
+                                {val}
                               </span>
                             );
                           }
                         }
 
                         return (
-                          <td key={j} className="px-5 py-3.5 text-sm text-foreground tabular-numbers font-medium">
+                          <td
+                            key={j}
+                            className="px-5 py-3.5 text-sm text-foreground tabular-numbers font-medium"
+                          >
                             {displayVal}
                           </td>
                         );

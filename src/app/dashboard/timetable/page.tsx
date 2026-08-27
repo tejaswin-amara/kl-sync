@@ -109,7 +109,12 @@ export default function TimetablePage() {
     sessionError,
   } = useAcademicSession();
 
-  const { data: parsedTT, isLoading: loading, error: fetchError, mutate } = useTimetable(selectedYear, selectedSem);
+  const {
+    data: parsedTT,
+    isLoading: loading,
+    error: fetchError,
+    mutate,
+  } = useTimetable(selectedYear, selectedSem);
   const displayError = (fetchError ? fetchError.message : null) || sessionError;
 
   const daysList = [
@@ -349,7 +354,8 @@ export default function TimetablePage() {
               No Timetable Data Found
             </h3>
             <p className="text-xs text-muted-foreground max-w-sm font-normal">
-              There are no class sessions available for the selected academic term.
+              There are no class sessions available for the selected academic
+              term.
             </p>
           </div>
         ) : viewMode === 'grid' ? (
@@ -426,8 +432,22 @@ export default function TimetablePage() {
 
                               {/* Period Columns for this Day */}
                               {slotsToRender.map((periodNum) => {
-                                const matchingSessions =
-                                  parsedTT.matrixGrid[day]?.[periodNum] || [];
+                                const matchingSessions = (
+                                  parsedTT.matrixGrid[day]?.[periodNum] || []
+                                ).filter((session) => {
+                                  if (!searchQuery.trim()) return true;
+                                  const q = searchQuery.toLowerCase().trim();
+                                  return (
+                                    session.courseCode
+                                      .toLowerCase()
+                                      .includes(q) ||
+                                    session.courseTitle
+                                      .toLowerCase()
+                                      .includes(q) ||
+                                    session.room.toLowerCase().includes(q) ||
+                                    session.faculty.toLowerCase().includes(q)
+                                  );
+                                });
 
                                 return (
                                   <td
@@ -436,62 +456,71 @@ export default function TimetablePage() {
                                   >
                                     {matchingSessions.length > 0 ? (
                                       <div className="flex flex-col gap-2 h-full">
-                                        {matchingSessions.map((session, sIdx) => {
-                                          const subjectTitle = getSubjectTitle(
-                                            session.courseCode,
-                                            session.courseTitle
-                                          );
-                                          const subjectCode = getSubjectCode(
-                                            session.courseCode,
-                                            session.rawText
-                                          );
+                                        {matchingSessions.map(
+                                          (session, sIdx) => {
+                                            const subjectTitle =
+                                              getSubjectTitle(
+                                                session.courseCode,
+                                                session.courseTitle
+                                              );
+                                            const subjectCode = getSubjectCode(
+                                              session.courseCode,
+                                              session.rawText
+                                            );
 
-                                          return (
-                                            <div
-                                              key={session.id || `${session.courseCode}-${sIdx}`}
-                                              className="bg-surface-2/60 border border-border hover:border-primary/40 p-3 rounded-[--radius-lg] flex flex-col justify-between gap-2 shadow-md transition-all overflow-hidden min-h-[96px] group touch-manipulation active:scale-[0.98]"
-                                            >
-                                              <div className="flex items-center justify-between gap-1">
-                                                {session.component && (
-                                                  <span
-                                                    className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                                                      session.component === 'Lecture'
-                                                        ? 'bg-info/10 text-info border border-info/20'
-                                                        : session.component === 'Practical'
-                                                        ? 'bg-success/10 text-success border border-success/20'
-                                                        : session.component === 'Skill'
-                                                        ? 'bg-primary/10 text-primary border border-primary/20'
-                                                        : 'bg-warning/10 text-warning border border-warning/20'
-                                                    }`}
-                                                  >
-                                                    {session.component}
+                                            return (
+                                              <div
+                                                key={
+                                                  session.id ||
+                                                  `${session.courseCode}-${sIdx}`
+                                                }
+                                                className="bg-surface-2/60 border border-border hover:border-primary/40 p-3 rounded-[--radius-lg] flex flex-col justify-between gap-2 shadow-md transition-all overflow-hidden min-h-[96px] group touch-manipulation active:scale-[0.98]"
+                                              >
+                                                <div className="flex items-center justify-between gap-1">
+                                                  {session.component && (
+                                                    <span
+                                                      className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                                                        session.component ===
+                                                        'Lecture'
+                                                          ? 'bg-info/10 text-info border border-info/20'
+                                                          : session.component ===
+                                                              'Practical'
+                                                            ? 'bg-success/10 text-success border border-success/20'
+                                                            : session.component ===
+                                                                'Skill'
+                                                              ? 'bg-primary/10 text-primary border border-primary/20'
+                                                              : 'bg-warning/10 text-warning border border-warning/20'
+                                                      }`}
+                                                    >
+                                                      {session.component}
+                                                    </span>
+                                                  )}
+                                                  {session.section && (
+                                                    <span className="text-[9px] font-mono bg-surface-3 text-muted-foreground px-1.5 py-0.5 rounded-full">
+                                                      {session.section}
+                                                    </span>
+                                                  )}
+                                                </div>
+
+                                                <h5 className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors leading-snug line-clamp-2 overflow-hidden tracking-tight">
+                                                  {subjectTitle}
+                                                </h5>
+
+                                                <div className="flex items-center justify-between gap-1 text-[10px] text-muted-foreground pt-1.5 border-t border-border mt-auto">
+                                                  <span className="font-mono text-muted-foreground font-medium truncate">
+                                                    {subjectCode}
                                                   </span>
-                                                )}
-                                                {session.section && (
-                                                  <span className="text-[9px] font-mono bg-surface-3 text-muted-foreground px-1.5 py-0.5 rounded-full">
-                                                    {session.section}
-                                                  </span>
-                                                )}
+                                                  {session.room && (
+                                                    <span className="text-success font-semibold flex items-center gap-0.5 shrink-0 ml-auto">
+                                                      <MapPin className="w-2.5 h-2.5" />
+                                                      {session.room}
+                                                    </span>
+                                                  )}
+                                                </div>
                                               </div>
-
-                                              <h5 className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors leading-snug line-clamp-2 overflow-hidden tracking-tight">
-                                                {subjectTitle}
-                                              </h5>
-
-                                              <div className="flex items-center justify-between gap-1 text-[10px] text-muted-foreground pt-1.5 border-t border-border mt-auto">
-                                                <span className="font-mono text-muted-foreground font-medium truncate">
-                                                  {subjectCode}
-                                                </span>
-                                                {session.room && (
-                                                  <span className="text-success font-semibold flex items-center gap-0.5 shrink-0 ml-auto">
-                                                    <MapPin className="w-2.5 h-2.5" />
-                                                    {session.room}
-                                                  </span>
-                                                )}
-                                              </div>
-                                            </div>
-                                          );
-                                        })}
+                                            );
+                                          }
+                                        )}
                                       </div>
                                     ) : (
                                       <div className="h-24 rounded-[--radius-lg] border border-dashed border-border flex items-center justify-center text-muted-foreground/30 text-xs">
@@ -563,10 +592,14 @@ export default function TimetablePage() {
                         </span>
                       </td>
                       <td className="px-4 py-3.5 text-xs font-mono text-muted-foreground border-y border-transparent">
-                        {getSubjectCode(session.courseCode, session.rawText) || 'N/A'}
+                        {getSubjectCode(session.courseCode, session.rawText) ||
+                          'N/A'}
                       </td>
                       <td className="px-4 py-3.5 text-sm font-semibold text-foreground border-y border-transparent max-w-xs truncate tracking-tight">
-                        {getSubjectTitle(session.courseCode, session.courseTitle)}
+                        {getSubjectTitle(
+                          session.courseCode,
+                          session.courseTitle
+                        )}
                       </td>
                       <td className="px-4 py-3.5 text-xs border-y border-transparent">
                         <div className="flex items-center gap-1.5">

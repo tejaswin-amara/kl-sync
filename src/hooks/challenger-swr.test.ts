@@ -6,7 +6,9 @@ describe('Challenger M1 Native Hook Fetcher & Calculation Suite', () => {
   test('attendanceFetcher validation logic throws on non-JSON or success: false', () => {
     // 1. Non-JSON response
     const mockHeadersNonJson = new Headers({ 'content-type': 'text/html' });
-    const isJson1 = mockHeadersNonJson.get('content-type')?.includes('application/json');
+    const isJson1 = mockHeadersNonJson
+      .get('content-type')
+      ?.includes('application/json');
     assert.strictEqual(isJson1, false);
 
     // 2. Erp failure response (success: false)
@@ -20,7 +22,10 @@ describe('Challenger M1 Native Hook Fetcher & Calculation Suite', () => {
     // Edge Case 1: Empty rows -> 0%
     let totalAttended = 0;
     let totalConducted = 0;
-    let overallPercentage = totalConducted > 0 ? Math.round((totalAttended / totalConducted) * 100) : 0;
+    let overallPercentage =
+      totalConducted > 0
+        ? Math.round((totalAttended / totalConducted) * 100)
+        : 0;
     assert.strictEqual(overallPercentage, 0);
 
     // Edge Case 2: Standard rows
@@ -36,29 +41,36 @@ describe('Challenger M1 Native Hook Fetcher & Calculation Suite', () => {
       totalAttended += parseFloat(String(row['Attended Hours'])) || 0;
     });
     // totalConducted = 127, totalAttended = 114
-    overallPercentage = totalConducted > 0 ? Math.round((totalAttended / totalConducted) * 100) : 0;
+    overallPercentage =
+      totalConducted > 0
+        ? Math.round((totalAttended / totalConducted) * 100)
+        : 0;
     assert.strictEqual(totalConducted, 127);
     assert.strictEqual(totalAttended, 114);
     assert.strictEqual(overallPercentage, 90); // 114/127 = 0.8976 -> 90%
 
     // Edge Case 3: Fuzzy header matching for alternative ERP column headers
-    const altData = [
-      { 'Total Held': '50', 'Present Hours': '45' },
-    ];
+    const altData = [{ 'Total Held': '50', 'Present Hours': '45' }];
     totalAttended = 0;
     totalConducted = 0;
     altData.forEach((row) => {
       const condKey = Object.keys(row).find((k) => {
         const kl = k.toLowerCase();
-        return kl.includes('conducted') || kl.includes('held') || (kl.includes('total') && !kl.includes('%'));
+        return (
+          kl.includes('conducted') ||
+          kl.includes('held') ||
+          (kl.includes('total') && !kl.includes('%'))
+        );
       });
       const attKey = Object.keys(row).find((k) => {
         const kl = k.toLowerCase();
         return kl.includes('attended') || kl.includes('present');
       });
       if (condKey && attKey) {
-        totalConducted += parseFloat(String(row[condKey as keyof typeof row])) || 0;
-        totalAttended += parseFloat(String(row[attKey as keyof typeof row])) || 0;
+        totalConducted +=
+          parseFloat(String(row[condKey as keyof typeof row])) || 0;
+        totalAttended +=
+          parseFloat(String(row[attKey as keyof typeof row])) || 0;
       }
     });
     assert.strictEqual(totalConducted, 50);
@@ -67,15 +79,31 @@ describe('Challenger M1 Native Hook Fetcher & Calculation Suite', () => {
 
   test('Fee totalPaid calculation edge cases', () => {
     const feeRows = [
-      { 'Fee Type': 'Tuition', Amount: '150000', 'Paid Amount': '100,000 INR', Status: 'PARTIAL' },
-      { 'Fee Type': 'Hostel', Amount: '50000', 'Paid Amount': '₹50,000', Status: 'PAID' },
+      {
+        'Fee Type': 'Tuition',
+        Amount: '150000',
+        'Paid Amount': '100,000 INR',
+        Status: 'PARTIAL',
+      },
+      {
+        'Fee Type': 'Hostel',
+        Amount: '50000',
+        'Paid Amount': '₹50,000',
+        Status: 'PAID',
+      },
     ];
 
     let totalPaid = 0;
     feeRows.forEach((row) => {
       const paidKey = Object.keys(row).find((k) => {
         const norm = k.toLowerCase();
-        return (norm.includes('paid') || norm.includes('received') || norm.includes('cleared')) && !norm.includes('status') && !norm.includes('unpaid');
+        return (
+          (norm.includes('paid') ||
+            norm.includes('received') ||
+            norm.includes('cleared')) &&
+          !norm.includes('status') &&
+          !norm.includes('unpaid')
+        );
       });
       if (paidKey) {
         const val = row[paidKey as keyof typeof row];
@@ -94,7 +122,9 @@ describe('Challenger M1 Native Hook Fetcher & Calculation Suite', () => {
 
   test('Conditional query keys for academic modules', () => {
     const getAttendanceKey = (academicYear?: string, semesterId?: string) =>
-      academicYear && semesterId ? (['/api/erp-proxy/attendance', academicYear, semesterId] as const) : null;
+      academicYear && semesterId
+        ? (['/api/erp-proxy/attendance', academicYear, semesterId] as const)
+        : null;
 
     assert.strictEqual(getAttendanceKey(undefined, undefined), null);
     assert.strictEqual(getAttendanceKey('2025-2026', undefined), null);

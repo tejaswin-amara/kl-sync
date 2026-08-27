@@ -1,6 +1,6 @@
-import { generateChallenge } from "capjs-core";
-import { NextResponse } from "next/server";
-import { getCapSecret } from "@/lib/captcha";
+import { generateChallenge } from 'capjs-core';
+import { NextResponse } from 'next/server';
+import { getCapSecret } from '@/lib/captcha';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,7 +8,7 @@ async function handleChallenge() {
   try {
     const secret = getCapSecret();
     const challenge = await generateChallenge(secret, {
-      scope: "login",
+      scope: 'login',
       expiresMs: 600_000, // 10 min to solve
     });
 
@@ -18,9 +18,9 @@ async function handleChallenge() {
       },
     });
   } catch (error) {
-    console.error("Captcha challenge generation failed:", error);
+    console.error('Captcha challenge generation failed:', error);
     return NextResponse.json(
-      { error: "Failed to generate captcha challenge" },
+      { error: 'Failed to generate captcha challenge' },
       { status: 500 }
     );
   }

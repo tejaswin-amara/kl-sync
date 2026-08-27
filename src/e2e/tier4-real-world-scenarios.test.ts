@@ -13,7 +13,11 @@ import { POST as handleAiChat } from '@/app/api/ai/chat/route';
 import { GET as handleFetchPhotoGet } from '@/app/api/fetch-photo/route';
 
 // Zod Schemas & AI Executor
-import { attendanceResponseSchema, feeResponseSchema, profileDataSchema } from '@/lib/schemas';
+import {
+  attendanceResponseSchema,
+  feeResponseSchema,
+  profileDataSchema,
+} from '@/lib/schemas';
 import { executeTool } from '@/lib/ai/executor';
 
 // ============================================================================
@@ -27,40 +31,58 @@ test('Tier 4 - Scenario 1: Complete Student Login & Multi-Module Dashboard Synch
 
   const captchaData = await captchaRes.json();
   assert.ok(captchaData.captchaImage);
-  const captchaCookie = captchaRes.headers.get('set-cookie')?.match(/kl_captcha_session=[^;]+/)?.[0] || '';
+  const captchaCookie =
+    captchaRes.headers
+      .get('set-cookie')
+      ?.match(/kl_captcha_session=[^;]+/)?.[0] || '';
   assert.ok(captchaCookie.length > 0);
 
   // Step 2: Student Login Submission
   const loginReq = new NextRequest('http://localhost/api/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', cookie: captchaCookie },
-    body: JSON.stringify({ username: '2100030000', password: 'student_password_123', captcha: captchaData.solvedCaptcha || '8888' }),
+    body: JSON.stringify({
+      username: '2100030000',
+      password: 'student_password_123',
+      captcha: captchaData.solvedCaptcha || '8888',
+    }),
   });
   const loginRes = await handleLogin(loginReq);
   assert.strictEqual(loginRes.status, 200);
   const loginData = await loginRes.json();
   assert.strictEqual(loginData.success, true);
-  const authCookie = loginRes.headers.get('set-cookie')?.match(/kl_erp_session=[^;]+/)?.[0] || '';
+  const authCookie =
+    loginRes.headers.get('set-cookie')?.match(/kl_erp_session=[^;]+/)?.[0] ||
+    '';
   assert.ok(authCookie.length > 0);
 
   // Step 3: Parallel Data Synchronization across all ERP Modules
   const [attRes, ttRes, marksRes, feeRes, profileRes] = await Promise.all([
     handleErpProxyGet(
-      new NextRequest('http://localhost/api/erp-proxy/attendance?academicYear=2025-2026&semesterId=1', {
-        headers: { cookie: authCookie },
-      }),
+      new NextRequest(
+        'http://localhost/api/erp-proxy/attendance?academicYear=2025-2026&semesterId=1',
+        {
+          headers: { cookie: authCookie },
+        }
+      ),
       { params: Promise.resolve({ module: 'attendance' }) }
     ),
     handleErpProxyGet(
-      new NextRequest('http://localhost/api/erp-proxy/timetable?academicYear=2025-2026&semesterId=1', {
-        headers: { cookie: authCookie },
-      }),
+      new NextRequest(
+        'http://localhost/api/erp-proxy/timetable?academicYear=2025-2026&semesterId=1',
+        {
+          headers: { cookie: authCookie },
+        }
+      ),
       { params: Promise.resolve({ module: 'timetable' }) }
     ),
     handleErpProxyGet(
-      new NextRequest('http://localhost/api/erp-proxy/marks?academicYear=2025-2026&semesterId=1', {
-        headers: { cookie: authCookie },
-      }),
+      new NextRequest(
+        'http://localhost/api/erp-proxy/marks?academicYear=2025-2026&semesterId=1',
+        {
+          headers: { cookie: authCookie },
+        }
+      ),
       { params: Promise.resolve({ module: 'marks' }) }
     ),
     handleErpProxyGet(
@@ -90,12 +112,18 @@ test('Tier 4 - Scenario 1: Complete Student Login & Multi-Module Dashboard Synch
 
   assert.strictEqual(attendanceResponseSchema.parse(attJson).success, true);
   assert.strictEqual(feeResponseSchema.parse(feeJson).success, true);
-  assert.strictEqual(profileDataSchema.parse(profileJson.data || profileJson).success, true);
+  assert.strictEqual(
+    profileDataSchema.parse(profileJson.data || profileJson).success,
+    true
+  );
 
   // Step 5: Student Profile Photo Fetching
-  const photoReq = new NextRequest('http://localhost/api/fetch-photo?id=2100030000', {
-    headers: { cookie: authCookie },
-  });
+  const photoReq = new NextRequest(
+    'http://localhost/api/fetch-photo?id=2100030000',
+    {
+      headers: { cookie: authCookie },
+    }
+  );
   const photoRes = await handleFetchPhotoGet(photoReq);
   assert.ok(photoRes.status === 200 || photoRes.status === 404);
 });
@@ -109,7 +137,8 @@ test('Tier 4 - Scenario 2: At-Risk Attendance Warning & Target Remediation Workf
       messages: [
         {
           role: 'user',
-          content: 'What is my OS attendance and how many classes do I need for 85%?',
+          content:
+            'What is my OS attendance and how many classes do I need for 85%?',
         },
       ],
     }),
@@ -125,11 +154,16 @@ test('Tier 4 - Scenario 2: At-Risk Attendance Warning & Target Remediation Workf
 
   // Verify tool calls performed
   const toolNames = json.toolCalls.map((tc: { tool: string }) => tc.tool);
-  assert.ok(toolNames.includes('getAttendance') || toolNames.includes('calculateAttendanceTarget'));
+  assert.ok(
+    toolNames.includes('getAttendance') ||
+      toolNames.includes('calculateAttendanceTarget')
+  );
 
   // Direct calculation check for OS attendance remediation
   const attRes = await executeTool('getAttendance', { subject: 'OS' });
-  const attData = attRes.result as { attendance: Array<{ 'Attended Hours': string; 'Conducted Hours': string }> };
+  const attData = attRes.result as {
+    attendance: Array<{ 'Attended Hours': string; 'Conducted Hours': string }>;
+  };
   const osCourse = attData.attendance[0];
 
   const targetCalc = await executeTool('calculateAttendanceTarget', {
@@ -138,7 +172,10 @@ test('Tier 4 - Scenario 2: At-Risk Attendance Warning & Target Remediation Workf
     targetPercent: 85,
   });
 
-  const calcResult = targetCalc.result as { classesNeeded: number; currentPercentage: number };
+  const calcResult = targetCalc.result as {
+    classesNeeded: number;
+    currentPercentage: number;
+  };
   assert.strictEqual(calcResult.currentPercentage, 82.5);
   assert.strictEqual(calcResult.classesNeeded, 7);
 });
@@ -151,7 +188,8 @@ test('Tier 4 - Scenario 3: Academic Goal Setting & CGPA Roadmap Generation', asy
       messages: [
         {
           role: 'user',
-          content: 'Predict my CGPA if I get O grade in 4-credit Machine Learning and A+ grade in 3-credit Cloud Computing.',
+          content:
+            'Predict my CGPA if I get O grade in 4-credit Machine Learning and A+ grade in 3-credit Cloud Computing.',
         },
       ],
     }),

@@ -24,7 +24,8 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
     env: {
-      SESSION_SECRET: process.env.SESSION_SECRET || 'test-session-secret-key-32-chars!!',
+      SESSION_SECRET:
+        process.env.SESSION_SECRET || 'test-session-secret-key-32-chars!!',
       CAP_SECRET: process.env.CAP_SECRET || 'test-cap-secret-key',
       KL_SYNC_DEMO_MODE: 'true',
       KL_SYNC_AI_MODE: 'offline',

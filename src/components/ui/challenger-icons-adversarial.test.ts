@@ -77,20 +77,41 @@ describe('Empirical Challenger Suite: Native SVG Icons & Component Migrations', 
 
   describe('Suite 1: Icon Inventory, Names & Export Integrity', () => {
     test('all 55 required icons are exported, defined, and have valid forwardRef and displayName', () => {
-      assert.strictEqual(REQUIRED_55_ICONS.length, 55, 'Should have exactly 55 required icons in list');
+      assert.strictEqual(
+        REQUIRED_55_ICONS.length,
+        55,
+        'Should have exactly 55 required icons in list'
+      );
 
       for (const name of REQUIRED_55_ICONS) {
-        const IconComponent = Icons[name] as React.ForwardRefExoticComponent<Icons.IconProps>;
+        const IconComponent = Icons[
+          name
+        ] as React.ForwardRefExoticComponent<Icons.IconProps>;
         assert.ok(IconComponent, `Icon ${name} must be exported`);
-        assert.strictEqual(typeof IconComponent, 'object', `Icon ${name} must be a forwardRef object`);
-        assert.strictEqual(IconComponent.displayName, name, `Icon ${name} displayName must match`);
-        assert.ok(React.isValidElement(React.createElement(IconComponent)), `React.createElement(${name}) must be valid element`);
+        assert.strictEqual(
+          typeof IconComponent,
+          'object',
+          `Icon ${name} must be a forwardRef object`
+        );
+        assert.strictEqual(
+          IconComponent.displayName,
+          name,
+          `Icon ${name} displayName must match`
+        );
+        assert.ok(
+          React.isValidElement(React.createElement(IconComponent)),
+          `React.createElement(${name}) must be valid element`
+        );
       }
     });
 
     test('CalendarIcon alias is exported and identically matches Calendar', () => {
       assert.ok(Icons.CalendarIcon, 'CalendarIcon must be exported');
-      assert.strictEqual(Icons.CalendarIcon, Icons.Calendar, 'CalendarIcon must be exact alias of Calendar');
+      assert.strictEqual(
+        Icons.CalendarIcon,
+        Icons.Calendar,
+        'CalendarIcon must be exact alias of Calendar'
+      );
     });
   });
 
@@ -101,24 +122,64 @@ describe('Empirical Challenger Suite: Native SVG Icons & Component Migrations', 
         const html = renderToString(React.createElement(IconComponent));
 
         // SVG wrapper check
-        assert.ok(html.startsWith('<svg'), `${name}: output must start with <svg`);
-        assert.ok(html.endsWith('</svg>'), `${name}: output must end with </svg>`);
+        assert.ok(
+          html.startsWith('<svg'),
+          `${name}: output must start with <svg`
+        );
+        assert.ok(
+          html.endsWith('</svg>'),
+          `${name}: output must end with </svg>`
+        );
 
         // Standard attributes check
-        assert.match(html, /xmlns="http:\/\/www\.w3\.org\/2000\/svg"/, `${name}: missing xmlns`);
+        assert.match(
+          html,
+          /xmlns="http:\/\/www\.w3\.org\/2000\/svg"/,
+          `${name}: missing xmlns`
+        );
         assert.match(html, /viewBox="0 0 24 24"/, `${name}: invalid viewBox`);
         assert.match(html, /fill="none"/, `${name}: missing fill="none"`);
-        assert.match(html, /stroke="currentColor"/, `${name}: missing stroke="currentColor"`);
-        assert.match(html, /stroke-width="2"/, `${name}: missing default stroke-width="2"`);
-        assert.match(html, /stroke-linecap="round"/, `${name}: missing stroke-linecap="round"`);
-        assert.match(html, /stroke-linejoin="round"/, `${name}: missing stroke-linejoin="round"`);
+        assert.match(
+          html,
+          /stroke="currentColor"/,
+          `${name}: missing stroke="currentColor"`
+        );
+        assert.match(
+          html,
+          /stroke-width="2"/,
+          `${name}: missing default stroke-width="2"`
+        );
+        assert.match(
+          html,
+          /stroke-linecap="round"/,
+          `${name}: missing stroke-linecap="round"`
+        );
+        assert.match(
+          html,
+          /stroke-linejoin="round"/,
+          `${name}: missing stroke-linejoin="round"`
+        );
         assert.match(html, /width="24"/, `${name}: missing default width="24"`);
-        assert.match(html, /height="24"/, `${name}: missing default height="24"`);
+        assert.match(
+          html,
+          /height="24"/,
+          `${name}: missing default height="24"`
+        );
 
         // Ensure child elements exist (not an empty SVG)
-        const innerContent = html.replace(/<svg[^>]*>/, '').replace(/<\/svg>/, '').trim();
-        assert.ok(innerContent.length > 0, `${name}: SVG inner content must not be empty`);
-        assert.match(innerContent, /<(path|circle|polyline|line|polygon|rect)\b/, `${name}: must contain valid SVG child shapes`);
+        const innerContent = html
+          .replace(/<svg[^>]*>/, '')
+          .replace(/<\/svg>/, '')
+          .trim();
+        assert.ok(
+          innerContent.length > 0,
+          `${name}: SVG inner content must not be empty`
+        );
+        assert.match(
+          innerContent,
+          /<(path|circle|polyline|line|polygon|rect)\b/,
+          `${name}: must contain valid SVG child shapes`
+        );
       }
     });
   });
@@ -127,46 +188,82 @@ describe('Empirical Challenger Suite: Native SVG Icons & Component Migrations', 
     test('handles numeric size prop across various scales', () => {
       const sizes = [0, 8, 12, 16, 20, 24, 32, 48, 64, 128];
       for (const s of sizes) {
-        const html = renderToString(React.createElement(Icons.Sparkles, { size: s }));
-        assert.match(html, new RegExp(`width="${s}"`), `Numeric size ${s} must set width`);
-        assert.match(html, new RegExp(`height="${s}"`), `Numeric size ${s} must set height`);
+        const html = renderToString(
+          React.createElement(Icons.Sparkles, { size: s })
+        );
+        assert.match(
+          html,
+          new RegExp(`width="${s}"`),
+          `Numeric size ${s} must set width`
+        );
+        assert.match(
+          html,
+          new RegExp(`height="${s}"`),
+          `Numeric size ${s} must set height`
+        );
       }
     });
 
     test('handles string size prop (units: rem, em, px, %)', () => {
-      const stringSizes = ['1.5rem', '2em', '36px', '100%', 'calc(100% - 10px)'];
+      const stringSizes = [
+        '1.5rem',
+        '2em',
+        '36px',
+        '100%',
+        'calc(100% - 10px)',
+      ];
       for (const s of stringSizes) {
-        const html = renderToString(React.createElement(Icons.Activity, { size: s }));
-        assert.ok(html.includes(`width="${s}"`), `String size ${s} must be reflected in width`);
-        assert.ok(html.includes(`height="${s}"`), `String size ${s} must be reflected in height`);
+        const html = renderToString(
+          React.createElement(Icons.Activity, { size: s })
+        );
+        assert.ok(
+          html.includes(`width="${s}"`),
+          `String size ${s} must be reflected in width`
+        );
+        assert.ok(
+          html.includes(`height="${s}"`),
+          `String size ${s} must be reflected in height`
+        );
       }
     });
 
     test('explicit width and height props override size prop with highest precedence', () => {
       // 1. Both width and height override size
-      const html1 = renderToString(React.createElement(Icons.Award, { size: 24, width: 40, height: 60 }));
+      const html1 = renderToString(
+        React.createElement(Icons.Award, { size: 24, width: 40, height: 60 })
+      );
       assert.match(html1, /width="40"/);
       assert.match(html1, /height="60"/);
 
       // 2. Only width specified -> height falls back to size (or default)
-      const html2 = renderToString(React.createElement(Icons.Award, { size: 16, width: 32 }));
+      const html2 = renderToString(
+        React.createElement(Icons.Award, { size: 16, width: 32 })
+      );
       assert.match(html2, /width="32"/);
       assert.match(html2, /height="16"/);
 
       // 3. Only height specified -> width falls back to default 24
-      const html3 = renderToString(React.createElement(Icons.Award, { height: 48 }));
+      const html3 = renderToString(
+        React.createElement(Icons.Award, { height: 48 })
+      );
       assert.match(html3, /width="24"/);
       assert.match(html3, /height="48"/);
     });
 
     test('supports custom strokeWidth values as numbers and strings', () => {
-      const html1 = renderToString(React.createElement(Icons.Search, { strokeWidth: 1.5 }));
+      const html1 = renderToString(
+        React.createElement(Icons.Search, { strokeWidth: 1.5 })
+      );
       assert.match(html1, /stroke-width="1.5"/);
 
-      const html2 = renderToString(React.createElement(Icons.Search, { strokeWidth: 3 }));
+      const html2 = renderToString(
+        React.createElement(Icons.Search, { strokeWidth: 3 })
+      );
       assert.match(html2, /stroke-width="3"/);
 
-      const html3 = renderToString(React.createElement(Icons.Search, { strokeWidth: '2.25' }));
+      const html3 = renderToString(
+        React.createElement(Icons.Search, { strokeWidth: '2.25' })
+      );
       assert.match(html3, /stroke-width="2.25"/);
     });
   });
@@ -175,12 +272,20 @@ describe('Empirical Challenger Suite: Native SVG Icons & Component Migrations', 
     test('className handles complex Tailwind classes, empty string, and omitted className', () => {
       // 1. Complex classes
       const html1 = renderToString(
-        React.createElement(Icons.ChevronRight, { className: 'w-4 h-4 text-emerald-400 group-hover:translate-x-1 transition-transform' })
+        React.createElement(Icons.ChevronRight, {
+          className:
+            'w-4 h-4 text-emerald-400 group-hover:translate-x-1 transition-transform',
+        })
       );
-      assert.match(html1, /class="w-4 h-4 text-emerald-400 group-hover:translate-x-1 transition-transform"/);
+      assert.match(
+        html1,
+        /class="w-4 h-4 text-emerald-400 group-hover:translate-x-1 transition-transform"/
+      );
 
       // 2. Empty className
-      const html2 = renderToString(React.createElement(Icons.ChevronRight, { className: '' }));
+      const html2 = renderToString(
+        React.createElement(Icons.ChevronRight, { className: '' })
+      );
       assert.doesNotMatch(html2, /class="undefined"/);
 
       // 3. Omitted className -> defaults to empty string, no class="undefined"
@@ -190,7 +295,9 @@ describe('Empirical Challenger Suite: Native SVG Icons & Component Migrations', 
 
     test('Loader2 spinner renders Lucide-compatible arc and supports animate-spin', () => {
       const html = renderToString(
-        React.createElement(Icons.Loader2, { className: 'w-5 h-5 animate-spin text-primary' })
+        React.createElement(Icons.Loader2, {
+          className: 'w-5 h-5 animate-spin text-primary',
+        })
       );
       assert.match(html, /class="w-5 h-5 animate-spin text-primary"/);
       // Verify the arc path d="M21 12a9 9 0 1 1-6.219-8.56"
@@ -205,7 +312,10 @@ describe('Empirical Challenger Suite: Native SVG Icons & Component Migrations', 
           role: 'img',
           id: 'auth-lock-svg',
           style: { opacity: 0.8, color: '#38bdf8' },
-          ...({ 'data-testid': 'custom-lock-icon', 'data-state': 'locked' } as Record<string, unknown>),
+          ...({
+            'data-testid': 'custom-lock-icon',
+            'data-state': 'locked',
+          } as Record<string, unknown>),
         })
       );
       assert.match(html, /aria-hidden="true"/);
@@ -222,7 +332,10 @@ describe('Empirical Challenger Suite: Native SVG Icons & Component Migrations', 
     test('component supports React ref forwarding without console warnings or runtime exceptions', () => {
       const TestWrapper = () => {
         const iconRef = React.useRef<SVGSVGElement>(null);
-        return React.createElement(Icons.ShieldCheck, { ref: iconRef, id: 'ref-test-icon' });
+        return React.createElement(Icons.ShieldCheck, {
+          ref: iconRef,
+          id: 'ref-test-icon',
+        });
       };
 
       const html = renderToString(React.createElement(TestWrapper));
@@ -259,7 +372,9 @@ describe('Empirical Challenger Suite: Native SVG Icons & Component Migrations', 
         React.createElement(EmptyState, {
           title: 'No Circulars Found',
           description: 'You are all caught up for this semester.',
-          icon: React.createElement(Icons.Inbox, { className: 'w-10 h-10 text-muted-foreground' }),
+          icon: React.createElement(Icons.Inbox, {
+            className: 'w-10 h-10 text-muted-foreground',
+          }),
         })
       );
       assert.match(html, /No Circulars Found/);
@@ -305,7 +420,11 @@ describe('Empirical Challenger Suite: Native SVG Icons & Component Migrations', 
           React.createElement(
             DialogContent,
             null,
-            React.createElement(DialogHeader, null, React.createElement(DialogTitle, null, 'Test Dialog'))
+            React.createElement(
+              DialogHeader,
+              null,
+              React.createElement(DialogTitle, null, 'Test Dialog')
+            )
           )
         )
       );
@@ -321,7 +440,11 @@ describe('Empirical Challenger Suite: Native SVG Icons & Component Migrations', 
           React.createElement(
             SheetContent,
             null,
-            React.createElement(SheetHeader, null, React.createElement(SheetTitle, null, 'Test Sheet'))
+            React.createElement(
+              SheetHeader,
+              null,
+              React.createElement(SheetTitle, null, 'Test Sheet')
+            )
           )
         )
       );
@@ -345,7 +468,9 @@ describe('Empirical Challenger Suite: Native SVG Icons & Component Migrations', 
     });
 
     test('Search icon renders cleanly as standalone SVG component', () => {
-      const html = renderToString(React.createElement(Icons.Search, { className: 'w-4 h-4' }));
+      const html = renderToString(
+        React.createElement(Icons.Search, { className: 'w-4 h-4' })
+      );
       assert.match(html, /<svg/);
       assert.match(html, /viewBox="0 0 24 24"/);
     });
@@ -354,13 +479,19 @@ describe('Empirical Challenger Suite: Native SVG Icons & Component Migrations', 
   describe('Suite 7: Advanced Feature Widgets & ERP Integrations', () => {
     test('AIChatInput renders Send icon in default state and Sparkles when disabled', () => {
       const normalHtml = renderToString(
-        React.createElement(AIChatInput, { onSendMessage: () => {}, disabled: false })
+        React.createElement(AIChatInput, {
+          onSendMessage: () => {},
+          disabled: false,
+        })
       );
       assert.match(normalHtml, /<svg/);
       assert.match(normalHtml, /Send query/);
 
       const disabledHtml = renderToString(
-        React.createElement(AIChatInput, { onSendMessage: () => {}, disabled: true })
+        React.createElement(AIChatInput, {
+          onSendMessage: () => {},
+          disabled: true,
+        })
       );
       assert.match(disabledHtml, /animate-spin/);
     });
@@ -378,12 +509,17 @@ describe('Empirical Challenger Suite: Native SVG Icons & Component Migrations', 
       const thinkingHtml = renderToString(
         React.createElement(AIToolExecutionIndicator, { status: 'thinking' })
       );
-      assert.match(thinkingHtml, /Analyzing request &amp; executing workflow\.\.\./);
+      assert.match(
+        thinkingHtml,
+        /Analyzing request &amp; executing workflow\.\.\./
+      );
     });
 
     test('AIChatSuggestionChips renders all 5 suggestion icons (BookOpen, DollarSign, Calendar, Target, Award)', () => {
       const html = renderToString(
-        React.createElement(AIChatSuggestionChips, { onSelectSuggestion: () => {} })
+        React.createElement(AIChatSuggestionChips, {
+          onSelectSuggestion: () => {},
+        })
       );
       assert.match(html, /OS Attendance/);
       assert.match(html, /Fee Balance/);
@@ -398,21 +534,30 @@ describe('Empirical Challenger Suite: Native SVG Icons & Component Migrations', 
     test('SimpleCalculator renders status icons for eligible, warning, and detention states', () => {
       // 1. Eligible (>= 85%) -> CheckCircle2
       const eligibleHtml = renderToString(
-        React.createElement(SimpleCalculator, { totalClasses: 100, presents: 90 })
+        React.createElement(SimpleCalculator, {
+          totalClasses: 100,
+          presents: 90,
+        })
       );
       assert.match(eligibleHtml, /Eligible/);
       assert.match(eligibleHtml, /<svg/);
 
       // 2. Warning (75-85%) -> AlertCircle
       const warningHtml = renderToString(
-        React.createElement(SimpleCalculator, { totalClasses: 100, presents: 78 })
+        React.createElement(SimpleCalculator, {
+          totalClasses: 100,
+          presents: 78,
+        })
       );
       assert.match(warningHtml, /Conditional Eligibility/);
       assert.match(warningHtml, /<svg/);
 
       // 3. Danger (< 75%) -> XCircle
       const dangerHtml = renderToString(
-        React.createElement(SimpleCalculator, { totalClasses: 100, presents: 60 })
+        React.createElement(SimpleCalculator, {
+          totalClasses: 100,
+          presents: 60,
+        })
       );
       assert.match(dangerHtml, /Not Eligible/);
       assert.match(dangerHtml, /<svg/);
@@ -427,7 +572,11 @@ describe('Empirical Challenger Suite: Native SVG Icons & Component Migrations', 
 
         assert.doesNotMatch(html, /NaN/, `${name} rendered NaN`);
         assert.doesNotMatch(html, /undefined/, `${name} rendered undefined`);
-        assert.doesNotMatch(html, /\[object Object\]/, `${name} rendered [object Object]`);
+        assert.doesNotMatch(
+          html,
+          /\[object Object\]/,
+          `${name} rendered [object Object]`
+        );
         assert.doesNotMatch(html, /null/, `${name} rendered null attribute`);
       }
     });

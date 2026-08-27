@@ -5,6 +5,8 @@ import {
   arrayToJar,
   fetchWithJar,
   parseGenericTable,
+  checkRateLimitText,
+  ERPRateLimitError,
 } from './http-jar';
 
 export function isLikelyTimetableData(
@@ -172,6 +174,7 @@ export async function fetchTimetableData(
 
       if (res.ok) {
         const html = await res.text();
+        checkRateLimitText(html);
         if (isSessionExpiredHtml(html)) {
           detectedSessionExpired = true;
           throw new Error('Session expired or invalid ERP route.');
@@ -186,6 +189,12 @@ export async function fetchTimetableData(
         }
       }
     } catch (err: unknown) {
+      if (
+        err instanceof ERPRateLimitError ||
+        (err instanceof Error && err.name === 'ERPRateLimitError')
+      ) {
+        throw err;
+      }
       if (err instanceof Error && err.message?.includes('Session expired')) {
         throw err;
       }
@@ -208,6 +217,7 @@ export async function fetchTimetableData(
 
       if (getRes.ok) {
         const getHtml = await getRes.text();
+        checkRateLimitText(getHtml);
         if (isSessionExpiredHtml(getHtml)) {
           detectedSessionExpired = true;
           throw new Error('Session expired or invalid ERP route.');
@@ -222,6 +232,12 @@ export async function fetchTimetableData(
         }
       }
     } catch (err: unknown) {
+      if (
+        err instanceof ERPRateLimitError ||
+        (err instanceof Error && err.name === 'ERPRateLimitError')
+      ) {
+        throw err;
+      }
       if (err instanceof Error && err.message?.includes('Session expired')) {
         throw err;
       }
@@ -243,6 +259,7 @@ export async function fetchTimetableData(
 
       if (plainGetRes.ok) {
         const plainGetHtml = await plainGetRes.text();
+        checkRateLimitText(plainGetHtml);
         if (isSessionExpiredHtml(plainGetHtml)) {
           detectedSessionExpired = true;
           throw new Error('Session expired or invalid ERP route.');

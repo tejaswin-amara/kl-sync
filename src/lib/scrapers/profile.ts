@@ -6,6 +6,7 @@ import {
   ScraperSession,
   arrayToJar,
   fetchWithJar,
+  checkRateLimitText,
 } from './http-jar';
 
 export async function fetchProfileData(session: ScraperSession) {
@@ -15,6 +16,7 @@ export async function fetchProfileData(session: ScraperSession) {
     extraHeaders: { Origin: ERP_URL, Referer: ERP_URL },
   });
   const html = await res.text();
+  checkRateLimitText(html);
   if (html.includes('id="login-form"'))
     throw new Error('Session expired or invalid ERP route.');
 

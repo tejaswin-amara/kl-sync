@@ -23,7 +23,9 @@ export function getConsentSettings(): ConsentSettings {
   return DEFAULT_CONSENT;
 }
 
-export function saveConsentSettings(settings: Partial<ConsentSettings>): ConsentSettings {
+export function saveConsentSettings(
+  settings: Partial<ConsentSettings>
+): ConsentSettings {
   const current = getConsentSettings();
   const updated: ConsentSettings = {
     ...current,
@@ -48,7 +50,13 @@ export function exportAllUserData(): void {
   const exportPayload: Record<string, unknown> = {
     exportDate: new Date().toISOString(),
     system: 'KL-Sync Academic Client',
-    complianceStandard: ['GDPR Art. 20', 'CCPA § 1798.100', 'LGPD Art. 18', 'DPDPA 2023 Sec. 11', 'PIPEDA'],
+    complianceStandard: [
+      'GDPR Art. 20',
+      'CCPA § 1798.100',
+      'LGPD Art. 18',
+      'DPDPA 2023 Sec. 11',
+      'PIPEDA',
+    ],
     storageData: {},
     cachedModules: {},
   };
@@ -79,7 +87,9 @@ export function exportAllUserData(): void {
   exportPayload.cachedModules = sessionItems;
 
   // 3. Trigger JSON Download
-  const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify(exportPayload, null, 2)], {
+    type: 'application/json',
+  });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;

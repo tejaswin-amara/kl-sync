@@ -8,12 +8,20 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ChevronDown, ChevronUp } from '@/components/ui/icons';
 import { triggerHaptic } from '@/lib/fluid-motion';
 
-interface ERPTablePageProps { module: string; title: string; description: string; emptyIcon: ReactNode; emptyTitle: string; emptyDescription: string; }
+interface ERPTablePageProps {
+  module: string;
+  title: string;
+  description: string;
+  emptyIcon: ReactNode;
+  emptyTitle: string;
+  emptyDescription: string;
+}
 
 const fetcher = async (url: unknown) => {
   const response = await fetch(url as string);
   const contentType = response.headers.get('content-type') || '';
-  if (!contentType.includes('application/json')) throw new Error('Session expired.');
+  if (!contentType.includes('application/json'))
+    throw new Error('Session expired.');
   const json = await response.json();
   if (!json.success) throw new Error(json.error || 'Failed to fetch data');
   return (json.data as Record<string, unknown>[]) || [];
@@ -28,23 +36,156 @@ function MobileCardItem({ row }: { row: Record<string, unknown> }) {
   const remainingEntries = entries.slice(3);
   return (
     <article className="apple-card space-y-3 rounded-[--radius-lg] p-4">
-      <div className="flex items-start justify-between gap-3"><div className="min-w-0 flex-1"><p className="caption-label text-muted-foreground">{primaryKey}</p><p className="mt-1 break-words text-sm font-bold tracking-tight text-foreground">{String(primaryVal)}</p></div>{remainingEntries.length > 0 && <button type="button" onClick={() => { triggerHaptic('selection'); setExpanded((current) => !current); }} aria-expanded={expanded} aria-label={`Toggle details for ${String(primaryVal)}`} className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-muted-foreground hover:bg-surface-2 hover:text-foreground">{expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}</button>}</div>
-      {secondaryEntries.length > 0 && <div className="grid grid-cols-2 gap-3 border-t border-border pt-3">{secondaryEntries.map(([key, value]) => <div key={key} className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{key}</p><p className="mt-1 break-words text-xs font-semibold text-foreground">{String(value)}</p></div>)}</div>}
-      {expanded && remainingEntries.length > 0 && <div className="space-y-2 border-t border-border pt-3">{remainingEntries.map(([key, value]) => <div key={key} className="flex items-start justify-between gap-4 border-b border-border/70 py-2 text-xs last:border-0"><span className="text-muted-foreground">{key}</span><span className="max-w-[60%] break-words text-right font-semibold text-foreground tabular-nums">{String(value)}</span></div>)}</div>}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="caption-label text-muted-foreground">{primaryKey}</p>
+          <p className="mt-1 break-words text-sm font-bold tracking-tight text-foreground">
+            {String(primaryVal)}
+          </p>
+        </div>
+        {remainingEntries.length > 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('selection');
+              setExpanded((current) => !current);
+            }}
+            aria-expanded={expanded}
+            aria-label={`Toggle details for ${String(primaryVal)}`}
+            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-muted-foreground hover:bg-surface-2 hover:text-foreground"
+          >
+            {expanded ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </button>
+        )}
+      </div>
+      {secondaryEntries.length > 0 && (
+        <div className="grid grid-cols-2 gap-3 border-t border-border pt-3">
+          {secondaryEntries.map(([key, value]) => (
+            <div key={key} className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
+                {key}
+              </p>
+              <p className="mt-1 break-words text-xs font-semibold text-foreground">
+                {String(value)}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+      {expanded && remainingEntries.length > 0 && (
+        <div className="space-y-2 border-t border-border pt-3">
+          {remainingEntries.map(([key, value]) => (
+            <div
+              key={key}
+              className="flex items-start justify-between gap-4 border-b border-border/70 py-2 text-xs last:border-0"
+            >
+              <span className="text-muted-foreground">{key}</span>
+              <span className="max-w-[60%] break-words text-right font-semibold text-foreground tabular-nums">
+                {String(value)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </article>
   );
 }
 
-export default function ERPTablePage({ module, title, description, emptyIcon, emptyTitle, emptyDescription }: ERPTablePageProps) {
-  const { data: rawData, isLoading: loading, error: fetchError, mutate } = useNativeQuery(`/api/erp-proxy/${module}`, fetcher);
+export default function ERPTablePage({
+  module,
+  title,
+  description,
+  emptyIcon,
+  emptyTitle,
+  emptyDescription,
+}: ERPTablePageProps) {
+  const {
+    data: rawData,
+    isLoading: loading,
+    error: fetchError,
+    mutate,
+  } = useNativeQuery(`/api/erp-proxy/${module}`, fetcher);
   const data = rawData || [];
   const error = fetchError ? fetchError.message : null;
   return (
-    <div className="flex w-full animate-spring-up flex-col gap-6"><PageHeader title={title} description={description} /><section className="apple-card overflow-hidden rounded-[--radius-2xl]">
-      {loading ? <div className="space-y-3 p-6">{[...Array(4)].map((_, index) => <Skeleton key={index} className="h-12 w-full rounded-[--radius-md]" />)}</div> : error ? <EmptyState variant="error" description={error} action={{ label: 'Retry', onClick: () => mutate() }} /> : data.length === 0 ? <EmptyState icon={emptyIcon} title={emptyTitle} description={emptyDescription} /> : <>
-        <div className="hidden overflow-x-auto sm:block"><table className="w-full text-sm"><thead><tr className="border-b border-border bg-surface-2/70"><th className="w-8 px-5 py-4" aria-hidden="true" />{Object.keys(data[0] || {}).map((key) => <th key={key} scope="col" className="whitespace-nowrap px-4 py-4 text-left caption-label text-muted-foreground">{key}</th>)}</tr></thead><tbody className="divide-y divide-border/70">{data.map((row, index) => <tr key={index} className="transition-colors hover:bg-surface-2/60"><td className="px-5 py-4 text-xs font-bold text-muted-foreground">{String(index + 1).padStart(2, '0')}</td>{Object.values(row).map((value, columnIndex) => <td key={columnIndex} className="max-w-[320px] break-words px-4 py-4 text-sm font-medium text-foreground tabular-nums">{String(value)}</td>)}</tr>)}</tbody></table></div>
-        <div className="space-y-3 p-4 sm:hidden">{data.map((row, index) => <MobileCardItem key={index} row={row} />)}</div>
-      </>}
-    </section></div>
+    <div className="flex w-full animate-spring-up flex-col gap-6">
+      <PageHeader title={title} description={description} />
+      <section className="apple-card overflow-hidden rounded-[--radius-2xl]">
+        {loading ? (
+          <div className="space-y-3 p-6">
+            {[...Array(4)].map((_, index) => (
+              <Skeleton
+                key={index}
+                className="h-12 w-full rounded-[--radius-md]"
+              />
+            ))}
+          </div>
+        ) : error ? (
+          <EmptyState
+            variant="error"
+            description={error}
+            action={{ label: 'Retry', onClick: () => mutate() }}
+          />
+        ) : data.length === 0 ? (
+          <EmptyState
+            icon={emptyIcon}
+            title={emptyTitle}
+            description={emptyDescription}
+          />
+        ) : (
+          <>
+            <div className="hidden overflow-x-auto sm:block">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-surface-2/70">
+                    <th className="w-8 px-5 py-4 caption-label text-muted-foreground">
+                      #
+                    </th>
+                    {Object.keys(data[0] || {}).map((key) => (
+                      <th
+                        key={key}
+                        scope="col"
+                        className="whitespace-nowrap px-4 py-4 text-left caption-label text-muted-foreground"
+                      >
+                        {key}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/70">
+                  {data.map((row, index) => (
+                    <tr
+                      key={index}
+                      className="transition-colors hover:bg-surface-2/60"
+                    >
+                      <td className="px-5 py-4 text-xs font-bold text-muted-foreground">
+                        {String(index + 1).padStart(2, '0')}
+                      </td>
+                      {Object.values(row).map((value, columnIndex) => (
+                        <td
+                          key={columnIndex}
+                          className="max-w-[320px] break-words px-4 py-4 text-sm font-medium text-foreground tabular-nums"
+                        >
+                          {String(value)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="space-y-3 p-4 sm:hidden">
+              {data.map((row, index) => (
+                <MobileCardItem key={index} row={row} />
+              ))}
+            </div>
+          </>
+        )}
+      </section>
+    </div>
   );
 }

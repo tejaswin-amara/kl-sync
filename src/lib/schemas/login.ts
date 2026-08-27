@@ -20,11 +20,13 @@ export const loginRequestSchema = z.object({
 export const loginResponseSchema = z.object({
   success: z.boolean(),
   message: z.string().optional(),
-  session: z.object({
-    cookies: z.array(z.object({ name: z.string(), value: z.string() })),
-    csrfToken: z.string(),
-    userAgent: z.string().optional(),
-  }).optional(),
+  session: z
+    .object({
+      cookies: z.array(z.object({ name: z.string(), value: z.string() })),
+      csrfToken: z.string(),
+      userAgent: z.string().optional(),
+    })
+    .optional(),
   csrfToken: z.string().optional(),
   academicYears: z.array(semesterOptionSchema).optional(),
   semesters: z.array(semesterOptionSchema).optional(),

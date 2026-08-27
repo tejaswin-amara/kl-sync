@@ -8,11 +8,17 @@ describe('Zero-dependency cn() helper', () => {
   });
 
   test('filters out falsy values (false, null, undefined, 0, "")', () => {
-    assert.strictEqual(cn('foo', false, null, undefined, 0, '', 'bar'), 'foo bar');
+    assert.strictEqual(
+      cn('foo', false, null, undefined, 0, '', 'bar'),
+      'foo bar'
+    );
   });
 
   test('handles object conditionals', () => {
-    assert.strictEqual(cn('base', { active: true, disabled: false, highlighted: true }), 'base active highlighted');
+    assert.strictEqual(
+      cn('base', { active: true, disabled: false, highlighted: true }),
+      'base active highlighted'
+    );
   });
 
   test('handles nested arrays', () => {
@@ -21,7 +27,11 @@ describe('Zero-dependency cn() helper', () => {
 
   test('handles mixed strings, numbers, arrays, and objects', () => {
     assert.strictEqual(
-      cn('flex', ['items-center', { 'justify-between': true, hidden: false }], 'p-4'),
+      cn(
+        'flex',
+        ['items-center', { 'justify-between': true, hidden: false }],
+        'p-4'
+      ),
       'flex items-center justify-between p-4'
     );
   });

@@ -32,7 +32,11 @@ test('POST /api/erp-proxy/attendance returns 504 Gateway Timeout when upstream f
     const params = Promise.resolve({ module: 'attendance' });
     const res = await POST(req, { params });
 
-    assert.strictEqual(res.status, 504, 'Status code must be 504 Gateway Timeout');
+    assert.strictEqual(
+      res.status,
+      504,
+      'Status code must be 504 Gateway Timeout'
+    );
     const json = await res.json();
     assert.strictEqual(json.success, false);
     assert.strictEqual(json.error, 'ERP Gateway Timeout');
@@ -71,7 +75,10 @@ test('POST /api/erp-proxy/attendance returns 502 Bad Gateway when upstream fetch
     const json = await res.json();
     assert.strictEqual(json.success, false);
     assert.strictEqual(json.error, 'ERP Bad Gateway');
-    assert.ok(json.details.includes('ECONNREFUSED'), 'Details should include underlying error message');
+    assert.ok(
+      json.details.includes('ECONNREFUSED'),
+      'Details should include underlying error message'
+    );
   } finally {
     globalThis.fetch = originalFetch;
   }

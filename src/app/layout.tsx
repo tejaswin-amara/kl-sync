@@ -19,8 +19,15 @@ const outfit = Outfit({
 
 export const metadata: Metadata = {
   title: 'KL Sync — Academic Dashboard',
-  description: 'Secure, real-time access to your KL University timetable, attendance, marks and more.',
-  keywords: ['KL University', 'ERP', 'timetable', 'attendance', 'academic dashboard'],
+  description:
+    'Secure, real-time access to your KL University timetable, attendance, marks and more.',
+  keywords: [
+    'KL University',
+    'ERP',
+    'timetable',
+    'attendance',
+    'academic dashboard',
+  ],
 };
 
 export const viewport: Viewport = {
@@ -54,9 +61,7 @@ export default function RootLayout({
           Skip to content
         </a>
         <AriaLiveRegion>
-          <ToastProvider>
-            {children}
-          </ToastProvider>
+          <ToastProvider>{children}</ToastProvider>
         </AriaLiveRegion>
         <ServiceWorkerRegistration />
       </body>

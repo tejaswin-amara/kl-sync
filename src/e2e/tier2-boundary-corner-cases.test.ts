@@ -30,14 +30,20 @@ test('Tier 2 - Boundary 1: NL Intent Parser handles empty, whitespace, and unmap
   const r2 = await processAIChat([{ role: 'user', content: '   ' }]);
   assert.strictEqual(r2.toolCalls.length, 0);
 
-  const r3 = await processAIChat([{ role: 'user', content: 'random gibberish hello 12345' }]);
+  const r3 = await processAIChat([
+    { role: 'user', content: 'random gibberish hello 12345' },
+  ]);
   assert.strictEqual(r3.toolCalls.length, 0);
   assert.ok(r3.assistantResponseText.includes('I am KL Sync Copilot'));
 });
 
 test('Tier 2 - Boundary 2: ERP Proxy returns 400 when academicYear or semesterId is missing', async () => {
-  const req = new NextRequest('http://localhost/api/erp-proxy/attendance?academicYear=2025-2026&csrfToken=demo_csrf');
-  const res = await handleErpProxyGet(req, { params: Promise.resolve({ module: 'attendance' }) });
+  const req = new NextRequest(
+    'http://localhost/api/erp-proxy/attendance?academicYear=2025-2026&csrfToken=demo_csrf'
+  );
+  const res = await handleErpProxyGet(req, {
+    params: Promise.resolve({ module: 'attendance' }),
+  });
   assert.strictEqual(res.status, 400);
 
   const json = await res.json();
@@ -46,8 +52,12 @@ test('Tier 2 - Boundary 2: ERP Proxy returns 400 when academicYear or semesterId
 });
 
 test('Tier 2 - Boundary 3: ERP Proxy returns 404 for completely unknown module name', async () => {
-  const req = new NextRequest('http://localhost/api/erp-proxy/non-existent-module');
-  const res = await handleErpProxyGet(req, { params: Promise.resolve({ module: 'non-existent-module' }) });
+  const req = new NextRequest(
+    'http://localhost/api/erp-proxy/non-existent-module'
+  );
+  const res = await handleErpProxyGet(req, {
+    params: Promise.resolve({ module: 'non-existent-module' }),
+  });
   assert.strictEqual(res.status, 404);
 
   const json = await res.json();
@@ -100,21 +110,37 @@ test('Tier 2 - Boundary 6: Attendance Target calculator validates zero total & n
   });
 
   assert.throws(() => {
-    executeCalculateAttendanceTarget({ currentAttended: 10, currentTotal: 10, targetPercent: 105 });
+    executeCalculateAttendanceTarget({
+      currentAttended: 10,
+      currentTotal: 10,
+      targetPercent: 105,
+    });
   });
 });
 
 test('Tier 2 - Boundary 7: Predict CGPA tool validates bounds (CGPA > 10, negative credits, empty courses)', () => {
   assert.throws(() => {
-    executePredictCGPA({ currentCGPA: 10.5, completedCredits: 50, newCourses: [{ credits: 3, expectedGrade: 'O' }] });
+    executePredictCGPA({
+      currentCGPA: 10.5,
+      completedCredits: 50,
+      newCourses: [{ credits: 3, expectedGrade: 'O' }],
+    });
   });
 
   assert.throws(() => {
-    executePredictCGPA({ currentCGPA: 8.0, completedCredits: -5, newCourses: [{ credits: 3, expectedGrade: 'O' }] });
+    executePredictCGPA({
+      currentCGPA: 8.0,
+      completedCredits: -5,
+      newCourses: [{ credits: 3, expectedGrade: 'O' }],
+    });
   });
 
   assert.throws(() => {
-    executePredictCGPA({ currentCGPA: 8.0, completedCredits: 50, newCourses: [] });
+    executePredictCGPA({
+      currentCGPA: 8.0,
+      completedCredits: 50,
+      newCourses: [],
+    });
   });
 });
 
@@ -190,11 +216,16 @@ test('Tier 2 - Boundary 11: Login API returns 400 when captchaToken verification
 
   const json = await res.json();
   assert.strictEqual(json.success, false);
-  assert.strictEqual(json.message, 'Captcha verification failed. Please try again.');
+  assert.strictEqual(
+    json.message,
+    'Captcha verification failed. Please try again.'
+  );
 });
 
 test('Tier 2 - Boundary 12: executeGetAttendance subject filter handles case-insensitivity and sub-strings', async () => {
-  const res = await executeTool('getAttendance', { subject: 'DATA structures' });
+  const res = await executeTool('getAttendance', {
+    subject: 'DATA structures',
+  });
   assert.strictEqual(res.success, true);
   const result = res.result as { attendance: Array<{ 'Course Code': string }> };
   assert.ok(result.attendance.length > 0);

@@ -29,9 +29,18 @@ async function timetableFetcher(key: unknown) {
   return parseTimetable(rawRows);
 }
 
-export function useTimetable(academicYear?: string, semesterId?: string): UseTimetableResult {
-  const key = academicYear && semesterId ? (['/api/erp-proxy/timetable', academicYear, semesterId] as const) : null;
-  const { data, error, isLoading, mutate } = useNativeQuery<ParsedTimetable>(key, timetableFetcher);
+export function useTimetable(
+  academicYear?: string,
+  semesterId?: string
+): UseTimetableResult {
+  const key =
+    academicYear && semesterId
+      ? (['/api/erp-proxy/timetable', academicYear, semesterId] as const)
+      : null;
+  const { data, error, isLoading, mutate } = useNativeQuery<ParsedTimetable>(
+    key,
+    timetableFetcher
+  );
 
   return {
     data: data || null,

@@ -34,7 +34,10 @@ test('verifyCaptchaToken validates signed stateless HMAC tokens and prevents rep
     rnd: crypto.randomBytes(8).toString('hex'),
   });
   const b64 = Buffer.from(payload, 'utf8').toString('base64url');
-  const sig = crypto.createHmac('sha256', secret).update(b64).digest('base64url');
+  const sig = crypto
+    .createHmac('sha256', secret)
+    .update(b64)
+    .digest('base64url');
   const signedToken = `signed:${b64}.${sig}`;
 
   // First verification should pass
@@ -55,8 +58,14 @@ test('verifyCaptchaToken validates signed stateless HMAC tokens and prevents rep
     rnd: crypto.randomBytes(8).toString('hex'),
   });
   const expiredB64 = Buffer.from(expiredPayload, 'utf8').toString('base64url');
-  const expiredSig = crypto.createHmac('sha256', secret).update(expiredB64).digest('base64url');
-  assert.strictEqual(await verifyCaptchaToken(`signed:${expiredB64}.${expiredSig}`), false);
+  const expiredSig = crypto
+    .createHmac('sha256', secret)
+    .update(expiredB64)
+    .digest('base64url');
+  assert.strictEqual(
+    await verifyCaptchaToken(`signed:${expiredB64}.${expiredSig}`),
+    false
+  );
 });
 
 test('storeRedeemedToken and verifyCaptchaToken lifecycle (single-use token burn)', async () => {

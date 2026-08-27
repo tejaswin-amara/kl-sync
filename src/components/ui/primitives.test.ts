@@ -7,13 +7,25 @@ import { Button } from './button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from './card';
 import { Input } from './input';
 import { Badge } from './badge';
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose, useDialog } from './dialog';
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+  useDialog,
+} from './dialog';
 import { Skeleton } from './skeleton';
 
 describe('UI Primitives - Empirical Stress Testing & Verification', () => {
   describe('Button Component', () => {
     test('renders default button with 44px min-height touch target', () => {
-      const html = renderToString(React.createElement(Button, null, 'Click Me'));
+      const html = renderToString(
+        React.createElement(Button, null, 'Click Me')
+      );
       assert.match(html, /min-h-\[44px\]/);
       assert.match(html, /type="button"/);
       assert.match(html, /bg-primary/);
@@ -22,33 +34,48 @@ describe('UI Primitives - Empirical Stress Testing & Verification', () => {
     });
 
     test('supports icon size with 44px x 44px minimum touch target', () => {
-      const html = renderToString(React.createElement(Button, { size: 'icon' }, 'X'));
+      const html = renderToString(
+        React.createElement(Button, { size: 'icon' }, 'X')
+      );
       assert.match(html, /min-h-\[44px\]/);
       assert.match(html, /min-w-\[44px\]/);
     });
 
     test('supports lg size with 48px min-height touch target', () => {
-      const html = renderToString(React.createElement(Button, { size: 'lg' }, 'Large Button'));
+      const html = renderToString(
+        React.createElement(Button, { size: 'lg' }, 'Large Button')
+      );
       assert.match(html, /min-h-\[48px\]/);
     });
 
     test('handles isLoading state by disabling button and rendering spinner', () => {
-      const html = renderToString(React.createElement(Button, { isLoading: true }, 'Save'));
+      const html = renderToString(
+        React.createElement(Button, { isLoading: true }, 'Save')
+      );
       assert.match(html, /disabled=""/);
       assert.match(html, /animate-spin/);
       assert.match(html, /Save/);
     });
 
     test('merges custom className cleanly via cn()', () => {
-      const html = renderToString(React.createElement(Button, { className: 'custom-class-test' }, 'Test'));
+      const html = renderToString(
+        React.createElement(Button, { className: 'custom-class-test' }, 'Test')
+      );
       assert.match(html, /custom-class-test/);
       assert.match(html, /min-h-\[44px\]/);
     });
 
     test('renders destructive, secondary, outline, and ghost variants correctly', () => {
-      const variants = ['destructive', 'secondary', 'outline', 'ghost'] as const;
+      const variants = [
+        'destructive',
+        'secondary',
+        'outline',
+        'ghost',
+      ] as const;
       for (const variant of variants) {
-        const html = renderToString(React.createElement(Button, { variant }, 'Variant'));
+        const html = renderToString(
+          React.createElement(Button, { variant }, 'Variant')
+        );
         assert.ok(html.length > 0);
       }
     });
@@ -56,7 +83,9 @@ describe('UI Primitives - Empirical Stress Testing & Verification', () => {
 
   describe('Input Component', () => {
     test('renders input with 44px min-height touch target and focus ring', () => {
-      const html = renderToString(React.createElement(Input, { placeholder: 'Enter text...' }));
+      const html = renderToString(
+        React.createElement(Input, { placeholder: 'Enter text...' })
+      );
       assert.match(html, /min-h-\[44px\]/);
       assert.match(html, /bg-surface-2\/70/);
       assert.match(html, /focus-visible:ring-ring/);
@@ -64,7 +93,9 @@ describe('UI Primitives - Empirical Stress Testing & Verification', () => {
 
     test('renders leftIcon and applies pl-10 padding offset', () => {
       const icon = React.createElement('span', { id: 'search-icon' }, '🔍');
-      const html = renderToString(React.createElement(Input, { leftIcon: icon }));
+      const html = renderToString(
+        React.createElement(Input, { leftIcon: icon })
+      );
       assert.match(html, /search-icon/);
       assert.match(html, /pl-10/);
       assert.match(html, /pointer-events-none/);
@@ -72,7 +103,9 @@ describe('UI Primitives - Empirical Stress Testing & Verification', () => {
 
     test('renders rightIcon and applies pr-10 padding offset', () => {
       const icon = React.createElement('button', { id: 'clear-icon' }, '✕');
-      const html = renderToString(React.createElement(Input, { rightIcon: icon }));
+      const html = renderToString(
+        React.createElement(Input, { rightIcon: icon })
+      );
       assert.match(html, /clear-icon/);
       assert.match(html, /pr-10/);
     });
@@ -92,16 +125,27 @@ describe('UI Primitives - Empirical Stress Testing & Verification', () => {
     });
 
     test('renders indicator dot when dot=true', () => {
-      const html = renderToString(React.createElement(Badge, { variant: 'success', dot: true }, 'Online'));
+      const html = renderToString(
+        React.createElement(Badge, { variant: 'success', dot: true }, 'Online')
+      );
       assert.match(html, /w-1.5 h-1.5/);
       assert.match(html, /bg-success/);
       assert.match(html, /Online/);
     });
 
     test('supports all variant color themes (success, warning, error, info, etc.)', () => {
-      const variants = ['success', 'warning', 'danger', 'info', 'outline', 'emerald'] as const;
+      const variants = [
+        'success',
+        'warning',
+        'danger',
+        'info',
+        'outline',
+        'emerald',
+      ] as const;
       for (const variant of variants) {
-        const html = renderToString(React.createElement(Badge, { variant }, variant));
+        const html = renderToString(
+          React.createElement(Badge, { variant }, variant)
+        );
         assert.ok(html.length > 0);
       }
     });
@@ -113,7 +157,11 @@ describe('UI Primitives - Empirical Stress Testing & Verification', () => {
         React.createElement(
           Card,
           null,
-          React.createElement(CardHeader, null, React.createElement(CardTitle, null, 'Title')),
+          React.createElement(
+            CardHeader,
+            null,
+            React.createElement(CardTitle, null, 'Title')
+          ),
           React.createElement(CardContent, null, 'Body Content'),
           React.createElement(CardFooter, null, 'Footer')
         )
@@ -125,7 +173,9 @@ describe('UI Primitives - Empirical Stress Testing & Verification', () => {
     });
 
     test('supports interactive variant with hover-lift effect', () => {
-      const html = renderToString(React.createElement(Card, { variant: 'interactive' }, 'Clickable Card'));
+      const html = renderToString(
+        React.createElement(Card, { variant: 'interactive' }, 'Clickable Card')
+      );
       assert.match(html, /hover-lift/);
       assert.match(html, /cursor-pointer/);
     });
@@ -137,7 +187,10 @@ describe('UI Primitives - Empirical Stress Testing & Verification', () => {
         useDialog();
         return null;
       }
-      assert.throws(() => renderToString(React.createElement(BadComponent)), /useDialog must be used within a Dialog/);
+      assert.throws(
+        () => renderToString(React.createElement(BadComponent)),
+        /useDialog must be used within a Dialog/
+      );
     });
 
     test('renders dialog trigger and hidden content when closed', () => {
@@ -149,7 +202,11 @@ describe('UI Primitives - Empirical Stress Testing & Verification', () => {
           React.createElement(
             DialogContent,
             null,
-            React.createElement(DialogHeader, null, React.createElement(DialogTitle, null, 'Modal Title')),
+            React.createElement(
+              DialogHeader,
+              null,
+              React.createElement(DialogTitle, null, 'Modal Title')
+            ),
             React.createElement(DialogDescription, null, 'Modal Description')
           )
         )
@@ -166,9 +223,17 @@ describe('UI Primitives - Empirical Stress Testing & Verification', () => {
           React.createElement(
             DialogContent,
             null,
-            React.createElement(DialogHeader, null, React.createElement(DialogTitle, null, 'Modal Title')),
+            React.createElement(
+              DialogHeader,
+              null,
+              React.createElement(DialogTitle, null, 'Modal Title')
+            ),
             React.createElement(DialogDescription, null, 'Modal Description'),
-            React.createElement(DialogFooter, null, React.createElement(DialogClose, null, 'Close'))
+            React.createElement(
+              DialogFooter,
+              null,
+              React.createElement(DialogClose, null, 'Close')
+            )
           )
         )
       );
@@ -183,7 +248,9 @@ describe('UI Primitives - Empirical Stress Testing & Verification', () => {
 
   describe('Skeleton Component', () => {
     test('renders rounded card loader with shimmer effect by default', () => {
-      const html = renderToString(React.createElement(Skeleton, { className: 'h-12 w-full' }));
+      const html = renderToString(
+        React.createElement(Skeleton, { className: 'h-12 w-full' })
+      );
       assert.match(html, /shimmer/);
       assert.match(html, /h-12 w-full/);
     });

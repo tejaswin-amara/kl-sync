@@ -1,13 +1,25 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Loader2, Wrench, AlertCircle, Percent, Target, Calculator } from '@/components/ui/icons';
-import { SimpleCalculator, LTPSAttendanceCalculator } from '@/components/attendance-calculator';
+import {
+  Loader2,
+  Wrench,
+  AlertCircle,
+  Percent,
+  Target,
+  Calculator,
+} from '@/components/ui/icons';
+import {
+  SimpleCalculator,
+  LTPSAttendanceCalculator,
+} from '@/components/attendance-calculator';
 import { processERPDataForCGPA } from '@/lib/cgpa';
 import { triggerHaptic } from '@/lib/fluid-motion';
 
 export default function ToolsPage() {
-  const [activeTab, setActiveTab] = useState<'target' | 'ltps' | 'cgpa'>('target');
+  const [activeTab, setActiveTab] = useState<'target' | 'ltps' | 'cgpa'>(
+    'target'
+  );
   const [totalClasses, setTotalClasses] = useState(0);
   const [presents, setPresents] = useState(0);
   const [cgpa, setCgpa] = useState<number>(0);
@@ -38,13 +50,15 @@ export default function ToolsPage() {
       if (!yearId && yearStr) {
         try {
           const parsed = JSON.parse(yearStr);
-          if (Array.isArray(parsed) && parsed.length > 0) yearId = parsed[0]?.value || '';
+          if (Array.isArray(parsed) && parsed.length > 0)
+            yearId = parsed[0]?.value || '';
         } catch {}
       }
       if (!semId && semStr) {
         try {
           const parsed = JSON.parse(semStr);
-          if (Array.isArray(parsed) && parsed.length > 0) semId = parsed[0]?.value || '';
+          if (Array.isArray(parsed) && parsed.length > 0)
+            semId = parsed[0]?.value || '';
         } catch {}
       }
       if (!yearId) yearId = '2025-2026';
@@ -61,11 +75,17 @@ export default function ToolsPage() {
           let totalConducted = 0;
           let totalAttended = 0;
           attData.attendanceData.forEach((row: Record<string, unknown>) => {
-            const condKey = Object.keys(row).find((k) =>
-              k.toLowerCase().includes('conducted') || k.toLowerCase().includes('held') || (k.toLowerCase().includes('total') && !k.toLowerCase().includes('%'))
+            const condKey = Object.keys(row).find(
+              (k) =>
+                k.toLowerCase().includes('conducted') ||
+                k.toLowerCase().includes('held') ||
+                (k.toLowerCase().includes('total') &&
+                  !k.toLowerCase().includes('%'))
             );
-            const attKey = Object.keys(row).find((k) =>
-              k.toLowerCase().includes('attended') || k.toLowerCase().includes('present')
+            const attKey = Object.keys(row).find(
+              (k) =>
+                k.toLowerCase().includes('attended') ||
+                k.toLowerCase().includes('present')
             );
             if (condKey && attKey) {
               totalConducted += parseFloat(String(row[condKey])) || 0;
@@ -116,7 +136,8 @@ export default function ToolsPage() {
             Tools & Calculators
           </h2>
           <p className="text-xs text-muted-foreground/90 mt-1 font-normal">
-            Smart academic tools pre-populated with your live ERP attendance and marks data.
+            Smart academic tools pre-populated with your live ERP attendance and
+            marks data.
           </p>
         </div>
 
@@ -175,7 +196,9 @@ export default function ToolsPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center h-64 border border-border rounded-[--radius-2xl] apple-card shadow-xl">
           <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
-          <p className="text-xs text-muted-foreground font-medium">Loading your data...</p>
+          <p className="text-xs text-muted-foreground font-medium">
+            Loading your data...
+          </p>
         </div>
       ) : activeTab === 'ltps' ? (
         <div className="max-w-2xl mx-auto w-full">
@@ -214,7 +237,10 @@ export default function ToolsPage() {
 
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label htmlFor="target-cgpa-input" className="caption-label text-muted-foreground/90 block mb-2">
+                  <label
+                    htmlFor="target-cgpa-input"
+                    className="caption-label text-muted-foreground/90 block mb-2"
+                  >
                     Target CGPA Goal
                   </label>
                   <input
@@ -230,7 +256,10 @@ export default function ToolsPage() {
                   />
                 </div>
                 <div className="flex-1">
-                  <label htmlFor="upcoming-credits-input" className="caption-label text-muted-foreground/90 block mb-2">
+                  <label
+                    htmlFor="upcoming-credits-input"
+                    className="caption-label text-muted-foreground/90 block mb-2"
+                  >
                     Upcoming Credits
                   </label>
                   <input
@@ -248,7 +277,9 @@ export default function ToolsPage() {
 
               <div className="mt-auto p-5 bg-surface-2/40 border border-border rounded-[--radius-xl] text-center">
                 {reqGpa === null ? (
-                  <p className="text-muted-foreground text-xs font-normal">Enter valid numbers.</p>
+                  <p className="text-muted-foreground text-xs font-normal">
+                    Enter valid numbers.
+                  </p>
                 ) : parseFloat(reqGpa) > 10 ? (
                   <div>
                     <p className="text-destructive font-semibold mb-1 flex items-center justify-center gap-2 text-sm tracking-tight">
@@ -256,7 +287,10 @@ export default function ToolsPage() {
                     </p>
                     <p className="text-muted-foreground text-xs leading-relaxed font-normal">
                       You would need an upcoming GPA of{' '}
-                      <strong className="text-destructive tabular-numbers font-semibold">{reqGpa}</strong>.
+                      <strong className="text-destructive tabular-numbers font-semibold">
+                        {reqGpa}
+                      </strong>
+                      .
                     </p>
                   </div>
                 ) : parseFloat(reqGpa) < 0 ? (
@@ -291,12 +325,16 @@ export default function ToolsPage() {
             </div>
             <div className="flex-1 flex flex-col gap-6">
               <p className="text-xs text-muted-foreground font-normal leading-relaxed">
-                Your total classes conducted and attended have been synced automatically from the ERP.
+                Your total classes conducted and attended have been synced
+                automatically from the ERP.
               </p>
 
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label htmlFor="total-classes-input" className="caption-label text-muted-foreground/90 block mb-2">
+                  <label
+                    htmlFor="total-classes-input"
+                    className="caption-label text-muted-foreground/90 block mb-2"
+                  >
                     Total Classes
                   </label>
                   <input
@@ -311,7 +349,10 @@ export default function ToolsPage() {
                   />
                 </div>
                 <div className="flex-1">
-                  <label htmlFor="classes-attended-input" className="caption-label text-muted-foreground/90 block mb-2">
+                  <label
+                    htmlFor="classes-attended-input"
+                    className="caption-label text-muted-foreground/90 block mb-2"
+                  >
                     Classes Attended
                   </label>
                   <input
@@ -367,7 +408,10 @@ export default function ToolsPage() {
 
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label htmlFor="target-cgpa-input-2" className="caption-label text-muted-foreground/90 block mb-2">
+                  <label
+                    htmlFor="target-cgpa-input-2"
+                    className="caption-label text-muted-foreground/90 block mb-2"
+                  >
                     Target CGPA Goal
                   </label>
                   <input
@@ -383,7 +427,10 @@ export default function ToolsPage() {
                   />
                 </div>
                 <div className="flex-1">
-                  <label htmlFor="upcoming-credits-input-2" className="caption-label text-muted-foreground/90 block mb-2">
+                  <label
+                    htmlFor="upcoming-credits-input-2"
+                    className="caption-label text-muted-foreground/90 block mb-2"
+                  >
                     Upcoming Credits
                   </label>
                   <input
@@ -401,7 +448,9 @@ export default function ToolsPage() {
 
               <div className="mt-auto p-5 bg-surface-2/40 border border-border rounded-[--radius-xl] text-center">
                 {reqGpa === null ? (
-                  <p className="text-muted-foreground text-xs font-normal">Enter valid numbers.</p>
+                  <p className="text-muted-foreground text-xs font-normal">
+                    Enter valid numbers.
+                  </p>
                 ) : parseFloat(reqGpa) > 10 ? (
                   <div>
                     <p className="text-destructive font-semibold mb-1 flex items-center justify-center gap-2 text-sm tracking-tight">
@@ -409,7 +458,10 @@ export default function ToolsPage() {
                     </p>
                     <p className="text-muted-foreground text-xs leading-relaxed font-normal">
                       You would need an upcoming GPA of{' '}
-                      <strong className="text-destructive tabular-numbers font-semibold">{reqGpa}</strong>.
+                      <strong className="text-destructive tabular-numbers font-semibold">
+                        {reqGpa}
+                      </strong>
+                      .
                     </p>
                   </div>
                 ) : parseFloat(reqGpa) < 0 ? (

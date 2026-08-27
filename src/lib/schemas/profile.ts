@@ -1,12 +1,14 @@
 import { z } from 'zod';
 
-export const profileDataSchema = z.object({
-  name: z.string().optional(),
-  universityId: z.string().optional(),
-  photoUrl: z.string().optional(),
-  extendedProfile: z.string().optional(),
-  success: z.boolean().optional(),
-}).passthrough();
+export const profileDataSchema = z
+  .object({
+    name: z.string().optional(),
+    universityId: z.string().optional(),
+    photoUrl: z.string().optional(),
+    extendedProfile: z.string().optional(),
+    success: z.boolean().optional(),
+  })
+  .passthrough();
 
 export const profileResponseSchema = z.object({
   success: z.boolean(),

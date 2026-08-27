@@ -150,7 +150,9 @@ export const calculateAttendanceTargetArgsSchema = z.object({
   currentTotal: z.number().min(1),
   targetPercent: z.number().min(1).max(100).optional().default(75),
 });
-export type CalculateAttendanceTargetArgs = z.infer<typeof calculateAttendanceTargetArgsSchema>;
+export type CalculateAttendanceTargetArgs = z.infer<
+  typeof calculateAttendanceTargetArgsSchema
+>;
 
 export interface CalculateAttendanceTargetResult {
   success: boolean;
@@ -236,7 +238,8 @@ export const TOOLS_REGISTRY: ToolDefinition[] = [
       properties: {
         semester: {
           type: 'string',
-          description: "Optional semester ID or name to filter marks (e.g. '1', '2').",
+          description:
+            "Optional semester ID or name to filter marks (e.g. '1', '2').",
         },
       },
     },
@@ -310,7 +313,8 @@ export const TOOLS_REGISTRY: ToolDefinition[] = [
               },
               expectedGrade: {
                 type: 'string',
-                description: "Expected letter grade (e.g. 'O', 'S', 'A+', 'A', 'B+', 'B', 'C', 'D', 'F').",
+                description:
+                  "Expected letter grade (e.g. 'O', 'S', 'A+', 'A', 'B+', 'B', 'C', 'D', 'F').",
               },
             },
             required: ['credits', 'expectedGrade'],

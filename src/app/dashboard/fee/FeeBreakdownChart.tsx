@@ -8,7 +8,11 @@ export interface FeeBreakdownChartProps {
   pendingFee?: number;
 }
 
-export function FeeBreakdownChart({ data, totalFee: propTotal, pendingFee: propPending }: FeeBreakdownChartProps) {
+export function FeeBreakdownChart({
+  data,
+  totalFee: propTotal,
+  pendingFee: propPending,
+}: FeeBreakdownChartProps) {
   let paid = 0;
   let pending = propPending ?? 0;
   let total = propTotal ?? 0;
@@ -23,17 +27,32 @@ export function FeeBreakdownChart({ data, totalFee: propTotal, pendingFee: propP
 
       for (const [key, val] of Object.entries(row)) {
         const k = key.toLowerCase();
-        if (k.includes('amount') || k.includes('fee') || k.includes('total') || k.includes('payable')) {
+        if (
+          k.includes('amount') ||
+          k.includes('fee') ||
+          k.includes('total') ||
+          k.includes('payable')
+        ) {
           const num = parseFloat(String(val).replace(/[^0-9.]/g, ''));
           if (!isNaN(num) && num > amount) amount = num;
         }
-        if (k.includes('status') || k.includes('paid') || k.includes('due') || k.includes('balance')) {
+        if (
+          k.includes('status') ||
+          k.includes('paid') ||
+          k.includes('due') ||
+          k.includes('balance')
+        ) {
           status = String(val).toLowerCase();
         }
       }
 
       calcTotal += amount;
-      if (status.includes('unpaid') || status.includes('due') || status.includes('pending') || (status.includes('0') && !status.includes('paid'))) {
+      if (
+        status.includes('unpaid') ||
+        status.includes('due') ||
+        status.includes('pending') ||
+        (status.includes('0') && !status.includes('paid'))
+      ) {
         calcPending += amount;
       }
     });
@@ -61,8 +80,12 @@ export function FeeBreakdownChart({ data, totalFee: propTotal, pendingFee: propP
     <div className="rounded-[--radius-2xl] border border-border apple-card p-6 space-y-4 shadow-xl overflow-hidden">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-foreground font-heading tracking-tight">Fee Summary</h3>
-          <p className="text-xs text-muted-foreground/80 font-normal">Payment distribution status</p>
+          <h3 className="text-sm font-semibold text-foreground font-heading tracking-tight">
+            Fee Summary
+          </h3>
+          <p className="text-xs text-muted-foreground/80 font-normal">
+            Payment distribution status
+          </p>
         </div>
         <div className="text-xs font-mono font-bold text-success bg-success/10 border border-success/20 px-2.5 py-1 rounded-full apple-pill">
           {paidPct}% Paid
@@ -72,7 +95,12 @@ export function FeeBreakdownChart({ data, totalFee: propTotal, pendingFee: propP
       <div className="flex flex-col sm:flex-row items-center gap-6 justify-around pt-2">
         {/* SVG Donut */}
         <div className="relative flex items-center justify-center">
-          <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="transform -rotate-90">
+          <svg
+            width={size}
+            height={size}
+            viewBox={`0 0 ${size} ${size}`}
+            className="transform -rotate-90"
+          >
             {/* Background ring */}
             <circle
               cx={size / 2}
@@ -112,7 +140,9 @@ export function FeeBreakdownChart({ data, totalFee: propTotal, pendingFee: propP
           </svg>
           <div className="absolute flex flex-col items-center justify-center text-center">
             <span className="caption-label text-muted-foreground">Total</span>
-            <span className="text-sm font-bold text-foreground font-mono tabular-numbers mt-0.5">₹{total.toLocaleString()}</span>
+            <span className="text-sm font-bold text-foreground font-mono tabular-numbers mt-0.5">
+              ₹{total.toLocaleString()}
+            </span>
           </div>
         </div>
 
@@ -121,17 +151,25 @@ export function FeeBreakdownChart({ data, totalFee: propTotal, pendingFee: propP
           <div className="flex items-center justify-between sm:justify-start gap-4 p-3 rounded-[--radius-lg] bg-surface-2/40 border border-border">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-success inline-block shadow-xs" />
-              <span className="text-xs font-semibold text-muted-foreground">Paid Amount</span>
+              <span className="text-xs font-semibold text-muted-foreground">
+                Paid Amount
+              </span>
             </div>
-            <span className="text-xs font-bold text-success font-mono tabular-numbers">₹{paid.toLocaleString()}</span>
+            <span className="text-xs font-bold text-success font-mono tabular-numbers">
+              ₹{paid.toLocaleString()}
+            </span>
           </div>
 
           <div className="flex items-center justify-between sm:justify-start gap-4 p-3 rounded-[--radius-lg] bg-surface-2/40 border border-border">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-destructive inline-block shadow-xs" />
-              <span className="text-xs font-semibold text-muted-foreground">Pending Due</span>
+              <span className="text-xs font-semibold text-muted-foreground">
+                Pending Due
+              </span>
             </div>
-            <span className="text-xs font-bold text-error font-mono tabular-numbers">₹{pending.toLocaleString()}</span>
+            <span className="text-xs font-bold text-error font-mono tabular-numbers">
+              ₹{pending.toLocaleString()}
+            </span>
           </div>
         </div>
       </div>

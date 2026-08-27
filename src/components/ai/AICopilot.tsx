@@ -11,12 +11,12 @@ export interface AICopilotProps {
   initialOpen?: boolean;
 }
 
-export function AICopilot({
-  initialOpen = false,
-}: AICopilotProps) {
+export function AICopilot({ initialOpen = false }: AICopilotProps) {
   const [isOpen, setIsOpen] = useState(initialOpen);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [status, setStatus] = useState<'idle' | 'thinking' | 'executing_tool' | 'error'>('idle');
+  const [status, setStatus] = useState<
+    'idle' | 'thinking' | 'executing_tool' | 'error'
+  >('idle');
   const [activeTool, setActiveTool] = useState<string | undefined>(undefined);
 
   const { announce } = useAriaAnnounce();
@@ -25,7 +25,8 @@ export function AICopilot({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const isCmdK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k';
-      const isCtrlShiftA = e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a';
+      const isCtrlShiftA =
+        e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a';
 
       if (isCmdK || isCtrlShiftA) {
         e.preventDefault();
@@ -40,7 +41,12 @@ export function AICopilot({
 
   const handleSendMessage = useCallback(
     async (queryText: string) => {
-      if (!queryText.trim() || status === 'thinking' || status === 'executing_tool') return;
+      if (
+        !queryText.trim() ||
+        status === 'thinking' ||
+        status === 'executing_tool'
+      )
+        return;
 
       triggerHaptic('light');
       const userMsg: ChatMessage = {
@@ -69,11 +75,13 @@ export function AICopilot({
         const data = await res.json();
 
         if (data.success && data.message) {
-          const toolCalls = data.toolCalls as Array<{
-            tool: string;
-            args: Record<string, unknown>;
-            result?: Record<string, unknown>;
-          }> | undefined;
+          const toolCalls = data.toolCalls as
+            | Array<{
+                tool: string;
+                args: Record<string, unknown>;
+                result?: Record<string, unknown>;
+              }>
+            | undefined;
 
           if (toolCalls && toolCalls.length > 0) {
             setActiveTool(toolCalls[0].tool);
@@ -97,7 +105,8 @@ export function AICopilot({
         }
       } catch (err: unknown) {
         console.error('[AI COPILOT] Error sending message:', err);
-        const errorMsgText = err instanceof Error ? err.message : 'Connection error';
+        const errorMsgText =
+          err instanceof Error ? err.message : 'Connection error';
 
         const errorMsg: ChatMessage = {
           id: `error-${Date.now()}`,

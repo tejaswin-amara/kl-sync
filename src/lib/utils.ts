@@ -1,4 +1,12 @@
-export type ClassValue = string | number | bigint | boolean | undefined | null | ClassValue[] | { [key: string]: unknown };
+export type ClassValue =
+  | string
+  | number
+  | bigint
+  | boolean
+  | undefined
+  | null
+  | ClassValue[]
+  | { [key: string]: unknown };
 
 export function cn(...inputs: ClassValue[]): string {
   const classes: string[] = [];
@@ -6,7 +14,11 @@ export function cn(...inputs: ClassValue[]): string {
   function parseInput(input: ClassValue) {
     if (!input) return;
 
-    if (typeof input === 'string' || typeof input === 'number' || typeof input === 'bigint') {
+    if (
+      typeof input === 'string' ||
+      typeof input === 'number' ||
+      typeof input === 'bigint'
+    ) {
       classes.push(String(input));
     } else if (Array.isArray(input)) {
       for (const item of input) {

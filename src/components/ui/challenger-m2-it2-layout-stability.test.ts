@@ -6,7 +6,14 @@ import { renderToString } from 'react-dom/server';
 import * as Icons from './icons';
 import { Button } from './button';
 import { Badge } from './badge';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './card';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from './card';
 import { Input } from './input';
 import { StatCard } from './stat-card';
 import { EmptyState } from './empty-state';
@@ -24,26 +31,71 @@ import ERPTablePage from '../ERPTablePage';
 import { SimpleCalculator } from '../attendance-calculator';
 
 describe('Empirical Challenger 2: Layout Stability, Accessibility & Consumer Integrity Suite', () => {
-
   describe('1. Icon System Comprehensive Stress Test (All 55 Glyphs)', () => {
     const ALL_55_ICONS: Array<keyof typeof Icons> = [
-      'Activity', 'AlertCircle', 'AlertTriangle', 'Armchair', 'Award',
-      'Bell', 'BookOpen', 'Building2', 'Calendar', 'CalendarDays',
-      'CalendarOff', 'CheckCircle', 'CheckCircle2', 'CheckSquare', 'ChevronDown',
-      'ChevronLeft', 'ChevronRight', 'ChevronUp', 'Clock', 'CreditCard',
-      'DollarSign', 'Download', 'Filter', 'GraduationCap', 'HelpCircle',
-      'Inbox', 'Info', 'LayoutDashboard', 'LayoutGrid', 'List',
-      'Loader2', 'Lock', 'LogIn', 'LogOut', 'MapPin',
-      'Maximize2', 'Megaphone', 'Menu', 'MoreHorizontal', 'Percent',
-      'RefreshCw', 'Search', 'Send', 'ShieldCheck', 'Sparkles',
-      'Star', 'Target', 'Trash2', 'TrendingDown', 'TrendingUp',
-      'User', 'Wallet', 'Wrench', 'X', 'XCircle'
+      'Activity',
+      'AlertCircle',
+      'AlertTriangle',
+      'Armchair',
+      'Award',
+      'Bell',
+      'BookOpen',
+      'Building2',
+      'Calendar',
+      'CalendarDays',
+      'CalendarOff',
+      'CheckCircle',
+      'CheckCircle2',
+      'CheckSquare',
+      'ChevronDown',
+      'ChevronLeft',
+      'ChevronRight',
+      'ChevronUp',
+      'Clock',
+      'CreditCard',
+      'DollarSign',
+      'Download',
+      'Filter',
+      'GraduationCap',
+      'HelpCircle',
+      'Inbox',
+      'Info',
+      'LayoutDashboard',
+      'LayoutGrid',
+      'List',
+      'Loader2',
+      'Lock',
+      'LogIn',
+      'LogOut',
+      'MapPin',
+      'Maximize2',
+      'Megaphone',
+      'Menu',
+      'MoreHorizontal',
+      'Percent',
+      'RefreshCw',
+      'Search',
+      'Send',
+      'ShieldCheck',
+      'Sparkles',
+      'Star',
+      'Target',
+      'Trash2',
+      'TrendingDown',
+      'TrendingUp',
+      'User',
+      'Wallet',
+      'Wrench',
+      'X',
+      'XCircle',
     ];
 
     test('all 55 icons render valid standalone SVG with correct default geometry and viewBox', () => {
       assert.strictEqual(ALL_55_ICONS.length, 55);
       for (const iconName of ALL_55_ICONS) {
-        const IconComponent = Icons[iconName] as React.ComponentType<Icons.IconProps>;
+        const IconComponent = Icons[
+          iconName
+        ] as React.ComponentType<Icons.IconProps>;
         const html = renderToString(React.createElement(IconComponent));
         assert.match(html, /<svg/);
         assert.match(html, /viewBox="0 0 24 24"/);
@@ -55,7 +107,9 @@ describe('Empirical Challenger 2: Layout Stability, Accessibility & Consumer Int
 
     test('all 55 icons cleanly handle custom width, height, strokeWidth, className and accessibility attributes', () => {
       for (const iconName of ALL_55_ICONS) {
-        const IconComponent = Icons[iconName] as React.ComponentType<Icons.IconProps>;
+        const IconComponent = Icons[
+          iconName
+        ] as React.ComponentType<Icons.IconProps>;
         const html = renderToString(
           React.createElement(IconComponent, {
             width: 36,
@@ -78,7 +132,9 @@ describe('Empirical Challenger 2: Layout Stability, Accessibility & Consumer Int
 
     test('all 55 icons support string size props (e.g. rem/px) and width/height overrides', () => {
       for (const iconName of ALL_55_ICONS) {
-        const IconComponent = Icons[iconName] as React.ComponentType<Icons.IconProps>;
+        const IconComponent = Icons[
+          iconName
+        ] as React.ComponentType<Icons.IconProps>;
         const html = renderToString(
           React.createElement(IconComponent, {
             size: '2.5rem',
@@ -92,8 +148,20 @@ describe('Empirical Challenger 2: Layout Stability, Accessibility & Consumer Int
 
   describe('2. UI Primitives Layout Stability & Accessibility', () => {
     test('Button renders all visual variants with WCAG touch bounds and focus ring tokens', () => {
-      const variants: Array<'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'primary'> = [
-        'default', 'destructive', 'outline', 'secondary', 'ghost', 'primary'
+      const variants: Array<
+        | 'default'
+        | 'destructive'
+        | 'outline'
+        | 'secondary'
+        | 'ghost'
+        | 'primary'
+      > = [
+        'default',
+        'destructive',
+        'outline',
+        'secondary',
+        'ghost',
+        'primary',
       ];
       for (const variant of variants) {
         const html = renderToString(
@@ -122,10 +190,22 @@ describe('Empirical Challenger 2: Layout Stability, Accessibility & Consumer Int
             CardHeader,
             null,
             React.createElement(CardTitle, null, 'Semester Summary'),
-            React.createElement(CardDescription, null, 'Academic details for current term')
+            React.createElement(
+              CardDescription,
+              null,
+              'Academic details for current term'
+            )
           ),
-          React.createElement(CardContent, null, React.createElement('p', null, 'Content Body')),
-          React.createElement(CardFooter, null, React.createElement('span', null, 'Footer Status'))
+          React.createElement(
+            CardContent,
+            null,
+            React.createElement('p', null, 'Content Body')
+          ),
+          React.createElement(
+            CardFooter,
+            null,
+            React.createElement('span', null, 'Footer Status')
+          )
         )
       );
       assert.match(html, /custom-card/);
@@ -137,7 +217,11 @@ describe('Empirical Challenger 2: Layout Stability, Accessibility & Consumer Int
 
     test('Badge renders normal and variant styles cleanly', () => {
       const html = renderToString(
-        React.createElement(Badge, { variant: 'outline', className: 'border-sky-400' }, 'Active Semester')
+        React.createElement(
+          Badge,
+          { variant: 'outline', className: 'border-sky-400' },
+          'Active Semester'
+        )
       );
       assert.match(html, /Active Semester/);
       assert.match(html, /border-sky-400/);
@@ -197,7 +281,10 @@ describe('Empirical Challenger 2: Layout Stability, Accessibility & Consumer Int
         })
       );
       assert.match(html, /No Hostel Bookings/);
-      assert.match(html, /You have not registered for hostel accommodation yet\./);
+      assert.match(
+        html,
+        /You have not registered for hostel accommodation yet\./
+      );
       assert.match(html, /Register Now/);
       assert.match(html, /<svg/);
     });
@@ -220,14 +307,11 @@ describe('Empirical Challenger 2: Layout Stability, Accessibility & Consumer Int
 
     test('PageHeader renders title, description, and action buttons', () => {
       const html = renderToString(
-        React.createElement(
-          PageHeader,
-          {
-            title: 'Attendance Records',
-            description: 'View daily classroom and lab attendance statistics',
-            actions: React.createElement(Button, null, 'Export PDF'),
-          }
-        )
+        React.createElement(PageHeader, {
+          title: 'Attendance Records',
+          description: 'View daily classroom and lab attendance statistics',
+          actions: React.createElement(Button, null, 'Export PDF'),
+        })
       );
       assert.match(html, /Attendance Records/);
       assert.match(html, /View daily classroom and lab attendance statistics/);
@@ -236,7 +320,11 @@ describe('Empirical Challenger 2: Layout Stability, Accessibility & Consumer Int
 
     test('AriaLiveRegion renders live announcements container with polite and assertive regions', () => {
       const html = renderToString(
-        React.createElement(AriaLiveRegion, null, React.createElement('span', null, 'Child Content'))
+        React.createElement(
+          AriaLiveRegion,
+          null,
+          React.createElement('span', null, 'Child Content')
+        )
       );
       assert.match(html, /aria-live="polite"/);
       assert.match(html, /aria-live="assertive"/);
@@ -287,7 +375,10 @@ describe('Empirical Challenger 2: Layout Stability, Accessibility & Consumer Int
           status: 'thinking',
         })
       );
-      assert.match(thinkingHtml, /Analyzing request &amp; executing workflow\.\.\./);
+      assert.match(
+        thinkingHtml,
+        /Analyzing request &amp; executing workflow\.\.\./
+      );
       assert.match(thinkingHtml, /animate-spin/);
 
       const executingHtml = renderToString(
