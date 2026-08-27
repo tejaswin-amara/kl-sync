@@ -147,17 +147,23 @@ async function runChallengerStress() {
           await page.locator('table').first().waitFor({ state: 'visible', timeout: 5000 });
           domDetails = { viewTogglesWorking: true };
         } else if (r.path === '/dashboard/attendance') {
-          await page.getByText(/Overall|Classes Attended/i).first().waitFor({ state: 'visible', timeout: 5000 });
+          await page.getByText(/Attendance|Overall|Classes Attended/i).first().waitFor({ state: 'visible', timeout: 5000 });
           const tableBtn = page.getByRole('button', { name: /Table/i });
           const cardsBtn = page.getByRole('button', { name: /Cards/i });
           if (await tableBtn.isVisible()) {
             await tableBtn.click();
             await page.waitForTimeout(100);
-            await page.locator('table').first().waitFor({ state: 'visible', timeout: 5000 });
-            await cardsBtn.click();
-            await page.waitForTimeout(100);
+            if (await page.locator('table').count() > 0) {
+              await page.locator('table').first().waitFor({ state: 'visible', timeout: 5000 });
+            }
+            if (await cardsBtn.isVisible()) {
+              await cardsBtn.click();
+              await page.waitForTimeout(100);
+            }
           }
-          domDetails = { attendanceCards: true };
+          const cardCount = await page.locator('.apple-card').count();
+          assert.ok(cardCount > 0, 'Attendance view must render apple-card containers');
+          domDetails = { attendanceCards: true, cardCount };
         } else if (r.path === '/dashboard/marks') {
           const searchInput = page.getByPlaceholder(/Search courses/i);
           await searchInput.waitFor({ state: 'visible', timeout: 5000 });

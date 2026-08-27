@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { loginAndFetchSemesters, ScraperSession } from '@/lib/scraper';
 import { decodeSession, encodeSession, isDemoModeEnabled } from '@/lib/session';
 import { verifyCaptchaToken } from '@/lib/captcha';
-import { DEMO_LOGIN_RESULT } from '@/lib/fixtures';
+import { DEMO_LOGIN_RESULT, DEMO_SESSION } from '@/lib/fixtures';
 import { checkRateLimitDistributed, getClientIP } from '@/lib/request-utils';
 
 export const dynamic = 'force-dynamic';
@@ -80,7 +80,11 @@ export async function POST(request: NextRequest) {
     try {
       session = await decodeSession(captchaSessionId);
     } catch {
-      return NextResponse.json({ success: false, message: 'Captcha session is invalid. Please refresh the captcha.' }, { status: 400 });
+      if (demoMode && (isExplicitDemoUser || captchaSessionId.includes('demo'))) {
+        session = DEMO_SESSION;
+      } else {
+        return NextResponse.json({ success: false, message: 'Captcha session is invalid. Please refresh the captcha.' }, { status: 400 });
+      }
     }
 
     let result;

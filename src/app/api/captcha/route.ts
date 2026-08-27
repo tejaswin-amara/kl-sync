@@ -84,19 +84,19 @@ export async function GET(request?: NextRequest) {
     let session;
     let solvedCaptcha = '';
 
-    try {
-      const captchaRes = await getCaptcha({ signal: AbortSignal.timeout(8000) });
-      captchaImage = captchaRes.captchaImage;
-      session = captchaRes.session;
-    } catch (error) {
-      if (!demoMode) {
-        console.error('[CAPTCHA] ERP unreachable:', error);
-        return NextResponse.json({ success: false, error: 'Captcha service is temporarily unavailable.' }, { status: 503 });
-      }
-      console.warn('[CAPTCHA] Using explicit local demo fallback:', error);
+    if (demoMode) {
       captchaImage = DEMO_CAPTCHA_SVG;
       session = DEMO_SESSION;
       solvedCaptcha = 'abcd';
+    } else {
+      try {
+        const captchaRes = await getCaptcha({ signal: AbortSignal.timeout(8000) });
+        captchaImage = captchaRes.captchaImage;
+        session = captchaRes.session;
+      } catch (error) {
+        console.error('[CAPTCHA] ERP unreachable:', error);
+        return NextResponse.json({ success: false, error: 'Captcha service is temporarily unavailable.' }, { status: 503 });
+      }
     }
 
     if (demoMode && session.csrfToken.includes('demo_csrf_token_123')) {

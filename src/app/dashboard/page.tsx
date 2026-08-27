@@ -149,7 +149,7 @@ export default function DashboardOverview() {
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-normal text-foreground tracking-[-0.025em] font-heading">
               Welcome back,<br />
-              <span className="text-gradient-brand font-bold">{studentName}</span>
+              <span className="text-gradient-brand font-bold" suppressHydrationWarning>{studentName}</span>
             </h2>
             <p className="text-muted-foreground mt-3 max-w-lg text-sm leading-relaxed font-normal">
               Your academic data is synced with the live ERP system.
@@ -163,7 +163,7 @@ export default function DashboardOverview() {
           <p className="caption-label text-muted-foreground/80 mb-1">
             Cumulative GPA
           </p>
-          <span className="text-5xl font-extrabold tracking-tight text-foreground tabular-numbers font-heading">
+          <span className="text-5xl font-extrabold tracking-tight text-foreground tabular-numbers font-heading" suppressHydrationWarning>
             {cgpa > 0 ? cgpa.toFixed(2) : '0.00'}
           </span>
         </div>

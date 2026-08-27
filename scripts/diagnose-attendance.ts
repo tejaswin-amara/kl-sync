@@ -51,7 +51,9 @@ async function diagnose() {
 
     console.log('');
     console.log('=== STEP 2: Attempting Login ===');
-    const loginResult = await loginAndFetchSemesters('2520090104', 'Tejaswin@123', solvedCaptcha, session);
+    const studentId = process.env.STUDENT_ID || 'demo_student';
+    const password = process.env.STUDENT_PASSWORD || 'demo_password';
+    const loginResult = await loginAndFetchSemesters(studentId, password, solvedCaptcha, session);
     console.log('Login success:', loginResult.success);
     console.log('Message:', loginResult.message);
     console.log('Needs captcha retry:', loginResult.needsCaptchaRetry);

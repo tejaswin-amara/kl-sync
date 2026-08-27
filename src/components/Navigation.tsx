@@ -29,7 +29,7 @@ function ProfileAvatar({ user, className = '', size = 'md' }: { user: { id: stri
   return (
     <div className={`${dimensions} relative flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-surface-2 font-bold shadow-xs ${className}`}>
       {user.id !== 'Student ID' && user.id !== 'Loading...' && <img src={photoSrc} alt="Profile" className="absolute inset-0 z-10 h-full w-full object-cover" onError={(event) => { event.currentTarget.style.display = 'none'; }} />}
-      <span className="relative z-0 text-primary">{user.initials}</span>
+      <span className="relative z-0 text-primary" suppressHydrationWarning>{user.initials}</span>
     </div>
   );
 }

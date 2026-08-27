@@ -56,6 +56,9 @@ jobs:
       - name: Run Unit & Integration Tests
         run: npm test
 
+      - name: Run API Boundary Tests
+        run: npm run test:api
+
       - name: Run Agent-as-Judge AI Evaluation
         run: npx --yes tsx scripts/agent-as-judge.ts
 

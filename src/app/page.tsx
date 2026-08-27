@@ -24,6 +24,7 @@ export default function LoginPage() {
   const [captcha, setCaptcha] = useState('');
   const [captchaToken, setCaptchaToken] = useState('');
   const [captchaImage, setCaptchaImage] = useState<string | null>(null);
+  const [captchaSessionId, setCaptchaSessionId] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [deviceId, setDeviceId] = useState('');
   const [loading, setLoading] = useState(false);
@@ -38,6 +39,8 @@ export default function LoginPage() {
     if (!preserveError) setError(null);
     try {
       const response = await fetch('/api/captcha', { signal: AbortSignal.timeout(12000) });
+      const sid = response.headers.get('x-session-id');
+      if (sid) setCaptchaSessionId(sid);
       const data = await response.json();
       if (!response.ok || typeof data.captchaImage !== 'string' || !data.captchaImage) {
         throw new Error(data.error || 'Captcha service unavailable');
@@ -81,7 +84,22 @@ export default function LoginPage() {
     if (!username || !password || !cleanCaptcha) { triggerHaptic('error'); setError('Please fill in all fields. The security code accepts lowercase letters a–z only.'); return; }
     setLoading(true); setError(null); setStatus(null); triggerHaptic('light');
     try {
-      const response = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: username.trim(), password, captcha: cleanCaptcha, captchaToken: captchaToken || undefined, deviceId: deviceId || (typeof localStorage !== 'undefined' ? localStorage.getItem('kl_erp_device_id') : '') || '', rememberMe }) });
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(captchaSessionId ? { 'x-session-id': captchaSessionId } : {}),
+        },
+        body: JSON.stringify({
+          username: username.trim(),
+          password,
+          captcha: cleanCaptcha,
+          captchaToken: captchaToken || undefined,
+          sessionId: captchaSessionId || undefined,
+          deviceId: deviceId || (typeof localStorage !== 'undefined' ? localStorage.getItem('kl_erp_device_id') : '') || '',
+          rememberMe,
+        }),
+      });
       const data = await response.json();
       if (data.deviceId) { setDeviceId(data.deviceId); try { localStorage.setItem('kl_erp_device_id', data.deviceId); } catch {} }
       if (data.needsCaptchaRetry) { setError(null); setStatus('First-time device setup — please enter the captcha once more.'); await fetchCaptcha(true); setLoading(false); triggerHaptic('warning'); return; }

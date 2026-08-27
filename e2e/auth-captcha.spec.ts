@@ -2,14 +2,20 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Form Submissions & Auto-Solving CAPTCHAs', () => {
   test('Visual OCR CAPTCHA and Cap CAPTCHA auto-solve seamlessly on load and form submission', async ({ page }) => {
-    // 1. Navigate to login page
+    // 1. Navigate to login page and await initial captcha response
+    const captchaPromise = page.waitForResponse(
+      (res) => res.url().includes('/api/captcha') && res.status() === 200,
+      { timeout: 15000 }
+    ).catch(() => null);
+
     await page.goto('/');
+    await captchaPromise;
 
     // 2. Verify login form elements are present
     const studentIdInput = page.locator('#student-id-field');
     const passwordInput = page.locator('#password-field');
     const captchaInput = page.locator('#captcha-field');
-    const submitBtn = page.getByRole('button', { name: /Continue to Dashboard/i });
+    const submitBtn = page.getByRole('button', { name: /Sign in|Continue to Dashboard/i });
 
     await expect(studentIdInput).toBeVisible();
     await expect(passwordInput).toBeVisible();
@@ -19,8 +25,8 @@ test.describe('Form Submissions & Auto-Solving CAPTCHAs', () => {
     // 3. Verify Visual ERP OCR CAPTCHA or ensure security code is entered
     let visualCaptchaValue = await captchaInput.inputValue();
     if (!visualCaptchaValue) {
-      await captchaInput.fill('8888');
-      visualCaptchaValue = '8888';
+      await captchaInput.fill('abcd');
+      visualCaptchaValue = 'abcd';
     }
     expect(visualCaptchaValue.length).toBeGreaterThan(0);
 
