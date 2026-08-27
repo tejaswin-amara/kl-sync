@@ -203,6 +203,8 @@ export async function fetchTimetableData(
 
     if (detectedSessionExpired || data.length > 0) break;
 
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
     // Strategy 2: GET with query parameters
     try {
       const getUrl = `${url}&UniversityMasterAcademicTimetableView[academicyear]=${academicYear}&UniversityMasterAcademicTimetableView[semesterid]=${semesterId}&DynamicModel[academicyear]=${academicYear}&DynamicModel[semesterid]=${semesterId}`;
@@ -245,6 +247,8 @@ export async function fetchTimetableData(
     }
 
     if (detectedSessionExpired || data.length > 0) break;
+
+    await new Promise((resolve) => setTimeout(resolve, 800));
 
     // Strategy 3: Plain GET (default session view)
     try {

@@ -330,6 +330,9 @@ export async function fetchAttendanceData(
     throw new Error('Session expired. Please login again.');
   }
 
+  // Prevent rate limit by adding a delay before second fetch
+  await new Promise((resolve) => setTimeout(resolve, 800));
+
   const courseListRes = await fetchWithJar(COURSE_LIST_URL, jar, {
     method: 'POST',
     body: params,

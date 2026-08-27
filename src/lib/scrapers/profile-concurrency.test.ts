@@ -82,14 +82,14 @@ test('fetchProfileData limits sub-tab request concurrency to maximum 3 simultane
       'Should have requested all 9 sub-tabs'
     );
     assert.strictEqual(
-      maxConcurrentSeen <= 3,
+      maxConcurrentSeen <= 1,
       true,
-      `Peak concurrency was ${maxConcurrentSeen}, which must be <= 3`
+      `Peak concurrency was ${maxConcurrentSeen}, which must be <= 1`
     );
     assert.strictEqual(
       maxConcurrentSeen,
-      3,
-      `Peak concurrency should reach exactly 3 for a 9-item pool with BATCH_SIZE=3`
+      1,
+      'Peak concurrency should reach exactly 1 for a 9-item pool with BATCH_SIZE=1'
     );
   } finally {
     globalThis.fetch = originalFetch;

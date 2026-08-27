@@ -457,7 +457,8 @@ async function handleProxy(
       (error instanceof Error && error.name === 'ERPRateLimitError') ||
       errMessage.includes('Too many requests') ||
       errMessage.includes('Please try again in one minute') ||
-      errMessage.includes('HTTP 429');
+      errMessage.includes('HTTP 429') ||
+      errMessage.includes('status 429');
     if (isRateLimit) {
       return apiJson(
         {

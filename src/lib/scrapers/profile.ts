@@ -61,10 +61,13 @@ export async function fetchProfileData(session: ScraperSession) {
   }
 
   const entries = Array.from(tabUrls.entries());
-  const BATCH_SIZE = 3;
+  const BATCH_SIZE = 1;
   const tabHtmls: { name: string; html: string }[] = [];
 
   for (let i = 0; i < entries.length; i += BATCH_SIZE) {
+    if (i > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 800));
+    }
     const batch = entries.slice(i, i + BATCH_SIZE);
     const batchResults = await Promise.all(
       batch.map(async ([url, name]) => {

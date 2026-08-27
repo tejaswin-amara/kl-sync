@@ -125,6 +125,8 @@ export async function fetchCGPAData(
     }
   } catch {}
 
+  await new Promise((resolve) => setTimeout(resolve, 800));
+
   // Strategy 2: GET
   const getRes = await fetchWithJar(ERP_ENDPOINTS['cgpa'], jar, {
     method: 'GET',

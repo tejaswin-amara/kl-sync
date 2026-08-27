@@ -166,6 +166,22 @@ export async function prefetchAllUserData(
     } catch {}
   });
 
+  // 6. Generic Modules Prefetch (Circulars, Hostels, Library, Exam Seating)
+  const genericModules = ['circulars', 'hostels', 'library', 'exam-seating'];
+  for (const mod of genericModules) {
+    taskList.push(async () => {
+      try {
+        const res = await fetchWithRetry(`/api/erp-proxy/${mod}`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.success && json?.data) {
+            setCachedValue(`/api/erp-proxy/${mod}`, json.data);
+          }
+        }
+      } catch {}
+    });
+  }
+
   try {
     // Run sequentially with a gentle 450ms gap between requests
     for (const task of taskList) {
