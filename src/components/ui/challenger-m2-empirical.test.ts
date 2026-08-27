@@ -23,15 +23,13 @@ describe('Challenger M2 - Empirical Chart & WCAG Verification', () => {
         renderToString(React.createElement(AttendanceChart, { data: [] })),
         ''
       );
-      // @ts-expect-error testing invalid input
       assert.strictEqual(
-        renderToString(React.createElement(AttendanceChart, { data: null })),
+        renderToString(React.createElement(AttendanceChart, { data: null as any })),
         ''
       );
-      // @ts-expect-error testing invalid input
       assert.strictEqual(
         renderToString(
-          React.createElement(AttendanceChart, { data: undefined })
+          React.createElement(AttendanceChart, { data: undefined as any })
         ),
         ''
       );
@@ -86,14 +84,12 @@ describe('Challenger M2 - Empirical Chart & WCAG Verification', () => {
         renderToString(React.createElement(GpaTrendChart, { data: [] })),
         ''
       );
-      // @ts-expect-error testing invalid input
       assert.strictEqual(
-        renderToString(React.createElement(GpaTrendChart, { data: null })),
+        renderToString(React.createElement(GpaTrendChart, { data: null as any })),
         ''
       );
-      // @ts-expect-error testing invalid input
       assert.strictEqual(
-        renderToString(React.createElement(GpaTrendChart, { data: undefined })),
+        renderToString(React.createElement(GpaTrendChart, { data: undefined as any })),
         ''
       );
     });
