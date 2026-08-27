@@ -33,7 +33,7 @@ function FeeMobileCard({ row }: { row: Record<string, unknown> }) {
 
   return (
     <div
-      className={`p-4 rounded-[--radius-xl] border ${unpaid ? 'border-destructive/35 bg-destructive/10' : 'border-border apple-card'} space-y-3 transition-all duration-[--duration-normal] ease-[--ease-spring-default]`}
+      className={`p-4 rounded-[--radius-xl] overflow-hidden border ${unpaid ? 'border-destructive/35 bg-destructive/10' : 'border-border apple-card'} space-y-3 transition-all duration-[--duration-normal] ease-[--ease-spring-default]`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">

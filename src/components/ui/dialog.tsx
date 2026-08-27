@@ -118,7 +118,7 @@ export function DialogContent({
         aria-modal="true"
         aria-labelledby={props['aria-labelledby']}
         className={cn(
-          'relative z-50 w-full max-w-lg apple-modal rounded-[--radius-2xl] p-6 shadow-xl animate-spring-up',
+          'relative z-50 w-full max-w-lg apple-modal overflow-hidden rounded-[--radius-2xl] p-6 shadow-xl animate-spring-up',
           className
         )}
         {...props}

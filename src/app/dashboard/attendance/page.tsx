@@ -640,7 +640,7 @@ function UnifiedSubjectCard({
 
   return (
     <div
-      className={`rounded-[--radius-2xl] apple-card p-5 sm:p-7 border border-border ${accentBorder} border-l-[6px] shadow-xl space-y-6 transition-all duration-[--duration-normal] hover:border-primary/30`}
+      className={`rounded-[--radius-2xl] apple-card overflow-hidden p-5 sm:p-7 border border-border ${accentBorder} border-l-[6px] shadow-xl space-y-6 transition-all duration-[--duration-normal] hover:border-primary/30`}
     >
       {/* Top Header */}
       <div className="flex items-start justify-between gap-4">
@@ -791,17 +791,17 @@ export default function AttendanceDashboard() {
         description="Real-time attendance synced from ERP"
         actions={
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center bg-surface-2/60 border border-border rounded-[--radius-lg] p-0.5">
+            <div className="flex items-center bg-surface-2/60 border border-border rounded-[--radius-lg] p-1 gap-1">
               <button
                 type="button"
                 onClick={() => {
                   triggerHaptic('selection');
                   setViewMode('cards');
                 }}
-                className={`p-2 rounded-[--radius-md] text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                className={`px-3 py-1.5 rounded-[--radius-md] text-xs font-semibold flex items-center gap-1.5 transition-all min-h-[38px] ${
                   viewMode === 'cards'
                     ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-surface-3'
                 }`}
                 aria-label="Cards view"
               >
@@ -814,10 +814,10 @@ export default function AttendanceDashboard() {
                   triggerHaptic('selection');
                   setViewMode('table');
                 }}
-                className={`p-2 rounded-[--radius-md] text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                className={`px-3 py-1.5 rounded-[--radius-md] text-xs font-semibold flex items-center gap-1.5 transition-all min-h-[38px] ${
                   viewMode === 'table'
                     ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-surface-3'
                 }`}
                 aria-label="Table view"
               >

@@ -477,7 +477,7 @@ export default function Navigation({
             />
             <div
               id="more-overflow-menu"
-              className="apple-sheet animate-sheet-enter absolute bottom-full inset-x-0 z-40 p-4 max-h-[calc(100dvh-140px)] overflow-y-auto custom-scrollbar"
+              className="apple-sheet animate-sheet-enter absolute bottom-full inset-x-0 z-40 p-4 max-h-[calc(100dvh-140px)] overflow-y-auto custom-scrollbar rounded-t-[28px] overflow-hidden border-t border-border shadow-2xl"
             >
               <div className="drag-handle" />
               <div className="grid grid-cols-4 gap-2">
@@ -492,7 +492,7 @@ export default function Navigation({
                         triggerHaptic('selection');
                         setMoreOpen(false);
                       }}
-                      className={`flex min-h-[72px] flex-col items-center justify-center gap-2 rounded-[--radius-md] border p-2 text-center text-xs font-semibold ${active ? 'border-primary bg-accent text-primary' : 'border-border bg-surface-2 text-muted-foreground hover:text-foreground'}`}
+                      className={`flex min-h-[72px] flex-col items-center justify-center gap-2 rounded-[--radius-lg] border p-2 text-center text-xs font-semibold transition-all duration-[--duration-fast] active:scale-95 ${active ? 'border-primary bg-primary/15 text-primary' : 'border-border bg-surface-2 text-muted-foreground hover:text-foreground hover:bg-surface-3'}`}
                     >
                       <Icon className="h-5 w-5" />
                       <span>{item.label}</span>

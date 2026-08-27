@@ -223,7 +223,7 @@ export const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
           onPointerCancel={handlePointerUp}
           style={dragStyle}
           className={cn(
-            'fixed z-50 flex flex-col gap-4 apple-sheet p-6 shadow-xl transition-all duration-[--duration-normal] ease-[--ease-spring-sheet]',
+            'fixed z-50 flex flex-col gap-4 apple-sheet overflow-hidden p-6 shadow-xl transition-all duration-[--duration-normal] ease-[--ease-spring-sheet]',
             side === 'right' &&
               'inset-y-0 right-0 h-full w-3/4 max-w-sm border-l border-border animate-slide-in-right rounded-l-2xl',
             side === 'left' &&

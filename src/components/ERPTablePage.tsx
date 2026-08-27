@@ -35,7 +35,7 @@ function MobileCardItem({ row }: { row: Record<string, unknown> }) {
   const secondaryEntries = entries.slice(1, 3);
   const remainingEntries = entries.slice(3);
   return (
-    <article className="apple-card space-y-3 rounded-[--radius-lg] p-4">
+    <article className="apple-card space-y-3 rounded-[--radius-lg] overflow-hidden p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="caption-label text-muted-foreground">{primaryKey}</p>

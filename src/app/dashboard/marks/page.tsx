@@ -34,7 +34,7 @@ function MarksMobileCard({ row }: { row: Record<string, unknown> }) {
   };
 
   return (
-    <div className="p-4 rounded-[--radius-xl] border border-border apple-card space-y-3 transition-all duration-[--duration-normal] ease-[--ease-spring-default]">
+    <div className="p-4 rounded-[--radius-xl] overflow-hidden border border-border apple-card space-y-3 transition-all duration-[--duration-normal] ease-[--ease-spring-default]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="caption-label text-muted-foreground/80">

@@ -269,8 +269,8 @@ export default function TimetablePage() {
       {/* Filter & Search Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 apple-card p-3 rounded-[--radius-2xl] shadow-lg border border-border">
         {/* Day Filter Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
-          <Filter className="w-4 h-4 text-muted-foreground ml-2 mr-1 shrink-0" />
+        <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar p-1 bg-surface-2/40 rounded-[--radius-lg] border border-border/60">
+          <Filter className="w-3.5 h-3.5 text-muted-foreground ml-1 mr-1 shrink-0" />
           {daysList.map((day) => (
             <button
               key={day}
@@ -278,10 +278,10 @@ export default function TimetablePage() {
                 triggerHaptic('selection');
                 setSelectedDayFilter(day);
               }}
-              className={`px-3 py-1.5 rounded-[--radius-md] text-xs font-medium whitespace-nowrap transition-all duration-[--duration-fast] ease-[--ease-spring-default] min-h-[44px] touch-manipulation cursor-pointer active:scale-95 ${
+              className={`px-3 py-1.5 rounded-[--radius-md] text-xs font-medium whitespace-nowrap transition-all duration-[--duration-fast] ease-[--ease-spring-default] min-h-[38px] touch-manipulation cursor-pointer active:scale-95 ${
                 selectedDayFilter === day
-                  ? 'bg-primary/25 text-primary border border-primary/35 font-semibold shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-surface-2'
+                  ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-surface-3'
               }`}
             >
               {day}

@@ -64,7 +64,7 @@ function ToastSingle({
       role={variant === 'destructive' ? 'alert' : 'status'}
       aria-live={variant === 'destructive' ? 'assertive' : 'polite'}
       className={cn(
-        'pointer-events-auto flex items-start gap-3 p-4 rounded-[--radius-xl] border shadow-2xl animate-spring-up apple-modal transition-all duration-[--duration-normal] ease-[--ease-spring-default]',
+        'pointer-events-auto flex items-start gap-3 p-4 rounded-[--radius-xl] overflow-hidden border shadow-2xl animate-spring-up apple-modal transition-all duration-[--duration-normal] ease-[--ease-spring-default]',
         variant === 'default' &&
           'border-border/80 bg-surface-2/95 text-foreground',
         variant === 'destructive' &&
