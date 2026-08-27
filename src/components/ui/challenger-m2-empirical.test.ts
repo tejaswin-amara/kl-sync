@@ -24,12 +24,18 @@ describe('Challenger M2 - Empirical Chart & WCAG Verification', () => {
         ''
       );
       assert.strictEqual(
-        renderToString(React.createElement(AttendanceChart, { data: null as any })),
+        renderToString(
+          React.createElement(AttendanceChart, {
+            data: null as unknown as Record<string, unknown>[],
+          })
+        ),
         ''
       );
       assert.strictEqual(
         renderToString(
-          React.createElement(AttendanceChart, { data: undefined as any })
+          React.createElement(AttendanceChart, {
+            data: undefined as unknown as Record<string, unknown>[],
+          })
         ),
         ''
       );
@@ -85,11 +91,19 @@ describe('Challenger M2 - Empirical Chart & WCAG Verification', () => {
         ''
       );
       assert.strictEqual(
-        renderToString(React.createElement(GpaTrendChart, { data: null as any })),
+        renderToString(
+          React.createElement(GpaTrendChart, {
+            data: null as unknown as Record<string, unknown>[],
+          })
+        ),
         ''
       );
       assert.strictEqual(
-        renderToString(React.createElement(GpaTrendChart, { data: undefined as any })),
+        renderToString(
+          React.createElement(GpaTrendChart, {
+            data: undefined as unknown as Record<string, unknown>[],
+          })
+        ),
         ''
       );
     });
