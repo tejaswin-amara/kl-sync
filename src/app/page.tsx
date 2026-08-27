@@ -211,7 +211,7 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="relative flex min-h-[100dvh] w-full overflow-x-hidden overflow-y-auto bg-background text-foreground lg:overflow-hidden">
+    <main className="relative flex h-[100dvh] w-full overflow-hidden bg-background text-foreground">
       <h1 className="sr-only">KL Sync Student Portal</h1>
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_0%,rgba(79,70,200,0.10),transparent_35%),radial-gradient(circle_at_90%_100%,rgba(19,138,99,0.08),transparent_36%)]" />
       <div className="absolute right-4 top-4 z-30 flex items-center gap-2 sm:right-6 sm:top-6">
@@ -220,7 +220,7 @@ export default function LoginPage() {
 
 
 
-      <section className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center overflow-y-auto px-4 py-5 sm:px-8 lg:overflow-visible lg:py-3">
+      <section className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center overflow-hidden px-4 sm:px-8">
         <div className="w-full max-w-[460px] animate-spring-up">
           <div className="mb-4">
             <img
