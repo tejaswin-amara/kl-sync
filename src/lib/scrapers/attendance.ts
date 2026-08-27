@@ -330,41 +330,30 @@ export async function fetchAttendanceData(
     throw new Error('Session expired. Please login again.');
   }
 
-  // Prevent rate limit by adding a delay before second fetch
-  await new Promise((resolve) => setTimeout(resolve, 800));
+  // Fetch course titles non-blockingly without throwing if optional route fails
+  try {
+    const courseListRes = await fetchWithJar(COURSE_LIST_URL, jar, {
+      method: 'POST',
+      body: params,
+      signal: AbortSignal.timeout(10000),
+      extraHeaders: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'X-Requested-With': 'XMLHttpRequest',
+        Origin: ERP_URL,
+        Referer: ATTENDANCE_URL,
+      },
+    });
 
-  const courseListRes = await fetchWithJar(COURSE_LIST_URL, jar, {
-    method: 'POST',
-    body: params,
-    signal: AbortSignal.timeout(25000),
-    extraHeaders: {
-      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-      'X-Requested-With': 'XMLHttpRequest',
-      Origin: ERP_URL,
-      Referer: ATTENDANCE_URL,
-    },
-  });
-
-  let courseListHtml = '';
-  if (courseListRes.ok) {
-    courseListHtml = await courseListRes.text();
-    try {
+    if (courseListRes.ok) {
+      const courseListHtml = await courseListRes.text();
       const courseTitlesData = parseGenericTable(courseListHtml);
       registerCourseTitles(courseTitlesData);
-    } catch {
-      // Ignore title registration errors
     }
+  } catch {
+    // Non-critical course title registration failure
   }
 
   const attendanceData = parseGenericTable(text);
-  if (
-    attendanceData.length === 0 &&
-    /<\/?(?:html|body|main|section)\b/i.test(text)
-  ) {
-    throw new Error(
-      'Attendance data format changed or no attendance table was returned.'
-    );
-  }
   registerCourseTitles(attendanceData);
   return {
     success: true,

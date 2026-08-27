@@ -9,7 +9,9 @@ export interface UseProfileResult {
 }
 
 async function profileFetcher(url: unknown) {
-  const res = await fetch(`${url as string}?t=${Date.now()}`);
+  const res = await fetch(`${url as string}?t=${Date.now()}`, {
+    signal: AbortSignal.timeout(15000),
+  });
   const contentType = res.headers.get('content-type') || '';
   if (res.status === 401) {
     throw new Error('Session expired. Please log in again.');

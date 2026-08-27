@@ -61,12 +61,12 @@ export async function fetchProfileData(session: ScraperSession) {
   }
 
   const entries = Array.from(tabUrls.entries());
-  const BATCH_SIZE = 1;
+  const BATCH_SIZE = 3;
   const tabHtmls: { name: string; html: string }[] = [];
 
   for (let i = 0; i < entries.length; i += BATCH_SIZE) {
     if (i > 0) {
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, 50));
     }
     const batch = entries.slice(i, i + BATCH_SIZE);
     const batchResults = await Promise.all(
@@ -82,7 +82,7 @@ export async function fetchProfileData(session: ScraperSession) {
                 Referer: ERP_ENDPOINTS['profile'],
                 'X-Requested-With': 'XMLHttpRequest',
               },
-              signal: AbortSignal.timeout(5000),
+              signal: AbortSignal.timeout(3500),
             }
           );
           return { name, html: await tabRes.text() };
