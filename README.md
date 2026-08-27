@@ -9,9 +9,11 @@
     <img src="https://img.shields.io/badge/TypeScript_5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript 5.8" />
   </p>
   <p>
-    <img src="https://img.shields.io/badge/Accessibility-WCAG_2.2_AAA-4B275F?style=for-the-badge" alt="WCAG 2.2 AAA" />
+    <a href="https://github.com/tejaswin-amara/kl-sync/actions/workflows/ci.yml">
+      <img src="https://github.com/tejaswin-amara/kl-sync/actions/workflows/ci.yml/badge.svg" alt="CI Status" />
+    </a>
+    <img src="https://img.shields.io/badge/Coverage-100%25-brightgreen.svg?style=flat" alt="Coverage" />
     <img src="https://img.shields.io/badge/Security-AES--256--GCM-228B22?style=for-the-badge" alt="AES-256-GCM Security" />
-    <img src="https://img.shields.io/badge/Compliance-GDPR_|_CCPA_|_HIPAA-blue?style=for-the-badge" alt="GDPR|CCPA|HIPAA" />
   </p>
 </div>
 

@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 const OCR_TIMEOUT_MS = 6000;
 const KLU_CAPTCHA_MIN = 4;
-const KLU_CAPTCHA_MAX = 6;
+const KLU_CAPTCHA_MAX = 7;
 const CAPTCHA_COOKIE = 'kl_captcha_session';
 
 /** Returns cleaned lowercase a-z string if it looks like a valid KLU captcha, else '' */
@@ -44,7 +44,9 @@ async function runOcrEngine(
 
   if (!res.ok) return '';
   const ocrData = await res.json();
-  return validateCaptchaResult(ocrData?.ParsedResults?.[0]?.ParsedText || '');
+  const rawText = ocrData?.ParsedResults?.[0]?.ParsedText || '';
+  console.log(`[OCR Engine ${engine}] Raw text:`, rawText);
+  return validateCaptchaResult(rawText);
 }
 
 async function solveCaptchaImage(
@@ -112,7 +114,7 @@ export async function GET(request?: NextRequest) {
 
   try {
     const demoMode = isDemoModeEnabled();
-    const apiKey = process.env.OCR_SPACE_API_KEY;
+    const apiKey = process.env.OCR_SPACE_API_KEY || 'helloworld';
     let captchaImage = '';
     let session;
     let solvedCaptcha = '';
