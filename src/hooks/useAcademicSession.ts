@@ -67,13 +67,18 @@ export function useAcademicSession() {
 
         // Restore from localStorage or pick the first available option
         const savedYear = localStorage.getItem(LS_ERP_YEAR);
+        const yearValid = finalYears.some((y) => y.value === savedYear);
         const targetYear =
-          savedYear ||
-          (finalYears.length > 0 ? finalYears[0].value : '2025-2026');
+          yearValid && savedYear
+            ? savedYear
+            : (finalYears.length > 0 ? finalYears[0].value : '2024-2025');
 
         const savedSem = localStorage.getItem(LS_ERP_SEM);
+        const semValid = finalSems.some((s) => s.value === savedSem);
         const targetSem =
-          savedSem || (finalSems.length > 0 ? finalSems[0].value : '1');
+          semValid && savedSem
+            ? savedSem
+            : (finalSems.length > 0 ? finalSems[0].value : '1');
 
         setYears(finalYears);
         setSemesters(finalSems);

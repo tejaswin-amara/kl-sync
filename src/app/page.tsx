@@ -178,18 +178,11 @@ export default function LoginPage() {
       } catch {}
       let academicYear = '';
       if (data.academicYears?.length) {
-        const sortedYears = [...data.academicYears].sort(
-          (a: { label: string }, b: { label: string }) =>
-            b.label.localeCompare(a.label)
-        );
-        academicYear = sortedYears[0].value;
+        academicYear = data.academicYears[0].value;
       }
       let semesterId = '';
       if (data.semesters?.length) {
-        const oddSem = data.semesters.find((semester: { label: string }) =>
-          semester.label.toLowerCase().includes('odd')
-        );
-        semesterId = oddSem ? oddSem.value : data.semesters[0].value;
+        semesterId = data.semesters[0].value;
       }
       if (academicYear) localStorage.setItem('kl_erp_year', academicYear);
       if (semesterId) localStorage.setItem('kl_erp_sem', semesterId);
