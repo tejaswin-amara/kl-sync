@@ -44,7 +44,7 @@ export function LanguageSelector({ className = '' }: { className?: string }) {
 
       {open && (
         <div
-          className="apple-modal absolute end-0 top-full z-50 mt-2 w-48 py-1 animate-spring-up"
+          className="absolute end-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-[--radius-lg] border border-border bg-surface-1/95 p-1 shadow-xl backdrop-blur-xl animate-spring-up"
           role="listbox"
           aria-label="Available languages"
         >
@@ -61,7 +61,7 @@ export function LanguageSelector({ className = '' }: { className?: string }) {
                   changeLocale(lang.code);
                   setOpen(false);
                 }}
-                className={`flex min-h-[44px] w-full items-center justify-between px-3 py-2 text-left text-xs transition-colors ${selected ? 'bg-accent font-bold text-primary' : 'text-muted-foreground hover:bg-surface-2 hover:text-foreground'}`}
+                className={`flex min-h-[44px] w-full items-center justify-between rounded-[--radius-md] px-3 py-2 text-left text-xs transition-colors ${selected ? 'bg-primary/15 font-semibold text-primary' : 'text-muted-foreground hover:bg-surface-2 hover:text-foreground'}`}
               >
                 <span className="flex items-center gap-2">
                   <span className="text-sm">{lang.flag}</span>
