@@ -213,8 +213,8 @@ export default function LoginPage() {
 
 
 
-      <section className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center overflow-y-auto py-6 sm:py-8 custom-scrollbar px-4 sm:px-8">
-        <div className="w-full max-w-[440px] animate-spring-up my-auto">
+      <section className="relative flex min-h-[100dvh] flex-col overflow-y-auto py-6 sm:py-8 custom-scrollbar bg-background">
+        <div className="m-auto w-full max-w-[420px] px-4 animate-spring-up">
           <Card variant="glass" className="rounded-[--radius-2xl] border-border/60 p-4 sm:p-6 shadow-xl backdrop-blur-xl">
             <CardHeader className="p-0 pb-4">
               <div className="mb-3 flex items-center gap-3">
