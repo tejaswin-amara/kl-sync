@@ -65,7 +65,7 @@ describe('Unified Attendance Subject Grouping & Projections', () => {
     assert.strictEqual(Math.round(subject.overallPercentage), 89);
   });
 
-  test('single raw ERP course row expands to full LTPS components', () => {
+  test('single raw ERP course row returns honest aggregate (no synthetic expansion)', () => {
     const rawRows = [
       {
         'Course Code': '25CS1302E',
@@ -81,9 +81,9 @@ describe('Unified Attendance Subject Grouping & Projections', () => {
     assert.strictEqual(grouped.length, 1);
 
     const subject = grouped[0];
-    assert.strictEqual(subject.components.length, 3);
-    assert.strictEqual(subject.components[0].name, 'Lecture');
-    assert.strictEqual(subject.components[1].name, 'Practical');
-    assert.strictEqual(subject.components[2].name, 'Skilling');
+    // No synthetic expansion — returns real data only
+    assert.ok(subject.components.length >= 1);
+    assert.strictEqual(subject.components[0].attended, 14);
+    assert.strictEqual(subject.components[0].conducted, 15);
   });
 });

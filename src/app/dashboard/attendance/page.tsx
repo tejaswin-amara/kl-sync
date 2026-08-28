@@ -253,56 +253,21 @@ function expandToFullLTPSComponents(
   overallPct: number,
   existingComponents: AttendanceComponent[]
 ): AttendanceComponent[] {
-  // If we already have multiple rich components, return them directly
-  if (existingComponents.length >= 2) {
+  // Return real components only — never fabricate synthetic breakdowns
+  if (existingComponents.length > 0) {
     return existingComponents;
   }
 
-  const C = Math.max(1, totalConducted || 15);
-  const A = Math.max(
-    0,
-    Math.min(C, totalAttended || Math.round(C * (overallPct / 100 || 0.89)))
-  );
-
-  // Derive component hours proportionally for Lecture (100%), Practical (50%), Skilling (25%)
-  const lecCond = Math.max(1, Math.round(C * 0.35));
-  const lecAtt = Math.max(0, Math.min(lecCond, Math.round(A * 0.3)));
-  const lecPct = Math.round((lecAtt / lecCond) * 100);
-
-  const pracCond = Math.max(1, Math.round(C * 0.15));
-  const pracAtt = Math.max(0, Math.min(pracCond, Math.round(A * 0.15)));
-  const pracPct = Math.round((pracAtt / pracCond) * 100);
-
-  const skillCond = Math.max(1, C - lecCond - pracCond);
-  const skillAtt = Math.max(0, Math.min(skillCond, A - lecAtt - pracAtt));
-  const skillPct = Math.round((skillAtt / skillCond) * 100);
-
-  return [
-    {
-      name: 'Lecture',
-      weight: 1.0,
-      weightPercentage: 100,
-      attended: lecAtt,
-      conducted: lecCond,
-      percentage: lecPct,
-    },
-    {
-      name: 'Practical',
-      weight: 0.5,
-      weightPercentage: 50,
-      attended: pracAtt,
-      conducted: pracCond,
-      percentage: pracPct,
-    },
-    {
-      name: 'Skilling',
-      weight: 0.25,
-      weightPercentage: 25,
-      attended: skillAtt,
-      conducted: skillCond,
-      percentage: skillPct,
-    },
-  ];
+  // Fallback: create a single aggregate component from totals
+  const pct = totalConducted > 0 ? Math.round((totalAttended / totalConducted) * 10000) / 100 : (overallPct || 100);
+  return [{
+    name: 'Aggregate',
+    weight: 1.0,
+    weightPercentage: 100,
+    attended: totalAttended,
+    conducted: totalConducted,
+    percentage: pct,
+  }];
 }
 
 export function groupAttendanceRows(

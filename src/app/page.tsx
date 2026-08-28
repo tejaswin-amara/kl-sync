@@ -204,62 +204,13 @@ export default function LoginPage() {
     }
   };
 
-  const handleDemoMode = async () => {
+  const handleDemoMode = () => {
     triggerHaptic('selection');
     setUsername('2100030000');
-    setPassword('demo123');
+    setPassword('demo_password');
     setCaptcha('demo');
-    setLoading(true);
-    setError(null);
-    setStatus('Booting into demo portal...');
-    try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(captchaSessionId ? { 'x-session-id': captchaSessionId } : {}),
-        },
-        body: JSON.stringify({
-          username: '2100030000',
-          password: 'demo_password',
-          captcha: 'demo',
-          captchaToken: 'demo_token',
-          sessionId: captchaSessionId || 'demo_session_123',
-          deviceId: deviceId || 'demo_device_123',
-          rememberMe: false,
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.message || data.error || 'Demo login failed');
-      try {
-        localStorage.setItem(
-          'kl_erp_academic_years',
-          JSON.stringify(data.academicYears || [{ value: '2025-2026', label: '2025-2026' }])
-        );
-        localStorage.setItem(
-          'kl_erp_semesters',
-          JSON.stringify(data.semesters || [{ value: '1', label: 'Odd Semester' }])
-        );
-      } catch {}
-      const academicYear = data.academicYears?.[0]?.value || '2025-2026';
-      const semesterId = data.semesters?.[0]?.value || '1';
-      localStorage.setItem('kl_erp_year', academicYear);
-      localStorage.setItem('kl_erp_sem', semesterId);
-      localStorage.setItem('studentId', '2100030000');
-      void prefetchAllUserData({ academicYear, semesterId });
-      triggerHaptic('success');
-      router.push('/dashboard');
-    } catch (err: unknown) {
-      triggerHaptic('error');
-      setError(
-        err instanceof Error && err.message
-          ? err.message
-          : 'Could not enter demo portal'
-      );
-    } finally {
-      setLoading(false);
-    }
+    // ponytail: reuse handleLogin instead of duplicating 50 lines of fetch logic
+    setTimeout(() => handleLogin(), 0);
   };
 
   return (
