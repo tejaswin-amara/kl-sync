@@ -214,25 +214,35 @@ export default function LoginPage() {
 
 
       <section className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center overflow-hidden px-4 sm:px-8">
-        <div className="w-full max-w-[460px] animate-spring-up">
-          <div className="mb-4">
-            <img
-              src="/logo.webp"
-              alt="KLH"
-              className="mb-5 h-10 rounded-xl bg-surface-1 p-1.5 shadow-sm"
-            />
-            <p className="caption-label text-muted-foreground">
-              KL Sync · Student workspace
-            </p>
+        <div className="w-full max-w-[440px] animate-spring-up">
+          <div className="mb-4 flex items-center gap-3.5">
+            <div className="flex h-12 shrink-0 items-center justify-center rounded-2xl border border-border/80 bg-surface-1 p-2 shadow-sm backdrop-blur-md">
+              <img
+                src="/logo.webp"
+                alt="KL University Logo"
+                className="h-full w-auto object-contain"
+              />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight text-foreground">
+                KL Sync
+              </h1>
+              <p className="caption-label text-muted-foreground">
+                KL University Student Portal
+              </p>
+            </div>
           </div>
-          <Card variant="glass" className="rounded-[--radius-2xl] p-4 sm:p-5">
+
+          <Card variant="glass" className="rounded-[--radius-2xl] border-border/60 p-4 sm:p-6 shadow-xl backdrop-blur-xl">
             <CardHeader className="p-0 pb-3">
-              <p className="caption-label mb-2 text-primary">Welcome back</p>
-              <h2 className="display-title text-3xl sm:text-4xl">
+              <p className="caption-label mb-1 text-primary font-semibold">
+                Welcome back
+              </p>
+              <h2 className="display-title text-2xl sm:text-3xl font-extrabold tracking-tight">
                 Sign in to your{' '}
                 <span className="text-gradient-brand">workspace.</span>
               </h2>
-              <CardDescription className="mt-2 text-sm">
+              <CardDescription className="mt-1.5 text-xs sm:text-sm">
                 Use your student ERP credentials to continue.
               </CardDescription>
             </CardHeader>
@@ -241,7 +251,7 @@ export default function LoginPage() {
                 <div
                   role="alert"
                   aria-live="assertive"
-                  className="mb-4 flex items-start gap-3 rounded-[--radius-md] border border-error/35 bg-error/10 p-3.5 text-error"
+                  className="mb-3 flex items-start gap-2.5 rounded-[--radius-md] border border-error/35 bg-error/10 p-3 text-xs text-error sm:text-sm"
                 >
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                   <p className="leading-relaxed">{error}</p>
@@ -251,7 +261,7 @@ export default function LoginPage() {
                 <div
                   role="status"
                   aria-live="polite"
-                  className="mb-4 flex items-start gap-3 rounded-[--radius-md] border border-info/35 bg-info/10 p-3.5 text-sm text-info"
+                  className="mb-3 flex items-start gap-2.5 rounded-[--radius-md] border border-info/35 bg-info/10 p-3 text-xs text-info sm:text-sm"
                 >
                   <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
                   <p className="leading-relaxed">{status}</p>
@@ -262,7 +272,7 @@ export default function LoginPage() {
                 className="space-y-3"
                 aria-label="Student ERP Authentication Form"
               >
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <label
                     htmlFor="student-id-field"
                     className="caption-label text-muted-foreground"
@@ -279,7 +289,7 @@ export default function LoginPage() {
                     autoComplete="username"
                   />
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <label
                     htmlFor="password-field"
                     className="caption-label text-muted-foreground"
@@ -297,23 +307,7 @@ export default function LoginPage() {
                     autoComplete="current-password"
                   />
                 </div>
-                <label
-                  htmlFor="remember"
-                  className="flex min-h-[44px] items-center gap-2.5 text-sm text-muted-foreground"
-                >
-                  <input
-                    type="checkbox"
-                    id="remember"
-                    checked={rememberMe}
-                    onChange={(event) => {
-                      triggerHaptic('selection');
-                      setRememberMe(event.target.checked);
-                    }}
-                    className="h-4 w-4 rounded border-border accent-[--primary]"
-                  />
-                  Remember me on this device
-                </label>
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <div className="flex items-center justify-between gap-3">
                     <label
                       htmlFor="captcha-field"
@@ -327,7 +321,7 @@ export default function LoginPage() {
                         : 'Lowercase letters only'}
                     </span>
                   </div>
-                  <div className="flex gap-2.5">
+                  <div className="flex gap-2">
                     <Input
                       id="captcha-field"
                       value={captcha}
@@ -345,8 +339,8 @@ export default function LoginPage() {
                       spellCheck={false}
                       className="min-w-0 flex-1 font-mono lowercase tracking-[0.25em]"
                     />
-                    <div className="flex shrink-0 items-center gap-2">
-                      <div className="flex h-11 w-[96px] items-center justify-center overflow-hidden rounded-[--radius-md] border border-border bg-surface-1 shadow-xs">
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <div className="flex h-11 w-[90px] items-center justify-center overflow-hidden rounded-[--radius-md] border border-border bg-surface-1 shadow-xs">
                         {captchaLoading ? (
                           <Loader2
                             className="h-4 w-4 animate-spin text-muted-foreground"
@@ -377,7 +371,7 @@ export default function LoginPage() {
                         aria-label="Refresh captcha"
                       >
                         <RefreshCw className="h-4 w-4" />
-                      </Button>{' '}
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -395,11 +389,10 @@ export default function LoginPage() {
               </form>
             </CardContent>
           </Card>
-          <div className="mt-2 flex items-start gap-2 rounded-[--radius-lg] border border-border bg-surface-1/80 px-3 py-2 text-[11px] text-muted-foreground shadow-xs">
-            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+          <div className="mt-3 flex items-start gap-2 rounded-[--radius-lg] border border-border/60 bg-surface-1/80 px-3 py-2 text-[11px] text-muted-foreground shadow-xs backdrop-blur-md">
+            <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" />
             <p>
-              Your session is protected with encrypted tokens and
-              privacy-conscious defaults.
+              Protected with AES-256 encrypted session tokens & privacy-conscious defaults.
             </p>
           </div>
         </div>
