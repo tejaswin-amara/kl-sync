@@ -213,36 +213,36 @@ export default function LoginPage() {
 
 
 
-      <section className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center overflow-hidden px-4 sm:px-8">
-        <div className="w-full max-w-[440px] animate-spring-up">
-          <div className="mb-4 flex items-center gap-3.5">
-            <div className="flex h-12 shrink-0 items-center justify-center rounded-2xl border border-border/80 bg-surface-1 p-2 shadow-sm backdrop-blur-md">
-              <img
-                src="/logo.webp"
-                alt="KL University Logo"
-                className="h-full w-auto object-contain"
-              />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-foreground">
-                KL Sync
-              </h1>
-              <p className="caption-label text-muted-foreground">
-                KL University Student Portal
-              </p>
-            </div>
-          </div>
-
+      <section className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center overflow-y-auto py-6 sm:py-8 custom-scrollbar px-4 sm:px-8">
+        <div className="w-full max-w-[440px] animate-spring-up my-auto">
           <Card variant="glass" className="rounded-[--radius-2xl] border-border/60 p-4 sm:p-6 shadow-xl backdrop-blur-xl">
-            <CardHeader className="p-0 pb-3">
-              <p className="caption-label mb-1 text-primary font-semibold">
+            <CardHeader className="p-0 pb-4">
+              <div className="mb-3 flex items-center gap-3">
+                <div className="flex h-11 shrink-0 items-center justify-center rounded-xl border border-border/80 bg-surface-1 p-1.5 shadow-xs backdrop-blur-md">
+                  <img
+                    src="/logo.webp"
+                    alt="KL University Logo"
+                    className="h-full w-auto object-contain"
+                  />
+                </div>
+                <div>
+                  <h1 className="text-lg font-bold tracking-tight text-foreground leading-tight">
+                    KL Sync
+                  </h1>
+                  <p className="text-[11px] text-muted-foreground font-medium">
+                    KL University Student Portal
+                  </p>
+                </div>
+              </div>
+
+              <p className="caption-label mb-0.5 text-primary font-semibold">
                 Welcome back
               </p>
               <h2 className="display-title text-2xl sm:text-3xl font-extrabold tracking-tight">
                 Sign in to your{' '}
                 <span className="text-gradient-brand">workspace.</span>
               </h2>
-              <CardDescription className="mt-1.5 text-xs sm:text-sm">
+              <CardDescription className="mt-1 text-xs sm:text-sm">
                 Use your student ERP credentials to continue.
               </CardDescription>
             </CardHeader>
@@ -251,7 +251,7 @@ export default function LoginPage() {
                 <div
                   role="alert"
                   aria-live="assertive"
-                  className="mb-3 flex items-start gap-2.5 rounded-[--radius-md] border border-error/35 bg-error/10 p-3 text-xs text-error sm:text-sm"
+                  className="mb-3 flex items-start gap-2.5 rounded-[--radius-md] border border-error/35 bg-error/10 p-2.5 text-xs text-error sm:text-sm"
                 >
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                   <p className="leading-relaxed">{error}</p>
@@ -261,7 +261,7 @@ export default function LoginPage() {
                 <div
                   role="status"
                   aria-live="polite"
-                  className="mb-3 flex items-start gap-2.5 rounded-[--radius-md] border border-info/35 bg-info/10 p-3 text-xs text-info sm:text-sm"
+                  className="mb-3 flex items-start gap-2.5 rounded-[--radius-md] border border-info/35 bg-info/10 p-2.5 text-xs text-info sm:text-sm"
                 >
                   <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
                   <p className="leading-relaxed">{status}</p>
@@ -381,20 +381,19 @@ export default function LoginPage() {
                   size="lg"
                   isLoading={loading}
                   disabled={loading || !captcha}
-                  className="mt-2 w-full"
+                  className="mt-1 w-full"
                 >
                   <LogIn className="h-4 w-4" />
                   {t('signIn', 'Sign in')}
                 </Button>
               </form>
+
+              <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
+                <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-success" />
+                <span>Protected with AES-256 encrypted session tokens</span>
+              </div>
             </CardContent>
           </Card>
-          <div className="mt-3 flex items-start gap-2 rounded-[--radius-lg] border border-border/60 bg-surface-1/80 px-3 py-2 text-[11px] text-muted-foreground shadow-xs backdrop-blur-md">
-            <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" />
-            <p>
-              Protected with AES-256 encrypted session tokens & privacy-conscious defaults.
-            </p>
-          </div>
         </div>
       </section>
       </main>
