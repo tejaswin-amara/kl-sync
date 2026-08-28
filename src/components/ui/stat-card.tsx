@@ -59,7 +59,7 @@ function StatCard({
         >
           <span
             className={cn(
-              'absolute left-0 top-3 h-5 w-0.5 rounded-full',
+              'absolute start-0 top-3 h-5 w-0.5 rounded-full',
               colors.marker
             )}
           />

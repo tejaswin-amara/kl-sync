@@ -24,8 +24,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           'transition-[border-color,box-shadow,background-color] duration-[--duration-fast] ease-[--ease-spring-default]',
           'hover:border-primary/30 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
           'disabled:cursor-not-allowed disabled:opacity-45',
-          leftIcon && 'pl-10 ps-10',
-          rightIcon && 'pr-10 pe-10',
+          leftIcon && 'ps-10',
+          rightIcon && 'pe-10',
           error && 'border-destructive/50 focus-visible:ring-destructive/30',
           className
         )}

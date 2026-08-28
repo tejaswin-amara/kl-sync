@@ -91,23 +91,23 @@ describe('UI Primitives - Empirical Stress Testing & Verification', () => {
       assert.match(html, /focus-visible:ring-ring/);
     });
 
-    test('renders leftIcon and applies pl-10 padding offset', () => {
+    test('renders leftIcon and applies ps-10 logical padding offset', () => {
       const icon = React.createElement('span', { id: 'search-icon' }, '🔍');
       const html = renderToString(
         React.createElement(Input, { leftIcon: icon })
       );
       assert.match(html, /search-icon/);
-      assert.match(html, /pl-10/);
+      assert.match(html, /ps-10/);
       assert.match(html, /pointer-events-none/);
     });
 
-    test('renders rightIcon and applies pr-10 padding offset', () => {
+    test('renders rightIcon and applies pe-10 logical padding offset', () => {
       const icon = React.createElement('button', { id: 'clear-icon' }, '✕');
       const html = renderToString(
         React.createElement(Input, { rightIcon: icon })
       );
       assert.match(html, /clear-icon/);
-      assert.match(html, /pr-10/);
+      assert.match(html, /pe-10/);
     });
 
     test('renders error state with destructive border and focus ring', () => {
