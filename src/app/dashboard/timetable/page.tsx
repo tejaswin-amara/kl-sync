@@ -278,7 +278,7 @@ export default function TimetablePage() {
                 triggerHaptic('selection');
                 setSelectedDayFilter(day);
               }}
-              className={`px-3 py-1.5 rounded-[--radius-md] text-xs font-medium whitespace-nowrap transition-all duration-[--duration-fast] ease-[--ease-spring-default] min-h-[38px] touch-manipulation cursor-pointer active:scale-95 ${
+              className={`px-3 py-1.5 rounded-[--radius-md] text-xs font-medium whitespace-nowrap transition-all duration-[--duration-fast] ease-[--ease-spring-default] min-h-[44px] touch-manipulation cursor-pointer active:scale-95 ${
                 selectedDayFilter === day
                   ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
                   : 'text-muted-foreground hover:text-foreground hover:bg-surface-3'
@@ -339,7 +339,7 @@ export default function TimetablePage() {
                 triggerHaptic('light');
                 mutate();
               }}
-              className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-xs font-semibold text-primary-foreground rounded-[--radius-lg] transition-all shadow-lg flex items-center gap-2 cursor-pointer touch-manipulation active:scale-95"
+              className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-xs font-semibold text-primary-foreground rounded-[--radius-lg] transition-all shadow-lg flex items-center gap-2 cursor-pointer touch-manipulation active:scale-95 min-h-[44px]"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               Retry Sync

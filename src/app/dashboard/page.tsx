@@ -219,7 +219,7 @@ export default function DashboardOverview() {
           </div>
           <button
             onClick={() => setRateLimitSeconds(null)}
-            className="px-2.5 py-1 rounded-md bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-semibold cursor-pointer transition-colors"
+            className="px-3 py-1.5 rounded-md bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-semibold cursor-pointer transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
             Dismiss
           </button>
@@ -233,7 +233,7 @@ export default function DashboardOverview() {
           </div>
           <button
             onClick={() => setSyncError(null)}
-            className="px-2.5 py-1 rounded-md bg-warning/20 hover:bg-warning/30 text-warning text-xs font-semibold cursor-pointer transition-colors"
+            className="px-3 py-1.5 rounded-md bg-warning/20 hover:bg-warning/30 text-warning text-xs font-semibold cursor-pointer transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
             Dismiss
           </button>

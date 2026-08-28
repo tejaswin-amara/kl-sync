@@ -10,6 +10,7 @@ import {
   LogIn,
   RefreshCw,
   ShieldCheck,
+  Sparkles,
   User,
 } from '@/components/ui/icons';
 import { useRouter } from 'next/navigation';
@@ -203,6 +204,64 @@ export default function LoginPage() {
     }
   };
 
+  const handleDemoMode = async () => {
+    triggerHaptic('selection');
+    setUsername('2100030000');
+    setPassword('demo123');
+    setCaptcha('demo');
+    setLoading(true);
+    setError(null);
+    setStatus('Booting into demo portal...');
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(captchaSessionId ? { 'x-session-id': captchaSessionId } : {}),
+        },
+        body: JSON.stringify({
+          username: '2100030000',
+          password: 'demo_password',
+          captcha: 'demo',
+          captchaToken: 'demo_token',
+          sessionId: captchaSessionId || 'demo_session_123',
+          deviceId: deviceId || 'demo_device_123',
+          rememberMe: false,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok)
+        throw new Error(data.message || data.error || 'Demo login failed');
+      try {
+        localStorage.setItem(
+          'kl_erp_academic_years',
+          JSON.stringify(data.academicYears || [{ value: '2025-2026', label: '2025-2026' }])
+        );
+        localStorage.setItem(
+          'kl_erp_semesters',
+          JSON.stringify(data.semesters || [{ value: '1', label: 'Odd Semester' }])
+        );
+      } catch {}
+      const academicYear = data.academicYears?.[0]?.value || '2025-2026';
+      const semesterId = data.semesters?.[0]?.value || '1';
+      localStorage.setItem('kl_erp_year', academicYear);
+      localStorage.setItem('kl_erp_sem', semesterId);
+      localStorage.setItem('studentId', '2100030000');
+      void prefetchAllUserData({ academicYear, semesterId });
+      triggerHaptic('success');
+      router.push('/dashboard');
+    } catch (err: unknown) {
+      triggerHaptic('error');
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : 'Could not enter demo portal'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="relative flex h-[100dvh] w-full overflow-hidden bg-background text-foreground">
       <h1 className="sr-only">KL Sync Student Portal</h1>
@@ -375,6 +434,21 @@ export default function LoginPage() {
                     </div>
                   </div>
                 </div>
+                <div className="flex items-center justify-between">
+                  <label
+                    htmlFor="remember-me-checkbox"
+                    className="flex min-h-[44px] cursor-pointer items-center gap-2.5 text-xs sm:text-sm font-medium text-muted-foreground select-none hover:text-foreground transition-colors"
+                  >
+                    <input
+                      id="remember-me-checkbox"
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(event) => setRememberMe(event.target.checked)}
+                      className="h-4 w-4 rounded border-input bg-surface-2 text-primary accent-primary focus-visible:ring-2 focus-visible:ring-primary"
+                    />
+                    <span>{t('rememberMe', 'Remember me')}</span>
+                  </label>
+                </div>
                 <Captcha onVerify={setCaptchaToken} />
                 <Button
                   type="submit"
@@ -386,6 +460,25 @@ export default function LoginPage() {
                   <LogIn className="h-4 w-4" />
                   {t('signIn', 'Sign in')}
                 </Button>
+
+                <div className="relative flex items-center justify-center py-1">
+                  <div className="flex-grow border-t border-border/60" />
+                  <span className="shrink-0 px-3 text-[11px] font-medium text-muted-foreground">
+                    or
+                  </span>
+                  <div className="flex-grow border-t border-border/60" />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleDemoMode}
+                  disabled={loading}
+                  className="apple-pill flex min-h-[44px] w-full items-center justify-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold text-foreground hover:text-primary transition-all active:scale-[0.98] disabled:opacity-50"
+                  aria-label="Explore Demo Portal"
+                >
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <span>Explore Demo Portal</span>
+                </button>
               </form>
 
               <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">

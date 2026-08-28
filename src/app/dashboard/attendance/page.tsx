@@ -798,7 +798,7 @@ export default function AttendanceDashboard() {
                   triggerHaptic('selection');
                   setViewMode('cards');
                 }}
-                className={`px-3 py-1.5 rounded-[--radius-md] text-xs font-semibold flex items-center gap-1.5 transition-all min-h-[38px] ${
+                className={`px-3 py-1.5 rounded-[--radius-md] text-xs font-semibold flex items-center gap-1.5 transition-all min-h-[44px] ${
                   viewMode === 'cards'
                     ? 'bg-primary text-primary-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground hover:bg-surface-3'
@@ -814,7 +814,7 @@ export default function AttendanceDashboard() {
                   triggerHaptic('selection');
                   setViewMode('table');
                 }}
-                className={`px-3 py-1.5 rounded-[--radius-md] text-xs font-semibold flex items-center gap-1.5 transition-all min-h-[38px] ${
+                className={`px-3 py-1.5 rounded-[--radius-md] text-xs font-semibold flex items-center gap-1.5 transition-all min-h-[44px] ${
                   viewMode === 'table'
                     ? 'bg-primary text-primary-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground hover:bg-surface-3'

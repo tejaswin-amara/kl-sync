@@ -15,6 +15,11 @@ interface ERPTablePageProps {
   emptyIcon: ReactNode;
   emptyTitle: string;
   emptyDescription: string;
+  columnFormatters?: Record<
+    string,
+    (val: unknown, row: Record<string, unknown>) => ReactNode
+  >;
+  headerActions?: ReactNode;
 }
 
 const fetcher = async (url: unknown) => {
@@ -27,21 +32,36 @@ const fetcher = async (url: unknown) => {
   return (json.data as Record<string, unknown>[]) || [];
 };
 
-function MobileCardItem({ row }: { row: Record<string, unknown> }) {
+function MobileCardItem({
+  row,
+  columnFormatters,
+}: {
+  row: Record<string, unknown>;
+  columnFormatters?: Record<
+    string,
+    (val: unknown, row: Record<string, unknown>) => ReactNode
+  >;
+}) {
   const [expanded, setExpanded] = useState(false);
   const entries = Object.entries(row);
   if (!entries.length) return null;
   const [primaryKey, primaryVal] = entries[0];
   const secondaryEntries = entries.slice(1, 3);
   const remainingEntries = entries.slice(3);
+
+  const formatValue = (key: string, val: unknown) => {
+    const formatter = columnFormatters?.[key];
+    return formatter ? formatter(val, row) : String(val ?? '');
+  };
+
   return (
     <article className="apple-card space-y-3 rounded-[--radius-lg] overflow-hidden p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="caption-label text-muted-foreground">{primaryKey}</p>
-          <p className="mt-1 break-words text-sm font-bold tracking-tight text-foreground">
-            {String(primaryVal)}
-          </p>
+          <div className="mt-1 break-words text-sm font-bold tracking-tight text-foreground">
+            {formatValue(primaryKey, primaryVal)}
+          </div>
         </div>
         {remainingEntries.length > 0 && (
           <button
@@ -69,9 +89,9 @@ function MobileCardItem({ row }: { row: Record<string, unknown> }) {
               <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
                 {key}
               </p>
-              <p className="mt-1 break-words text-xs font-semibold text-foreground">
-                {String(value)}
-              </p>
+              <div className="mt-1 break-words text-xs font-semibold text-foreground">
+                {formatValue(key, value)}
+              </div>
             </div>
           ))}
         </div>
@@ -84,9 +104,9 @@ function MobileCardItem({ row }: { row: Record<string, unknown> }) {
               className="flex items-start justify-between gap-4 border-b border-border/70 py-2 text-xs last:border-0"
             >
               <span className="text-muted-foreground">{key}</span>
-              <span className="max-w-[60%] break-words text-right font-semibold text-foreground tabular-nums">
-                {String(value)}
-              </span>
+              <div className="max-w-[60%] break-words text-right font-semibold text-foreground tabular-nums">
+                {formatValue(key, value)}
+              </div>
             </div>
           ))}
         </div>
@@ -102,6 +122,8 @@ export default function ERPTablePage({
   emptyIcon,
   emptyTitle,
   emptyDescription,
+  columnFormatters,
+  headerActions,
 }: ERPTablePageProps) {
   const {
     data: rawData,
@@ -113,7 +135,11 @@ export default function ERPTablePage({
   const error = fetchError ? fetchError.message : null;
   return (
     <div className="flex w-full animate-spring-up flex-col gap-6">
-      <PageHeader title={title} description={description} />
+      <PageHeader
+        title={title}
+        description={description}
+        actions={headerActions}
+      />
       <section className="apple-card overflow-hidden rounded-[--radius-2xl]">
         {loading ? (
           <div className="space-y-3 p-6">
@@ -140,8 +166,8 @@ export default function ERPTablePage({
           <>
             <div className="hidden overflow-x-auto sm:block">
               <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-surface-2/70">
+                <thead className="sticky top-0 z-10 backdrop-blur-md">
+                  <tr className="border-b border-border bg-surface-2/80">
                     <th className="w-8 px-5 py-4 caption-label text-muted-foreground">
                       #
                     </th>
@@ -165,14 +191,20 @@ export default function ERPTablePage({
                       <td className="px-5 py-4 text-xs font-bold text-muted-foreground">
                         {String(index + 1).padStart(2, '0')}
                       </td>
-                      {Object.values(row).map((value, columnIndex) => (
-                        <td
-                          key={columnIndex}
-                          className="max-w-[320px] break-words px-4 py-4 text-sm font-medium text-foreground tabular-nums"
-                        >
-                          {String(value)}
-                        </td>
-                      ))}
+                      {Object.entries(row).map(([key, value], columnIndex) => {
+                        const formatter = columnFormatters?.[key];
+                        const content = formatter
+                          ? formatter(value, row)
+                          : String(value ?? '');
+                        return (
+                          <td
+                            key={columnIndex}
+                            className="max-w-[320px] break-words px-4 py-4 text-sm font-medium text-foreground tabular-nums"
+                          >
+                            {content}
+                          </td>
+                        );
+                      })}
                     </tr>
                   ))}
                 </tbody>
@@ -180,7 +212,11 @@ export default function ERPTablePage({
             </div>
             <div className="space-y-3 p-4 sm:hidden">
               {data.map((row, index) => (
-                <MobileCardItem key={index} row={row} />
+                <MobileCardItem
+                  key={index}
+                  row={row}
+                  columnFormatters={columnFormatters}
+                />
               ))}
             </div>
           </>

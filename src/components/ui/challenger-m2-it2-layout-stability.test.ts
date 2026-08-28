@@ -438,5 +438,30 @@ describe('Empirical Challenger 2: Layout Stability, Accessibility & Consumer Int
       assert.match(emptyHtml, /Issued books and due dates/);
       assert.match(emptyHtml, /shimmer|Library/);
     });
+
+    test('ERPTablePage supports headerActions, columnFormatters, and sticky headers', () => {
+      const html = renderToString(
+        React.createElement(ERPTablePage, {
+          module: 'circulars',
+          title: 'Circulars & Notices',
+          description: 'Official notifications',
+          emptyTitle: 'No circulars',
+          emptyDescription: 'No active circulars',
+          emptyIcon: React.createElement(Icons.Megaphone, { size: 32 }),
+          headerActions: React.createElement(
+            'button',
+            { id: 'custom-action-btn' },
+            'Filter Notices'
+          ),
+          columnFormatters: {
+            Title: (val) =>
+              React.createElement('span', { className: 'font-bold' }, String(val)),
+          },
+        })
+      );
+      assert.match(html, /Circulars &amp; Notices|Circulars & Notices/);
+      assert.match(html, /custom-action-btn/);
+      assert.match(html, /Filter Notices/);
+    });
   });
 });

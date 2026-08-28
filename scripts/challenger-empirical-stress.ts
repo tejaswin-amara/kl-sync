@@ -8,6 +8,9 @@
  * 4. API Endpoints Error Resilience & Input Validation Gates
  */
 
+process.env.KL_SYNC_DEMO_MODE = process.env.KL_SYNC_DEMO_MODE ?? 'true';
+process.env.KL_SYNC_AI_MODE = process.env.KL_SYNC_AI_MODE ?? 'offline';
+
 import assert from 'node:assert/strict';
 import { NextRequest } from 'next/server';
 import { POST as handleAiChat } from '../src/app/api/ai/chat/route';

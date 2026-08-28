@@ -51,4 +51,33 @@ test.describe('Form Submissions & Auto-Solving CAPTCHAs', () => {
 
     expect(page.url()).toContain('/dashboard');
   });
+
+  test('Remember Me checkbox and Explore Demo Portal pill are visible, interactive, and meet accessibility standards', async ({
+    page,
+  }) => {
+    await page.goto('/');
+
+    const rememberMeCheckbox = page.locator('#remember-me-checkbox');
+    const demoPortalBtn = page.getByRole('button', {
+      name: /Explore Demo Portal/i,
+    });
+
+    await expect(rememberMeCheckbox).toBeVisible();
+    await expect(rememberMeCheckbox).not.toBeChecked();
+
+    // Toggle Remember Me
+    await rememberMeCheckbox.check();
+    await expect(rememberMeCheckbox).toBeChecked();
+
+    // Explore Demo Portal button
+    await expect(demoPortalBtn).toBeVisible();
+    await expect(demoPortalBtn).toBeEnabled();
+
+    // Click demo portal button and verify navigation to dashboard
+    await Promise.all([
+      page.waitForURL('**/dashboard', { timeout: 15000 }),
+      demoPortalBtn.click(),
+    ]);
+    expect(page.url()).toContain('/dashboard');
+  });
 });

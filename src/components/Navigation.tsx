@@ -480,7 +480,7 @@ export default function Navigation({
               className="apple-sheet animate-sheet-enter absolute bottom-full inset-x-0 z-40 p-4 max-h-[calc(100dvh-140px)] overflow-y-auto custom-scrollbar rounded-t-[28px] overflow-hidden border-t border-border shadow-2xl"
             >
               <div className="drag-handle" />
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {overflowItems.map((item) => {
                   const active = isActive(item.href);
                   const Icon = item.icon;
@@ -506,7 +506,7 @@ export default function Navigation({
       </nav>
 
       <main
-        className={`flex h-full min-h-0 flex-col pt-[calc(var(--header-height)+env(safe-area-inset-top,0px))] pb-[calc(var(--bottom-bar-height)+env(safe-area-inset-bottom,0px))] transition-[padding-left] duration-[var(--duration-normal)] ${collapsed ? 'lg:pl-[var(--sidebar-collapsed)]' : 'lg:pl-[var(--sidebar-width)]'} lg:pt-0 lg:pb-0`}
+        className={`flex h-full min-h-0 flex-col pt-[calc(var(--header-height)+env(safe-area-inset-top,0px))] pb-[calc(var(--bottom-bar-height)+env(safe-area-inset-bottom,0px))] transition-[padding] duration-[var(--duration-normal)] ${collapsed ? 'lg:ps-[var(--sidebar-collapsed)]' : 'lg:ps-[var(--sidebar-width)]'} lg:pt-0 lg:pb-0`}
       >
         <header className="apple-chrome hidden min-h-[var(--header-height)] items-center justify-between border-b px-6 lg:flex xl:px-8">
           <div className="flex items-center gap-3">

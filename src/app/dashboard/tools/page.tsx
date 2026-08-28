@@ -149,7 +149,7 @@ export default function ToolsPage() {
               triggerHaptic('selection');
               setActiveTab('target');
             }}
-            className={`px-3 py-1.5 rounded-[--radius-md] text-xs font-semibold flex items-center gap-1.5 transition-all ${
+            className={`px-3 py-1.5 rounded-[--radius-md] text-xs font-semibold flex items-center gap-1.5 transition-all min-h-[44px] ${
               activeTab === 'target'
                 ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
@@ -165,7 +165,7 @@ export default function ToolsPage() {
               triggerHaptic('selection');
               setActiveTab('ltps');
             }}
-            className={`px-3 py-1.5 rounded-[--radius-md] text-xs font-semibold flex items-center gap-1.5 transition-all ${
+            className={`px-3 py-1.5 rounded-[--radius-md] text-xs font-semibold flex items-center gap-1.5 transition-all min-h-[44px] ${
               activeTab === 'ltps'
                 ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
@@ -181,7 +181,7 @@ export default function ToolsPage() {
               triggerHaptic('selection');
               setActiveTab('cgpa');
             }}
-            className={`px-3 py-1.5 rounded-[--radius-md] text-xs font-semibold flex items-center gap-1.5 transition-all ${
+            className={`px-3 py-1.5 rounded-[--radius-md] text-xs font-semibold flex items-center gap-1.5 transition-all min-h-[44px] ${
               activeTab === 'cgpa'
                 ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'

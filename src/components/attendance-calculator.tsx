@@ -645,7 +645,7 @@ export function LTPSAttendanceCalculator() {
                   <button
                     type="button"
                     onClick={() => loadDraft(d)}
-                    className="font-medium text-foreground hover:text-primary transition-colors flex items-center gap-1.5"
+                    className="font-medium text-foreground hover:text-primary transition-colors flex items-center gap-1.5 min-h-[44px]"
                   >
                     <span>{d.name}</span>
                     <span className="text-muted-foreground font-mono tabular-numbers font-normal">
