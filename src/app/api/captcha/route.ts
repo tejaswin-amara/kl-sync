@@ -78,6 +78,7 @@ function withCaptchaCookie(
   sessionId: string
 ): NextResponse {
   response.headers.set('x-session-id', sessionId);
+  response.headers.set('Access-Control-Expose-Headers', 'x-session-id');
   response.cookies.set(CAPTCHA_COOKIE, sessionId, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

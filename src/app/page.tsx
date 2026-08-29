@@ -106,13 +106,20 @@ export default function LoginPage() {
     });
   }, [router]);
 
-  const handleLogin = async (event?: React.FormEvent) => {
+  const handleLogin = async (
+    event?: React.FormEvent,
+    overrideCreds?: { u: string; p: string; c: string }
+  ) => {
     event?.preventDefault();
-    const cleanCaptcha = captcha
+    const u = overrideCreds ? overrideCreds.u : username;
+    const p = overrideCreds ? overrideCreds.p : password;
+    const c = overrideCreds ? overrideCreds.c : captcha;
+
+    const cleanCaptcha = c
       .toLowerCase()
       .trim()
       .replace(/[^a-z]/g, '');
-    if (!username || !password || !cleanCaptcha) {
+    if (!u || !p || !cleanCaptcha) {
       triggerHaptic('error');
       setError(
         'Please fill in all fields. The security code accepts lowercase letters a–z only.'
@@ -131,8 +138,8 @@ export default function LoginPage() {
           ...(captchaSessionId ? { 'x-session-id': captchaSessionId } : {}),
         },
         body: JSON.stringify({
-          username: username.trim(),
-          password,
+          username: u.trim(),
+          password: p,
           captcha: cleanCaptcha,
           captchaToken: captchaToken || undefined,
           sessionId: captchaSessionId || undefined,
@@ -209,8 +216,8 @@ export default function LoginPage() {
     setUsername('2100030000');
     setPassword('demo_password');
     setCaptcha('demo');
-    // ponytail: reuse handleLogin instead of duplicating 50 lines of fetch logic
-    setTimeout(() => handleLogin(), 0);
+    // ponytail: reuse handleLogin with overrides to bypass async state update delay
+    void handleLogin(undefined, { u: '2100030000', p: 'demo_password', c: 'demo' });
   };
 
   return (
