@@ -4,6 +4,7 @@ import './globals.css';
 import { ToastProvider } from '@/components/ui/toast';
 import { AriaLiveRegion } from '@/components/ui/aria-live';
 import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration';
+import { Analytics } from '@vercel/analytics/next';
 
 const inter = Inter({
   variable: '--font-inter',
@@ -64,6 +65,7 @@ export default function RootLayout({
           <ToastProvider>{children}</ToastProvider>
         </AriaLiveRegion>
         <ServiceWorkerRegistration />
+        <Analytics />
       </body>
     </html>
   );
