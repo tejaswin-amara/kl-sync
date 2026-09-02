@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.46",
+    "@vercel/analytics": "^2.0.1",
     "ai": "^7.0.77",
     "cap-widget": "^0.1.57",
     "capjs-core": "^0.1.1",
