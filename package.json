@@ -14,15 +14,15 @@
     "verify": "npm run typecheck && npm run lint && npm run build && npm run test"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^4.0.46",
-    "ai": "^7.0.77",
+    "@ai-sdk/openai": "^4.0.51",
+    "ai": "^7.0.84",
     "cap-widget": "^0.1.57",
     "capjs-core": "^0.1.1",
     "cheerio": "^1.2.0",
-    "next": "^16.3.2",
+    "next": "^16.3.3",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "zod": "^4.4.3"
+    "zod": "^4.5.2"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
@@ -31,7 +31,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.3.2",
+    "eslint-config-next": "16.3.3",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
