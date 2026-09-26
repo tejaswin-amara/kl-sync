@@ -1,61 +1,33 @@
-# Strict Proprietary & Source-Available License
+Copyright (c) 2026 Tejaswin Amara. All Rights Reserved.
 
-**Copyright © 2026–present Tejaswin Amara. All Rights Reserved.**
+1. ABSOLUTE DENIAL OF OPEN SOURCE RIGHTS
+The public visibility of this repository on GitHub (or any other platform) does not constitute an open-source license. This codebase is provided strictly for read-only visual inspection directly on the hosting platform. You are granted absolutely zero rights to use, copy, modify, distribute, or execute the Software.
 
----
+2. EXPLICIT PROHIBITIONS
+Any action beyond visually reading the code on its original hosting URL is a strict violation of this License and international copyright law. You are unconditionally prohibited from:
+a) Cloning, downloading, hosting, or executing the Software, either locally or remotely.
+b) Forking the repository, mirroring it, or distributing the code in any form.
+c) Modifying, adapting, translating, reverse-engineering, or creating derivative works.
+d) Using the Software for any personal, educational, research, academic, or commercial purpose.
+e) Scraping, extracting, or utilizing the codebase, documentation, or metadata to train, test, evaluate, or fine-tune artificial intelligence models, large language models (LLMs), or machine learning algorithms.
 
-### ⚠️ IMPORTANT NOTICE
-This software is proprietary and source-available strictly for personal educational evaluation and local development. It is **NOT** open source software under OSI definitions, and no general public distribution, hosting, or commercial exploitation rights are granted.
+3. ABSOLUTE DISCLAIMER OF ALL WARRANTIES
+THE SOFTWARE IS PROVIDED EXCLUSIVELY "AS IS", "WHERE IS", AND "AS AVAILABLE", WITH ALL FAULTS AND DEFECTS. TEJASWIN AMARA EXPRESSLY DISCLAIMS ALL WARRANTIES, WHETHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, ACCURACY, TITLE, AND NON-INFRINGEMENT. THERE IS NO WARRANTY THAT THE SOFTWARE WILL BE SECURE, VIRUS-FREE, OR SAFE TO EXECUTE.
 
----
+4. TOTAL LIMITATION OF LIABILITY
+UNDER NO CIRCUMSTANCES AND UNDER NO LEGAL OR EQUITABLE THEORY (WHETHER IN CONTRACT, TORT, STRICT LIABILITY, OR OTHERWISE) SHALL TEJASWIN AMARA BE LIABLE TO YOU OR ANY THIRD PARTY FOR ANY DIRECT, INDIRECT, CONSEQUENTIAL, INCIDENTAL, SPECIAL, PUNITIVE, OR EXEMPLARY DAMAGES. THIS ABSOLUTE SHIELD INCLUDES, BUT IS NOT LIMITED TO, LIABILITY FOR SYSTEM FAILURES, DATA LOSS, PROFIT LOSS, REGULATORY FINES, OR SECURITY BREACHES ARISING OUT OF YOUR UNAUTHORIZED USE, CLONING, OR EXECUTION OF THIS SOFTWARE. YOUR MERE INTERACTION WITH THIS CODE CONSTITUTES YOUR ACCEPTANCE OF ALL RISK.
 
-### 🚫 STRICT PROHIBITIONS
+5. AGGRESSIVE INDEMNIFICATION
+By interacting with, cloning, downloading, or using this Software in any capacity, you irrevocably agree to fully indemnify, defend, and hold harmless Tejaswin Amara from and against any and all claims, demands, lawsuits, damages, losses, liabilities, and expenses (including total legal and attorneys' fees) brought by any third party resulting from your unauthorized use, modification, or distribution of the Software.
 
-Under this license, you are **STRICTLY PROHIBITED** from:
+6. NO IMPLIED PATENT OR INTELLECTUAL PROPERTY GRANT
+The public display of this code does not waive, exhaust, or implicitly grant any rights to underlying patents, trade secrets, or intellectual property owned by Tejaswin Amara.
 
-1. **Public Hosting & Cloud Deployment**:
-   - You may **NOT** deploy, host, mirror, run, or distribute this software, or any fork or derivative work thereof, on any public web domain, subdomain, or cloud platform (including, but not limited to, **Vercel, AWS, Cloudflare Pages/Workers, Netlify, Render, Railway, Google Cloud Platform, Microsoft Azure, Docker Hub**, or private VPS infrastructure) accessible to third parties.
-   - The only authorized public deployment of this project is maintained directly by the copyright holder at **`https://klhb.vercel.app `**.
+7. AUTOMATIC TERMINATION AND MANDATORY DESTRUCTION
+Any violation of these terms results in the immediate, automatic termination of any perceived rights. Upon violation, you are legally mandated to immediately and permanently destroy all local, remote, and cached copies of the Software in your possession, and you must confirm such destruction in writing if requested.
 
-2. **Commercial Exploitation & Monetization**:
-   - You may **NOT** sell, rent, lease, sublicense, charge access fees, display commercial advertisements, solicit donations, or derive revenue directly or indirectly from this software, its APIs, or its architecture.
+8. IRREPARABLE HARM AND INJUNCTIVE RELIEF
+You acknowledge that any breach of this License will cause immediate and irreparable harm to Tejaswin Amara, for which monetary damages are inadequate. Tejaswin Amara shall be entitled to seek immediate injunctive relief and equitable remedies to shut down unauthorized usage without the necessity of posting a bond or proving actual damages.
 
-3. **Rebranding, Plagiarism & Misattribution**:
-   - You may **NOT** remove, alter, or obscure any copyright notices, trademark identifiers, author credits (**Tejaswin Amara**), or project references (**KL Sync**, **KLH**).
-   - You may **NOT** rebrand, republish, or claim authorship or copyright of this software under any other name, brand, or organization.
-
-4. **Automated Abuse & Malicious Usage**:
-   - You may **NOT** use this software or its scraping routines to perform distributed denial of service (DDoS), automated credential stuffing, abusive crawling, or unauthorized high-concurrency requests against KL University infrastructure or any third-party systems.
-
-5. **Unauthorized Redistribution & Sublicensing**:
-   - You may **NOT** distribute, bundle, package, or share binaries, container images, or modified source code to third parties without prior explicit written permission.
-
----
-
-### ✅ PERMITTED USES
-
-You are granted a limited, revocable, non-transferable, and non-exclusive license solely to:
-
-1. **Personal Educational Review**: Clone and read the source code locally on your private device to study Next.js App Router, TypeScript, native SVG engines, and secure session architectures.
-2. **Personal Local Execution**: Run a single local instance strictly bound to `localhost` for your own personal student academic tracking.
-3. **Academic Citation**: Reference or link to the official repository (`https://github.com/tejaswin-amara/kl-sync`) in research papers, documentation, or educational tutorials.
-
----
-
-### 📝 PERMISSION & CUSTOM LICENSING INQUIRIES
-
-If you wish to:
-- Deploy or integrate KL Sync into an institutional platform
-- Fork and distribute modifications for a student organization
-- Reuse core scrapers or modules in another project
-
-You must obtain explicit prior written consent from the author.  
-📬 **Contact**: `tejaswinamara@gmail.com`
-
----
-
-### ⚖️ DISCLAIMER OF WARRANTY & LIMITATION OF LIABILITY
-
-THE SOFTWARE IS PROVIDED **"AS IS"**, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
-
-IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY CLAIM, DAMAGES, DISCIPLINARY ACTIONS, LOSS OF DATA, SERVICE INTERRUPTIONS, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. USERS ASSUME ALL ACADEMIC AND TECHNICAL RESPONSIBILITY FOR THEIR OWN USE.
+9. UNIVERSAL ENFORCEABILITY AND INTERNATIONAL JURISDICTION
+This License applies globally and is protected under recognized international intellectual property treaties, including the Berne Convention and the Universal Copyright Convention. To ensure absolute international accountability, the copyright holder (Tejaswin Amara) reserves the unilateral right to pursue legal action, claim damages, and enforce injunctive relief in ANY court of competent jurisdiction internationally. This includes, at the author's sole discretion, the courts of the violator's country of residence, or any jurisdiction where the unauthorized deployment, execution, or infringement occurred. By accessing this repository, you categorically surrender and waive any defense regarding lack of personal jurisdiction or inconvenient forum in any international or national venue.
