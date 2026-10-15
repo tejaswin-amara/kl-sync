@@ -122,7 +122,11 @@ export async function checkRateLimitDistributed(
 }
 
 export function getClientIP(request: NextRequest): string {
-  if (process.env.TRUST_PROXY_HEADERS === 'true') {
+  // ponytail: auto-detect Vercel; upgrade to explicit allowlist if multi-provider needed
+  const trustHeaders =
+    process.env.TRUST_PROXY_HEADERS === 'true' ||
+    process.env.VERCEL === '1';
+  if (trustHeaders) {
     const xff = request.headers.get('x-forwarded-for');
     if (xff) return xff.split(',')[0].trim().slice(0, 128) || 'unknown';
     const realIp = request.headers.get('x-real-ip');

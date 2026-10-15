@@ -214,17 +214,15 @@ export default function Navigation({
       });
     } catch {}
     sessionStorage.clear();
-    [
-      'studentId',
-      'kl_student_name',
-      'kl_student_photo',
-      'kl_student_profile',
-      'kl_erp_academic_years',
-      'kl_erp_semesters',
-      'kl_erp_year',
-      'kl_erp_sem',
-      'remember_username',
-    ].forEach((key) => localStorage.removeItem(key));
+    // ponytail: prefix-sweep instead of maintaining a key list; upgrade to namespace if storage grows
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('kl_') || key === 'studentId' || key === 'remember_username')) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach((key) => localStorage.removeItem(key));
     router.push('/');
   };
 

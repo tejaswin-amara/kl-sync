@@ -12,7 +12,7 @@
     <a href="https://github.com/tejaswin-amara/kl-sync/actions/workflows/ci.yml">
       <img src="https://github.com/tejaswin-amara/kl-sync/actions/workflows/ci.yml/badge.svg" alt="CI Status" />
     </a>
-    <img src="https://img.shields.io/badge/Coverage-100%25-brightgreen.svg?style=flat" alt="Coverage" />
+    <img src="https://img.shields.io/badge/Tests-363%20passed-brightgreen.svg?style=flat" alt="Tests" />
     <img src="https://img.shields.io/badge/Security-AES--256--GCM-228B22?style=for-the-badge" alt="AES-256-GCM Security" />
   </p>
 </div>

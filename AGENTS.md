@@ -26,7 +26,7 @@ npx tsc --noEmit
 # 2. Linting (0 Errors)
 npm run lint
 
-# 3. Unit & Integration Test Suite (320 tests across 54 suites)
+# 3. Unit & Integration Test Suite (363 tests across 61 suites)
 npm test
 
 # 4. Agent-as-Judge AI Verification (9 tests)
@@ -80,11 +80,9 @@ npm run build
 │   ├── components/           # React UI components & native SVG icon engine
 │   │   ├── ui/icons.tsx      # Native 57-component SVG icon library
 │   │   └── ui/LanguageSelector.tsx # i18n language & RTL toggle
-│   │   └── compliance/ComplianceModal.tsx # Compliance Center badges & modal
 │   ├── hooks/                # Custom React data hooks (useAcademicSession, useNativeQuery)
 │   ├── lib/                  # Scrapers (attendance, marks, timetable, fee, profile), crypto, captcha
-│   │   ├── compliance/       # Regulatory compliance data & manager (GDPR, CCPA, HIPAA...)
-│   │   ├── i18n/             # 9-language zero-dependency translation engine with RTL
+│   │   ├── i18n/             # 3-language zero-dependency translation engine (en, te, hi)
 │   │   └── data-prefetcher.ts # Parallel login-time prefetch for all 9 ERP modules
 │   └── types/                # TypeScript type definitions & Zod schemas
 └── AGENTS.md                 # Agent guidance & project instructions

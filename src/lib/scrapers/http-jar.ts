@@ -6,7 +6,8 @@ export const LOGIN_URL = `${ERP_URL}/index.php?r=site%2Flogin`;
 export const ATTENDANCE_URL = `${ERP_URL}/index.php?r=studentattendance%2Fstudentdailyattendance%2Fsearchgetinput`;
 export const COURSE_LIST_URL = `${ERP_URL}/index.php?r=studentattendance%2Fstudentdailyattendance%2Fcourselist`;
 
-export const ERP_ENDPOINTS: Record<string, string> = {
+// ponytail: Object.create(null) prevents prototype-pollution via route params (e.g. /constructor)
+export const ERP_ENDPOINTS: Record<string, string> = Object.assign(Object.create(null), {
   marks: `${ERP_URL}/index.php?r=studentinfo%2Fstudentendexamresult%2Fgetstudentinternalmarks`,
   timetable: `${ERP_URL}/index.php?r=timetables%2Funiversitymasteracademictimetableview%2Findexstudentindisearch`,
   fee: `${ERP_URL}/index.php?r=feepayments%2Fstudentfeeorderdetailsinfo%2Fmy_fee_orders`,
@@ -18,7 +19,7 @@ export const ERP_ENDPOINTS: Record<string, string> = {
   hostels: `${ERP_URL}/index.php?r=hostel%2Fhosteloccupancyinfo%2Fhostel-room-info`,
   hostel: `${ERP_URL}/index.php?r=hostel%2Fhosteloccupancyinfo%2Fhostel-room-info`,
   library: `${ERP_URL}/index.php?r=library%2Fborrowers%2Fmy_circulation_history`,
-};
+});
 
 export const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';

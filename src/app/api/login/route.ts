@@ -123,7 +123,6 @@ export async function POST(request: NextRequest) {
         username === '2100030000');
     if (
       !isExplicitDemoUser &&
-      captchaToken &&
       !(await verifyCaptchaToken(captchaToken))
     ) {
       return NextResponse.json(

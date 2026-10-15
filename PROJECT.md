@@ -11,7 +11,7 @@
 ## Feature Inventory
 | # | Feature | Description | Milestone | Source |
 |---|---------|-------------|-----------|--------|
-| 1 | Automated Test Suite (331 tests) | Execute and verify all 331 unit/integration tests across 54 test suites with 0 failures | M1 | ORIGINAL_REQUEST R2 |
+| 1 | Automated Test Suite (363 tests) | Execute and verify all 363 unit/integration tests across 61 test suites with 0 failures | M1 | ORIGINAL_REQUEST R2 |
 | 2 | TypeScript Compilation (0 errors) | Full AST typecheck across all src, test, and script files with `npx tsc --noEmit` | M1 | ORIGINAL_REQUEST R2 / Criteria |
 | 3 | ESLint Conformance (0 errors/warnings) | Zero ESLint warnings or errors across the repository with `npm run lint` | M1 | ORIGINAL_REQUEST R2 / Criteria |
 | 4 | Agent-as-Judge AI Evaluation | 9/9 AI tool execution and parameter validation tests passing via `scripts/agent-as-judge.ts` | M1 | ORIGINAL_REQUEST R2 / Criteria |
@@ -24,7 +24,7 @@
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| 1 | Automated Verification Suites Baseline | TypeScript (0 errors), Lint (0 errors), Unit Tests (331/331), Agent-as-Judge (9/9), Build | none | DONE |
+| 1 | Automated Verification Suites Baseline | TypeScript (0 errors), Lint (0 errors), Unit Tests (363/363), Agent-as-Judge (9/9), Build | none | DONE |
 | 2 | End-to-End Browser & UI Module Audit | 11 Dashboard Routes in Demo Mode, zero console errors, zero hydration errors, Playwright E2E | M1 | DONE |
 | 3 | Multi-Perspective Review & Forensic Audit | Dual Reviewers, Dual Challengers, and Forensic Auditor verification | M1, M2 | DONE |
 
@@ -37,7 +37,7 @@
 ### Quality Baseline Contract
 - `npx tsc --noEmit` exits with 0 errors.
 - `npm run lint` exits with 0 errors.
-- `npm test` executes 331 tests across 54 suites with 100% pass rate.
+- `npm test` executes 363 tests across 61 suites with 100% pass rate.
 - `npx tsx scripts/agent-as-judge.ts` executes 9 AI evaluations with 100% pass rate.
 - `npm run build` generates 17 static pages and 8 dynamic endpoints cleanly.
 - `npx playwright test` passes 13/13 E2E test specs.

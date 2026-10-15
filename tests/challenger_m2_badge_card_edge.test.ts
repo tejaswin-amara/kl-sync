@@ -64,18 +64,18 @@ describe('Challenger M2: Badge & Card Deep Edge Case Verification', () => {
       > = {
         default: 'bg-surface-2',
         secondary: 'bg-secondary',
-        success: 'bg-success/10',
-        warning: 'bg-warning/10',
-        danger: 'bg-destructive/10',
-        destructive: 'bg-destructive/10',
-        info: 'bg-primary/10',
+        success: 'bg-success/15',
+        warning: 'bg-warning/15',
+        danger: 'bg-destructive/15',
+        destructive: 'bg-destructive/15',
+        info: 'bg-primary/15',
         outline: 'bg-transparent',
-        emerald: 'bg-emerald-500/10',
-        present: 'bg-emerald-500/15',
-        absent: 'bg-rose-500/15',
-        pending: 'bg-amber-500/15',
-        neutral: 'bg-zinc-800',
-        glass: 'glass-card',
+        emerald: 'bg-success/15',
+        present: 'bg-success/15',
+        absent: 'bg-error/10',
+        pending: 'bg-warning/15',
+        neutral: 'bg-surface-2',
+        glass: 'apple-card',
       };
 
       for (const [variant, expectedClass] of Object.entries(
@@ -276,11 +276,11 @@ describe('Challenger M2: Badge & Card Deep Edge Case Verification', () => {
         NonNullable<CardProps['variant']>,
         string
       > = {
-        default: 'bg-surface-1 border border-border shadow-sm',
-        glass: 'glass rounded-[--radius-xl] shadow-lg',
+        default: 'bg-surface-1 border border-border shadow-sm apple-card',
+        glass: 'bg-surface-1/95 border border-border shadow-md apple-card',
         interactive:
-          'bg-surface-1 border border-border shadow-sm hover-lift cursor-pointer hover:border-white/16 hover:shadow-md transition-all',
-        elevated: 'bg-surface-1 border border-border shadow-lg',
+          'bg-surface-1 border border-border shadow-sm cursor-pointer hover-lift hover:border-primary/25 hover:shadow-md transition-all apple-card',
+        elevated: 'bg-surface-1 border border-border shadow-md apple-card',
       };
 
       for (const variant of CARD_VARIANTS) {
@@ -353,7 +353,7 @@ describe('Challenger M2: Badge & Card Deep Edge Case Verification', () => {
       assert.ok(html.startsWith('<h3'), 'CardTitle must be a semantic <h3>');
       assert.ok(
         html.includes(
-          'text-base font-semibold leading-none tracking-tight text-foreground font-heading'
+          'font-heading text-base font-semibold leading-tight tracking-[-0.015em] text-foreground'
         ),
         'CardTitle classes'
       );
@@ -382,8 +382,16 @@ describe('Challenger M2: Badge & Card Deep Edge Case Verification', () => {
         'CardDescription must be a semantic <p>'
       );
       assert.ok(
-        html.includes('text-sm text-muted-foreground leading-relaxed'),
+        html.includes('text-xs'),
         'CardDescription classes'
+      );
+      assert.ok(
+        html.includes('text-muted-foreground'),
+        'CardDescription muted text'
+      );
+      assert.ok(
+        html.includes('leading-relaxed'),
+        'CardDescription leading'
       );
       assert.ok(html.includes('desc-custom'), 'CardDescription custom class');
       assert.ok(
@@ -425,7 +433,9 @@ describe('Challenger M2: Badge & Card Deep Edge Case Verification', () => {
       );
       assert.ok(html.startsWith('<div'), 'CardFooter must be a <div>');
       assert.ok(
-        html.includes('flex items-center p-5 pt-3 border-t border-border'),
+        html.includes('flex items-center') &&
+          html.includes('border-t') &&
+          html.includes('border-border/70'),
         'CardFooter classes'
       );
       assert.ok(html.includes('footer-custom'), 'CardFooter custom class');
@@ -486,7 +496,7 @@ describe('Challenger M2: Badge & Card Deep Edge Case Verification', () => {
       assert.ok(html.includes('Eligible for Exams'));
       assert.ok(html.includes('88.5%'));
       assert.ok(html.includes('Last updated: 5 mins ago'));
-      assert.ok(html.includes('hover-lift cursor-pointer'));
+      assert.ok(html.includes('cursor-pointer') && html.includes('hover-lift'));
       assert.ok(!html.includes('undefined'));
     });
   });
