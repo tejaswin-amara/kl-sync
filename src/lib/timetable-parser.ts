@@ -31,7 +31,13 @@ export interface ParsedTimetable {
 function expandTimeSlots(raw: string): string[] {
   const str = String(raw).trim().toUpperCase();
 
-  // If it looks like a time string (e.g., 09:30-10:20), do not mangle it
+  // Extract period number if it starts with P<number> or Period <number>
+  const explicitPeriodMatch = str.match(/^(?:PERIOD\s*|P\s*)(\d+)/i);
+  if (explicitPeriodMatch) {
+    return [explicitPeriodMatch[1]];
+  }
+
+  // If it looks like just a time string (e.g., 09:30-10:20) without a period prefix, do not mangle it
   if (str.includes(':')) {
     return [str];
   }
@@ -142,7 +148,7 @@ dayOrderMapping.forEach((def, idx) => {
 export function normalizeSlotKey(slotStr: string): string {
   if (!slotStr) return '';
   const str = String(slotStr).trim().toUpperCase();
-  const match = str.match(/^(?:PERIOD\s*|P\s*)?(\d+)$/i);
+  const match = str.match(/^(?:PERIOD\s*|P\s*)?(\d+)/i);
   if (match) {
     return match[1];
   }
@@ -256,7 +262,7 @@ export function parseCellContent(text: string): {
   let componentLetter = '';
 
   const klCodeMatch = raw.match(
-    /([0-9]{2}[A-Z]{2,5}[0-9]{3,4}[A-Z]?|[A-Z]{2,5}[0-9]{3,4}[A-Z]?)[-_]([LTPSS])\b/i
+    /([0-9]{2}[A-Z]{2,5}[0-9]{3,4}[A-Z]?|[A-Z]{2,5}[0-9]{3,4}[A-Z]?)[-_]([LTPSSVA])\b/i
   );
   if (klCodeMatch) {
     courseCode = klCodeMatch[1].toUpperCase();
@@ -275,6 +281,8 @@ export function parseCellContent(text: string): {
     P: 'Practical',
     S: 'Skill',
     T: 'Tutorial',
+    V: 'VAC',
+    A: 'Audit',
   };
   const component = componentLetter
     ? compMap[componentLetter] || componentLetter
@@ -542,12 +550,14 @@ export function parseTimetable(
 
       timeSlotHeaders.forEach((tsHeader) => {
         const expandedPeriods = expandTimeSlots(tsHeader);
+        expandedPeriods.forEach((timeSlot) => {
+          timeSlotsSet.add(timeSlot);
+        });
         const cellVal = String(row[tsHeader] || '').trim();
         const parsedSessions = parseCellContentMultiple(cellVal);
 
         parsedSessions.forEach((parsedCell, blockIdx) => {
           expandedPeriods.forEach((timeSlot) => {
-            timeSlotsSet.add(timeSlot);
             const session: NormalizedClassSession = {
               id: `matrix-row-${normDay.full}-${timeSlot}-${rIdx}-${blockIdx}`,
               day: normDay.full,
@@ -678,6 +688,21 @@ export function parseTimetable(
   });
 
   const timeSlotsPresent = Array.from(timeSlotsSet);
+
+  // Preserve Period 6 as LUNCH BREAK explicitly
+  if (!timeSlotsPresent.includes('6')) {
+    timeSlotsPresent.push('6');
+    // Maintain chronological order for numeric strings
+    timeSlotsPresent.sort((a, b) => {
+      const numA = parseInt(a, 10);
+      const numB = parseInt(b, 10);
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return numA - numB;
+      }
+      return a.localeCompare(b);
+    });
+  }
+
   const standardDays = [
     'Monday',
     'Tuesday',
@@ -692,8 +717,32 @@ export function parseTimetable(
   allDaysToInit.forEach((day) => {
     if (!matrixGrid[day]) matrixGrid[day] = {};
     timeSlotsPresent.forEach((slot) => {
-      if (!matrixGrid[day][slot]) {
+      if (!matrixGrid[day][slot] || matrixGrid[day][slot].length === 0) {
         matrixGrid[day][slot] = [];
+        // Insert LUNCH BREAK session if slot is 6 and it's empty
+        if (slot === '6') {
+          const normDay = normalizeDay(day) || {
+            full: day,
+            short: day.slice(0, 3),
+            index: -1,
+          };
+          const lunchSession: NormalizedClassSession = {
+            id: `matrix-lunch-${day}-6`,
+            day: normDay.full,
+            dayShort: normDay.short,
+            dayIndex: normDay.index,
+            timeSlot: '6',
+            courseCode: 'LUNCH BREAK',
+            courseTitle: 'LUNCH BREAK',
+            room: '',
+            faculty: '',
+            rawText: 'LUNCH BREAK',
+          };
+          matrixGrid[day][slot].push(lunchSession);
+          if (!sessions.find((s) => s.id === lunchSession.id)) {
+            sessions.push(lunchSession);
+          }
+        }
       }
     });
   });

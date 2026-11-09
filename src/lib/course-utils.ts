@@ -73,6 +73,12 @@ export const KNOWN_COURSE_MAP: Record<string, string> = {
   '25EC1201E': 'Basic Electrical & Electronics',
   '25SC2107E': 'Discrete Mathematics & Graph Theory',
   '25FL2112E': 'Foreign Language - Elective',
+  '25CS3112E': 'Deep Learning With Accelerated Computing',
+  '25CS2206E': 'Cloud Infrastructure And Services',
+  '25CS2207E': 'Generative AI And AI Platform Engineering',
+  '25CS2208E': 'Computer Networks And Network Programming',
+  '25SP2108E': 'Kabaddi',
+  '25UC0032E': 'Insights to Sustainable Development Goals',
 
   // 24 Series (Y24 Curriculum)
   '24CS1302E': 'Data Structures & Algorithms',
@@ -97,6 +103,63 @@ export const KNOWN_COURSE_MAP: Record<string, string> = {
   '22EC1201': 'Basic Electrical & Electronics',
   '22SC1101': 'Linear Algebra & Calculus',
 };
+
+export const T05_COURSE_CATALOG = [
+  {
+    code: '25CS3112E',
+    name: 'Deep Learning With Accelerated Computing',
+    category: 'PCC',
+    ltps: '2-0-0-8',
+    credits: 4,
+    section: 'S-10',
+    faculty: 'Ms. Ch. Anitha',
+  },
+  {
+    code: '25CS2206E',
+    name: 'Cloud Infrastructure And Services',
+    category: 'PCC',
+    ltps: '2-0-2-4',
+    credits: 4,
+    section: 'S-11',
+    faculty: 'Ms. D. Divya Priya',
+  },
+  {
+    code: '25CS2207E',
+    name: 'Generative AI And AI Platform Engineering',
+    category: 'PCC',
+    ltps: '2-0-0-8',
+    credits: 4,
+    section: 'S-10',
+    faculty: 'Dr. Y. Lakshmi Prasanna',
+  },
+  {
+    code: '25CS2208E',
+    name: 'Computer Networks And Network Programming',
+    category: 'PCC',
+    ltps: '2-0-0-4',
+    credits: 3,
+    section: 'S-11',
+    faculty: 'Mrs. D. Alekhya',
+  },
+  {
+    code: '25SP2108E',
+    name: 'Kabaddi',
+    category: 'VAC',
+    ltps: '0-0-0-2',
+    credits: 0,
+    section: 'S-1',
+    faculty: 'Physical Education',
+  },
+  {
+    code: '25UC0032E',
+    name: 'Insights to Sustainable Development Goals',
+    category: 'AUC',
+    ltps: '1-0-0-0 / 2-0-0-0',
+    credits: 0,
+    section: 'S-10',
+    faculty: undefined,
+  },
+];
 
 /**
  * Validates whether a candidate string is a genuine Subject Title,

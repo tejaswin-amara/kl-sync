@@ -7,9 +7,48 @@ import {
   cleanTitleString,
   extractCoreCode,
   isValidSubjectTitle,
+  T05_COURSE_CATALOG,
 } from './course-utils';
 
 describe('Course Utils & Title Resolution', () => {
+  test('T05_COURSE_CATALOG exports exactly 6 courses with valid metadata', () => {
+    assert.equal(T05_COURSE_CATALOG.length, 6);
+
+    // Check fields for the first course
+    const firstCourse = T05_COURSE_CATALOG[0];
+    assert.equal(firstCourse.code, '25CS3112E');
+    assert.equal(firstCourse.name, 'Deep Learning With Accelerated Computing');
+    assert.equal(firstCourse.credits, 4);
+    assert.equal(firstCourse.section, 'S-10');
+  });
+
+  test('resolves T05 course codes correctly to their names', () => {
+    assert.equal(
+      getSubjectTitle('25CS3112E'),
+      'Deep Learning With Accelerated Computing'
+    );
+    assert.equal(
+      getSubjectTitle('25CS2206E'),
+      'Cloud Infrastructure And Services'
+    );
+    assert.equal(
+      getSubjectTitle('25CS2207E'),
+      'Generative AI And AI Platform Engineering'
+    );
+    assert.equal(
+      getSubjectTitle('25CS2208E'),
+      'Computer Networks And Network Programming'
+    );
+    assert.equal(
+      getSubjectTitle('25SP2108E'),
+      'Kabaddi'
+    );
+    assert.equal(
+      getSubjectTitle('25UC0032E'),
+      'Insights to Sustainable Development Goals'
+    );
+  });
+
   test('resolves explicit distinct course titles', () => {
     const title = getSubjectTitle('25CS1302E', 'Object Oriented Programming');
     assert.equal(title, 'Object Oriented Programming');
