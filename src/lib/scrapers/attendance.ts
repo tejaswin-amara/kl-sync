@@ -239,7 +239,14 @@ export async function loginAndFetchSemesters(
       }
     });
 
-  if (selectedYearValue) {
+  // Prioritize active academic year ("29" / "2026-2027") if present
+  const latestYearIdx = academicYears.findIndex(
+    (y) => y.value === '29' || y.value === '2026-2027' || /2026-2027/i.test(y.label)
+  );
+  if (latestYearIdx > -1) {
+    const [latestYear] = academicYears.splice(latestYearIdx, 1);
+    academicYears.unshift(latestYear);
+  } else if (selectedYearValue) {
     const idx = academicYears.findIndex((y) => y.value === selectedYearValue);
     if (idx > -1) {
       const [selectedYear] = academicYears.splice(idx, 1);
@@ -266,7 +273,14 @@ export async function loginAndFetchSemesters(
       }
     });
 
-  if (selectedSemValue) {
+  // Prioritize active semester ("2" / Even Sem / T05) if present
+  const activeSemIdx = semesters.findIndex(
+    (s) => s.value === '2' || /even|t05|term\s*2/i.test(s.label)
+  );
+  if (activeSemIdx > -1) {
+    const [activeSem] = semesters.splice(activeSemIdx, 1);
+    semesters.unshift(activeSem);
+  } else if (selectedSemValue) {
     const idx = semesters.findIndex((s) => s.value === selectedSemValue);
     if (idx > -1) {
       const [selectedSem] = semesters.splice(idx, 1);

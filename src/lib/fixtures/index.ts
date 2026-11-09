@@ -401,12 +401,13 @@ export const DEMO_LOGIN_RESULT: LoginResult = {
   session: DEMO_SESSION,
   csrfToken: 'demo_csrf_token_123',
   academicYears: [
+    { value: '2026-2027', label: '2026-2027' },
     { value: '2025-2026', label: '2025-2026' },
     { value: '2024-2025', label: '2024-2025' },
   ],
   semesters: [
+    { value: '2', label: 'Even Semester (T05)' },
     { value: '1', label: 'Odd Semester' },
-    { value: '2', label: 'Even Semester' },
   ],
   deviceId: 'demo_device_123',
   needsCaptchaRetry: false,

@@ -209,8 +209,11 @@ async function handleProxy(
     if (demoMode && isDemoSession(session)) {
       const isT05 =
         academicYear === '2026-2027' ||
+        academicYear === '29' ||
         semesterId === 'T05' ||
-        semesterId === '5';
+        semesterId === '5' ||
+        semesterId === '2' ||
+        (!academicYear && !semesterId);
 
       if (moduleName === 'attendance') {
         const sourceData = isT05 ? T05_DEMO_ATTENDANCE : DEMO_ATTENDANCE;

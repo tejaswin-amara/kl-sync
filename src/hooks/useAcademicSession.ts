@@ -51,13 +51,16 @@ export function useAcademicSession() {
         }
 
         const DEFAULT_YEARS: SemesterOption[] = [
+          { value: '2026-2027', label: '2026-2027 (Current)' },
+          { value: '29', label: '2026-2027' },
           { value: '2025-2026', label: '2025-2026' },
           { value: '2024-2025', label: '2024-2025' },
           { value: '2023-2024', label: '2023-2024' },
         ];
         const DEFAULT_SEMESTERS: SemesterOption[] = [
+          { value: '2', label: 'Even Semester (T05 - Current)' },
+          { value: 'T05', label: 'Trimester 5 (Current)' },
           { value: '1', label: 'Odd Semester' },
-          { value: '2', label: 'Even Semester' },
           { value: '3', label: 'Summer Term' },
         ];
 
@@ -71,14 +74,18 @@ export function useAcademicSession() {
         const targetYear =
           yearValid && savedYear
             ? savedYear
-            : (finalYears.length > 0 ? finalYears[0].value : '2024-2025');
+            : (finalYears.length > 0 ? finalYears[0].value : '2026-2027');
 
         const savedSem = localStorage.getItem(LS_ERP_SEM);
         const semValid = finalSems.some((s) => s.value === savedSem);
+        // Default to active term '2' if savedSem is not set or is stale '1' when '2' is available
+        const preferredSem = finalSems.some((s) => s.value === '2')
+          ? '2'
+          : (finalSems.length > 0 ? finalSems[0].value : '2');
         const targetSem =
-          semValid && savedSem
+          savedSem && savedSem !== '1' && semValid
             ? savedSem
-            : (finalSems.length > 0 ? finalSems[0].value : '1');
+            : preferredSem;
 
         setYears(finalYears);
         setSemesters(finalSems);

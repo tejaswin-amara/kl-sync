@@ -39,6 +39,8 @@ import {
   DEMO_MARKS,
   DEMO_FEE_ITEMS,
   DEMO_PROFILE,
+  T05_DEMO_ATTENDANCE,
+  T05_DEMO_MARKS,
 } from '@/lib/fixtures';
 
 // ============================================================================
@@ -95,11 +97,17 @@ export async function executeGetAttendance(
   let attendanceList: AttendanceSubject[] = [];
 
   if (isDemo) {
-    attendanceList = DEMO_ATTENDANCE;
+    const isT05 =
+      context?.academicYear === '2026-2027' ||
+      context?.academicYear === '29' ||
+      context?.semesterId === 'T05' ||
+      context?.semesterId === '2' ||
+      context?.semesterId === '5';
+    attendanceList = isT05 ? T05_DEMO_ATTENDANCE : DEMO_ATTENDANCE;
   } else {
     try {
-      const year = context.academicYear || '2025-2026';
-      const sem = context.semesterId || '1';
+      const year = context.academicYear || '2026-2027';
+      const sem = context.semesterId || '2';
       const res = await fetchAttendanceData(
         context.session!,
         context.session!.csrfToken,
@@ -188,8 +196,8 @@ export async function executeGetTimetable(
     rawRows = DEMO_TIMETABLE_RAW;
   } else {
     try {
-      const year = context.academicYear || '2025-2026';
-      const sem = context.semesterId || '1';
+      const year = context.academicYear || '2026-2027';
+      const sem = context.semesterId || '2';
       const res = await fetchTimetableData(
         context.session!,
         context.session!.csrfToken,
@@ -256,11 +264,17 @@ export async function executeGetMarks(
   let marksList: Record<string, unknown>[] = [];
 
   if (isDemo) {
-    marksList = DEMO_MARKS;
+    const isT05 =
+      context?.academicYear === '2026-2027' ||
+      context?.academicYear === '29' ||
+      context?.semesterId === 'T05' ||
+      context?.semesterId === '2' ||
+      context?.semesterId === '5';
+    marksList = isT05 ? T05_DEMO_MARKS : DEMO_MARKS;
   } else {
     try {
-      const year = context.academicYear || '2025-2026';
-      const sem = context.semesterId || parsedArgs.semester || '1';
+      const year = context.academicYear || '2026-2027';
+      const sem = context.semesterId || parsedArgs.semester || '2';
       const res = await fetchMarksData(
         context.session!,
         context.session!.csrfToken,

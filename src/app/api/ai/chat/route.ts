@@ -132,11 +132,11 @@ export async function POST(request: NextRequest) {
     const academicYear =
       (typeof body.academicYear === 'string' ? body.academicYear : undefined) ||
       request.nextUrl.searchParams.get('academicYear') ||
-      '2025-2026';
+      '2026-2027';
     const semesterId =
       (typeof body.semesterId === 'string' ? body.semesterId : undefined) ||
       request.nextUrl.searchParams.get('semesterId') ||
-      '1';
+      '2';
     const executionContext: ToolExecutionContext = {
       session,
       academicYear,
