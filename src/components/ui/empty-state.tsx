@@ -29,7 +29,7 @@ function EmptyState({
   const defaultIcons = {
     empty: <Inbox className="w-10 h-10 text-muted-foreground/35" />,
     error: <AlertCircle className="w-10 h-10 text-destructive/60" />,
-    loading: <Loader2 className="w-8 h-8 text-primary animate-spin" />,
+    loading: <Loader2 className="w-8 h-8 text-primary motion-safe:animate-spin" />,
   };
 
   const defaultTitles = {

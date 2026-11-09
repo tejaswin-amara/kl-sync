@@ -360,7 +360,7 @@ export default function LoginPage() {
                       <div className="flex h-11 w-[90px] items-center justify-center overflow-hidden rounded-[--radius-md] border border-border bg-surface-1 shadow-xs">
                         {captchaLoading ? (
                           <Loader2
-                            className="h-4 w-4 animate-spin text-muted-foreground"
+                            className="h-4 w-4 motion-safe:animate-spin text-muted-foreground"
                             aria-label="Loading captcha"
                           />
                         ) : captchaImage ? (

@@ -17,7 +17,7 @@ function Skeleton({
       className={cn(
         'bg-surface-2/60 rounded-[--radius-md]',
         animation === 'shimmer' && 'shimmer',
-        animation === 'pulse' && 'animate-pulse bg-surface-3',
+        animation === 'pulse' && 'motion-safe:animate-pulse bg-surface-3',
         variant === 'circle' && 'rounded-full',
         variant === 'text' && 'h-4 rounded-[--radius-sm]',
         variant === 'avatar' && 'w-10 h-10 rounded-full shrink-0',
@@ -38,7 +38,7 @@ function SkeletonCard({
   return (
     <div
       className={cn(
-        'p-5 rounded-[--radius-xl] border border-border apple-card space-y-4 animate-pulse',
+        'p-5 rounded-[--radius-xl] border border-border apple-card space-y-4 motion-safe:animate-pulse',
         className
       )}
       {...props}

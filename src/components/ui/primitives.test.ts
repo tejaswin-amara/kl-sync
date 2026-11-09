@@ -53,7 +53,7 @@ describe('UI Primitives - Empirical Stress Testing & Verification', () => {
         React.createElement(Button, { isLoading: true }, 'Save')
       );
       assert.match(html, /disabled=""/);
-      assert.match(html, /animate-spin/);
+      assert.match(html, /motion-safe:animate-spin/);
       assert.match(html, /Save/);
     });
 

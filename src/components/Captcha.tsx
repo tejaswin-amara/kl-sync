@@ -97,7 +97,7 @@ export function Captcha({ onVerify }: { onVerify: (token: string) => void }) {
           </Badge>
         ) : solving ? (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+            <Loader2 className="w-3.5 h-3.5 motion-safe:animate-spin text-primary" />
             <span>Verifying browser integrity...</span>
           </div>
         ) : null}

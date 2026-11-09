@@ -130,10 +130,10 @@ describe('Native SVG Icons Suite - Ponytail R2 Verification', () => {
   test('supports custom className including Tailwind animation classes', () => {
     const html = renderToString(
       React.createElement(Icons.Loader2, {
-        className: 'w-4 h-4 animate-spin text-sky-400',
+        className: 'w-4 h-4 motion-safe:animate-spin text-sky-400',
       })
     );
-    assert.match(html, /class="w-4 h-4 animate-spin text-sky-400"/);
+    assert.match(html, /class="w-4 h-4 motion-safe:animate-spin text-sky-400"/);
   });
 
   test('supports aria and role attributes for accessibility', () => {

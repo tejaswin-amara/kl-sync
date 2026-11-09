@@ -31,7 +31,7 @@ export default function ProfilePage() {
 
       {loading ? (
         <div className="apple-card rounded-[--radius-2xl] min-h-[300px] flex flex-col items-center justify-center p-8 shadow-xl border border-border">
-          <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
+          <Loader2 className="w-8 h-8 text-primary motion-safe:animate-spin mb-4" />
           <span className="text-xs text-muted-foreground font-medium">
             Syncing your profile...
           </span>

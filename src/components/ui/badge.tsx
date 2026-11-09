@@ -79,7 +79,7 @@ export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
           'inline-flex items-center gap-1.5 font-semibold tracking-wide rounded-full border transition-all select-none',
           sizeStyles[size],
           variantStyles[variant],
-          pulse && 'animate-pulse',
+          pulse && 'motion-safe:animate-pulse',
           className
         )}
         {...props}
@@ -88,7 +88,7 @@ export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
           <span
             className={cn(
               'w-1.5 h-1.5 rounded-full shrink-0',
-              pulse && 'animate-ping',
+              pulse && 'motion-safe:animate-ping',
               dotColorStyles[variant] || 'bg-muted-foreground'
             )}
           />

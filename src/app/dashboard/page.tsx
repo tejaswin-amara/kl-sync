@@ -210,7 +210,7 @@ export default function DashboardOverview() {
       {rateLimitSeconds !== null && rateLimitSeconds > 0 && (
         <div className="flex items-center justify-between gap-3 p-3.5 rounded-[--radius-lg] bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-medium animate-in fade-in">
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 shrink-0 text-amber-400 animate-spin" />
+            <Clock className="w-4 h-4 shrink-0 text-amber-400 motion-safe:animate-spin" />
             <span>
               Official college ERP rate limit cooldown active. KL-Sync is
               protecting your university account by serving offline cached data.
@@ -721,7 +721,7 @@ function CurrentCoursesWidget({
       <div className="flex-1 flex flex-col">
         {loading ? (
           <div className="flex justify-center items-center h-40">
-            <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full motion-safe:animate-spin" />
           </div>
         ) : courses.length === 0 ? (
           <EmptyState

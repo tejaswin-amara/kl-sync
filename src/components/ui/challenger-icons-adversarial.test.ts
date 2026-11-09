@@ -293,13 +293,13 @@ describe('Empirical Challenger Suite: Native SVG Icons & Component Migrations', 
       assert.doesNotMatch(html3, /class="undefined"/);
     });
 
-    test('Loader2 spinner renders Lucide-compatible arc and supports animate-spin', () => {
+    test('Loader2 spinner renders Lucide-compatible arc and supports motion-safe:animate-spin', () => {
       const html = renderToString(
         React.createElement(Icons.Loader2, {
-          className: 'w-5 h-5 animate-spin text-primary',
+          className: 'w-5 h-5 motion-safe:animate-spin text-primary',
         })
       );
-      assert.match(html, /class="w-5 h-5 animate-spin text-primary"/);
+      assert.match(html, /class="w-5 h-5 motion-safe:animate-spin text-primary"/);
       // Verify the arc path d="M21 12a9 9 0 1 1-6.219-8.56"
       assert.match(html, /d="M21 12a9 9 0 1 1-6\.219-8\.56"/);
     });
@@ -348,7 +348,7 @@ describe('Empirical Challenger Suite: Native SVG Icons & Component Migrations', 
       const html = renderToString(
         React.createElement(Button, { isLoading: true }, 'Submitting...')
       );
-      assert.match(html, /animate-spin/);
+      assert.match(html, /motion-safe:animate-spin/);
       assert.match(html, /Submitting\.\.\./);
       assert.match(html, /disabled/);
     });
@@ -493,7 +493,7 @@ describe('Empirical Challenger Suite: Native SVG Icons & Component Migrations', 
           disabled: true,
         })
       );
-      assert.match(disabledHtml, /animate-spin/);
+      assert.match(disabledHtml, /motion-safe:animate-spin/);
     });
 
     test('AIToolExecutionIndicator renders Loader2 icon with animation', () => {
@@ -504,7 +504,7 @@ describe('Empirical Challenger Suite: Native SVG Icons & Component Migrations', 
         })
       );
       assert.match(executingHtml, /Querying ERP via getAttendance\.\.\./);
-      assert.match(executingHtml, /animate-spin/);
+      assert.match(executingHtml, /motion-safe:animate-spin/);
 
       const thinkingHtml = renderToString(
         React.createElement(AIToolExecutionIndicator, { status: 'thinking' })

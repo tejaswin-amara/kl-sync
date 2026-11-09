@@ -82,7 +82,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         )}
         {...props}
       >
-        {isLoading && <Loader2 className="h-4 w-4 shrink-0 animate-spin" />}
+        {isLoading && <Loader2 className="h-4 w-4 shrink-0 motion-safe:animate-spin" />}
         {children}
       </button>
     );

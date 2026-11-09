@@ -68,7 +68,7 @@ export function AIChatInput({
         aria-label="Send query"
       >
         {disabled ? (
-          <Sparkles className="w-4 h-4 animate-spin" />
+          <Sparkles className="w-4 h-4 motion-safe:animate-spin" />
         ) : (
           <Send className="w-4 h-4" />
         )}

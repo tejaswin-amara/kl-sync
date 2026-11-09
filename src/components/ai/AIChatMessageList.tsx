@@ -35,7 +35,7 @@ export function AIChatMessageList({ messages }: AIChatMessageListProps) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-3 text-muted-foreground">
         <div className="w-12 h-12 rounded-[--radius-xl] bg-primary/15 border border-primary/25 flex items-center justify-center text-primary shadow-lg">
-          <Sparkles className="w-6 h-6 animate-pulse" />
+          <Sparkles className="w-6 h-6 motion-safe:animate-pulse" />
         </div>
         <div>
           <h3 className="font-semibold text-foreground text-sm font-heading tracking-tight">

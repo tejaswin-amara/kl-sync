@@ -195,7 +195,7 @@ export default function ToolsPage() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center h-64 border border-border rounded-[--radius-2xl] apple-card shadow-xl">
-          <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
+          <Loader2 className="w-8 h-8 text-primary motion-safe:animate-spin mb-4" />
           <p className="text-xs text-muted-foreground font-medium">
             Loading your data...
           </p>

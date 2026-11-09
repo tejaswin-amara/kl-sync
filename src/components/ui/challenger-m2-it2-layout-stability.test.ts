@@ -176,7 +176,7 @@ describe('Empirical Challenger 2: Layout Stability, Accessibility & Consumer Int
       const html = renderToString(
         React.createElement(Button, { isLoading: true }, 'Saving Changes')
       );
-      assert.match(html, /animate-spin/);
+      assert.match(html, /motion-safe:animate-spin/);
       assert.match(html, /disabled/);
       assert.match(html, /Saving Changes/);
     });
@@ -354,7 +354,7 @@ describe('Empirical Challenger 2: Layout Stability, Accessibility & Consumer Int
           disabled: true,
         })
       );
-      assert.match(html, /animate-spin/);
+      assert.match(html, /motion-safe:animate-spin/);
       assert.match(html, /disabled=""/);
     });
 
@@ -379,7 +379,7 @@ describe('Empirical Challenger 2: Layout Stability, Accessibility & Consumer Int
         thinkingHtml,
         /Analyzing request &amp; executing workflow\.\.\./
       );
-      assert.match(thinkingHtml, /animate-spin/);
+      assert.match(thinkingHtml, /motion-safe:animate-spin/);
 
       const executingHtml = renderToString(
         React.createElement(AIToolExecutionIndicator, {
@@ -388,7 +388,7 @@ describe('Empirical Challenger 2: Layout Stability, Accessibility & Consumer Int
         })
       );
       assert.match(executingHtml, /Querying ERP via get_attendance\.\.\./);
-      assert.match(executingHtml, /animate-spin/);
+      assert.match(executingHtml, /motion-safe:animate-spin/);
 
       const errorHtml = renderToString(
         React.createElement(AIToolExecutionIndicator, {

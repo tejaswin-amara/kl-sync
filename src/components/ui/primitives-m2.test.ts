@@ -27,7 +27,7 @@ describe('Milestone 2 (M2) UI Primitives & SVG Charts Verification Suite', () =>
         React.createElement(Badge, { size: 'sm', pulse: true }, 'Small Badge')
       );
       assert.match(htmlSm, /text-\[10px\]/);
-      assert.match(htmlSm, /animate-pulse/);
+      assert.match(htmlSm, /motion-safe:animate-pulse/);
 
       const htmlLg = renderToString(
         React.createElement(Badge, { size: 'lg' }, 'Large Badge')
@@ -69,7 +69,7 @@ describe('Milestone 2 (M2) UI Primitives & SVG Charts Verification Suite', () =>
         React.createElement(Skeleton, { variant: 'avatar', animation: 'pulse' })
       );
       assert.match(avatarHtml, /w-10 h-10 rounded-full/);
-      assert.match(avatarHtml, /animate-pulse/);
+      assert.match(avatarHtml, /motion-safe:animate-pulse/);
 
       const cardHtml = renderToString(
         React.createElement(Skeleton, { variant: 'card' })
@@ -84,7 +84,7 @@ describe('Milestone 2 (M2) UI Primitives & SVG Charts Verification Suite', () =>
 
     test('renders composite SkeletonCard and SkeletonTable components', () => {
       const cardHtml = renderToString(React.createElement(SkeletonCard, null));
-      assert.match(cardHtml, /animate-pulse/);
+      assert.match(cardHtml, /motion-safe:animate-pulse/);
 
       const tableHtml = renderToString(
         React.createElement(SkeletonTable, { rows: 3 })

@@ -19,8 +19,8 @@ export function AIToolExecutionIndicator({
       : 'Analyzing request & executing workflow...';
 
   return (
-    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/15 border border-primary/25 text-indigo-300 text-xs font-semibold apple-pill backdrop-blur-md animate-pulse my-2 max-w-fit shadow-xs">
-      <Loader2 className="w-3.5 h-3.5 animate-spin text-primary shrink-0" />
+    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/15 border border-primary/25 text-indigo-300 text-xs font-semibold apple-pill backdrop-blur-md motion-safe:animate-pulse my-2 max-w-fit shadow-xs">
+      <Loader2 className="w-3.5 h-3.5 motion-safe:animate-spin text-primary shrink-0" />
       <span className="tracking-tight">{displayMessage}</span>
     </div>
   );
