@@ -10,7 +10,24 @@ import {
   DEMO_CGPA,
   DEMO_CAPTCHA_SVG,
   DEMO_LOGIN_RESULT,
+  T05_DEMO_ATTENDANCE,
+  T05_DEMO_MARKS,
+  T05_DEMO_EXAM_SEATING,
 } from '@/lib/fixtures';
+
+test('fixtures exports T05 curriculum datasets', () => {
+  assert.ok(Array.isArray(T05_DEMO_ATTENDANCE));
+  assert.strictEqual(T05_DEMO_ATTENDANCE.length, 10);
+  assert.strictEqual(T05_DEMO_ATTENDANCE[0]['Course Code'], '25CS3112E-S');
+
+  assert.ok(Array.isArray(T05_DEMO_MARKS));
+  assert.strictEqual(T05_DEMO_MARKS.length, 6);
+  assert.strictEqual(T05_DEMO_MARKS[0]['Course Code'], '25CS3112E');
+
+  assert.ok(Array.isArray(T05_DEMO_EXAM_SEATING));
+  assert.strictEqual(T05_DEMO_EXAM_SEATING.length, 4);
+  assert.strictEqual(T05_DEMO_EXAM_SEATING[0]['Subject Code'], '25CS3112E');
+});
 
 test('fixtures exports all 9 expected fallback datasets', () => {
   assert.ok(DEMO_SESSION, 'DEMO_SESSION must be defined');

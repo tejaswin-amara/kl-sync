@@ -26,6 +26,9 @@ import {
   DEMO_FEE_ITEMS,
   DEMO_PROFILE,
   DEMO_CGPA,
+  T05_DEMO_ATTENDANCE,
+  T05_DEMO_MARKS,
+  T05_DEMO_EXAM_SEATING,
 } from '@/lib/fixtures';
 
 export const dynamic = 'force-dynamic';
@@ -204,10 +207,16 @@ async function handleProxy(
     }
 
     if (demoMode && isDemoSession(session)) {
+      const isT05 =
+        academicYear === '2026-2027' ||
+        semesterId === 'T05' ||
+        semesterId === '5';
+
       if (moduleName === 'attendance') {
+        const sourceData = isT05 ? T05_DEMO_ATTENDANCE : DEMO_ATTENDANCE;
         return apiJson({
           success: true,
-          attendanceData: DEMO_ATTENDANCE.map((item) => ({
+          attendanceData: sourceData.map((item) => ({
             ...item,
             'Academic Year': academicYear || item['Academic Year'],
             Semester: semesterId || item.Semester,
@@ -223,7 +232,7 @@ async function handleProxy(
       if (moduleName === 'marks') {
         return apiJson({
           success: true,
-          data: DEMO_MARKS,
+          data: isT05 ? T05_DEMO_MARKS : DEMO_MARKS,
         });
       }
       if (moduleName === 'profile') {
@@ -297,16 +306,18 @@ async function handleProxy(
       if (moduleName === 'exam-seating') {
         return apiJson({
           success: true,
-          data: [
-            {
-              'Subject Code': '23CS2101R',
-              'Subject Name': 'Data Structures & Algorithms',
-              'Exam Date': '2026-09-02',
-              Session: 'FN (09:30 AM - 12:30 PM)',
-              'Room No': 'R-301',
-              'Desk No': 'D-14',
-            },
-          ],
+          data: isT05
+            ? T05_DEMO_EXAM_SEATING
+            : [
+                {
+                  'Subject Code': '23CS2101R',
+                  'Subject Name': 'Data Structures & Algorithms',
+                  'Exam Date': '2026-09-02',
+                  Session: 'FN (09:30 AM - 12:30 PM)',
+                  'Room No': 'R-301',
+                  'Desk No': 'D-14',
+                },
+              ],
         });
       }
     }
