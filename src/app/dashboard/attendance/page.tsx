@@ -53,9 +53,9 @@ function normalizeBaseCode(rawCode: string): string {
   return rawCode
     .trim()
     .toUpperCase()
-    .replace(/[-_](L|P|S|T|LEC|PRAC|LAB|SKILL|TUT)$/i, '')
-    .replace(/\s*\((L|P|S|T|LEC|PRAC|LAB|SKILL|TUT)\)$/i, '')
-    .replace(/\s*\[(L|P|S|T|LEC|PRAC|LAB|SKILL|TUT)\]$/i, '');
+    .replace(/[-_](L|P|S|T|V|A|LEC|PRAC|LAB|SKILL|TUT|VAC|AUD|AUDIT)$/i, '')
+    .replace(/\s*\((L|P|S|T|V|A|LEC|PRAC|LAB|SKILL|TUT|VAC|AUD|AUDIT)\)$/i, '')
+    .replace(/\s*\[(L|P|S|T|V|A|LEC|PRAC|LAB|SKILL|TUT|VAC|AUD|AUDIT)\]$/i, '');
 }
 
 function normalizeBaseTitle(rawTitle: string): string {
@@ -108,6 +108,18 @@ function extractEmbeddedComponentsFromRow(
       weight: 0.25,
       weightPercentage: 25,
       patterns: ['tutorial', 'tut', '_t', ' t '],
+    },
+    {
+      name: 'VAC',
+      weight: 0.25,
+      weightPercentage: 25,
+      patterns: ['vac', 'sports', '_v', ' v '],
+    },
+    {
+      name: 'Audit',
+      weight: 0.25,
+      weightPercentage: 25,
+      patterns: ['audit', 'auc', '_a', ' a '],
     },
   ];
 
