@@ -148,11 +148,14 @@ dayOrderMapping.forEach((def, idx) => {
 export function normalizeSlotKey(slotStr: string): string {
   if (!slotStr) return '';
   const str = String(slotStr).trim().toUpperCase();
-  const match = str.match(/^(?:PERIOD\s*|P\s*)?(\d+)/i);
+  if (str.includes(':')) {
+    return String(slotStr).trim();
+  }
+  const match = str.match(/^(?:PERIOD\s*|P\s*)(\d+)$/i) || str.match(/^(\d+)$/);
   if (match) {
     return match[1];
   }
-  return str;
+  return String(slotStr).trim();
 }
 
 /**
@@ -689,8 +692,8 @@ export function parseTimetable(
 
   const timeSlotsPresent = Array.from(timeSlotsSet);
 
-  // Preserve Period 6 as LUNCH BREAK explicitly
-  if (!timeSlotsPresent.includes('6')) {
+  // Preserve Period 6 as LUNCH BREAK explicitly in matrix layouts
+  if (layout !== 'list_rows' && !timeSlotsPresent.includes('6')) {
     timeSlotsPresent.push('6');
     // Maintain chronological order for numeric strings
     timeSlotsPresent.sort((a, b) => {
@@ -739,9 +742,6 @@ export function parseTimetable(
             rawText: 'LUNCH BREAK',
           };
           matrixGrid[day][slot].push(lunchSession);
-          if (!sessions.find((s) => s.id === lunchSession.id)) {
-            sessions.push(lunchSession);
-          }
         }
       }
     });
