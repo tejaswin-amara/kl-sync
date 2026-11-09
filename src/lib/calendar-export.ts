@@ -4,6 +4,12 @@ export interface CalendarEventInput {
   location?: string;
   startDate: Date;
   endDate: Date;
+  courseName?: string;
+  courseCode?: string;
+  component?: string;
+  section?: string;
+  faculty?: string;
+  credits?: number;
 }
 
 export function generateICS(events: CalendarEventInput[]): string {
@@ -21,10 +27,34 @@ export function generateICS(events: CalendarEventInput[]): string {
 
   for (const event of events) {
     lines.push('BEGIN:VEVENT');
-    lines.push(`SUMMARY:${event.title.replace(/\n/g, ' ')}`);
-    if (event.description) {
-      lines.push(`DESCRIPTION:${event.description.replace(/\n/g, ' ')}`);
+
+    // Formatting Summary
+    let summary = event.title;
+    if (event.courseName && event.courseCode && event.component) {
+      summary = `[${event.component}] ${event.courseName} (${event.courseCode})`;
+    } else if (event.courseName && event.component) {
+      summary = `[${event.component}] ${event.courseName}`;
+    } else if (event.courseName && event.courseCode) {
+      summary = `${event.courseName} (${event.courseCode})`;
     }
+    lines.push(`SUMMARY:${summary.replace(/\n/g, ' ')}`);
+
+    // Formatting Description
+    const descParts = [];
+    if (event.faculty) descParts.push(`Faculty: ${event.faculty}`);
+    if (event.section) descParts.push(`Section: ${event.section}`);
+    if (event.component) descParts.push(`Component: ${event.component}`);
+    if (event.credits !== undefined) descParts.push(`Credits: ${event.credits}`);
+
+    let description = event.description || '';
+    if (descParts.length > 0) {
+      const metaDesc = descParts.join(' | ');
+      description = description ? `${description}\n${metaDesc}` : metaDesc;
+    }
+    if (description) {
+      lines.push(`DESCRIPTION:${description.replace(/\n/g, ' - ')}`);
+    }
+
     if (event.location) {
       lines.push(`LOCATION:${event.location.replace(/\n/g, ' ')}`);
     }
