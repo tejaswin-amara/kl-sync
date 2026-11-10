@@ -82,6 +82,39 @@ function safeLoginError(error: unknown): {
 
 export async function POST(request: NextRequest) {
   try {
+    const requestOrigin = request.headers.get('origin');
+    if (requestOrigin) {
+      try {
+        if (new URL(requestOrigin).origin !== request.nextUrl.origin) {
+          return privateJson(
+            { success: false, message: 'Cross-origin login requests are not allowed.' },
+            { status: 403 }
+          );
+        }
+      } catch {
+        return privateJson(
+          { success: false, message: 'Invalid login request origin.' },
+          { status: 403 }
+        );
+      }
+    }
+
+    const contentType = request.headers.get('content-type') || '';
+    if (!contentType.toLowerCase().startsWith('application/json')) {
+      return privateJson(
+        { success: false, message: 'Login requests must use JSON.' },
+        { status: 415 }
+      );
+    }
+
+    const declaredLength = Number(request.headers.get('content-length') || 0);
+    if (declaredLength > MAX_LOGIN_BODY_BYTES) {
+      return privateJson(
+        { success: false, message: 'Login request is too large.' },
+        { status: 413 }
+      );
+    }
+
     const rawBody = await request.text();
     if (new TextEncoder().encode(rawBody).byteLength > MAX_LOGIN_BODY_BYTES) {
       return privateJson(
