@@ -6,7 +6,7 @@ export function ServiceWorkerRegistration() {
   useEffect(() => {
     if (
       !('serviceWorker' in navigator) ||
-      window.location.protocol !== 'https:'
+      !window.isSecureContext
     ) {
       return;
     }
