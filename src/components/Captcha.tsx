@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { Loader2, RefreshCw } from '@/components/ui/icons';
+import { Loader2 } from '@/components/ui/icons';
 import { Badge } from '@/components/ui/badge';
 import type { CapWidget } from 'cap-widget';
 import { triggerHaptic } from '@/lib/fluid-motion';
