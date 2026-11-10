@@ -120,7 +120,7 @@ export async function consumeNonce(
         ttl,
       ]);
       return result === 'OK';
-    } catch (error) {
+    } catch {
       console.warn(
         '[CAPTCHA] Distributed nonce consumption failed; rejecting challenge.'
       );
