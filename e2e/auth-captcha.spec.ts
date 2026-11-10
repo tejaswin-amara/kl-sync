@@ -1,83 +1,142 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
-test.describe('Form Submissions & Auto-Solving CAPTCHAs', () => {
-  test('Visual OCR CAPTCHA and Cap CAPTCHA auto-solve seamlessly on load and form submission', async ({
+test.describe('Student login and CAPTCHA synchronization', () => {
+  test('normalizes visual code, aligns the human-verification widget, and refreshes both challenges together', async ({
     page,
   }) => {
-    // 1. Navigate to login page and await initial captcha response
-    const captchaPromise = page
-      .waitForResponse(
-        (res) => res.url().includes('/api/captcha') && res.status() === 200,
-        { timeout: 15000 }
-      )
-      .catch(() => null);
+    const captchaResponse = page.waitForResponse(
+      (response) =>
+        response.url().endsWith('/api/captcha') && response.status() === 200,
+      { timeout: 15000 }
+    );
 
     await page.goto('/');
-    await captchaPromise;
+    await captchaResponse;
 
-    // 2. Verify login form elements are present
     const studentIdInput = page.locator('#student-id-field');
     const passwordInput = page.locator('#password-field');
     const captchaInput = page.locator('#captcha-field');
-    const submitBtn = page.getByRole('button', {
-      name: /Sign in|Continue to Dashboard/i,
+    const submitButton = page.getByRole('button', { name: /^Sign in$/ });
+    const image = page.getByAltText(
+      'Distorted university security code. Enter the 4 to 7 lowercase letters shown.'
+    );
+    const refreshButton = page.getByRole('button', {
+      name: /Refresh security code image and browser verification/i,
     });
+    const widgetGroup = page.getByRole('group', {
+      name: 'Browser security verification',
+    });
+    const widget = page.locator('cap-widget');
 
     await expect(studentIdInput).toBeVisible();
     await expect(passwordInput).toBeVisible();
     await expect(captchaInput).toBeVisible();
-    await expect(submitBtn).toBeVisible();
+    await expect(image).toBeVisible();
+    await expect(widget).toBeVisible();
+    await expect(submitButton).toBeDisabled();
+    await expect(captchaInput).toHaveValue('');
 
-    // 3. Verify Visual ERP OCR CAPTCHA or ensure security code is entered
-    let visualCaptchaValue = await captchaInput.inputValue();
-    if (!visualCaptchaValue) {
-      await captchaInput.fill('abcd');
-      visualCaptchaValue = 'abcd';
-    }
-    expect(visualCaptchaValue.length).toBeGreaterThan(0);
+    // Client input normalization is lowercase ASCII a-z only.
+    await captchaInput.fill('AB-CD 12');
+    await expect(captchaInput).toHaveValue('abcd');
 
-    // 4. Verify Cap CAPTCHA widget auto-solves and enables submit button
-    await expect(submitBtn).toBeEnabled({ timeout: 10000 });
+    // The custom element is centered inside its parent and cannot exceed it.
+    const widgetBox = await widget.boundingBox();
+    const groupBox = await widgetGroup.boundingBox();
+    expect(widgetBox).not.toBeNull();
+    expect(groupBox).not.toBeNull();
+    expect(widgetBox!.x).toBeGreaterThanOrEqual(groupBox!.x - 1);
+    expect(widgetBox!.x + widgetBox!.width).toBeLessThanOrEqual(
+      groupBox!.x + groupBox!.width + 1
+    );
+    const pageWidth = await page.evaluate(
+      () => document.documentElement.clientWidth
+    );
+    expect(widgetBox!.x + widgetBox!.width).toBeLessThanOrEqual(pageWidth + 1);
 
-    // 5. Fill credentials and submit form
+    // A refresh invalidates both the text challenge and the previous CapJS
+    // proof. A fresh image and fresh browser proof are required before login.
+    await refreshButton.click();
+    await expect(captchaInput).toHaveValue('');
+    await expect(submitButton).toBeDisabled();
+    await expect(image).toBeVisible();
+    await expect(submitButton).toBeEnabled({ timeout: 15000 });
+
+    await captchaInput.fill('ABCD');
+    await expect(captchaInput).toHaveValue('abcd');
     await studentIdInput.fill('2100030000');
     await passwordInput.fill('TestPassword123');
 
-    // 6. Submit form and verify successful navigation to dashboard
     await Promise.all([
       page.waitForURL('**/dashboard', { timeout: 15000 }),
-      submitBtn.click(),
+      submitButton.click(),
     ]);
-
     expect(page.url()).toContain('/dashboard');
   });
 
-  test('Remember Me checkbox and Explore Demo Portal pill are visible, interactive, and meet accessibility standards', async ({
+  test('rejects malformed visual codes in the browser before submission', async ({
     page,
   }) => {
     await page.goto('/');
 
+    const captchaInput = page.locator('#captcha-field');
+    const submitButton = page.getByRole('button', { name: /^Sign in$/ });
+
+    await expect(submitButton).toBeDisabled();
+    await captchaInput.fill('A!1');
+    await expect(captchaInput).toHaveValue('a');
+    await expect(submitButton).toBeDisabled();
+
+    await captchaInput.fill('ABCDEFGH');
+    await expect(captchaInput).toHaveValue('abcdefg');
+    await expect(submitButton).toBeDisabled();
+  });
+
+  test('Remember Me and Explore Demo Portal remain usable', async ({ page }) => {
+    const captchaResponse = page.waitForResponse(
+      (response) =>
+        response.url().endsWith('/api/captcha') && response.status() === 200,
+      { timeout: 15000 }
+    );
+
+    await page.goto('/');
+    await captchaResponse;
+
     const rememberMeCheckbox = page.locator('#remember-me-checkbox');
-    const demoPortalBtn = page.getByRole('button', {
+    const demoPortalButton = page.getByRole('button', {
       name: /Explore Demo Portal/i,
     });
 
     await expect(rememberMeCheckbox).toBeVisible();
     await expect(rememberMeCheckbox).not.toBeChecked();
-
-    // Toggle Remember Me
     await rememberMeCheckbox.check();
     await expect(rememberMeCheckbox).toBeChecked();
 
-    // Explore Demo Portal button
-    await expect(demoPortalBtn).toBeVisible();
-    await expect(demoPortalBtn).toBeEnabled();
+    await expect(demoPortalButton).toBeVisible();
+    await expect(demoPortalButton).toBeEnabled();
 
-    // Click demo portal button and verify navigation to dashboard
     await Promise.all([
       page.waitForURL('**/dashboard', { timeout: 15000 }),
-      demoPortalBtn.click(),
+      demoPortalButton.click(),
     ]);
     expect(page.url()).toContain('/dashboard');
+  });
+
+  test('provides keyboard-accessible spoken instructions without claiming audio challenge support', async ({
+    page,
+  }) => {
+    await page.goto('/');
+
+    const speakButton = page.getByRole('button', {
+      name: 'Speak instructions',
+    });
+    await expect(speakButton).toBeVisible();
+    await expect(speakButton).toBeEnabled();
+
+    const captchaHelp = page.locator('#captcha-instructions');
+    await expect(captchaHelp).toContainText(
+      'Type the letters as shown'
+    );
+    await expect(captchaHelp).toContainText('Refresh the image');
   });
 });
