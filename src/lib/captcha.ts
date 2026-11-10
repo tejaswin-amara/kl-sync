@@ -3,11 +3,24 @@ import { isDemoModeEnabled } from '@/lib/session';
 
 let devCapSecret: string | null = null;
 
+const CAPTCHA_CHALLENGE_TTL_MS = 5 * 60_000;
+const MAX_CLOCK_SKEW_MS = 60_000;
+const memoryNonces = new Map<string, number>();
+const consumedTokensMap = new Map<string, number>();
+
+function hasDistributedStore(): boolean {
+  return Boolean(
+    process.env.UPSTASH_REDIS_REST_URL &&
+      process.env.UPSTASH_REDIS_REST_TOKEN
+  );
+}
+
 export function getCapSecret(): string {
   const secret =
     process.env.CAP_SECRET ||
     process.env.SESSION_SECRET ||
     process.env.NEXTAUTH_SECRET;
+
   if (!secret) {
     if (process.env.NODE_ENV === 'production') {
       throw new Error(
@@ -21,203 +34,216 @@ export function getCapSecret(): string {
     }
     return devCapSecret;
   }
+
   if (secret.length >= 16) return secret;
   return createHash('sha256').update(secret).digest('hex');
 }
 
-// In-memory token & nonce store for CAPTCHA verification (development / single instance fallback)
-const memoryNonces = new Map<string, number>();
-const memoryTokens = new Map<string, number>();
-const consumedTokensMap = new Map<string, number>();
-
-function cleanExpired() {
+function cleanExpired(): void {
   const now = Date.now();
-  for (const [k, exp] of memoryNonces) if (exp <= now) memoryNonces.delete(k);
-  for (const [k, exp] of memoryTokens) if (exp <= now) memoryTokens.delete(k);
-  for (const [k, exp] of consumedTokensMap)
-    if (exp <= now) consumedTokensMap.delete(k);
+  for (const [key, expiresAt] of memoryNonces) {
+    if (expiresAt <= now) memoryNonces.delete(key);
+  }
+  for (const [key, expiresAt] of consumedTokensMap) {
+    if (expiresAt <= now) consumedTokensMap.delete(key);
+  }
 }
 
 function sha256Hex(input: string): string {
   return createHash('sha256').update(input).digest('hex');
 }
 
-async function upstashCommand(command: (string | number)[]): Promise<unknown> {
-  const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
-  const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+async function upstashCommand(
+  command: (string | number)[]
+): Promise<unknown> {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return null;
 
-  if (!upstashUrl || !upstashToken) return null;
-  try {
-    const res = await fetch(upstashUrl, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${upstashToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(command),
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.result;
-  } catch (err) {
-    console.warn('[CAPTCHA] Upstash Redis request failed:', err);
-    return null;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(command),
+    signal: AbortSignal.timeout(1500),
+  });
+
+  if (!response.ok) {
+    throw new Error('Distributed CAPTCHA store request failed.');
   }
+
+  const data = (await response.json()) as {
+    result?: unknown;
+    error?: string;
+  };
+  if (data.error) {
+    throw new Error('Distributed CAPTCHA store command failed.');
+  }
+
+  return data.result ?? null;
 }
 
-// Prevents a captured PoW submission from being redeemed twice.
+/**
+ * Atomically consumes the CapJS challenge signature.
+ *
+ * Redis SET NX PX is the distributed single-use primitive. The in-memory
+ * fallback is deliberately development-only: production must fail closed
+ * rather than accepting a replay on another serverless instance.
+ */
 export async function consumeNonce(
-  sigHex: string,
+  signatureHex: string,
   ttlMs: number
 ): Promise<boolean> {
-  cleanExpired();
-  const key = `cap-nonce:${sigHex}`;
-
   if (
-    process.env.UPSTASH_REDIS_REST_URL &&
-    process.env.UPSTASH_REDIS_REST_TOKEN
+    typeof signatureHex !== 'string' ||
+    signatureHex.length < 1 ||
+    signatureHex.length > 256 ||
+    !Number.isFinite(ttlMs) ||
+    ttlMs <= 0
   ) {
-    const res = await upstashCommand(['SET', key, '1', 'NX', 'PX', ttlMs]);
-    if (res === 'OK') return true;
-    if (res !== null) return false;
+    return false;
   }
 
+  const ttl = Math.max(1, Math.ceil(ttlMs));
+  const key = `cap-nonce:${sha256Hex(signatureHex)}`;
+
+  if (hasDistributedStore()) {
+    try {
+      const result = await upstashCommand([
+        'SET',
+        key,
+        '1',
+        'NX',
+        'PX',
+        ttl,
+      ]);
+      return result === 'OK';
+    } catch (error) {
+      console.warn(
+        '[CAPTCHA] Distributed nonce consumption failed; rejecting challenge.'
+      );
+      return false;
+    }
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    return false;
+  }
+
+  cleanExpired();
   if (memoryNonces.has(key)) return false;
-  memoryNonces.set(key, Date.now() + ttlMs);
+  memoryNonces.set(key, Date.now() + ttl);
   return true;
 }
 
-// Records a successfully redeemed CAPTCHA token so it can be checked later.
-export async function storeRedeemedToken(
-  tokenKey: string,
-  expiresAtMs: number
-) {
-  cleanExpired();
-  const key = `cap-token:${tokenKey}`;
-  const ttlMs = Math.max(1, expiresAtMs - Date.now());
-
-  if (
-    process.env.UPSTASH_REDIS_REST_URL &&
-    process.env.UPSTASH_REDIS_REST_TOKEN
-  ) {
-    await upstashCommand(['SET', key, '1', 'PX', ttlMs]);
-  }
-  memoryTokens.set(key, expiresAtMs);
-}
-
-// Call inside any route gated behind a solved CAPTCHA. Single-use: burns the token on first successful check.
+/**
+ * Verifies a server-issued CapJS login token and burns it exactly once.
+ * Tokens are short-lived, scope-bound, signed, and replay-protected.
+ */
 export async function verifyCaptchaToken(
   token: string | undefined | null
 ): Promise<boolean> {
-  if (!token) return false;
+  if (typeof token !== 'string' || token.length === 0 || token.length > 4096) {
+    return false;
+  }
+
   if (
     isDemoModeEnabled() &&
     (token === 'demo_token' || token === 'demo_csrf_token_123')
-  )
+  ) {
     return true;
-
-  // Stateless HMAC-signed token verification
-  if (token.startsWith('signed:')) {
-    const tokenPart = token.slice('signed:'.length);
-    const [b64, sig] = tokenPart.split('.');
-    if (!b64 || !sig) return false;
-
-    const secret = getCapSecret();
-    const expectedSig = createHmac('sha256', secret)
-      .update(b64)
-      .digest('base64url');
-
-    try {
-      const bufSig = Buffer.from(sig);
-      const bufExpected = Buffer.from(expectedSig);
-      if (
-        bufSig.length !== bufExpected.length ||
-        !timingSafeEqual(bufSig, bufExpected)
-      ) {
-        return false;
-      }
-
-      const payload = JSON.parse(
-        Buffer.from(b64, 'base64url').toString('utf8')
-      );
-      if (payload.exp && payload.exp < Date.now()) {
-        return false;
-      }
-      if (payload.scope && payload.scope !== 'login') {
-        return false;
-      }
-
-      const tokenKey = `cap-token:${sha256Hex(tokenPart)}`;
-      if (
-        process.env.UPSTASH_REDIS_REST_URL &&
-        process.env.UPSTASH_REDIS_REST_TOKEN
-      ) {
-        const consumed = await upstashCommand([
-          'GET',
-          `cap-consumed:${tokenKey}`,
-        ]);
-        if (consumed) return false;
-        await upstashCommand([
-          'SET',
-          `cap-consumed:${tokenKey}`,
-          '1',
-          'PX',
-          600000,
-        ]);
-      } else {
-        if (consumedTokensMap.has(tokenKey)) return false;
-        consumedTokensMap.set(tokenKey, Date.now() + 600000);
-      }
-
-      return true;
-    } catch {
-      return false;
-    }
   }
 
-  // Legacy / fallback colon format id:verToken
-  if (token.includes(':')) {
-    const [id, verToken] = token.split(':');
-    if (!id || !verToken) return false;
+  if (!token.startsWith('signed:')) return false;
 
-    const tokenKey = `${id}:${sha256Hex(verToken)}`;
+  const tokenPart = token.slice('signed:'.length);
+  const separator = tokenPart.indexOf('.');
+  if (
+    separator <= 0 ||
+    separator !== tokenPart.lastIndexOf('.') ||
+    separator === tokenPart.length - 1
+  ) {
+    return false;
+  }
+
+  const encodedPayload = tokenPart.slice(0, separator);
+  const signature = tokenPart.slice(separator + 1);
+  if (
+    !/^[A-Za-z0-9_-]+$/.test(encodedPayload) ||
+    !/^[A-Za-z0-9_-]{43}$/.test(signature)
+  ) {
+    return false;
+  }
+
+  try {
+    const secret = getCapSecret();
+    const expectedSignature = createHmac('sha256', secret)
+      .update(encodedPayload)
+      .digest();
+    const receivedSignature = Buffer.from(signature, 'base64url');
 
     if (
-      process.env.UPSTASH_REDIS_REST_URL &&
-      process.env.UPSTASH_REDIS_REST_TOKEN
+      receivedSignature.length !== expectedSignature.length ||
+      !timingSafeEqual(receivedSignature, expectedSignature)
     ) {
-      const consumed = await upstashCommand([
-        'GET',
-        `cap-consumed:${tokenKey}`,
-      ]);
-      if (consumed) return false;
-
-      const valid = await upstashCommand(['GET', `cap-token:${tokenKey}`]);
-      if (valid) {
-        await upstashCommand(['DEL', `cap-token:${tokenKey}`]);
-        await upstashCommand([
-          'SET',
-          `cap-consumed:${tokenKey}`,
-          '1',
-          'PX',
-          300000,
-        ]);
-        return true;
-      }
       return false;
     }
 
-    if (consumedTokensMap.has(tokenKey)) return false;
+    const payload = JSON.parse(
+      Buffer.from(encodedPayload, 'base64url').toString('utf8')
+    ) as {
+      scope?: unknown;
+      exp?: unknown;
+      iat?: unknown;
+      rnd?: unknown;
+    };
+
+    const now = Date.now();
+    if (
+      payload.scope !== 'login' ||
+      !Number.isSafeInteger(payload.exp) ||
+      !Number.isSafeInteger(payload.iat) ||
+      typeof payload.exp !== 'number' ||
+      typeof payload.iat !== 'number' ||
+      typeof payload.rnd !== 'string' ||
+      !/^[a-f0-9]{32}$/.test(payload.rnd) ||
+      payload.iat > now + MAX_CLOCK_SKEW_MS ||
+      payload.iat < now - CAPTCHA_CHALLENGE_TTL_MS - MAX_CLOCK_SKEW_MS ||
+      payload.exp <= now ||
+      payload.exp <= payload.iat ||
+      payload.exp - payload.iat >
+        CAPTCHA_CHALLENGE_TTL_MS + MAX_CLOCK_SKEW_MS
+    ) {
+      return false;
+    }
+
+    const ttlMs = payload.exp - now;
+    const consumedKey = `cap-consumed:${sha256Hex(tokenPart)}`;
+
+    if (hasDistributedStore()) {
+      const result = await upstashCommand([
+        'SET',
+        consumedKey,
+        '1',
+        'NX',
+        'PX',
+        Math.max(1, ttlMs),
+      ]);
+      return result === 'OK';
+    }
+
+    // A local Map cannot guarantee single-use verification across production
+    // instances. Do not silently downgrade to it in production.
+    if (process.env.NODE_ENV === 'production') return false;
 
     cleanExpired();
-    const key = `cap-token:${tokenKey}`;
-    const expires = memoryTokens.get(key);
-    if (expires && expires >= Date.now()) {
-      memoryTokens.delete(key);
-      consumedTokensMap.set(tokenKey, Date.now() + 300000);
-      return true;
-    }
+    if (consumedTokensMap.has(consumedKey)) return false;
+    consumedTokensMap.set(consumedKey, payload.exp);
+    return true;
+  } catch {
+    // Verification and storage errors are intentionally fail-closed.
+    return false;
   }
-
-  return false;
 }
