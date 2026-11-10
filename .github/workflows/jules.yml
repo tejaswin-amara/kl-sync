@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      issues: write
+      issues: read
       pull-requests: write
 
     steps:
@@ -29,20 +29,20 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Playwright Browsers
+        run: npm exec -- playwright install --with-deps chromium
+
       - name: Run Jules Quality Verification
-        run: |
-          npx tsc --noEmit
-          npm run lint
-          npm test
-          npm run build
+        run: npm run verify
         env:
-          JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
+          KL_SYNC_DEMO_MODE: 'true'
+          KL_SYNC_AI_MODE: 'offline'
           SESSION_SECRET: 'jules-secret-key-testing-minimum-32-bytes-long'
 
       - name: Create Pull Request for Jules Updates
