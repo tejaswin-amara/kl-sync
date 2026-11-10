@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { decodeSession, isDemoModeEnabled, isDemoSession } from '@/lib/session';
+import { ERPRateLimitError, ERP_URL, fetchWithJar } from '@/lib/scraper';
 
 export const dynamic = 'force-dynamic';
 
-const ERP_BASE_ORIGIN = 'https://newerp.kluniversity.in';
 const ALLOWED_IMAGE_TYPES = new Set([
   'image/jpeg',
   'image/png',
@@ -73,25 +73,24 @@ export async function GET(request: Request) {
   }
 
   try {
-    const headers = {
-      Cookie: session.cookies
-        .map((cookie) => `${cookie.name}=${cookie.value}`)
-        .join('; '),
-      Referer: `${ERP_BASE_ORIGIN}/`,
-      'User-Agent': 'KL-Sync/2.4',
-    };
+    const cookieJar = Object.fromEntries(
+      session.cookies.map(({ name, value }) => [name, value])
+    );
     let response: Response | undefined;
     for (const relativePath of targetRelativePaths) {
-      const targetUrl = new URL(relativePath, ERP_BASE_ORIGIN);
+      const targetUrl = new URL(relativePath, ERP_URL);
       if (
-        targetUrl.origin !== ERP_BASE_ORIGIN ||
+        targetUrl.origin !== ERP_URL ||
         !targetUrl.pathname.toLowerCase().startsWith('/uploads/')
       ) {
         return new NextResponse('Invalid photo path', { status: 400 });
       }
-      response = await fetch(targetUrl.href, {
-        headers,
+      response = await fetchWithJar(targetUrl.href, cookieJar, {
         signal: AbortSignal.timeout(8_000),
+        extraHeaders: {
+          Referer: ERP_URL + '/',
+          'User-Agent': 'KL-Sync/2.4',
+        },
       });
       if (response.ok) break;
     }
@@ -113,6 +112,15 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
+    if (error instanceof ERPRateLimitError) {
+      return new NextResponse(error.message, {
+        status: 429,
+        headers: {
+          'Retry-After': String(error.retryAfter),
+          'Cache-Control': 'no-store',
+        },
+      });
+    }
     console.error(
       '[PHOTO] Upstream fetch failed:',
       error instanceof Error ? error.message : 'Unknown error'

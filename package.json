@@ -9,9 +9,11 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "npx --yes tsx --import ./scripts/test-env.mjs --test \"src/**/*.test.ts\" \"tests/**/*.test.ts\"",
-    "test:api": "npx --yes tsx --import ./scripts/test-env.mjs --test src/e2e/tier1-feature-coverage.test.ts src/e2e/tier2-boundary-corner-cases.test.ts src/e2e/tier3-cross-feature-combinations.test.ts src/e2e/tier4-real-world-scenarios.test.ts",
-    "verify": "npm run typecheck && npm run lint && npm test && npm run build"
+    "test": "node scripts/run-tests.mjs",
+    "test:api": "tsx --import ./scripts/test-env.mjs --test src/e2e/tier1-feature-coverage.test.ts src/e2e/tier2-boundary-corner-cases.test.ts src/e2e/tier3-cross-feature-combinations.test.ts src/e2e/tier4-real-world-scenarios.test.ts",
+    "verify": "npm audit && npm run typecheck && npm run lint && npm test && npm run test:api && npm run test:ai && npm run build && npm run test:e2e",
+    "test:ai": "tsx scripts/agent-as-judge.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.46",
@@ -19,10 +21,10 @@
     "cap-widget": "^0.1.57",
     "capjs-core": "^0.1.1",
     "cheerio": "^1.2.0",
-    "next": "^16.3.2",
+    "next": "^16.4.5",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "zod": "^4.4.3"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
@@ -31,8 +33,17 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.3.2",
+    "eslint-config-next": "16.4.5",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "tsx": "4.23.15"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "overrides": {
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.4"
+    }
   }
 }

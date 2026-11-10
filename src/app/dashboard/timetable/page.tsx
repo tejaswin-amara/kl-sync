@@ -4,10 +4,7 @@ import { useState } from 'react';
 import { useAcademicSession } from '@/hooks/useAcademicSession';
 
 import { exportTableToCSV } from '@/lib/utils';
-import {
-  isSameDay,
-  ParsedTimetable,
-} from '@/lib/timetable-parser';
+import { isSameDay } from '@/lib/timetable-parser';
 import { getSubjectTitle, getSubjectCode } from '@/lib/course-utils';
 import {
   LayoutGrid,

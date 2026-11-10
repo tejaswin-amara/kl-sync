@@ -49,10 +49,10 @@ jobs:
         run: npm run lint
 
       - name: Run TypeScript Typecheck
-        run: npx tsc --noEmit
+        run: npm run typecheck
 
       - name: Run Security Audit
-        run: npm audit --audit-level=high
+        run: npm audit
 
       - name: Run Unit & Integration Tests
         run: npm test
@@ -61,7 +61,7 @@ jobs:
         run: npm run test:api
 
       - name: Run Agent-as-Judge AI Evaluation
-        run: npx --yes tsx scripts/agent-as-judge.ts
+        run: npm run test:ai
 
       - name: Build Next.js Production Bundle
         run: npm run build
@@ -70,7 +70,7 @@ jobs:
           SESSION_SECRET: 'ci-secret-key-testing-minimum-32-bytes-long'
 
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
+        run: npm exec -- playwright install --with-deps chromium
 
       - name: Run Playwright E2E Tests
-        run: npx playwright test
+        run: npm run test:e2e
