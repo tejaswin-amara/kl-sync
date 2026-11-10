@@ -1,0 +1,75 @@
+name: Temporary dependency verification
+
+on:
+  push:
+    branches:
+      - fix/pipeline-ci-security
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    name: Verify compatible minimatch override
+    runs-on: ubuntu-latest
+    env:
+      KL_SYNC_DEMO_MODE: 'true'
+      KL_SYNC_AI_MODE: 'offline'
+      SESSION_SECRET: 'ci-secret-key-testing-minimum-32-bytes-long'
+      NODE_ENV: 'test'
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: true
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Regenerate lockfile with scoped override
+        run: npm install --ignore-scripts
+
+      - name: Audit every dependency
+        run: npm audit
+
+      - name: TypeScript typecheck
+        run: npm run typecheck
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Unit and integration tests
+        run: npm test
+
+      - name: API boundary tests
+        run: npm run test:api
+
+      - name: Agent-as-Judge evaluation
+        run: npm run test:ai
+
+      - name: Production build
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Install Playwright browsers
+        run: npm exec -- playwright install --with-deps chromium
+
+      - name: End-to-end tests
+        run: npm run test:e2e
+
+      - name: Commit regenerated lockfile and remove temporary workflow
+        if: always()
+        run: |
+          rm -f .github/workflows/dependency-verification.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json .github/workflows/dependency-verification.yml
+          if ! git diff --cached --quiet; then
+            git commit -m "fix(deps): override vulnerable minimatch transitively"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
