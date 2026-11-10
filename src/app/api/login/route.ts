@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loginAndFetchSemesters, ScraperSession } from '@/lib/scraper';
-import { decodeSession, encodeSession, isDemoModeEnabled } from '@/lib/session';
+import {
+  decodeSession,
+  encodeSession,
+  isDemoModeEnabled,
+} from '@/lib/session';
 import { verifyCaptchaToken } from '@/lib/captcha';
+import { isValidCaptchaInput } from '@/lib/captcha-input';
 import { DEMO_LOGIN_RESULT, DEMO_SESSION } from '@/lib/fixtures';
 import { checkRateLimitDistributed, getClientIP } from '@/lib/request-utils';
 
@@ -9,6 +14,17 @@ export const dynamic = 'force-dynamic';
 
 const CAPTCHA_COOKIE = 'kl_captcha_session';
 const SESSION_COOKIE = 'kl_erp_session';
+const MAX_LOGIN_BODY_BYTES = 16 * 1024;
+const NO_STORE = 'no-store, max-age=0, must-revalidate';
+
+function privateJson(
+  body: unknown,
+  init: ResponseInit = {}
+): NextResponse {
+  const headers = new Headers(init.headers);
+  headers.set('Cache-Control', NO_STORE);
+  return NextResponse.json(body, { ...init, headers });
+}
 
 function setCookie(
   response: NextResponse,
@@ -66,20 +82,70 @@ function safeLoginError(error: unknown): {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const username =
-      typeof body.username === 'string' ? body.username.trim() : '';
-    const password = typeof body.password === 'string' ? body.password : '';
-    const captcha =
-      typeof body.captcha === 'string' ? body.captcha.trim().toLowerCase() : '';
-    const captchaToken =
-      typeof body.captchaToken === 'string' ? body.captchaToken : '';
-    const deviceId = typeof body.deviceId === 'string' ? body.deviceId : '';
-    const rememberMe = body.rememberMe === true;
+    const rawBody = await request.text();
+    if (new TextEncoder().encode(rawBody).byteLength > MAX_LOGIN_BODY_BYTES) {
+      return privateJson(
+        { success: false, message: 'Login request is too large.' },
+        { status: 413 }
+      );
+    }
 
-    if (!username || !password || !captcha) {
-      return NextResponse.json(
-        { success: false, message: 'Missing required fields' },
+    let body: unknown;
+    try {
+      body = JSON.parse(rawBody);
+    } catch {
+      return privateJson(
+        { success: false, message: 'Invalid login request.' },
+        { status: 400 }
+      );
+    }
+
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return privateJson(
+        { success: false, message: 'Invalid login request.' },
+        { status: 400 }
+      );
+    }
+
+    const payload = body as Record<string, unknown>;
+    const username =
+      typeof payload.username === 'string' ? payload.username.trim() : '';
+    const password =
+      typeof payload.password === 'string' ? payload.password : '';
+    const captcha =
+      typeof payload.captcha === 'string' ? payload.captcha : '';
+    const captchaToken =
+      typeof payload.captchaToken === 'string' ? payload.captchaToken : '';
+    const deviceId =
+      typeof payload.deviceId === 'string' &&
+      payload.deviceId.length <= 128
+        ? payload.deviceId
+        : '';
+    const rememberMe = payload.rememberMe === true;
+
+    if (
+      !username ||
+      username.length > 128 ||
+      !password ||
+      password.length > 1024
+    ) {
+      return privateJson(
+        { success: false, message: 'Enter a valid student ID and password.' },
+        { status: 400 }
+      );
+    }
+
+    // Do not silently lowercase, trim, or strip invalid characters on the
+    // server. The exact string submitted must be a-z only and match the
+    // visual challenge format used by the login UI.
+    if (!isValidCaptchaInput(captcha)) {
+      return privateJson(
+        {
+          success: false,
+          message:
+            'The security code must contain 4–7 lowercase letters (a–z).',
+          field: 'captcha',
+        },
         { status: 400 }
       );
     }
@@ -96,21 +162,19 @@ export async function POST(request: NextRequest) {
       8,
       10 * 60 * 1000
     );
+
     if (!ipLimit.allowed || !accountLimit.allowed) {
       const retryAfter = Math.ceil(
         Math.max(ipLimit.resetMs, accountLimit.resetMs) / 1000
       );
-      return NextResponse.json(
+      return privateJson(
         {
           success: false,
           message: 'Too many login attempts. Please try again later.',
         },
         {
           status: 429,
-          headers: {
-            'Cache-Control': 'no-store, max-age=0',
-            'Retry-After': String(retryAfter),
-          },
+          headers: { 'Retry-After': String(retryAfter) },
         }
       );
     }
@@ -121,28 +185,28 @@ export async function POST(request: NextRequest) {
       (username === 'demo' ||
         username === 'teststudent' ||
         username === '2100030000');
-    if (
-      !isExplicitDemoUser &&
-      !(await verifyCaptchaToken(captchaToken))
-    ) {
-      return NextResponse.json(
+
+    if (!isExplicitDemoUser && !(await verifyCaptchaToken(captchaToken))) {
+      return privateJson(
         {
           success: false,
-          message: 'Captcha verification failed. Please try again.',
+          message: 'Browser verification expired or failed. Please verify again.',
+          field: 'captchaToken',
         },
         { status: 400 }
       );
     }
 
-    const captchaSessionId =
-      request.cookies.get(CAPTCHA_COOKIE)?.value ||
-      request.headers.get('x-session-id') ||
-      request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ||
-      (typeof body.sessionId === 'string' ? body.sessionId : undefined);
-
+    // The browser never receives this bearer session. Only the short-lived,
+    // HttpOnly cookie minted by GET /api/captcha is accepted.
+    const captchaSessionId = request.cookies.get(CAPTCHA_COOKIE)?.value;
     if (!captchaSessionId) {
-      return NextResponse.json(
-        { success: false, message: 'Session expired. Please refresh captcha.' },
+      return privateJson(
+        {
+          success: false,
+          message: 'Your security-code session expired. Refresh the image.',
+          field: 'captcha',
+        },
         { status: 400 }
       );
     }
@@ -157,10 +221,11 @@ export async function POST(request: NextRequest) {
       ) {
         session = DEMO_SESSION;
       } else {
-        return NextResponse.json(
+        return privateJson(
           {
             success: false,
-            message: 'Captcha session is invalid. Please refresh the captcha.',
+            message: 'Your security-code session is invalid. Refresh the image.',
+            field: 'captcha',
           },
           { status: 400 }
         );
@@ -190,7 +255,7 @@ export async function POST(request: NextRequest) {
       }
     } catch (error) {
       const safe = safeLoginError(error);
-      return NextResponse.json(
+      return privateJson(
         {
           success: false,
           message: safe.message,
@@ -202,13 +267,11 @@ export async function POST(request: NextRequest) {
 
     const updatedSessionId = await encodeSession(result.session);
     if (result.needsCaptchaRetry) {
-      const response = NextResponse.json({
+      const response = privateJson({
         success: false,
         needsCaptchaRetry: true,
         message: result.message,
-        sessionId: updatedSessionId,
       });
-      response.headers.set('x-session-id', updatedSessionId);
       return setCookie(
         clearCookie(response, SESSION_COOKIE),
         CAPTCHA_COOKIE,
@@ -217,15 +280,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const response = NextResponse.json({
+    const response = privateJson({
       success: true,
       message: 'Login successful',
-      sessionId: updatedSessionId,
       deviceId: result.deviceId,
       academicYears: result.academicYears,
       semesters: result.semesters,
     });
-    response.headers.set('x-session-id', updatedSessionId);
     clearCookie(response, CAPTCHA_COOKIE);
     return setCookie(
       response,
@@ -238,7 +299,7 @@ export async function POST(request: NextRequest) {
       '[AUTH_ERROR]',
       error instanceof Error ? error.message : 'Unknown login error'
     );
-    return NextResponse.json(
+    return privateJson(
       { success: false, message: 'Login failed. Please try again.' },
       { status: 400 }
     );
