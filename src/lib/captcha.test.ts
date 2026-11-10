@@ -129,12 +129,17 @@ test('distributed nonce and token replay checks use atomic Redis SET NX PX', asy
     assert.equal(await consumeNonce(nonce, 20_000), true);
     assert.equal(await consumeNonce(nonce, 20_000), false);
 
-    assert.equal(commands.length, 2);
+    const signedToken = createSignedToken();
+    assert.equal(await verifyCaptchaToken(signedToken), true);
+    assert.equal(await verifyCaptchaToken(signedToken), false);
+
+    assert.equal(commands.length, 4);
     for (const command of commands) {
       assert.equal(command[0], 'SET');
       assert.ok(command.includes('NX'));
       assert.ok(command.includes('PX'));
     }
+    assert.match(String(commands[2][1]), /^cap-consumed:/);
   } finally {
     globalThis.fetch = previousFetch;
     if (previousUrl === undefined) delete env.UPSTASH_REDIS_REST_URL;
