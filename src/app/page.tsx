@@ -3,8 +3,11 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   AlertCircle,
+  GraduationCap,
   Loader2,
   Lock,
   LogIn,
@@ -13,7 +16,6 @@ import {
   Sparkles,
   User,
 } from '@/components/ui/icons';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -22,11 +24,11 @@ import {
   CardHeader,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { LanguageSelector } from '@/components/ui/LanguageSelector';
+import { Captcha } from '@/components/Captcha';
 import { triggerHaptic } from '@/lib/fluid-motion';
 import { prefetchAllUserData } from '@/lib/data-prefetcher';
 import { useI18n } from '@/lib/i18n';
-import { LanguageSelector } from '@/components/ui/LanguageSelector';
-import { Captcha } from '@/components/Captcha';
 import {
   isValidCaptchaInput,
   normalizeCaptchaInput,
@@ -43,9 +45,13 @@ type LoginResponse = {
   semesters?: Array<{ value: string; label: string }>;
 };
 
+const CAPTCHA_MIN_LENGTH = 4;
+const CAPTCHA_MAX_LENGTH = 7;
+
 export default function LoginPage() {
   const router = useRouter();
   const { t } = useI18n();
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [captcha, setCaptcha] = useState('');
@@ -61,9 +67,10 @@ export default function LoginPage() {
   const [credentialsInvalid, setCredentialsInvalid] = useState(false);
   const [captchaInvalid, setCaptchaInvalid] = useState(false);
   const captchaRequestRef = useRef(0);
+  const mountedRef = useRef(false);
 
   const fetchCaptcha = useCallback(
-    async (preserveError = false): Promise<void> => {
+    async (preserveMessage = false): Promise<void> => {
       const requestId = ++captchaRequestRef.current;
 
       setCaptchaLoading(true);
@@ -72,19 +79,25 @@ export default function LoginPage() {
       setCaptchaToken('');
       setCaptchaInvalid(false);
       setCaptchaChallengeVersion((version) => version + 1);
-      if (!preserveError) setError(null);
+      if (!preserveMessage) {
+        setError(null);
+        setStatus(null);
+      }
 
       try {
         const response = await fetch('/api/captcha', {
           cache: 'no-store',
           credentials: 'same-origin',
+          headers: { Accept: 'application/json' },
           signal: AbortSignal.timeout(12000),
         });
-        const data = (await response.json()) as {
+
+        const data = (await response.json().catch(() => ({}))) as {
           captchaImage?: unknown;
           error?: unknown;
           minLength?: unknown;
           maxLength?: unknown;
+          rule?: unknown;
         };
 
         if (
@@ -95,31 +108,32 @@ export default function LoginPage() {
           const message =
             typeof data.error === 'string'
               ? data.error
-              : 'The security-code service is unavailable.';
+              : 'The university security-code service is unavailable.';
           throw new Error(message);
         }
 
-        // A newer refresh wins. Late responses must never replace the image
-        // and ERP session created by the latest request.
+        // A stale request must never replace the current image/session.
         if (requestId !== captchaRequestRef.current) return;
 
         setCaptchaImage(data.captchaImage);
+        setStatus('A new university security-code image is ready.');
       } catch (cause) {
         if (requestId !== captchaRequestRef.current) return;
 
-        console.warn('[CAPTCHA] Image challenge refresh failed:', cause);
+        console.warn(
+          '[CAPTCHA] Image challenge refresh failed:',
+          cause instanceof Error ? cause.message : 'Unknown error'
+        );
         setCaptchaImage(null);
         setCaptchaToken('');
         setCaptchaInvalid(true);
-        if (!preserveError) {
-          setError(
-            cause instanceof Error && cause.message
-              ? cause.message
-              : 'Could not load the security code. Please retry.'
-          );
-        }
+        setError(
+          cause instanceof Error && cause.message
+            ? cause.message
+            : 'Could not load the security code. Refresh to try again.'
+        );
       } finally {
-        if (requestId === captchaRequestRef.current) {
+        if (requestId === captchaRequestRef.current && mountedRef.current) {
           setCaptchaLoading(false);
         }
       }
@@ -128,6 +142,8 @@ export default function LoginPage() {
   );
 
   useEffect(() => {
+    mountedRef.current = true;
+
     try {
       const savedDevice = localStorage.getItem('kl_erp_device_id');
       if (savedDevice) setDeviceId(savedDevice);
@@ -138,10 +154,15 @@ export default function LoginPage() {
         setRememberMe(true);
       }
     } catch {
-      // Storage may be unavailable in private browsing; login remains usable.
+      // Private browsing and storage restrictions must not block login.
     }
 
     void fetchCaptcha();
+
+    return () => {
+      mountedRef.current = false;
+      captchaRequestRef.current += 1;
+    };
   }, [fetchCaptcha]);
 
   const speakCaptchaInstructions = () => {
@@ -150,41 +171,58 @@ export default function LoginPage() {
       !('speechSynthesis' in window) ||
       typeof SpeechSynthesisUtterance === 'undefined'
     ) {
-      setStatus('Spoken instructions are not supported in this browser.');
+      setStatus('Spoken instructions are not supported by this browser.');
       return;
     }
 
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(
-      'Enter the four to seven lowercase letters shown in the university security-code image. Use Refresh security code if the image is difficult to read. The university ERP currently supplies an image challenge only.'
+      'Enter the four to seven lowercase letters shown in the university security-code image. The optional KLU ERP Auto-Fill extension can provide an on-device suggestion. Review any suggestion before signing in. If the image is difficult to read, refresh the security code. The university ERP does not currently provide an audio version of this image challenge.'
     );
     utterance.lang = document.documentElement.lang || 'en';
     window.speechSynthesis.speak(utterance);
   };
 
+  const handleCaptchaChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const nextValue = normalizeCaptchaInput(event.currentTarget.value);
+    setCaptcha(nextValue);
+    setCaptchaInvalid(false);
+    setError(null);
+
+    // The optional extension dispatches bubbling input/change events after
+    // local inference. Announce its suggestion, but never treat it as proof.
+    if (event.nativeEvent.isTrusted === false && nextValue) {
+      setStatus(
+        `On-device suggestion filled: ${nextValue}. Compare it with the image before continuing.`
+      );
+    } else {
+      setStatus(null);
+    }
+  };
+
   const handleLogin = async (
-    event?: React.FormEvent,
-    overrideCreds?: { u: string; p: string; c: string }
+    event?: React.FormEvent<HTMLFormElement>,
+    overrideCreds?: { username: string; password: string; captcha: string }
   ) => {
     event?.preventDefault();
 
-    const u = overrideCreds ? overrideCreds.u : username;
-    const p = overrideCreds ? overrideCreds.p : password;
-    const c = overrideCreds ? overrideCreds.c : captcha;
+    const submittedUsername = overrideCreds?.username ?? username;
+    const submittedPassword = overrideCreds?.password ?? password;
+    const submittedCaptcha = overrideCreds?.captcha ?? captcha;
 
     const validCredentials =
-      typeof u === 'string' &&
-      u.trim().length > 0 &&
-      u.trim().length <= 128 &&
-      typeof p === 'string' &&
-      p.length > 0 &&
-      p.length <= 1024;
-    const validCaptcha = isValidCaptchaInput(c);
+      typeof submittedUsername === 'string' &&
+      submittedUsername.trim().length > 0 &&
+      submittedUsername.trim().length <= 128 &&
+      typeof submittedPassword === 'string' &&
+      submittedPassword.length > 0 &&
+      submittedPassword.length <= 1024;
+    const validCode = isValidCaptchaInput(submittedCaptcha);
 
-    if (!validCredentials || !validCaptcha) {
+    if (!validCredentials || !validCode) {
       triggerHaptic('error');
       setCredentialsInvalid(!validCredentials);
-      setCaptchaInvalid(!validCaptcha);
+      setCaptchaInvalid(!validCode);
       setError(
         !validCredentials
           ? 'Enter your student ID and password.'
@@ -201,25 +239,28 @@ export default function LoginPage() {
     triggerHaptic('light');
 
     try {
-      let storedDeviceId = deviceId;
+      let currentDeviceId = deviceId;
       try {
-        storedDeviceId =
-          storedDeviceId || localStorage.getItem('kl_erp_device_id') || '';
+        currentDeviceId =
+          currentDeviceId || localStorage.getItem('kl_erp_device_id') || '';
       } catch {
-        // Continue without a remembered device identifier.
+        // Device persistence is optional.
       }
 
       const response = await fetch('/api/login', {
         method: 'POST',
         credentials: 'same-origin',
         cache: 'no-store',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          username: u.trim(),
-          password: p,
-          captcha: c,
+          username: submittedUsername.trim(),
+          password: submittedPassword,
+          captcha: submittedCaptcha,
           captchaToken: captchaToken || undefined,
-          deviceId: storedDeviceId,
+          deviceId: currentDeviceId,
           rememberMe,
         }),
       });
@@ -231,14 +272,13 @@ export default function LoginPage() {
         try {
           localStorage.setItem('kl_erp_device_id', data.deviceId);
         } catch {
-          // Storage is an optional convenience, not an auth requirement.
+          // Storage is an optional convenience, not an authentication requirement.
         }
       }
 
       if (data.needsCaptchaRetry) {
-        setError(null);
         setStatus(
-          'The university ERP requested a new security code. Enter the new image to continue.'
+          'The university ERP requested a fresh security code. Enter the new image to continue.'
         );
         await fetchCaptcha(true);
         triggerHaptic('warning');
@@ -256,9 +296,13 @@ export default function LoginPage() {
       }
 
       try {
-        if (rememberMe) localStorage.setItem('remember_username', u.trim());
-        else localStorage.removeItem('remember_username');
+        if (rememberMe) {
+          localStorage.setItem('remember_username', submittedUsername.trim());
+        } else {
+          localStorage.removeItem('remember_username');
+        }
 
+        // Never persist passwords or CAPTCHA/CapJS tokens in browser storage.
         localStorage.removeItem('remember_password');
         localStorage.setItem(
           'kl_erp_academic_years',
@@ -274,9 +318,9 @@ export default function LoginPage() {
         if (data.semesters?.length) {
           localStorage.setItem('kl_erp_sem', data.semesters[0].value);
         }
-        localStorage.setItem('studentId', u.trim());
+        localStorage.setItem('studentId', submittedUsername.trim());
       } catch {
-        // Private browsing/storage restrictions must not block authentication.
+        // Browser storage is optional.
       }
 
       const academicYear = data.academicYears?.[0]?.value || '';
@@ -298,321 +342,424 @@ export default function LoginPage() {
   };
 
   const handleDemoMode = () => {
+    if (!captchaImage || captchaLoading || loading) return;
+
     triggerHaptic('selection');
     setUsername('2100030000');
     setPassword('demo_password');
     setCaptcha('abcd');
     setCaptchaInvalid(false);
     void handleLogin(undefined, {
-      u: '2100030000',
-      p: 'demo_password',
-      c: 'abcd',
+      username: '2100030000',
+      password: 'demo_password',
+      captcha: 'abcd',
     });
   };
+
+  const canSignIn =
+    !loading &&
+    !captchaLoading &&
+    Boolean(captchaImage) &&
+    isValidCaptchaInput(captcha) &&
+    Boolean(captchaToken);
 
   return (
     <main
       id="main-content"
-      className="relative flex h-[100dvh] w-full overflow-hidden bg-background text-foreground"
+      className="relative min-h-[100svh] overflow-x-hidden bg-background text-foreground"
     >
-      <h1 className="sr-only">KL Sync Student Portal</h1>
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_0%,rgba(79,70,200,0.10),transparent_35%),radial-gradient(circle_at_90%_100%,rgba(19,138,99,0.08),transparent_36%)]" />
-      <div className="absolute right-4 top-4 z-30 flex items-center gap-2 sm:right-6 sm:top-6">
-        <LanguageSelector />
-      </div>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_12%,rgba(111,115,230,0.17),transparent_32%),radial-gradient(circle_at_88%_82%,rgba(51,170,135,0.10),transparent_30%)]"
+      />
 
-      <section className="relative flex min-h-[100dvh] flex-col overflow-y-auto bg-background py-6 custom-scrollbar sm:py-8">
-        <div className="m-auto w-full max-w-[420px] px-4 animate-spring-up">
-          <Card
-            variant="glass"
-            className="rounded-[--radius-2xl] border-border/60 p-4 shadow-xl backdrop-blur-xl sm:p-6"
+      <div className="relative mx-auto flex min-h-[100svh] w-full max-w-[1440px] flex-col px-4 py-4 sm:px-6 sm:py-6 lg:px-10 lg:py-8">
+        <header className="flex w-full items-center justify-between gap-4">
+          <Link
+            href="/"
+            aria-label="KL Sync Student Portal home"
+            className="group inline-flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <CardHeader className="p-0 pb-4">
-              <div className="mb-3 flex items-center gap-3">
-                <div className="flex h-11 shrink-0 items-center justify-center rounded-xl border border-border/80 bg-surface-1 p-1.5 shadow-xs backdrop-blur-md">
-                  <img
-                    src="/logo.webp"
-                    alt="KL University Logo"
-                    className="h-full w-auto object-contain"
-                  />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold leading-tight tracking-tight text-foreground">
-                    KL Sync
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/80 bg-surface-1 p-1.5 shadow-sm">
+              <img
+                src="/logo.webp"
+                alt=""
+                className="h-full w-full object-contain"
+              />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-sm font-bold tracking-tight text-foreground sm:text-base">
+                KL Sync
+              </span>
+              <span className="block truncate text-[11px] text-muted-foreground">
+                KL University Student Portal
+              </span>
+            </span>
+          </Link>
+          <LanguageSelector />
+        </header>
+
+        <div className="grid flex-1 grid-cols-1 items-center gap-8 py-7 lg:grid-cols-[minmax(0,1fr)_minmax(420px,480px)] lg:gap-16 lg:py-10">
+          <section className="hidden max-w-2xl flex-col justify-center gap-8 lg:flex">
+            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
+              <span className="h-1.5 w-1.5 rounded-full bg-success" />
+              Student workspace · Live ERP sync
+            </div>
+
+            <div className="space-y-5">
+              <p className="caption-label text-muted-foreground">
+                Your university, in one place
+              </p>
+              <h1 className="display-title max-w-xl text-5xl font-bold leading-[1.04] tracking-[-0.045em] xl:text-6xl">
+                Your academic day,
+                <span className="block text-gradient-brand">
+                  in clear view.
+                </span>
+              </h1>
+              <p className="max-w-xl text-base leading-8 text-muted-foreground">
+                A focused student portal for the information you check most:
+                classes, attendance, marks, fees, profile details and campus
+                updates.
+              </p>
+            </div>
+
+            <div className="grid max-w-xl grid-cols-2 gap-3">
+              {[
+                ['01', 'Timetable', 'Today’s classes and schedule'],
+                ['02', 'Attendance', 'Course-wise attendance'],
+                ['03', 'Marks', 'Assessment results'],
+                ['04', 'Fees', 'Dues and payment status'],
+              ].map(([number, title, description]) => (
+                <div
+                  key={number}
+                  className="rounded-2xl border border-border/80 bg-surface-1/75 p-4 shadow-sm backdrop-blur"
+                >
+                  <span className="text-[10px] font-bold tracking-[0.16em] text-primary">
+                    {number}
+                  </span>
+                  <h2 className="mt-2 text-sm font-semibold text-foreground">
+                    {title}
                   </h2>
-                  <p className="text-[11px] font-medium text-muted-foreground">
-                    KL University Student Portal
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    {description}
                   </p>
                 </div>
-              </div>
+              ))}
+            </div>
 
-              <p className="caption-label mb-0.5 text-primary font-semibold">
-                Welcome back
-              </p>
-              <h3 className="display-title text-2xl font-extrabold tracking-tight sm:text-3xl">
-                Sign in to your{' '}
-                <span className="text-gradient-brand">workspace.</span>
-              </h3>
-              <CardDescription className="mt-1 text-xs sm:text-sm">
-                Use your student ERP credentials to continue.
-              </CardDescription>
-            </CardHeader>
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full border border-success/30 bg-success/10 text-success">
+                <ShieldCheck className="h-4 w-4" />
+              </span>
+              <span>
+                Session credentials are protected with encrypted,
+                HttpOnly browser cookies.
+              </span>
+            </div>
+          </section>
 
-            <CardContent className="p-0">
-              {error && (
-                <div
-                  role="alert"
-                  aria-live="assertive"
-                  className="mb-3 flex items-start gap-2.5 rounded-[--radius-md] border border-error/35 bg-error/10 p-2.5 text-xs text-error sm:text-sm"
-                >
-                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                  <p className="leading-relaxed">{error}</p>
+          <section className="mx-auto flex w-full max-w-[480px] flex-col justify-center">
+            <Card
+              variant="glass"
+              className="w-full overflow-visible rounded-[28px] border-border/80 bg-surface-1/95 p-1 shadow-2xl shadow-black/25 backdrop-blur-xl"
+            >
+              <CardHeader className="space-y-3 px-5 pb-4 pt-6 sm:px-7 sm:pt-8">
+                <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
+                  <GraduationCap className="h-4 w-4" />
+                  Student access
                 </div>
-              )}
-              {status && !error && (
-                <div
-                  role="status"
-                  aria-live="polite"
-                  className="mb-3 flex items-start gap-2.5 rounded-[--radius-md] border border-info/35 bg-info/10 p-2.5 text-xs text-info sm:text-sm"
-                >
-                  <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
-                  <p className="leading-relaxed">{status}</p>
-                </div>
-              )}
-
-              <form
-                onSubmit={(event) => void handleLogin(event)}
-                className="space-y-3"
-                aria-label="Student ERP Authentication Form"
-                noValidate
-              >
-                <div className="space-y-1">
-                  <label
-                    htmlFor="student-id-field"
-                    className="caption-label text-muted-foreground"
-                  >
-                    {t('studentId', 'Student ID / username')}
-                  </label>
-                  <Input
-                    id="student-id-field"
-                    value={username}
-                    onChange={(event) => {
-                      setUsername(event.currentTarget.value);
-                      setCredentialsInvalid(false);
-                    }}
-                    placeholder="210003xxxx"
-                    leftIcon={<User className="h-4 w-4" />}
-                    required
-                    maxLength={128}
-                    autoComplete="username"
-                    error={credentialsInvalid}
-                    aria-describedby={
-                      credentialsInvalid ? 'login-error' : undefined
-                    }
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label
-                    htmlFor="password-field"
-                    className="caption-label text-muted-foreground"
-                  >
-                    {t('password', 'Password')}
-                  </label>
-                  <Input
-                    id="password-field"
-                    type="password"
-                    value={password}
-                    onChange={(event) => {
-                      setPassword(event.currentTarget.value);
-                      setCredentialsInvalid(false);
-                    }}
-                    placeholder="Enter your password"
-                    leftIcon={<Lock className="h-4 w-4" />}
-                    required
-                    maxLength={1024}
-                    autoComplete="current-password"
-                    error={credentialsInvalid}
-                    aria-describedby={
-                      credentialsInvalid ? 'login-error' : undefined
-                    }
-                  />
-                </div>
-
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between gap-3">
+                  <h2
+                    id="login-title"
+                    className="display-title text-2xl font-bold tracking-tight sm:text-[2rem]"
+                  >
+                    Welcome back.
+                  </h2>
+                  <CardDescription className="text-sm">
+                    Sign in with your university ERP credentials.
+                  </CardDescription>
+                </div>
+              </CardHeader>
+
+              <CardContent className="px-5 pb-6 sm:px-7 sm:pb-8">
+                {error && (
+                  <div
+                    id="login-error"
+                    role="alert"
+                    aria-live="assertive"
+                    className="mb-4 flex items-start gap-2.5 rounded-xl border border-error/35 bg-error/10 p-3 text-sm text-error"
+                  >
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <p className="min-w-0 leading-relaxed">{error}</p>
+                  </div>
+                )}
+
+                {status && !error && (
+                  <div
+                    role="status"
+                    aria-live="polite"
+                    className="mb-4 flex items-start gap-2.5 rounded-xl border border-info/30 bg-info/10 p-3 text-xs leading-relaxed text-info"
+                  >
+                    <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
+                    <p className="min-w-0">{status}</p>
+                  </div>
+                )}
+
+                <form
+                  onSubmit={(event) => void handleLogin(event)}
+                  className="space-y-4"
+                  aria-labelledby="login-title"
+                  noValidate
+                >
+                  <div className="space-y-1.5">
                     <label
-                      htmlFor="captcha-field"
+                      htmlFor="student-id-field"
                       className="caption-label text-muted-foreground"
                     >
-                      {t('securityCode', 'Security code')}
+                      {t('studentId', 'Student ID / username')}
                     </label>
-                    <span className="text-[10px] font-semibold text-primary">
-                      4–7 lowercase letters
-                    </span>
+                    <Input
+                      id="student-id-field"
+                      name="username"
+                      value={username}
+                      onChange={(event) => {
+                        setUsername(event.currentTarget.value);
+                        setCredentialsInvalid(false);
+                      }}
+                      placeholder="Enter your student ID"
+                      leftIcon={<User className="h-4 w-4" />}
+                      required
+                      maxLength={128}
+                      autoComplete="username"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      error={credentialsInvalid}
+                      aria-invalid={credentialsInvalid || undefined}
+                      aria-describedby={credentialsInvalid ? 'login-error' : undefined}
+                    />
                   </div>
 
-                  <div
-                    className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2"
-                    role="group"
-                    aria-label="University visual security code"
-                  >
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="password-field"
+                      className="caption-label text-muted-foreground"
+                    >
+                      {t('password', 'Password')}
+                    </label>
+                    <Input
+                      id="password-field"
+                      name="password"
+                      type="password"
+                      value={password}
+                      onChange={(event) => {
+                        setPassword(event.currentTarget.value);
+                        setCredentialsInvalid(false);
+                      }}
+                      placeholder="Enter your ERP password"
+                      leftIcon={<Lock className="h-4 w-4" />}
+                      required
+                      maxLength={1024}
+                      autoComplete="current-password"
+                      error={credentialsInvalid}
+                      aria-invalid={credentialsInvalid || undefined}
+                      aria-describedby={credentialsInvalid ? 'login-error' : undefined}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <label
+                        htmlFor="captcha-field"
+                        className="caption-label text-muted-foreground"
+                      >
+                        {t('securityCode', 'Security code')}
+                      </label>
+                      <span className="text-[10px] font-semibold text-primary">
+                        {CAPTCHA_MIN_LENGTH}–{CAPTCHA_MAX_LENGTH} lowercase letters
+                      </span>
+                    </div>
+
                     <Input
                       id="captcha-field"
+                      name="captcha"
                       value={captcha}
-                      onChange={(event) => {
-                        setCaptcha(normalizeCaptchaInput(event.currentTarget.value));
-                        setCaptchaInvalid(false);
-                        setError(null);
-                      }}
-                      placeholder="e.g. abcd"
+                      onChange={handleCaptchaChange}
+                      placeholder="Enter the letters shown"
                       required
-                      minLength={4}
-                      maxLength={7}
+                      minLength={CAPTCHA_MIN_LENGTH}
+                      maxLength={CAPTCHA_MAX_LENGTH}
                       pattern="[a-z]{4,7}"
                       inputMode="text"
                       autoCapitalize="none"
                       autoCorrect="off"
                       spellCheck={false}
                       autoComplete="off"
-                      className="min-w-0 font-mono lowercase tracking-[0.2em]"
+                      className="font-mono tracking-[0.22em]"
                       error={captchaInvalid}
-                      aria-describedby="captcha-instructions"
                       aria-invalid={captchaInvalid || undefined}
+                      aria-describedby="captcha-instructions"
                     />
 
-                    <div className="flex shrink-0 items-center gap-1.5">
-                      <div className="flex h-11 w-[112px] items-center justify-center overflow-hidden rounded-[--radius-md] border border-border bg-surface-1 shadow-xs">
-                        {captchaLoading ? (
-                          <Loader2
-                            className="h-4 w-4 motion-safe:animate-spin text-muted-foreground"
-                            aria-label="Loading security code"
-                          />
-                        ) : captchaImage ? (
-                          <img
-                            src={captchaImage}
-                            alt="Distorted university security code. Enter the 4 to 7 lowercase letters shown."
-                            className="h-full w-full object-contain"
-                            onError={() => {
-                              setCaptchaImage(null);
-                              setCaptchaInvalid(true);
-                            }}
-                          />
-                        ) : (
-                          <span className="px-2 text-center text-[10px] text-muted-foreground">
-                            Image unavailable
-                          </span>
-                        )}
+                    <div className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-border/80 bg-surface-2/50 p-2">
+                      <div className="flex min-w-0 flex-1 items-center gap-3">
+                        <div className="flex h-[56px] w-[148px] shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface-1">
+                          {captchaLoading ? (
+                            <Loader2
+                              className="h-5 w-5 motion-safe:animate-spin text-muted-foreground"
+                              aria-label="Loading security code"
+                            />
+                          ) : captchaImage ? (
+                            <img
+                              id="kl-sync-captcha-image"
+                              src={captchaImage}
+                              alt="University security-code image. Type the visible lowercase letters into the security code field."
+                              className="h-full w-full object-contain"
+                              onError={() => {
+                                setCaptchaImage(null);
+                                setCaptchaInvalid(true);
+                                setStatus('The security-code image failed to display. Refresh it to continue.');
+                              }}
+                            />
+                          ) : (
+                            <span className="px-2 text-center text-[10px] text-muted-foreground">
+                              Image unavailable
+                            </span>
+                          )}
+                        </div>
+                        <span className="min-w-0 text-[11px] leading-relaxed text-muted-foreground">
+                          {captchaLoading
+                            ? 'Fetching a fresh code…'
+                            : captchaImage
+                              ? 'Read the image and enter its letters above.'
+                              : 'Refresh to request a new image.'}
+                        </span>
                       </div>
-
                       <Button
                         type="button"
                         variant="outline"
                         size="icon"
                         onClick={() => {
                           triggerHaptic('light');
-                          setStatus(null);
                           void fetchCaptcha();
                         }}
                         isLoading={captchaLoading}
                         disabled={captchaLoading || loading}
-                        aria-label="Refresh security code image and browser verification"
+                        aria-label="Refresh university security-code image and browser verification"
+                        title="Refresh security code"
                       >
                         <RefreshCw className="h-4 w-4" />
                       </Button>
                     </div>
-                  </div>
 
-                  <div
-                    id="captcha-instructions"
-                    className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground"
-                  >
-                    <span>
-                      Type the letters as shown. Refresh the image if it is unclear.
-                    </span>
-                    <button
-                      type="button"
-                      onClick={speakCaptchaInstructions}
-                      className="min-h-[32px] rounded px-1 font-medium text-primary underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    <div
+                      id="captcha-instructions"
+                      className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] leading-relaxed text-muted-foreground"
                     >
-                      Speak instructions
-                    </button>
+                      <span>
+                        The university currently provides an image challenge, not an audio code.
+                      </span>
+                      <button
+                        type="button"
+                        onClick={speakCaptchaInstructions}
+                        className="min-h-[36px] rounded-md px-1 font-semibold text-primary underline decoration-primary/40 underline-offset-4 hover:decoration-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        Speak instructions
+                      </button>
+                    </div>
+                    <p className="sr-only" aria-live="polite">
+                      {captchaLoading
+                        ? 'Loading a new security-code image.'
+                        : captchaImage
+                          ? 'Security-code image loaded. Enter four to seven lowercase letters.'
+                          : 'Security-code image is unavailable. Use the refresh button.'}
+                    </p>
                   </div>
 
-                  <p className="sr-only" aria-live="polite">
-                    {captchaLoading
-                      ? 'Loading a new security-code image.'
-                      : captchaImage
-                        ? 'Security-code image loaded. Enter 4 to 7 lowercase letters.'
-                        : 'Security-code image is unavailable. Use the refresh button.'}
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-between">
                   <label
                     htmlFor="remember-me-checkbox"
-                    className="flex min-h-[44px] cursor-pointer select-none items-center gap-2.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground sm:text-sm"
+                    className="flex min-h-[44px] cursor-pointer select-none items-center gap-2.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
                   >
                     <input
                       id="remember-me-checkbox"
+                      name="rememberMe"
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(event) => setRememberMe(event.target.checked)}
-                      className="h-4 w-4 rounded border-input bg-surface-2 text-primary accent-primary focus-visible:ring-2 focus-visible:ring-primary"
+                      className="h-4 w-4 rounded border-input bg-surface-2 accent-primary focus-visible:ring-2 focus-visible:ring-ring"
                     />
-                    <span>{t('rememberMe', 'Remember me')}</span>
+                    <span>{t('rememberMe', 'Remember my student ID on this device')}</span>
                   </label>
+
+                  <Captcha
+                    key={captchaChallengeVersion}
+                    onVerify={setCaptchaToken}
+                  />
+
+                  <Button
+                    type="submit"
+                    size="lg"
+                    isLoading={loading}
+                    disabled={!canSignIn}
+                    className="mt-1 w-full"
+                  >
+                    <LogIn className="h-4 w-4" />
+                    {t('signIn', 'Sign in securely')}
+                  </Button>
+
+                  <div className="flex items-center gap-3 py-1">
+                    <span className="h-px flex-1 bg-border" />
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                      or
+                    </span>
+                    <span className="h-px flex-1 bg-border" />
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="lg"
+                    onClick={handleDemoMode}
+                    isLoading={loading && username === '2100030000'}
+                    disabled={loading || captchaLoading || !captchaImage}
+                    className="w-full"
+                  >
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    Explore demo portal
+                  </Button>
+                </form>
+
+                <div className="mt-5 space-y-3 border-t border-border/70 pt-4">
+                  <p className="flex items-start justify-center gap-2 text-center text-[11px] leading-relaxed text-muted-foreground">
+                    <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" />
+                    Your ERP session is protected by encrypted, HttpOnly cookies.
+                  </p>
+                  <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
+                    Optional on-device CAPTCHA assistance:{' '}
+                    <Link
+                      href="https://github.com/tejaswin-amara/klu-erp-autofill#installation"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-semibold text-primary underline decoration-primary/40 underline-offset-4 hover:decoration-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      KLU ERP Auto-Fill
+                    </Link>
+                    . Review any suggested code before signing in; the extension never submits the form.
+                  </p>
                 </div>
+              </CardContent>
+            </Card>
 
-                <Captcha
-                  key={captchaChallengeVersion}
-                  onVerify={setCaptchaToken}
-                />
-
-                <Button
-                  type="submit"
-                  size="lg"
-                  isLoading={loading}
-                  disabled={
-                    loading ||
-                    captchaLoading ||
-                    !isValidCaptchaInput(captcha) ||
-                    !captchaToken
-                  }
-                  className="mt-1 w-full"
-                >
-                  <LogIn className="h-4 w-4" />
-                  {t('signIn', 'Sign in')}
-                </Button>
-
-                <div className="relative flex items-center justify-center py-1">
-                  <div className="flex-grow border-t border-border/60" />
-                  <span className="shrink-0 px-3 text-[11px] font-medium text-muted-foreground">
-                    or
-                  </span>
-                  <div className="flex-grow border-t border-border/60" />
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleDemoMode}
-                  disabled={loading || captchaLoading || !captchaImage}
-                  className="apple-pill flex min-h-[44px] w-full items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold text-foreground transition-all hover:text-primary active:scale-[0.98] disabled:opacity-50 sm:text-sm"
-                  aria-label="Explore Demo Portal"
-                >
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  <span>Explore Demo Portal</span>
-                </button>
-              </form>
-
-              <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
-                <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-success" />
-                <span>Protected with AES-256 encrypted session tokens</span>
-              </div>
-            </CardContent>
-          </Card>
+            <p className="mx-auto mt-4 max-w-md px-2 text-center text-[10px] leading-relaxed text-muted-foreground/80">
+              KL Sync is an independent student workspace. Your university ERP credentials are used only to establish your ERP session.
+            </p>
+          </section>
         </div>
-      </section>
+
+        <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-border/50 pt-4 text-[10px] text-muted-foreground/70">
+          <span>KL Sync · Student workspace</span>
+          <span>Designed for desktop and mobile</span>
+        </footer>
+      </div>
     </main>
   );
 }
