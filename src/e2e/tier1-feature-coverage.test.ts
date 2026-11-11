@@ -168,7 +168,7 @@ test('Tier 1 - Feature 6: API Route & Security Tests (/api/login, /api/erp-proxy
     body: JSON.stringify({
       username: '2100030000',
       password: 'password123',
-      captcha: 'ABCD',
+      captcha: 'abcd',
     }),
   });
   const loginRes = await handleLogin(loginReq);
