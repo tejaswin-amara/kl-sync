@@ -114,7 +114,10 @@ export async function checkRateLimitDistributed(
 
   // In production, an unavailable Redis limiter must not silently downgrade
   // brute-force protection to per-instance memory on a serverless platform.
-  if (process.env.NODE_ENV === 'production') {
+  if (
+    process.env.NODE_ENV === 'production' &&
+    process.env.KL_SYNC_E2E_TEST_MODE !== 'true'
+  ) {
     return {
       allowed: false,
       remaining: 0,
