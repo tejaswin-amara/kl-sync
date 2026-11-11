@@ -102,10 +102,13 @@ test.describe('Student login, image CAPTCHA, and browser verification', () => {
     await expect(
       widgetContainer.getByText('Browser verification complete', { exact: true })
     ).toBeVisible({ timeout: 5000 });
-    await expect(submitButton).toBeEnabled({ timeout: 5000 });
+    // Browser verification alone must not enable sign-in: the independent
+    // university image code is still required.
+    await expect(submitButton).toBeDisabled();
 
     await captchaInput.fill('ABCD');
     await expect(captchaInput).toHaveValue('abcd');
+    await expect(submitButton).toBeEnabled();
     await studentIdInput.fill('2100030000');
     await passwordInput.fill('TestPassword123');
 
