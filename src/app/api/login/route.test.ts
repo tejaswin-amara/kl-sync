@@ -121,6 +121,20 @@ test('explicit demo login succeeds with the short-lived HttpOnly ERP CAPTCHA ses
     assert.ok(response.cookies.get('kl_erp_session')?.value);
     assert.equal(response.cookies.get('kl_erp_session')?.httpOnly, true);
     assert.equal(response.cookies.get('kl_captcha_session')?.maxAge, 0);
+    const replayResponse = await POST(
+      jsonRequest(
+        {
+          username: '2100030000',
+          password: 'demo_password',
+          captcha: 'abcd',
+          captchaToken: '',
+        },
+        { cookie: `kl_captcha_session=${captchaCookie}` }
+      )
+    );
+    assert.equal(replayResponse.status, 400);
+    const replayData = (await replayResponse.json()) as { field?: string };
+    assert.equal(replayData.field, 'captcha');
 
     const replayResponse = await POST(
       jsonRequest(
