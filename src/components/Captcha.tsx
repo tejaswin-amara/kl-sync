@@ -21,12 +21,6 @@ export function Captcha({ onVerify }: CaptchaProps) {
     let cancelled = false;
     let activeWidget: CapWidget | null = null;
 
-    const clearVerification = () => {
-      if (cancelled) return;
-      setVerified(false);
-      onVerify('');
-    };
-
     const handleSolve = (event: Event) => {
       if (cancelled) return;
       const token = (event as CustomEvent<{ token?: string }>).detail?.token;
@@ -89,10 +83,6 @@ export function Captcha({ onVerify }: CaptchaProps) {
         // The widget owns its proof-of-work and user-interaction lifecycle.
         // Do not call widget.solve() here: a login page must not silently
         // auto-complete the visible human-verification control.
-        const existingToken = widget.token || widget.tokenValue;
-        if (existingToken) {
-          handleSolve(new CustomEvent('solve', { detail: { token: existingToken } }));
-        }
       })
       .catch((error: unknown) => {
         if (cancelled) return;
