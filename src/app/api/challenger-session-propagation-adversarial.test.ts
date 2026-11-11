@@ -266,3 +266,48 @@ test('Challenger M1 - multi-hop CAPTCHA-to-dashboard chain preserves the cookie 
   const chatData = (await chatResponse.json()) as { success?: boolean };
   assert.equal(chatData.success, true);
 });
+
+
+test('ERP proxy and photo routes reject legacy session header, query, and body transports', async () => {
+  const previousDemoMode = process.env.KL_SYNC_DEMO_MODE;
+  const previousFetch = globalThis.fetch;
+  process.env.KL_SYNC_DEMO_MODE = 'false';
+
+  try {
+    const token = await encodeSession(TEST_SESSION);
+    const params = { params: Promise.resolve({ module: 'unknown-module' }) };
+
+    const headerRequest = new NextRequest(
+      'http://localhost:3000/api/erp-proxy/unknown-module',
+      { headers: { 'x-session-id': token } }
+    );
+    assert.equal((await erpProxyGET(headerRequest, params)).status, 401);
+
+    const queryRequest = new NextRequest(
+      'http://localhost:3000/api/erp-proxy/unknown-module?sessionId=' +
+        encodeURIComponent(token)
+    );
+    assert.equal((await erpProxyGET(queryRequest, params)).status, 401);
+
+    const bodyRequest = new NextRequest(
+      'http://localhost:3000/api/erp-proxy/unknown-module',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ sessionId: token }),
+      }
+    );
+    assert.equal((await erpProxyPOST(bodyRequest, params)).status, 401);
+
+    globalThis.fetch = async () => new Response(null, { status: 404 });
+    const photoRequest = new NextRequest(
+      'http://localhost:3000/api/fetch-photo?id=2100030000',
+      { headers: { 'x-session-id': token } }
+    );
+    assert.equal((await fetchPhotoGET(photoRequest)).status, 401);
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousDemoMode === undefined) delete process.env.KL_SYNC_DEMO_MODE;
+    else process.env.KL_SYNC_DEMO_MODE = previousDemoMode;
+  }
+});
