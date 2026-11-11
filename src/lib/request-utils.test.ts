@@ -7,6 +7,8 @@ import {
   resolveSessionToken,
 } from './request-utils';
 
+const env = process.env as Record<string, string | undefined>;
+
 test('checkRateLimit allows requests up to limit and blocks excess', () => {
   const key = 'test-ip-123';
   const limit = 5;
@@ -36,10 +38,11 @@ test('resolveSessionToken accepts only the HttpOnly ERP session cookie', () => {
   });
   assert.equal(resolveSessionToken(cookieRequest), token);
 
-  for (const headers of [
+  const legacyHeaders: Array<Record<string, string>> = [
     { 'x-session-id': token },
     { authorization: `Bearer ${token}` },
-  ]) {
+  ];
+  for (const headers of legacyHeaders) {
     const request = new NextRequest('http://localhost/api/example', {
       headers,
     });
@@ -48,13 +51,13 @@ test('resolveSessionToken accepts only the HttpOnly ERP session cookie', () => {
 });
 
 test('production distributed rate limiting fails closed when Redis is unconfigured', async () => {
-  const previousNodeEnv = process.env.NODE_ENV;
-  const previousUrl = process.env.UPSTASH_REDIS_REST_URL;
-  const previousToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const previousNodeEnv = env.NODE_ENV;
+  const previousUrl = env.UPSTASH_REDIS_REST_URL;
+  const previousToken = env.UPSTASH_REDIS_REST_TOKEN;
 
-  process.env.NODE_ENV = 'production';
-  delete process.env.UPSTASH_REDIS_REST_URL;
-  delete process.env.UPSTASH_REDIS_REST_TOKEN;
+  env.NODE_ENV = 'production';
+  delete env.UPSTASH_REDIS_REST_URL;
+  delete env.UPSTASH_REDIS_REST_TOKEN;
 
   try {
     const result = await checkRateLimitDistributed(
@@ -66,11 +69,11 @@ test('production distributed rate limiting fails closed when Redis is unconfigur
     assert.equal(result.remaining, 0);
     assert.equal(result.resetMs, 10_000);
   } finally {
-    if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
-    else process.env.NODE_ENV = previousNodeEnv;
-    if (previousUrl === undefined) delete process.env.UPSTASH_REDIS_REST_URL;
-    else process.env.UPSTASH_REDIS_REST_URL = previousUrl;
-    if (previousToken === undefined) delete process.env.UPSTASH_REDIS_REST_TOKEN;
-    else process.env.UPSTASH_REDIS_REST_TOKEN = previousToken;
+    if (previousNodeEnv === undefined) delete env.NODE_ENV;
+    else env.NODE_ENV = previousNodeEnv;
+    if (previousUrl === undefined) delete env.UPSTASH_REDIS_REST_URL;
+    else env.UPSTASH_REDIS_REST_URL = previousUrl;
+    if (previousToken === undefined) delete env.UPSTASH_REDIS_REST_TOKEN;
+    else env.UPSTASH_REDIS_REST_TOKEN = previousToken;
   }
 });
