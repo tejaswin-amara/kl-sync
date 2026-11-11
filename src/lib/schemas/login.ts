@@ -6,33 +6,25 @@ export const semesterOptionSchema = z.object({
 });
 
 export const loginRequestSchema = z.object({
-  username: z.string().min(1, 'Username is required'),
-  password: z.string().min(1, 'Password is required'),
-  captcha: z.string().min(1, 'Captcha is required'),
-  session: z.object({
-    cookies: z.array(z.object({ name: z.string(), value: z.string() })),
-    csrfToken: z.string(),
-    userAgent: z.string().optional(),
-  }),
-  deviceId: z.string().optional(),
+  username: z.string().trim().min(1, 'Username is required').max(128),
+  password: z.string().min(1, 'Password is required').max(1024),
+  captcha: z
+    .string()
+    .regex(/^[a-z]{4,7}$/, 'Captcha must contain 4–7 lowercase ASCII letters'),
+  captchaToken: z.string().max(4096).optional(),
+  deviceId: z.string().max(128).optional(),
+  rememberMe: z.boolean().optional(),
 });
 
 export const loginResponseSchema = z.object({
   success: z.boolean(),
   message: z.string().optional(),
-  session: z
-    .object({
-      cookies: z.array(z.object({ name: z.string(), value: z.string() })),
-      csrfToken: z.string(),
-      userAgent: z.string().optional(),
-    })
-    .optional(),
-  csrfToken: z.string().optional(),
   academicYears: z.array(semesterOptionSchema).optional(),
   semesters: z.array(semesterOptionSchema).optional(),
   deviceId: z.string().optional(),
   needsCaptchaRetry: z.boolean().optional(),
   error: z.string().optional(),
+  isOffline: z.boolean().optional(),
 });
 
 export type LoginRequest = z.infer<typeof loginRequestSchema>;
