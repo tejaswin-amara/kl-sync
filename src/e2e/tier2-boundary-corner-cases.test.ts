@@ -189,7 +189,7 @@ test('Tier 2 - Boundary 10: Login API returns 400 when x-session-id and body.ses
 
   const json = await res.json();
   assert.strictEqual(json.success, false);
-  assert.strictEqual(json.message, 'Your security-code session expired. Refresh the image.');
+  assert.strictEqual(json.message, 'Your security-code challenge expired or was already used. Refresh the image.');
 });
 
 test('Tier 2 - Boundary 11: Login API returns 400 when captchaToken verification fails', async () => {
