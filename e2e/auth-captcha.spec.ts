@@ -62,9 +62,12 @@ test.describe('Student login, image CAPTCHA, and browser verification', () => {
     await expect(submitButton).toBeDisabled();
     await expect(image).toBeVisible();
 
-    // The CapJS widget must be completed through its visible interaction;
-    // the React wrapper must not call widget.solve() on mount.
-    await widget.click({ position: { x: 24, y: 28 } });
+    // CapJS owns an open shadow root. Activate its actual visible checkbox,
+    // not the custom-element host (which does not forward click activation).
+    // The React wrapper must not call widget.solve() on mount.
+    const verifyCheckbox = widget.locator('.checkbox');
+    await expect(verifyCheckbox).toBeVisible();
+    await verifyCheckbox.click();
     await expect(widget).toHaveAttribute('data-cap-api-endpoint', '/api/captcha/');
     await expect(submitButton).toBeEnabled({ timeout: 30000 });
 
