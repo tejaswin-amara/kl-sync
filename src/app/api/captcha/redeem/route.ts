@@ -10,41 +10,6 @@ const CAPTCHA_CHALLENGE_TTL_MS = 5 * 60_000;
 const MAX_REDEEM_BODY_BYTES = 64 * 1024;
 const NO_STORE = 'no-store, max-age=0, must-revalidate';
 
-type InstrumentationPayload = {
-  i: string;
-  state: Record<string, number>;
-  d: string;
-};
-
-/**
- * Keep only the transport-level shape check here. capjs-core owns the
- * cryptographic binding, exact state keys, integer checks, canonical data,
- * expiry and automation verification. Duplicating its evolving payload
- * schema caused valid widget instrumentation to be rejected before the
- * verifier could inspect it.
- */
-function isInstrumentationPayload(
-  value: unknown
-): value is InstrumentationPayload {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return false;
-  }
-
-  const payload = value as Record<string, unknown>;
-  return (
-    typeof payload.i === 'string' &&
-    payload.i.length > 0 &&
-    payload.i.length <= 128 &&
-    typeof payload.d === 'string' &&
-    payload.d.length <= 65_536 &&
-    Boolean(
-      payload.state &&
-        typeof payload.state === 'object' &&
-        !Array.isArray(payload.state)
-    )
-  );
-}
-
 function privateJson(body: unknown, status = 200): NextResponse {
   return NextResponse.json(body, {
     status,
@@ -92,25 +57,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const payload = body as {
-      token?: unknown;
-      solutions?: unknown;
-      instr?: unknown;
-      instr_blocked?: unknown;
-      instr_timeout?: unknown;
-    };
-
+    const payload = body as Record<string, unknown>;
     if (
       typeof payload.token !== 'string' ||
       payload.token.length === 0 ||
       payload.token.length > 4096 ||
       !Array.isArray(payload.solutions) ||
       payload.solutions.length === 0 ||
-      payload.solutions.length > 100 ||
-      !payload.solutions.every(
-        (solution) =>
-          typeof solution === 'number' && Number.isSafeInteger(solution)
-      )
+      payload.solutions.length > 100
     ) {
       return privateJson(
         { success: false, error: 'Invalid verification payload.' },
@@ -118,23 +72,45 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const instr = isInstrumentationPayload(payload.instr)
-      ? payload.instr
-      : undefined;
-    if (payload.instr !== undefined && !instr) {
-      return privateJson(
-        { success: false, error: 'Invalid browser-verification instrumentation.' },
-        400
-      );
+    // Treat CapJS's instrumentation as an opaque, bounded protocol payload.
+    // Its schema is versioned by capjs-core; duplicating that schema here
+    // rejects valid widget releases before the cryptographic verifier runs.
+    // capjs-core remains responsible for validating all instrumentation data.
+    if (payload.instr !== undefined) {
+      let instrumentationBytes: number;
+      try {
+        instrumentationBytes = new TextEncoder().encode(
+          JSON.stringify(payload.instr)
+        ).byteLength;
+      } catch {
+        return privateJson(
+          { success: false, error: 'Invalid browser-verification instrumentation.' },
+          400
+        );
+      }
+      if (instrumentationBytes > MAX_REDEEM_BODY_BYTES) {
+        return privateJson(
+          { success: false, error: 'Browser-verification instrumentation is too large.' },
+          413
+        );
+      }
     }
+
     if (
+      !payload.solutions.every((solution) => {
+        if (typeof solution === 'number') return Number.isSafeInteger(solution);
+        if (!solution || typeof solution !== 'object' || Array.isArray(solution)) {
+          return false;
+        }
+        return true;
+      }) ||
       (payload.instr_blocked !== undefined &&
         typeof payload.instr_blocked !== 'boolean') ||
       (payload.instr_timeout !== undefined &&
         typeof payload.instr_timeout !== 'boolean')
     ) {
       return privateJson(
-        { success: false, error: 'Invalid browser-verification flags.' },
+        { success: false, error: 'Invalid verification payload.' },
         400
       );
     }
@@ -142,17 +118,7 @@ export async function POST(request: NextRequest) {
     const secret = getCapSecret();
     const result = await validateChallenge(
       secret,
-      {
-        token: payload.token,
-        solutions: payload.solutions as number[],
-        ...(instr ? { instr } : {}),
-        ...(typeof payload.instr_blocked === 'boolean'
-          ? { instr_blocked: payload.instr_blocked }
-          : {}),
-        ...(typeof payload.instr_timeout === 'boolean'
-          ? { instr_timeout: payload.instr_timeout }
-          : {}),
-      },
+      payload as Parameters<typeof validateChallenge>[1],
       {
         scope: 'login',
         tokenTtlMs: CAPTCHA_CHALLENGE_TTL_MS,
