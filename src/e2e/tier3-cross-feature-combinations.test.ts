@@ -166,17 +166,16 @@ test('Tier 3 - Combo 4: Encrypted Session Creation -> Proxy Cookie Propagation -
 
 test('Tier 3 - Combo 5: Login Flow -> Session Issuance -> Photo Route Fetch', async () => {
   // Step 1: Login
-  const validSessionToken = await encodeSession({
-    cookies: [{ name: 'PHPSESSID', value: 'demo_phpsessid_123' }],
-    csrfToken: 'demo_csrf_token_123',
-    userAgent: 'Mozilla/5.0',
-  });
+  const captchaResponse = await handleCaptchaGet();
+  assert.equal(captchaResponse.status, 200);
+  const captchaSession = captchaResponse.cookies.get('kl_captcha_session')?.value;
+  assert.ok(captchaSession);
 
   const loginReq = new NextRequest('http://localhost/api/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      cookie: `kl_captcha_session=${validSessionToken}`,
+      cookie: `kl_captcha_session=${captchaSession}`,
     },
     body: JSON.stringify({
       username: '2100030000',
