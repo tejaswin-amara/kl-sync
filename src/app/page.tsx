@@ -160,9 +160,9 @@ export default function LoginPage() {
       } catch {
         // Private browsing and storage restrictions must not block login.
       }
-    });
 
-    void fetchCaptcha();
+      void fetchCaptcha();
+    });
 
     return () => {
       window.cancelAnimationFrame(preferenceFrame);
