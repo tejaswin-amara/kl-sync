@@ -29,6 +29,9 @@ export default defineConfig({
       CAP_SECRET: process.env.CAP_SECRET || 'test-cap-secret-key',
       KL_SYNC_DEMO_MODE: 'true',
       KL_SYNC_AI_MODE: 'offline',
+      // This flag is limited to the local Playwright server. Production must
+      // use Upstash for distributed rate limiting and CAPTCHA replay defense.
+      KL_SYNC_E2E_TEST_MODE: 'true',
     },
   },
 });

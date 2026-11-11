@@ -12,22 +12,21 @@
     <a href="https://github.com/tejaswin-amara/kl-sync/actions/workflows/ci.yml">
       <img src="https://github.com/tejaswin-amara/kl-sync/actions/workflows/ci.yml/badge.svg" alt="CI Status" />
     </a>
-    <img src="https://img.shields.io/badge/Tests-363%20passed-brightgreen.svg?style=flat" alt="Tests" />
     <img src="https://img.shields.io/badge/Security-AES--256--GCM-228B22?style=for-the-badge" alt="AES-256-GCM Security" />
   </p>
 </div>
 
 ## Overview
 
-Welcome to **KL Sync**, the premier source-available **KL University ERP client** designed for performance, security, and unparalleled user experience. This modern **student portal** leverages a stateless **edge proxy** architecture to communicate seamlessly with the legacy ERP infrastructure. As a highly optimized **Next.js dashboard**, KL Sync offers a suite of essential tools including a real-time **attendance tracker**, an accurate **CGPA calculator**, and secure academic data access—all delivered at edge speeds with uncompromising reliability.
+Welcome to **KL Sync**, the premier source-available **KL University ERP client** designed for performance, security, and unparalleled user experience. This modern **student portal** uses a server-side proxy to communicate with the legacy ERP infrastructure while keeping ERP session material out of browser-readable storage. As a highly optimized **Next.js dashboard**, KL Sync offers a suite of essential tools including a real-time **attendance tracker**, an accurate **CGPA calculator**, and secure academic data access—all delivered at edge speeds with uncompromising reliability.
 
 ## Architecture
 
-KL Sync operates entirely at the edge, utilizing a zero-database, stateless proxy layer that securely orchestrates requests to the legacy KL University ERP.
+KL Sync uses a Next.js server-side proxy to orchestrate requests to the legacy KL University ERP. It does not persist student records in an application database. Short-lived Redis entries support distributed rate limiting and one-time CAPTCHA/session replay protection.
 
 ```mermaid
 flowchart LR
-    Client([Client Browser]) -->|Encrypted Session| Edge[Next.js Edge Proxy Layer]
+    Client([Client Browser]) -->|HttpOnly encrypted session cookie| Edge[Next.js Server Proxy]
 
     subgraph Edge Proxy Layer
         Auth[Auth API Route]
@@ -101,18 +100,33 @@ KL Sync features 11 comprehensive modules tailored for the modern student experi
 
 Security is built-in by design, utilizing the "Ponytail Philosophy" (zero bloat, relying on standard library primitives):
 
-- **AES-256-GCM Encryption**: All session tokens are encrypted using the native Web Crypto API. No session data is stored on our servers.
-- **SSRF Protection**: Strict URL parsing and whitelisting at the proxy layer prevent Server-Side Request Forgery.
-- **Stateless Design**: Zero database architecture means no persistent PII storage, inherently minimizing breach vectors.
-- **Bot Protection**: CapJS Proof-of-Work prevents automated brute-force attacks on the proxy endpoints.
+- **Encrypted session cookies**: ERP session data is encrypted with AES-GCM and returned only in a `HttpOnly; Secure (in production); SameSite=Lax` cookie. Browser JavaScript cannot read the cookie.
+- **Cookie-only authentication**: ERP API routes do not accept session IDs in request bodies, query strings, or custom authentication headers.
+- **CAPTCHA separation**: The university image code is kept in a short-lived HttpOnly session cookie and is consumed once. CapJS browser proof-of-work is a separate challenge and is independently validated.
+- **Replay/rate-limit controls**: Redis stores only hashed, short-lived CAPTCHA/session replay keys and rate-limit counters. Production fails closed when Redis is missing or unavailable; local development uses in-memory fallbacks.
+- **SSRF protection**: Strict URL parsing and whitelisting at the proxy layer prevent Server-Side Request Forgery.
+- **No student database**: KL Sync does not persist student records in an application database.
+
+
+## Login and CAPTCHA flow
+
+The login page uses two independent checks:
+
+1. **University image security code**: KL Sync fetches the ERP image and keeps the encrypted ERP challenge session in a short-lived, HttpOnly cookie. The challenge can be used for one login attempt only. Enter the code manually or use the optional [KLU ERP Auto-Fill extension](https://github.com/tejaswin-amara/klu-erp-autofill), which performs local on-device recognition and fills the field for review. It does not submit the form.
+2. **CapJS browser verification**: The visible widget obtains a proof-of-work challenge from `/api/captcha/challenge` and redeems it through `/api/captcha/redeem`. The resulting short-lived proof is validated separately by the login API.
+
+Neither CAPTCHA answer nor ERP session identifier is returned to browser JavaScript. A failed or expired challenge requires a fresh image and a fresh browser proof. In production, configure Upstash Redis before deployment; the app rejects protected requests rather than silently using per-instance in-memory replay controls.
 
 ## Environment Variables
 
 | Variable              | Description                                      | Requirement                |
 | --------------------- | ------------------------------------------------ | -------------------------- |
-| `SESSION_SECRET`      | 32-byte base64 string for AES-256-GCM encryption | **Required** in Production |
-| `NEXT_PUBLIC_API_URL` | Base URL for edge proxy routes                   | Optional                   |
-| `OPENAI_API_KEY`      | Key for the AI Copilot features                  | Optional                   |
+| `SESSION_SECRET` | 32-byte or longer secret for AES-GCM ERP session encryption | **Required** in production |
+| `CAP_SECRET` | Separate secret for CapJS challenge signing; falls back to `SESSION_SECRET` when unset | Recommended |
+| `UPSTASH_REDIS_REST_URL` | Upstash Redis REST endpoint for CAPTCHA replay protection and distributed rate limiting | **Required** in production |
+| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis REST bearer token | **Required** in production |
+| `OPENAI_API_KEY` | Key for the AI Copilot features | Optional |
+| `TRUST_PROXY_HEADERS` | Trust forwarded client IP headers outside Vercel | Optional |
 
 ## Quality Gates
 
@@ -120,9 +134,9 @@ Our CI/CD pipeline enforces rigorous standards before any code reaches productio
 
 - **Typecheck**: Strict TypeScript 5.8 validation (`tsc --noEmit`).
 - **Lint**: ESLint + Next.js core web vitals strict mode.
-- **Unit Tests**: 320 tests across 54 suites using the native `node:test` runner.
-- **E2E Tests**: 13 Playwright flows testing real browser interactions.
-- **Agent-as-Judge**: 9 AI-powered suites verifying Copilot responses and complex semantic behaviors.
+- **Unit and integration tests**: native `node:test` suites covering API boundaries, CAPTCHA replay controls, session handling, and feature behavior.
+- **Browser tests**: Playwright flows covering responsive login, CAPTCHA refresh, demo access, and application navigation.
+- **Agent-as-Judge**: AI evaluation suites for Copilot responses and semantic behavior.
 - **Build**: Turbopack production compilation.
 
 ## Tech Stack Defaults vs Alternatives matrix

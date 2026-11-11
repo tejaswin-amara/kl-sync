@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loginAndFetchSemesters, ScraperSession } from '@/lib/scraper';
-import { decodeSession, encodeSession, isDemoModeEnabled } from '@/lib/session';
-import { verifyCaptchaToken } from '@/lib/captcha';
+import {
+  decodeSession,
+  encodeSession,
+  isDemoModeEnabled,
+} from '@/lib/session';
+import { consumeCaptchaSession, verifyCaptchaToken } from '@/lib/captcha';
+import { isValidCaptchaInput } from '@/lib/captcha-input';
 import { DEMO_LOGIN_RESULT, DEMO_SESSION } from '@/lib/fixtures';
 import { checkRateLimitDistributed, getClientIP } from '@/lib/request-utils';
 
@@ -9,6 +14,17 @@ export const dynamic = 'force-dynamic';
 
 const CAPTCHA_COOKIE = 'kl_captcha_session';
 const SESSION_COOKIE = 'kl_erp_session';
+const MAX_LOGIN_BODY_BYTES = 16 * 1024;
+const NO_STORE = 'no-store, max-age=0, must-revalidate';
+
+function privateJson(
+  body: unknown,
+  init: ResponseInit = {}
+): NextResponse {
+  const headers = new Headers(init.headers);
+  headers.set('Cache-Control', NO_STORE);
+  return NextResponse.json(body, { ...init, headers });
+}
 
 function setCookie(
   response: NextResponse,
@@ -66,20 +82,103 @@ function safeLoginError(error: unknown): {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const username =
-      typeof body.username === 'string' ? body.username.trim() : '';
-    const password = typeof body.password === 'string' ? body.password : '';
-    const captcha =
-      typeof body.captcha === 'string' ? body.captcha.trim().toLowerCase() : '';
-    const captchaToken =
-      typeof body.captchaToken === 'string' ? body.captchaToken : '';
-    const deviceId = typeof body.deviceId === 'string' ? body.deviceId : '';
-    const rememberMe = body.rememberMe === true;
+    const requestOrigin = request.headers.get('origin');
+    if (requestOrigin) {
+      try {
+        if (new URL(requestOrigin).origin !== request.nextUrl.origin) {
+          return privateJson(
+            { success: false, message: 'Cross-origin login requests are not allowed.' },
+            { status: 403 }
+          );
+        }
+      } catch {
+        return privateJson(
+          { success: false, message: 'Invalid login request origin.' },
+          { status: 403 }
+        );
+      }
+    }
 
-    if (!username || !password || !captcha) {
-      return NextResponse.json(
-        { success: false, message: 'Missing required fields' },
+    const contentType = request.headers.get('content-type') || '';
+    if (!contentType.toLowerCase().startsWith('application/json')) {
+      return privateJson(
+        { success: false, message: 'Login requests must use JSON.' },
+        { status: 415 }
+      );
+    }
+
+    const declaredLength = Number(request.headers.get('content-length') || 0);
+    if (declaredLength > MAX_LOGIN_BODY_BYTES) {
+      return privateJson(
+        { success: false, message: 'Login request is too large.' },
+        { status: 413 }
+      );
+    }
+
+    const rawBody = await request.text();
+    if (new TextEncoder().encode(rawBody).byteLength > MAX_LOGIN_BODY_BYTES) {
+      return privateJson(
+        { success: false, message: 'Login request is too large.' },
+        { status: 413 }
+      );
+    }
+
+    let body: unknown;
+    try {
+      body = JSON.parse(rawBody);
+    } catch {
+      return privateJson(
+        { success: false, message: 'Invalid login request.' },
+        { status: 400 }
+      );
+    }
+
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return privateJson(
+        { success: false, message: 'Invalid login request.' },
+        { status: 400 }
+      );
+    }
+
+    const payload = body as Record<string, unknown>;
+    const username =
+      typeof payload.username === 'string' ? payload.username.trim() : '';
+    const password =
+      typeof payload.password === 'string' ? payload.password : '';
+    const captcha =
+      typeof payload.captcha === 'string' ? payload.captcha : '';
+    const captchaToken =
+      typeof payload.captchaToken === 'string' ? payload.captchaToken : '';
+    const deviceId =
+      typeof payload.deviceId === 'string' &&
+      payload.deviceId.length <= 128
+        ? payload.deviceId
+        : '';
+    const rememberMe = payload.rememberMe === true;
+
+    if (
+      !username ||
+      username.length > 128 ||
+      !password ||
+      password.length > 1024
+    ) {
+      return privateJson(
+        { success: false, message: 'Enter a valid student ID and password.' },
+        { status: 400 }
+      );
+    }
+
+    // Do not silently lowercase, trim, or strip invalid characters on the
+    // server. The exact string submitted must be a-z only and match the
+    // visual challenge format used by the login UI.
+    if (!isValidCaptchaInput(captcha)) {
+      return privateJson(
+        {
+          success: false,
+          message:
+            'The security code must contain 4–7 lowercase letters (a–z).',
+          field: 'captcha',
+        },
         { status: 400 }
       );
     }
@@ -96,21 +195,19 @@ export async function POST(request: NextRequest) {
       8,
       10 * 60 * 1000
     );
+
     if (!ipLimit.allowed || !accountLimit.allowed) {
       const retryAfter = Math.ceil(
         Math.max(ipLimit.resetMs, accountLimit.resetMs) / 1000
       );
-      return NextResponse.json(
+      return privateJson(
         {
           success: false,
           message: 'Too many login attempts. Please try again later.',
         },
         {
           status: 429,
-          headers: {
-            'Cache-Control': 'no-store, max-age=0',
-            'Retry-After': String(retryAfter),
-          },
+          headers: { 'Retry-After': String(retryAfter) },
         }
       );
     }
@@ -121,30 +218,33 @@ export async function POST(request: NextRequest) {
       (username === 'demo' ||
         username === 'teststudent' ||
         username === '2100030000');
-    if (
-      !isExplicitDemoUser &&
-      !(await verifyCaptchaToken(captchaToken))
-    ) {
-      return NextResponse.json(
+
+    // The encrypted ERP session must also have a live, server-side issuance
+    // record. Atomically consume it so concurrent or later login attempts
+    // cannot reuse the same university image challenge.
+    const captchaSessionId = request.cookies.get(CAPTCHA_COOKIE)?.value;
+    if (!captchaSessionId || !(await consumeCaptchaSession(captchaSessionId))) {
+      const response = privateJson(
         {
           success: false,
-          message: 'Captcha verification failed. Please try again.',
+          message: 'Your security-code challenge expired or was already used. Refresh the image.',
+          field: 'captcha',
         },
         { status: 400 }
       );
+      return clearCookie(response, CAPTCHA_COOKIE);
     }
 
-    const captchaSessionId =
-      request.cookies.get(CAPTCHA_COOKIE)?.value ||
-      request.headers.get('x-session-id') ||
-      request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ||
-      (typeof body.sessionId === 'string' ? body.sessionId : undefined);
-
-    if (!captchaSessionId) {
-      return NextResponse.json(
-        { success: false, message: 'Session expired. Please refresh captcha.' },
+    if (!isExplicitDemoUser && !(await verifyCaptchaToken(captchaToken))) {
+      const response = privateJson(
+        {
+          success: false,
+          message: 'Browser verification expired or failed. Please verify again.',
+          field: 'captchaToken',
+        },
         { status: 400 }
       );
+      return clearCookie(response, CAPTCHA_COOKIE);
     }
 
     let session: ScraperSession;
@@ -157,13 +257,15 @@ export async function POST(request: NextRequest) {
       ) {
         session = DEMO_SESSION;
       } else {
-        return NextResponse.json(
+        const response = privateJson(
           {
             success: false,
-            message: 'Captcha session is invalid. Please refresh the captcha.',
+            message: 'Your security-code session is invalid. Refresh the image.',
+            field: 'captcha',
           },
           { status: 400 }
         );
+        return clearCookie(response, CAPTCHA_COOKIE);
       }
     }
 
@@ -190,7 +292,7 @@ export async function POST(request: NextRequest) {
       }
     } catch (error) {
       const safe = safeLoginError(error);
-      return NextResponse.json(
+      const response = privateJson(
         {
           success: false,
           message: safe.message,
@@ -198,34 +300,27 @@ export async function POST(request: NextRequest) {
         },
         { status: safe.status }
       );
+      return clearCookie(response, CAPTCHA_COOKIE);
     }
 
-    const updatedSessionId = await encodeSession(result.session);
     if (result.needsCaptchaRetry) {
-      const response = NextResponse.json({
+      const response = privateJson({
         success: false,
         needsCaptchaRetry: true,
         message: result.message,
-        sessionId: updatedSessionId,
       });
-      response.headers.set('x-session-id', updatedSessionId);
-      return setCookie(
-        clearCookie(response, SESSION_COOKIE),
-        CAPTCHA_COOKIE,
-        updatedSessionId,
-        5 * 60
-      );
+      clearCookie(response, SESSION_COOKIE);
+      return clearCookie(response, CAPTCHA_COOKIE);
     }
 
-    const response = NextResponse.json({
+    const updatedSessionId = await encodeSession(result.session);
+    const response = privateJson({
       success: true,
       message: 'Login successful',
-      sessionId: updatedSessionId,
       deviceId: result.deviceId,
       academicYears: result.academicYears,
       semesters: result.semesters,
     });
-    response.headers.set('x-session-id', updatedSessionId);
     clearCookie(response, CAPTCHA_COOKIE);
     return setCookie(
       response,
@@ -238,7 +333,7 @@ export async function POST(request: NextRequest) {
       '[AUTH_ERROR]',
       error instanceof Error ? error.message : 'Unknown login error'
     );
-    return NextResponse.json(
+    return privateJson(
       { success: false, message: 'Login failed. Please try again.' },
       { status: 400 }
     );

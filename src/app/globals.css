@@ -470,3 +470,29 @@
     grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
   }
 }
+
+
+/* The Cap custom element renders its checkbox inside a shadow root. Keep the
+   host centered, constrained to its parent, and outside clipping containers. */
+.captcha-verification {
+  inline-size: 100%;
+  min-inline-size: 0;
+  overflow: visible;
+}
+
+.captcha-cap-widget {
+  display: block;
+  inline-size: min(100%, 260px);
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 56px;
+  margin-inline: auto;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.captcha-cap-widget:focus-visible {
+  outline: 3px solid rgba(163, 166, 255, 0.8);
+  outline-offset: 4px;
+  border-radius: 12px;
+}

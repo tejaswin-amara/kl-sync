@@ -70,7 +70,7 @@ jobs:
           SESSION_SECRET: 'ci-secret-key-testing-minimum-32-bytes-long'
 
       - name: Install Playwright Browsers
-        run: npm exec -- playwright install --with-deps chromium
+        run: npm exec -- playwright install chromium
 
       - name: Run Playwright E2E Tests
         run: npm run test:e2e

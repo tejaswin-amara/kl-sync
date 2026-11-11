@@ -186,11 +186,7 @@ describe('Challenger M1 Schema Validation & .passthrough() Suite', () => {
     const validLogin = {
       username: '2100030000',
       password: 'password123',
-      captcha: 'ABCD',
-      session: {
-        cookies: [{ name: 'PHPSESSID', value: '12345' }],
-        csrfToken: 'csrf123',
-      },
+      captcha: 'abcd',
     };
     assert.strictEqual(loginRequestSchema.safeParse(validLogin).success, true);
 

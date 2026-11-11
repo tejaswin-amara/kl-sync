@@ -1,18 +1,11 @@
 import { NextRequest } from 'next/server';
 
+/**
+ * Resolve ERP authentication only from the server-set HttpOnly cookie.
+ * Legacy header/body/query session transports are intentionally unsupported.
+ */
 export function resolveSessionToken(request: NextRequest): string | undefined {
-  const cookieValue = request.cookies.get('kl_erp_session')?.value;
-  if (cookieValue) return cookieValue;
-
-  const headerValue = request.headers.get('x-session-id');
-  if (headerValue) return headerValue;
-
-  const authHeader = request.headers
-    .get('authorization')
-    ?.replace(/^Bearer\s+/i, '');
-  if (authHeader) return authHeader;
-
-  return undefined;
+  return request.cookies.get('kl_erp_session')?.value;
 }
 
 export interface RateLimitResult {
@@ -118,6 +111,20 @@ export async function checkRateLimitDistributed(
     Math.max(1_000, Math.floor(windowMs))
   );
   if (distributed) return distributed;
+
+  // In production, an unavailable Redis limiter must not silently downgrade
+  // brute-force protection to per-instance memory on a serverless platform.
+  if (
+    process.env.NODE_ENV === 'production' &&
+    process.env.KL_SYNC_E2E_TEST_MODE !== 'true'
+  ) {
+    return {
+      allowed: false,
+      remaining: 0,
+      resetMs: Math.max(1_000, Math.floor(windowMs)),
+    };
+  }
+
   return checkRateLimit(key, limit, windowMs);
 }
 

@@ -40,7 +40,8 @@ import { encodeSession, decodeSession } from '@/lib/session';
 import {
   verifyCaptchaToken,
   consumeNonce,
-  storeRedeemedToken,
+  registerCaptchaSession,
+  consumeCaptchaSession,
 } from '@/lib/captcha';
 import { parseCurrency, calculatePendingFee } from '@/lib/fee-utils';
 import { mapGradeToPoints } from '@/lib/cgpa';
@@ -102,11 +103,7 @@ test('Tier 1 - Feature 2: Zod Runtime Schema Validation Contracts', () => {
   const parsedLogin = loginRequestSchema.safeParse({
     username: '2100030000',
     password: 'password123',
-    captcha: 'ABCD',
-    session: {
-      cookies: [{ name: 'PHPSESSID', value: 'sess_123' }],
-      csrfToken: 'csrf_123',
-    },
+    captcha: 'abcd',
   });
   assert.strictEqual(parsedLogin.success, true);
 });
@@ -150,7 +147,10 @@ test('Tier 1 - Feature 5: CAPTCHA OCR Optimization & Token Verification', async 
   const nonceRes = await consumeNonce('nonce_test_sig', 10000);
   assert.strictEqual(nonceRes, true);
 
-  await storeRedeemedToken('token_test_123', Date.now() + 10000);
+  const challengeSession = 'tier-one-session-123';
+  assert.equal(await registerCaptchaSession(challengeSession, 10_000), true);
+  assert.equal(await consumeCaptchaSession(challengeSession), true);
+  assert.equal(await consumeCaptchaSession(challengeSession), false);
 });
 
 test('Tier 1 - Feature 6: API Route & Security Tests (/api/login, /api/erp-proxy, /api/fetch-photo, /api/captcha)', async () => {
@@ -172,7 +172,7 @@ test('Tier 1 - Feature 6: API Route & Security Tests (/api/login, /api/erp-proxy
     body: JSON.stringify({
       username: '2100030000',
       password: 'password123',
-      captcha: 'ABCD',
+      captcha: 'abcd',
     }),
   });
   const loginRes = await handleLogin(loginReq);

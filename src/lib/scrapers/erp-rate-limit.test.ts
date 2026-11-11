@@ -88,11 +88,11 @@ test('ERP proxy route converts ERPRateLimitError to HTTP 429 with Retry-After he
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        cookie: `kl_erp_session=${encoded}`,
       },
       body: JSON.stringify({
         academicYear: '2025-2026',
         semesterId: '1',
-        sessionId: encoded,
       }),
     });
 

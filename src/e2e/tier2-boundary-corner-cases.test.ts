@@ -7,6 +7,7 @@ import { NextRequest } from 'next/server';
 
 // API Route Imports
 import { POST as handleLogin } from '@/app/api/login/route';
+import { GET as handleCaptchaGet } from '@/app/api/captcha/route';
 import { GET as handleErpProxyGet } from '@/app/api/erp-proxy/[module]/route';
 import { POST as handleAiChat } from '@/app/api/ai/chat/route';
 
@@ -17,7 +18,6 @@ import {
   executePredictCGPA,
   processAIChat,
 } from '@/lib/ai/executor';
-import { encodeSession } from '@/lib/session';
 
 // ============================================================================
 // Tier 2: Boundary & Corner Cases (Empty Inputs, Missing Params, Error Statuses)
@@ -169,7 +169,7 @@ test('Tier 2 - Boundary 9: Login API returns 400 when missing username, password
 
   const json = await res.json();
   assert.strictEqual(json.success, false);
-  assert.strictEqual(json.message, 'Missing required fields');
+  assert.strictEqual(json.message, 'Enter a valid student ID and password.');
 });
 
 test('Tier 2 - Boundary 10: Login API returns 400 when x-session-id and body.sessionId are missing', async () => {
@@ -179,7 +179,7 @@ test('Tier 2 - Boundary 10: Login API returns 400 when x-session-id and body.ses
     body: JSON.stringify({
       username: '2100030000',
       password: 'password123',
-      captcha: 'ABCD',
+      captcha: 'abcd',
       captchaToken: 'demo_token',
     }),
   });
@@ -189,25 +189,25 @@ test('Tier 2 - Boundary 10: Login API returns 400 when x-session-id and body.ses
 
   const json = await res.json();
   assert.strictEqual(json.success, false);
-  assert.strictEqual(json.message, 'Session expired. Please refresh captcha.');
+  assert.strictEqual(json.message, 'Your security-code challenge expired or was already used. Refresh the image.');
 });
 
 test('Tier 2 - Boundary 11: Login API returns 400 when captchaToken verification fails', async () => {
-  const validSession = await encodeSession({
-    cookies: [{ name: 'PHPSESSID', value: 'real_sess' }],
-    csrfToken: 'real_csrf',
-    userAgent: 'Mozilla/5.0',
-  });
+  const captchaResponse = await handleCaptchaGet();
+  const captchaSession = captchaResponse.cookies.get('kl_captcha_session')?.value;
+  assert.ok(captchaSession);
 
   const req = new NextRequest('http://localhost/api/login', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      cookie: `kl_captcha_session=${captchaSession}`,
+    },
     body: JSON.stringify({
       username: 'realuser_non_demo',
       password: 'password123',
-      captcha: 'ABCD',
+      captcha: 'abcd',
       captchaToken: 'invalid_token_99999',
-      sessionId: validSession,
     }),
   });
 
@@ -218,7 +218,7 @@ test('Tier 2 - Boundary 11: Login API returns 400 when captchaToken verification
   assert.strictEqual(json.success, false);
   assert.strictEqual(
     json.message,
-    'Captcha verification failed. Please try again.'
+    'Browser verification expired or failed. Please verify again.'
   );
 });
 

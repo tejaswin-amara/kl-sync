@@ -14,7 +14,7 @@ async function createSessionToken() {
 function photoRequest(sessionToken: string) {
   return new NextRequest(
     'http://localhost/api/fetch-photo?path=%2Fuploads%2Favatar.jpg',
-    { headers: { 'x-session-id': sessionToken } }
+    { headers: { cookie: `kl_erp_session=${sessionToken}` } }
   );
 }
 
@@ -105,4 +105,14 @@ test('fetch-photo preserves ERP rate-limit responses', async () => {
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+
+test('fetch-photo rejects session IDs supplied only in legacy headers', async () => {
+  const sessionToken = await createSessionToken();
+  const request = new NextRequest(
+    'http://localhost/api/fetch-photo?path=%2Fuploads%2Favatar.jpg',
+    { headers: { 'x-session-id': sessionToken } }
+  );
+  assert.equal((await GET(request)).status, 401);
 });

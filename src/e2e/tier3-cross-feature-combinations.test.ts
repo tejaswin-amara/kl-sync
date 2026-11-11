@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import { NextRequest } from 'next/server';
 
 import { POST as handleLogin } from '@/app/api/login/route';
+import { GET as handleCaptchaGet } from '@/app/api/captcha/route';
 import { GET as handleErpProxyGet } from '@/app/api/erp-proxy/[module]/route';
 import { POST as handleAiChat } from '@/app/api/ai/chat/route';
 import { GET as handleFetchPhotoGet } from '@/app/api/fetch-photo/route';
@@ -15,8 +16,8 @@ import {
   executeCalculateAttendanceTarget,
   executePredictCGPA,
 } from '@/lib/ai/executor';
-import { encodeSession } from '@/lib/session';
 import { attendanceResponseSchema, profileResponseSchema } from '@/lib/schemas';
+import { encodeSession } from '@/lib/session';
 
 // ============================================================================
 // Tier 3: Cross-Feature Combinations (Integration across Multiple Subsystems)
@@ -146,10 +147,10 @@ test('Tier 3 - Combo 4: Encrypted Session Creation -> Proxy Cookie Propagation -
   };
   const sessionToken = await encodeSession(customSession);
 
-  // Request ERP proxy with encrypted session in header
+  // Request ERP proxy with the encrypted HttpOnly session cookie.
   const req = new NextRequest('http://localhost/api/erp-proxy/profile', {
     headers: {
-      'x-session-id': sessionToken,
+      cookie: `kl_erp_session=${sessionToken}`,
     },
   });
 
@@ -166,22 +167,21 @@ test('Tier 3 - Combo 4: Encrypted Session Creation -> Proxy Cookie Propagation -
 
 test('Tier 3 - Combo 5: Login Flow -> Session Issuance -> Photo Route Fetch', async () => {
   // Step 1: Login
-  const validSessionToken = await encodeSession({
-    cookies: [{ name: 'PHPSESSID', value: 'demo_phpsessid_123' }],
-    csrfToken: 'demo_csrf_token_123',
-    userAgent: 'Mozilla/5.0',
-  });
+  const captchaResponse = await handleCaptchaGet();
+  assert.equal(captchaResponse.status, 200);
+  const captchaSession = captchaResponse.cookies.get('kl_captcha_session')?.value;
+  assert.ok(captchaSession);
 
   const loginReq = new NextRequest('http://localhost/api/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      cookie: `kl_captcha_session=${validSessionToken}`,
+      cookie: `kl_captcha_session=${captchaSession}`,
     },
     body: JSON.stringify({
       username: '2100030000',
       password: 'demo_password',
-      captcha: 'ABCD',
+      captcha: 'abcd',
     }),
   });
 
