@@ -44,7 +44,7 @@ test('Tier 4 - Scenario 1: Complete Student Login & Multi-Module Dashboard Synch
     body: JSON.stringify({
       username: '2100030000',
       password: 'student_password_123',
-      captcha: captchaData.solvedCaptcha || '8888',
+      captcha: 'abcd',
     }),
   });
   const loginRes = await handleLogin(loginReq);
