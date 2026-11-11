@@ -122,7 +122,7 @@ export function Captcha({ onVerify }: CaptchaProps) {
           data-cap-i18n-verified-aria-label="Browser verification complete"
           data-cap-i18n-error-aria-label="Browser verification failed"
           data-cap-disable-haptics
-          className="captcha-cap-widget"
+          className={`captcha-cap-widget ${ready ? "" : "pointer-events-none opacity-60"}`}
           style={
             {
               '--cap-widget-width': 'min(100%, 260px)',
