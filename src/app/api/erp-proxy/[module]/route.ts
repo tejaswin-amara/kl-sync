@@ -103,11 +103,7 @@ async function handleProxy(
     const searchParams = request.nextUrl.searchParams;
 
     let session: ScraperSession;
-    const sessionValue =
-      resolveSessionToken(request) ||
-      (typeof body.sessionId === 'string' ? body.sessionId : undefined) ||
-      searchParams.get('sessionId') ||
-      undefined;
+    const sessionValue = resolveSessionToken(request);
     const demoMode = isDemoModeEnabled();
 
     if (!sessionValue) {
