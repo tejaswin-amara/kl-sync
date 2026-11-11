@@ -6,6 +6,28 @@ test.describe('Student login, image CAPTCHA, and browser verification', () => {
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
 
+    // Register API observers before navigation because CapJS may fetch its
+    // challenge as soon as the custom element becomes visible.
+    const challengeResult = page
+      .waitForResponse(
+        (response) =>
+          new URL(response.url()).pathname === '/api/captcha/challenge',
+        { timeout: 20000 }
+      )
+      .then(async (response) => ({
+        status: response.status(),
+        body: await response.text(),
+      }));
+    const redeemResult = page
+      .waitForResponse(
+        (response) =>
+          new URL(response.url()).pathname === '/api/captcha/redeem',
+        { timeout: 35000 }
+      )
+      .then(async (response) => ({
+        status: response.status(),
+        body: await response.text(),
+      }));
     const captchaResponse = page.waitForResponse(
       (response) =>
         response.url().endsWith('/api/captcha') && response.status() === 200,
@@ -69,6 +91,19 @@ test.describe('Student login, image CAPTCHA, and browser verification', () => {
     await expect(verifyCheckbox).toBeVisible();
     await verifyCheckbox.click();
     await expect(widget).toHaveAttribute('data-cap-api-endpoint', '/api/captcha/');
+
+    const challenge = await challengeResult;
+    expect(
+      challenge.status,
+      `CapJS challenge response: ${challenge.body}`
+    ).toBe(200);
+
+    const redeem = await redeemResult;
+    expect(
+      redeem.status,
+      `CapJS redeem response: ${redeem.body}`
+    ).toBe(200);
+
     await expect(submitButton).toBeEnabled({ timeout: 30000 });
 
     await captchaInput.fill('ABCD');
