@@ -96,6 +96,7 @@ test.describe('Student login, image CAPTCHA, and browser verification', () => {
         const target = window as Window & { __klSyncCapSolveToken?: string };
         return Boolean(target.__klSyncCapSolveToken);
       },
+      undefined,
       { timeout: 35000 }
     );
     await expect(
