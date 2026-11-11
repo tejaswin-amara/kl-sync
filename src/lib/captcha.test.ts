@@ -160,7 +160,7 @@ test('image sessions, CapJS nonces, and signed tokens use atomic Redis replay co
 
     const setCommands = commands.filter((command) => command[0] === 'SET');
     const getdelCommands = commands.filter((command) => command[0] === 'GETDEL');
-    assert.equal(setCommands.length, 3);
+    assert.equal(setCommands.length, 5);
     assert.equal(getdelCommands.length, 2);
     for (const command of setCommands) {
       assert.ok(command.includes('NX'));
@@ -168,7 +168,9 @@ test('image sessions, CapJS nonces, and signed tokens use atomic Redis replay co
     }
     assert.match(String(setCommands[0][1]), /^cap-session:/);
     assert.match(String(setCommands[1][1]), /^cap-nonce:/);
-    assert.match(String(setCommands[2][1]), /^cap-consumed:/);
+    assert.match(String(setCommands[2][1]), /^cap-nonce:/);
+    assert.match(String(setCommands[3][1]), /^cap-consumed:/);
+    assert.match(String(setCommands[4][1]), /^cap-consumed:/);
     for (const command of getdelCommands) {
       assert.match(String(command[1]), /^cap-session:/);
     }
