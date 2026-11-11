@@ -6,28 +6,6 @@ test.describe('Student login, image CAPTCHA, and browser verification', () => {
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
 
-    // Register API observers before navigation because CapJS may fetch its
-    // challenge as soon as the custom element becomes visible.
-    const challengeResult = page
-      .waitForResponse(
-        (response) =>
-          new URL(response.url()).pathname === '/api/captcha/challenge',
-        { timeout: 20000 }
-      )
-      .then(async (response) => ({
-        status: response.status(),
-        body: await response.text(),
-      }));
-    const redeemResult = page
-      .waitForResponse(
-        (response) =>
-          new URL(response.url()).pathname === '/api/captcha/redeem',
-        { timeout: 35000 }
-      )
-      .then(async (response) => ({
-        status: response.status(),
-        body: await response.text(),
-      }));
     const captchaResponse = page.waitForResponse(
       (response) =>
         response.url().endsWith('/api/captcha') && response.status() === 200,
@@ -95,22 +73,35 @@ test.describe('Student login, image CAPTCHA, and browser verification', () => {
     // The React wrapper must not call widget.solve() on mount.
     const verifyCheckbox = widget.locator('.checkbox');
     await expect(verifyCheckbox).toBeVisible();
+
+    // Observe the solve event on this refreshed widget only. A response
+    // observer registered before navigation can accidentally capture a
+    // speculative redeem from the old widget instance.
+    await widget.evaluate((element) => {
+      const target = window as Window & { __klSyncCapSolveToken?: string };
+      target.__klSyncCapSolveToken = '';
+      element.addEventListener(
+        'solve',
+        (event: Event) => {
+          const token = (event as CustomEvent<{ token?: string }>).detail?.token;
+          target.__klSyncCapSolveToken = typeof token === 'string' ? token : '';
+        },
+        { once: true }
+      );
+    });
+
     await verifyCheckbox.click();
-    await expect(widget).toHaveAttribute('data-cap-api-endpoint', '/api/captcha/');
-
-    const challenge = await challengeResult;
-    expect(
-      challenge.status,
-      `CapJS challenge response: ${challenge.body}`
-    ).toBe(200);
-
-    const redeem = await redeemResult;
-    expect(
-      redeem.status,
-      `CapJS redeem response: ${redeem.body}`
-    ).toBe(200);
-
-    await expect(submitButton).toBeEnabled({ timeout: 30000 });
+    await page.waitForFunction(
+      () => {
+        const target = window as Window & { __klSyncCapSolveToken?: string };
+        return Boolean(target.__klSyncCapSolveToken);
+      },
+      { timeout: 35000 }
+    );
+    await expect(
+      widgetContainer.getByText('Browser verification complete', { exact: true })
+    ).toBeVisible({ timeout: 5000 });
+    await expect(submitButton).toBeEnabled({ timeout: 5000 });
 
     await captchaInput.fill('ABCD');
     await expect(captchaInput).toHaveValue('abcd');
