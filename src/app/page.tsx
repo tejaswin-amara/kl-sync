@@ -144,22 +144,28 @@ export default function LoginPage() {
   useEffect(() => {
     mountedRef.current = true;
 
-    try {
-      const savedDevice = localStorage.getItem('kl_erp_device_id');
-      if (savedDevice) setDeviceId(savedDevice);
+    // Read browser-only preferences after the initial paint. Keeping this in
+    // an animation-frame callback avoids synchronous state updates in the
+    // effect and preserves identical server/client initial markup.
+    const preferenceFrame = window.requestAnimationFrame(() => {
+      try {
+        const savedDevice = localStorage.getItem('kl_erp_device_id');
+        if (savedDevice) setDeviceId(savedDevice);
 
-      const savedUser = localStorage.getItem('remember_username');
-      if (savedUser) {
-        setUsername(savedUser);
-        setRememberMe(true);
+        const savedUser = localStorage.getItem('remember_username');
+        if (savedUser) {
+          setUsername(savedUser);
+          setRememberMe(true);
+        }
+      } catch {
+        // Private browsing and storage restrictions must not block login.
       }
-    } catch {
-      // Private browsing and storage restrictions must not block login.
-    }
+    });
 
     void fetchCaptcha();
 
     return () => {
+      window.cancelAnimationFrame(preferenceFrame);
       mountedRef.current = false;
       captchaRequestRef.current += 1;
     };
