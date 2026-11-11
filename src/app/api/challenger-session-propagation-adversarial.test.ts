@@ -20,280 +20,249 @@ const TEST_SESSION: ScraperSession = {
   userAgent: 'Mozilla/5.0 Challenger Test Suite',
 };
 
-test('Challenger M1 - API /api/captcha session emission', async () => {
+function cookieValue(response: Response, name: string): string {
+  const value = response.headers
+    .get('set-cookie')
+    ?.match(new RegExp(`(?:^|,\\s*)${name}=([^;]+)`))?.[1];
+  assert.ok(value, `Expected ${name} in Set-Cookie`);
+  return value;
+}
+
+test('Challenger M1 - CAPTCHA session is issued only as a short-lived HttpOnly cookie', async () => {
   const response = await captchaGET();
-  assert.strictEqual(
-    response.status,
-    200,
-    'Captcha GET should return 200 status'
-  );
+  assert.equal(response.status, 200);
 
-  const emittedSessionId = response.headers.get('x-session-id');
-  assert.ok(emittedSessionId, 'Captcha response must emit x-session-id header');
-  assert.ok(
-    emittedSessionId.startsWith('enc.'),
-    'Emitted session ID must be encrypted standard format'
-  );
+  const data = (await response.json()) as Record<string, unknown>;
+  assert.equal(typeof data.captchaImage, 'string');
+  assert.equal(Object.hasOwn(data, 'solvedCaptcha'), false);
+  assert.equal(response.headers.get('x-session-id'), null);
 
-  const decoded = await decodeSession(emittedSessionId);
-  assert.ok(
-    decoded.csrfToken,
-    'Decoded session must contain a valid csrfToken'
-  );
+  const sessionToken = cookieValue(response, 'kl_captcha_session');
+  assert.ok(sessionToken.startsWith('enc.'));
+  assert.match(response.headers.get('set-cookie') || '', /HttpOnly/i);
+  assert.match(response.headers.get('set-cookie') || '', /SameSite=Lax/i);
+  assert.match(response.headers.get('cache-control') || '', /no-store/i);
+
+  const decoded = await decodeSession(sessionToken);
+  assert.ok(decoded.csrfToken);
 });
 
-test('Challenger M1 - API /api/login session propagation (Headers vs Body vs Missing)', async () => {
-  const validSessionId = await encodeSession(TEST_SESSION);
+test('Challenger M1 - login accepts the HttpOnly CAPTCHA cookie and rejects legacy session channels', async () => {
+  const captchaResponse = await captchaGET();
+  const captchaSession = cookieValue(captchaResponse, 'kl_captcha_session');
 
-  // 1. Session passed via x-session-id header
-  const reqHeader = new NextRequest('http://localhost:3000/api/login', {
+  const cookieRequest = new NextRequest('http://localhost:3000/api/login', {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
-      'x-session-id': validSessionId,
+      cookie: `kl_captcha_session=${captchaSession}`,
     },
     body: JSON.stringify({
       username: 'demo',
       password: 'password123',
-      captcha: '8888',
+      captcha: 'abcd',
+      captchaToken: '',
     }),
   });
-  const resHeader = await loginPOST(reqHeader);
-  assert.strictEqual(resHeader.status, 200);
-  const dataHeader = await resHeader.json();
-  assert.strictEqual(dataHeader.success, true);
-  assert.ok(
-    dataHeader.sessionId,
-    'Login response must return updated sessionId'
-  );
-  const decodedFromResHeader = await decodeSession(dataHeader.sessionId);
-  assert.ok(
-    decodedFromResHeader.cookies,
-    'Decoded session should contain cookies'
-  );
 
-  // 2. Session passed via JSON body
-  const reqBody = new NextRequest('http://localhost:3000/api/login', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      sessionId: validSessionId,
-      username: 'demo',
-      password: 'password123',
-      captcha: '8888',
-    }),
-  });
-  const resBody = await loginPOST(reqBody);
-  assert.strictEqual(resBody.status, 200);
-  const dataBody = await resBody.json();
-  assert.strictEqual(dataBody.success, true);
-  assert.ok(dataBody.sessionId);
+  const loginResponse = await loginPOST(cookieRequest);
+  assert.equal(loginResponse.status, 200);
 
-  // 3. Missing session ID -> 400 Session expired
-  const reqMissing = new NextRequest('http://localhost:3000/api/login', {
+  const loginData = (await loginResponse.json()) as Record<string, unknown>;
+  assert.equal(loginData.success, true);
+  assert.equal(Object.hasOwn(loginData, 'sessionId'), false);
+  assert.equal(loginResponse.headers.get('x-session-id'), null);
+
+  const erpSession = loginResponse.cookies.get('kl_erp_session')?.value;
+  assert.ok(erpSession?.startsWith('enc.'));
+  assert.equal(loginResponse.cookies.get('kl_erp_session')?.httpOnly, true);
+  assert.equal(loginResponse.cookies.get('kl_captcha_session')?.maxAge, 0);
+
+  const decoded = await decodeSession(erpSession);
+  assert.ok(decoded.csrfToken);
+
+  const legacyHeaderRequest = new NextRequest('http://localhost:3000/api/login', {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: {
+      'content-type': 'application/json',
+      'x-session-id': erpSession,
+    },
     body: JSON.stringify({
       username: 'demo',
       password: 'password123',
-      captcha: '8888',
+      captcha: 'abcd',
+      captchaToken: '',
     }),
   });
-  const resMissing = await loginPOST(reqMissing);
-  assert.strictEqual(resMissing.status, 400);
-  const dataMissing = await resMissing.json();
-  assert.strictEqual(dataMissing.success, false);
-  assert.match(dataMissing.message, /Session expired/i);
+  const legacyHeaderResponse = await loginPOST(legacyHeaderRequest);
+  assert.equal(legacyHeaderResponse.status, 400);
+  const legacyHeaderData = (await legacyHeaderResponse.json()) as {
+    field?: string;
+  };
+  assert.equal(legacyHeaderData.field, 'captcha');
+
+  const legacyBodyRequest = new NextRequest('http://localhost:3000/api/login', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      sessionId: erpSession,
+      username: 'demo',
+      password: 'password123',
+      captcha: 'abcd',
+      captchaToken: '',
+    }),
+  });
+  const legacyBodyResponse = await loginPOST(legacyBodyRequest);
+  assert.equal(legacyBodyResponse.status, 400);
+  const legacyBodyData = (await legacyBodyResponse.json()) as {
+    field?: string;
+  };
+  assert.equal(legacyBodyData.field, 'captcha');
 });
 
-test('Challenger M1 - API /api/erp-proxy/[module] session propagation channels', async () => {
-  const customSession: ScraperSession = {
-    cookies: [{ name: 'PHPSESSID', value: 'erp_proxy_test_sess' }],
+test('Challenger M1 - ERP proxy authenticates through the HttpOnly session cookie', async () => {
+  const token = await encodeSession({
+    ...TEST_SESSION,
     csrfToken: 'demo_csrf_9999',
-  };
-  const token = await encodeSession(customSession);
+  });
   const params = Promise.resolve({ module: 'attendance' });
 
-  // 1. Session in x-session-id header
-  const reqHeader = new NextRequest(
+  const request = new NextRequest(
     'http://localhost:3000/api/erp-proxy/attendance?academicYear=2025-2026&semesterId=1',
     {
-      method: 'GET',
-      headers: { 'x-session-id': token },
-    }
-  );
-  const resHeader = await erpProxyGET(reqHeader, { params });
-  assert.strictEqual(resHeader.status, 200);
-
-  // 2. Session in kl_erp_session cookie
-  const reqCookie = new NextRequest(
-    'http://localhost:3000/api/erp-proxy/attendance?academicYear=2025-2026&semesterId=1',
-    {
-      method: 'GET',
       headers: { cookie: `kl_erp_session=${token}` },
     }
   );
-  const resCookie = await erpProxyGET(reqCookie, { params });
-  assert.strictEqual(resCookie.status, 200);
 
-  // 3. Session in POST body sessionId
-  const reqBody = new NextRequest(
+  const response = await erpProxyGET(request, { params });
+  assert.equal(response.status, 200);
+
+  const postRequest = new NextRequest(
     'http://localhost:3000/api/erp-proxy/attendance',
     {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: {
+        'content-type': 'application/json',
+        cookie: `kl_erp_session=${token}`,
+      },
       body: JSON.stringify({
-        sessionId: token,
         academicYear: '2025-2026',
         semesterId: '1',
       }),
     }
   );
-  const resBody = await erpProxyPOST(reqBody, { params });
-  assert.strictEqual(resBody.status, 200);
-
-  // 4. Session in searchParams ?sessionId=
-  const reqQuery = new NextRequest(
-    `http://localhost:3000/api/erp-proxy/attendance?sessionId=${encodeURIComponent(token)}&academicYear=2025-2026&semesterId=1`,
-    {
-      method: 'GET',
-    }
-  );
-  const resQuery = await erpProxyGET(reqQuery, { params });
-  assert.strictEqual(resQuery.status, 200);
+  const postResponse = await erpProxyPOST(postRequest, { params });
+  assert.equal(postResponse.status, 200);
 });
 
-test('Challenger M1 - API /api/fetch-photo session extraction', async () => {
+test('Challenger M1 - photo endpoint accepts the encrypted session cookie', async () => {
   const token = await encodeSession(TEST_SESSION);
 
-  // 1. Missing session -> 401 Unauthorized
-  const reqNoSession = new NextRequest(
+  const noSession = new NextRequest(
     'http://localhost:3000/api/fetch-photo?id=2100030000'
   );
-  const resNoSession = await fetchPhotoGET(reqNoSession);
-  assert.strictEqual(resNoSession.status, 401);
+  const noSessionResponse = await fetchPhotoGET(noSession);
+  assert.equal(noSessionResponse.status, 401);
 
-  // 2. Session in x-session-id header
-  const reqHeader = new NextRequest(
+  const cookieRequest = new NextRequest(
     'http://localhost:3000/api/fetch-photo?id=2100030000',
     {
-      headers: { 'x-session-id': token },
+      headers: { cookie: `kl_erp_session=${token}` },
     }
   );
-  const resHeader = await fetchPhotoGET(reqHeader);
-  // Returns 404 because upstream ERP photo is unreachable during offline unit test, but passes auth check (not 401)
-  assert.notStrictEqual(
-    resHeader.status,
+  const cookieResponse = await fetchPhotoGET(cookieRequest);
+  assert.notEqual(
+    cookieResponse.status,
     401,
-    'Request with valid session should pass auth check'
+    'A valid HttpOnly session cookie must pass the authentication boundary'
   );
 });
 
-test('Challenger M1 - API /api/ai/chat session propagation & execution context', async () => {
+test('Challenger M1 - AI chat continues to work with the authenticated session cookie', async () => {
   const token = await encodeSession(TEST_SESSION);
-
-  // 1. Session in body.sessionId
-  const reqBody = new NextRequest('http://localhost:3000/api/ai/chat', {
+  const request = new NextRequest('http://localhost:3000/api/ai/chat', {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: {
+      'content-type': 'application/json',
+      cookie: `kl_erp_session=${token}`,
+    },
     body: JSON.stringify({
-      sessionId: token,
       messages: [{ role: 'user', content: 'What is my attendance?' }],
     }),
   });
-  const resBody = await aiChatPOST(reqBody);
-  assert.strictEqual(resBody.status, 200);
-  const dataBody = await resBody.json();
-  assert.strictEqual(dataBody.success, true);
 
-  // 2. Session in x-session-id header
-  const reqHeader = new NextRequest('http://localhost:3000/api/ai/chat', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-session-id': token,
-    },
-    body: JSON.stringify({
-      messages: [{ role: 'user', content: 'Show my timetable' }],
-    }),
-  });
-  const resHeader = await aiChatPOST(reqHeader);
-  assert.strictEqual(resHeader.status, 200);
-  const dataHeader = await resHeader.json();
-  assert.strictEqual(dataHeader.success, true);
+  const response = await aiChatPOST(request);
+  assert.equal(response.status, 200);
+  const data = (await response.json()) as { success?: boolean };
+  assert.equal(data.success, true);
 });
 
-test('Challenger M1 - Multi-Hop Session Round-Trip Chain Simulation', async () => {
-  // Step 1: GET /api/captcha -> get initial token S1
-  const captchaRes = await captchaGET();
-  const tokenS1 = captchaRes.headers.get('x-session-id')!;
-  assert.ok(tokenS1, 'S1 token acquired');
+test('Challenger M1 - multi-hop CAPTCHA-to-dashboard chain preserves the cookie boundary', async () => {
+  const captchaResponse = await captchaGET();
+  const captchaSession = cookieValue(captchaResponse, 'kl_captcha_session');
 
-  // Step 2: POST /api/login with token S1 -> get updated token S2
-  const loginReq = new NextRequest('http://localhost:3000/api/login', {
+  const loginRequest = new NextRequest('http://localhost:3000/api/login', {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
-      'x-session-id': tokenS1,
+      cookie: `kl_captcha_session=${captchaSession}`,
     },
     body: JSON.stringify({
       username: 'demo',
       password: 'password123',
-      captcha: '8888',
+      captcha: 'abcd',
+      captchaToken: '',
     }),
   });
-  const loginRes = await loginPOST(loginReq);
-  const loginData = await loginRes.json();
-  const tokenS2 = loginData.sessionId;
-  assert.ok(tokenS2, 'S2 token acquired from login response');
 
-  // Verify S2 can be decoded and holds valid structure
-  const decodedS2 = await decodeSession(tokenS2);
-  assert.ok(decodedS2.csrfToken, 'S2 CSRF token intact');
+  const loginResponse = await loginPOST(loginRequest);
+  assert.equal(loginResponse.status, 200);
 
-  // Step 3: POST /api/erp-proxy/attendance with token S2
-  const erpReq = new NextRequest(
+  const loginData = (await loginResponse.json()) as Record<string, unknown>;
+  assert.equal(loginData.success, true);
+  assert.equal(Object.hasOwn(loginData, 'sessionId'), false);
+
+  const sessionToken = loginResponse.cookies.get('kl_erp_session')?.value;
+  assert.ok(sessionToken);
+
+  const proxyRequest = new NextRequest(
     'http://localhost:3000/api/erp-proxy/attendance',
     {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: {
+        'content-type': 'application/json',
+        cookie: `kl_erp_session=${sessionToken}`,
+      },
       body: JSON.stringify({
-        sessionId: tokenS2,
         academicYear: '2025-2026',
         semesterId: '1',
       }),
     }
   );
-  const erpRes = await erpProxyPOST(erpReq, {
+  const proxyResponse = await erpProxyPOST(proxyRequest, {
     params: Promise.resolve({ module: 'attendance' }),
   });
-  assert.strictEqual(erpRes.status, 200);
+  assert.equal(proxyResponse.status, 200);
 
-  // Step 4: GET /api/fetch-photo with token S2 in header
-  const photoReq = new NextRequest(
+  const photoRequest = new NextRequest(
     'http://localhost:3000/api/fetch-photo?id=2100030000',
-    {
-      headers: { 'x-session-id': tokenS2 },
-    }
+    { headers: { cookie: `kl_erp_session=${sessionToken}` } }
   );
-  const photoRes = await fetchPhotoGET(photoReq);
-  assert.notStrictEqual(
-    photoRes.status,
-    401,
-    'Photo request with S2 header passed auth'
-  );
+  const photoResponse = await fetchPhotoGET(photoRequest);
+  assert.notEqual(photoResponse.status, 401);
 
-  // Step 5: POST /api/ai/chat with token S2
-  const chatReq = new NextRequest('http://localhost:3000/api/ai/chat', {
+  const chatRequest = new NextRequest('http://localhost:3000/api/ai/chat', {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: {
+      'content-type': 'application/json',
+      cookie: `kl_erp_session=${sessionToken}`,
+    },
     body: JSON.stringify({
-      sessionId: tokenS2,
       messages: [{ role: 'user', content: 'What is my profile?' }],
     }),
   });
-  const chatRes = await aiChatPOST(chatReq);
-  assert.strictEqual(chatRes.status, 200);
-  const chatData = await chatRes.json();
-  assert.strictEqual(chatData.success, true);
+  const chatResponse = await aiChatPOST(chatRequest);
+  assert.equal(chatResponse.status, 200);
+  const chatData = (await chatResponse.json()) as { success?: boolean };
+  assert.equal(chatData.success, true);
 });
