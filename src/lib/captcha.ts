@@ -232,7 +232,7 @@ export async function consumeNonce(
     }
   }
 
-  if (process.env.NODE_ENV === 'production') {
+  if (!canUseLocalReplayStore()) {
     return false;
   }
 
