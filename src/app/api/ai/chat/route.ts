@@ -100,10 +100,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const sessionToken =
-      resolveSessionToken(request) ||
-      request.headers.get('x-session-id') ||
-      (typeof body.sessionId === 'string' ? body.sessionId : undefined);
+    const sessionToken = resolveSessionToken(request);
 
     const demoMode = isDemoModeEnabled();
     let session: ScraperSession;
