@@ -5,6 +5,8 @@ import {
   verifyCaptchaToken,
   consumeNonce,
   getCapSecret,
+  registerCaptchaSession,
+  consumeCaptchaSession,
 } from './captcha';
 
 const env = process.env as Record<string, string | undefined>;
@@ -107,24 +109,47 @@ test('consumeNonce enforces single-use nonce consumption in development', async 
   assert.equal(await consumeNonce('invalid-ttl', 0), false);
 });
 
-test('distributed nonce and token replay checks use atomic Redis SET NX PX', async () => {
+test('image sessions, CapJS nonces, and signed tokens use atomic Redis replay controls', async () => {
   const previousUrl = env.UPSTASH_REDIS_REST_URL;
   const previousToken = env.UPSTASH_REDIS_REST_TOKEN;
   const previousFetch = globalThis.fetch;
   const commands: (string | number)[][] = [];
+  const redis = new Map<string, string>();
 
   env.UPSTASH_REDIS_REST_URL = 'https://redis.example.test';
   env.UPSTASH_REDIS_REST_TOKEN = 'test-token';
 
   globalThis.fetch = async (_input, init) => {
-    commands.push(JSON.parse(String(init?.body)) as (string | number)[]);
-    return new Response(
-      JSON.stringify({ result: commands.length % 2 === 1 ? 'OK' : null }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
+    const command = JSON.parse(String(init?.body)) as (string | number)[];
+    commands.push(command);
+    const name = String(command[0]);
+    const key = String(command[1]);
+
+    if (name === 'SET') {
+      if (redis.has(key)) {
+        return new Response(JSON.stringify({ result: null }), { status: 200 });
+      }
+      redis.set(key, String(command[2]));
+      return new Response(JSON.stringify({ result: 'OK' }), { status: 200 });
+    }
+
+    if (name === 'GETDEL') {
+      const value = redis.get(key) ?? null;
+      redis.delete(key);
+      return new Response(JSON.stringify({ result: value }), { status: 200 });
+    }
+
+    return new Response(JSON.stringify({ error: 'Unexpected command' }), {
+      status: 400,
+    });
   };
 
   try {
+    const session = `enc.${crypto.randomBytes(24).toString('base64url')}`;
+    assert.equal(await registerCaptchaSession(session, 20_000), true);
+    assert.equal(await consumeCaptchaSession(session), true);
+    assert.equal(await consumeCaptchaSession(session), false);
+
     const nonce = `redis-nonce-${crypto.randomBytes(12).toString('hex')}`;
     assert.equal(await consumeNonce(nonce, 20_000), true);
     assert.equal(await consumeNonce(nonce, 20_000), false);
@@ -133,13 +158,20 @@ test('distributed nonce and token replay checks use atomic Redis SET NX PX', asy
     assert.equal(await verifyCaptchaToken(signedToken), true);
     assert.equal(await verifyCaptchaToken(signedToken), false);
 
-    assert.equal(commands.length, 4);
-    for (const command of commands) {
-      assert.equal(command[0], 'SET');
+    const setCommands = commands.filter((command) => command[0] === 'SET');
+    const getdelCommands = commands.filter((command) => command[0] === 'GETDEL');
+    assert.equal(setCommands.length, 3);
+    assert.equal(getdelCommands.length, 2);
+    for (const command of setCommands) {
       assert.ok(command.includes('NX'));
       assert.ok(command.includes('PX'));
     }
-    assert.match(String(commands[2][1]), /^cap-consumed:/);
+    assert.match(String(setCommands[0][1]), /^cap-session:/);
+    assert.match(String(setCommands[1][1]), /^cap-nonce:/);
+    assert.match(String(setCommands[2][1]), /^cap-consumed:/);
+    for (const command of getdelCommands) {
+      assert.match(String(command[1]), /^cap-session:/);
+    }
   } finally {
     globalThis.fetch = previousFetch;
     if (previousUrl === undefined) delete env.UPSTASH_REDIS_REST_URL;
@@ -147,6 +179,18 @@ test('distributed nonce and token replay checks use atomic Redis SET NX PX', asy
     if (previousToken === undefined) delete env.UPSTASH_REDIS_REST_TOKEN;
     else env.UPSTASH_REDIS_REST_TOKEN = previousToken;
   }
+});
+
+test('local image challenge sessions expire and can be consumed only once', async () => {
+  const session = `dev-session-${crypto.randomBytes(12).toString('hex')}`;
+  assert.equal(await registerCaptchaSession(session, 10_000), true);
+  assert.equal(await consumeCaptchaSession(session), true);
+  assert.equal(await consumeCaptchaSession(session), false);
+
+  const expiredSession = `expired-session-${crypto.randomBytes(12).toString('hex')}`;
+  assert.equal(await registerCaptchaSession(expiredSession, 1), true);
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  assert.equal(await consumeCaptchaSession(expiredSession), false);
 });
 
 test('production CAPTCHA replay protection fails closed without distributed storage', async () => {
@@ -163,6 +207,9 @@ test('production CAPTCHA replay protection fails closed without distributed stor
       await verifyCaptchaToken(createSignedToken()),
       false
     );
+    const productionSession = `production-session-${crypto.randomBytes(8).toString('hex')}`;
+    assert.equal(await registerCaptchaSession(productionSession, 10_000), false);
+    assert.equal(await consumeCaptchaSession(productionSession), false);
     assert.equal(
       await consumeNonce(
         `production-nonce-${crypto.randomBytes(8).toString('hex')}`,
