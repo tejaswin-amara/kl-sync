@@ -10,7 +10,11 @@ const CAPTCHA_CHALLENGE_TTL_MS = 5 * 60_000;
 const MAX_REDEEM_BODY_BYTES = 64 * 1024;
 const NO_STORE = 'no-store, max-age=0, must-revalidate';
 
-type InstrumentationPayload = Record<string, unknown>;
+type InstrumentationPayload = {
+  i: string;
+  state: Record<string, number>;
+  d: string;
+};
 
 /**
  * Keep only the transport-level shape check here. capjs-core owns the
