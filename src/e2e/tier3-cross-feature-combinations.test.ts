@@ -181,7 +181,7 @@ test('Tier 3 - Combo 5: Login Flow -> Session Issuance -> Photo Route Fetch', as
     body: JSON.stringify({
       username: '2100030000',
       password: 'demo_password',
-      captcha: 'ABCD',
+      captcha: 'abcd',
     }),
   });
 
