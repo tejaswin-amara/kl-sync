@@ -10,6 +10,35 @@ const CAPTCHA_CHALLENGE_TTL_MS = 5 * 60_000;
 const MAX_REDEEM_BODY_BYTES = 64 * 1024;
 const NO_STORE = 'no-store, max-age=0, must-revalidate';
 
+type InstrumentationPayload = {
+  i: string;
+  state: Record<string, number>;
+  d: string;
+};
+
+function isInstrumentationPayload(
+  value: unknown
+): value is InstrumentationPayload {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+  const payload = value as Record<string, unknown>;
+  return (
+    typeof payload.i === 'string' &&
+    payload.i.length > 0 &&
+    typeof payload.d === 'string' &&
+    payload.d.length <= 65_536 &&
+    Boolean(
+      payload.state &&
+        typeof payload.state === 'object' &&
+        !Array.isArray(payload.state) &&
+        Object.values(payload.state).every(
+          (item) => typeof item === 'number' && Number.isFinite(item)
+        )
+    )
+  );
+}
+
 function privateJson(body: unknown, status = 200): NextResponse {
   return NextResponse.json(body, {
     status,
@@ -83,17 +112,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const instr = isInstrumentationPayload(payload.instr)
+      ? payload.instr
+      : undefined;
+    if (payload.instr !== undefined && !instr) {
+      return privateJson(
+        { success: false, error: 'Invalid browser-verification instrumentation.' },
+        400
+      );
+    }
+    if (
+      (payload.instr_blocked !== undefined &&
+        typeof payload.instr_blocked !== 'boolean') ||
+      (payload.instr_timeout !== undefined &&
+        typeof payload.instr_timeout !== 'boolean')
+    ) {
+      return privateJson(
+        { success: false, error: 'Invalid browser-verification flags.' },
+        400
+      );
+    }
+
     const secret = getCapSecret();
     const result = await validateChallenge(
       secret,
       {
         token: payload.token,
-        solutions: payload.solutions,
-        ...(payload.instr !== undefined ? { instr: payload.instr } : {}),
-        ...(payload.instr_blocked !== undefined
+        solutions: payload.solutions as number[],
+        ...(instr ? { instr } : {}),
+        ...(typeof payload.instr_blocked === 'boolean'
           ? { instr_blocked: payload.instr_blocked }
           : {}),
-        ...(payload.instr_timeout !== undefined
+        ...(typeof payload.instr_timeout === 'boolean'
           ? { instr_timeout: payload.instr_timeout }
           : {}),
       },
