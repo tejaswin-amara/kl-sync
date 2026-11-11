@@ -31,9 +31,7 @@ export async function GET(request: Request) {
 
   const cookieHeader = request.headers.get('cookie') || '';
   const rawSession =
-    cookieHeader.match(/(?:^|;\s*)kl_erp_session=([^;]+)/)?.[1] ||
-    request.headers.get('x-session-id') ||
-    request.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
+    cookieHeader.match(/(?:^|;\s*)kl_erp_session=([^;]+)/)?.[1];
   const demoMode = isDemoModeEnabled();
   if (!rawSession) return new NextResponse('Unauthorized', { status: 401 });
 
