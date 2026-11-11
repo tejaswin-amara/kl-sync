@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
     const secret = getCapSecret();
     const result = await validateChallenge(
       secret,
-      payload as Parameters<typeof validateChallenge>[1],
+      payload as unknown as Parameters<typeof validateChallenge>[1],
       {
         scope: 'login',
         tokenTtlMs: CAPTCHA_CHALLENGE_TTL_MS,
