@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import { NextRequest } from 'next/server';
 
 import { POST as handleLogin } from '@/app/api/login/route';
+import { GET as handleCaptchaGet } from '@/app/api/captcha/route';
 import { GET as handleErpProxyGet } from '@/app/api/erp-proxy/[module]/route';
 import { POST as handleAiChat } from '@/app/api/ai/chat/route';
 import { GET as handleFetchPhotoGet } from '@/app/api/fetch-photo/route';
@@ -15,7 +16,6 @@ import {
   executeCalculateAttendanceTarget,
   executePredictCGPA,
 } from '@/lib/ai/executor';
-import { encodeSession } from '@/lib/session';
 import { attendanceResponseSchema, profileResponseSchema } from '@/lib/schemas';
 
 // ============================================================================
