@@ -119,7 +119,7 @@ test('distributed nonce and token replay checks use atomic Redis SET NX PX', asy
   globalThis.fetch = async (_input, init) => {
     commands.push(JSON.parse(String(init?.body)) as (string | number)[]);
     return new Response(
-      JSON.stringify({ result: commands.length === 1 ? 'OK' : null }),
+      JSON.stringify({ result: commands.length % 2 === 1 ? 'OK' : null }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   };
