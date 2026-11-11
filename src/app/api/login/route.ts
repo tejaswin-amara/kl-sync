@@ -5,7 +5,7 @@ import {
   encodeSession,
   isDemoModeEnabled,
 } from '@/lib/session';
-import { verifyCaptchaToken } from '@/lib/captcha';
+import { consumeCaptchaSession, verifyCaptchaToken } from '@/lib/captcha';
 import { isValidCaptchaInput } from '@/lib/captcha-input';
 import { DEMO_LOGIN_RESULT, DEMO_SESSION } from '@/lib/fixtures';
 import { checkRateLimitDistributed, getClientIP } from '@/lib/request-utils';
@@ -219,8 +219,24 @@ export async function POST(request: NextRequest) {
         username === 'teststudent' ||
         username === '2100030000');
 
+    // The encrypted ERP session must also have a live, server-side issuance
+    // record. Atomically consume it so concurrent or later login attempts
+    // cannot reuse the same university image challenge.
+    const captchaSessionId = request.cookies.get(CAPTCHA_COOKIE)?.value;
+    if (!captchaSessionId || !(await consumeCaptchaSession(captchaSessionId))) {
+      const response = privateJson(
+        {
+          success: false,
+          message: 'Your security-code challenge expired or was already used. Refresh the image.',
+          field: 'captcha',
+        },
+        { status: 400 }
+      );
+      return clearCookie(response, CAPTCHA_COOKIE);
+    }
+
     if (!isExplicitDemoUser && !(await verifyCaptchaToken(captchaToken))) {
-      return privateJson(
+      const response = privateJson(
         {
           success: false,
           message: 'Browser verification expired or failed. Please verify again.',
@@ -228,20 +244,7 @@ export async function POST(request: NextRequest) {
         },
         { status: 400 }
       );
-    }
-
-    // The browser never receives this bearer session. Only the short-lived,
-    // HttpOnly cookie minted by GET /api/captcha is accepted.
-    const captchaSessionId = request.cookies.get(CAPTCHA_COOKIE)?.value;
-    if (!captchaSessionId) {
-      return privateJson(
-        {
-          success: false,
-          message: 'Your security-code session expired. Refresh the image.',
-          field: 'captcha',
-        },
-        { status: 400 }
-      );
+      return clearCookie(response, CAPTCHA_COOKIE);
     }
 
     let session: ScraperSession;
@@ -288,7 +291,7 @@ export async function POST(request: NextRequest) {
       }
     } catch (error) {
       const safe = safeLoginError(error);
-      return privateJson(
+      const response = privateJson(
         {
           success: false,
           message: safe.message,
@@ -296,6 +299,7 @@ export async function POST(request: NextRequest) {
         },
         { status: safe.status }
       );
+      return clearCookie(response, CAPTCHA_COOKIE);
     }
 
     const updatedSessionId = await encodeSession(result.session);
@@ -305,12 +309,8 @@ export async function POST(request: NextRequest) {
         needsCaptchaRetry: true,
         message: result.message,
       });
-      return setCookie(
-        clearCookie(response, SESSION_COOKIE),
-        CAPTCHA_COOKIE,
-        updatedSessionId,
-        5 * 60
-      );
+      clearCookie(response, SESSION_COOKIE);
+      return clearCookie(response, CAPTCHA_COOKIE);
     }
 
     const response = privateJson({
