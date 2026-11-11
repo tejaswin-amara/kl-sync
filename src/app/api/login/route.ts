@@ -257,7 +257,7 @@ export async function POST(request: NextRequest) {
       ) {
         session = DEMO_SESSION;
       } else {
-        return privateJson(
+        const response = privateJson(
           {
             success: false,
             message: 'Your security-code session is invalid. Refresh the image.',
@@ -265,6 +265,7 @@ export async function POST(request: NextRequest) {
           },
           { status: 400 }
         );
+        return clearCookie(response, CAPTCHA_COOKIE);
       }
     }
 
@@ -302,7 +303,6 @@ export async function POST(request: NextRequest) {
       return clearCookie(response, CAPTCHA_COOKIE);
     }
 
-    const updatedSessionId = await encodeSession(result.session);
     if (result.needsCaptchaRetry) {
       const response = privateJson({
         success: false,
@@ -313,6 +313,7 @@ export async function POST(request: NextRequest) {
       return clearCookie(response, CAPTCHA_COOKIE);
     }
 
+    const updatedSessionId = await encodeSession(result.session);
     const response = privateJson({
       success: true,
       message: 'Login successful',
