@@ -83,6 +83,12 @@ test.describe('Student login, image CAPTCHA, and browser verification', () => {
     await expect(captchaInput).toHaveValue('');
     await expect(submitButton).toBeDisabled();
     await expect(image).toBeVisible();
+    // Do not permit interaction until the CapJS wrapper has installed its
+    // solve/reset/error handlers; otherwise an immediate click can race the
+    // dynamic custom-element import and lose the success token event.
+    await expect(
+      widgetContainer.getByText('Select the verification control above to continue.')
+    ).toBeVisible();
 
     // CapJS owns an open shadow root. Activate its actual visible checkbox,
     // not the custom-element host (which does not forward click activation).
