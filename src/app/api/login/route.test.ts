@@ -136,20 +136,6 @@ test('explicit demo login succeeds with the short-lived HttpOnly ERP CAPTCHA ses
     const replayData = (await replayResponse.json()) as { field?: string };
     assert.equal(replayData.field, 'captcha');
 
-    const replayResponse = await POST(
-      jsonRequest(
-        {
-          username: '2100030000',
-          password: 'demo_password',
-          captcha: 'abcd',
-          captchaToken: '',
-        },
-        { cookie: captchaCookie }
-      )
-    );
-    assert.equal(replayResponse.status, 400);
-    const replayData = (await replayResponse.json()) as { field?: string };
-    assert.equal(replayData.field, 'captcha');
   } finally {
     if (previousDemoMode === undefined) delete env.KL_SYNC_DEMO_MODE;
     else env.KL_SYNC_DEMO_MODE = previousDemoMode;
