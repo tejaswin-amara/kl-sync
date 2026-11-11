@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCaptcha } from '@/lib/scraper';
+import { registerCaptchaSession } from '@/lib/captcha';
 import { encodeSession, isDemoModeEnabled } from '@/lib/session';
 import { DEMO_SESSION, DEMO_CAPTCHA_SVG } from '@/lib/fixtures';
 import { checkRateLimitDistributed, getClientIP } from '@/lib/request-utils';
@@ -85,6 +86,17 @@ export async function GET(request?: NextRequest) {
     }
 
     const sessionId = await encodeSession(session);
+    const registered = await registerCaptchaSession(sessionId, 5 * 60_000);
+    if (!registered) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'The security-code session could not be created. Please try again.',
+        },
+        { status: 503, headers: NO_STORE_HEADERS }
+      );
+    }
+
     return withCaptchaCookie(
       NextResponse.json(
         {
