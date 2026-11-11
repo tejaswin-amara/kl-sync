@@ -18,7 +18,7 @@ test.describe('Student login, image CAPTCHA, and browser verification', () => {
     const studentIdInput = page.locator('#student-id-field');
     const passwordInput = page.locator('#password-field');
     const captchaInput = page.locator('#captcha-field');
-    const submitButton = page.getByRole('button', { name: /^Sign in securely$/ });
+    const submitButton = page.locator('button[type="submit"]');
     const image = page.locator('#kl-sync-captcha-image');
     const refreshButton = page.getByRole('button', {
       name: /Refresh university security-code image and browser verification/i,
@@ -85,7 +85,7 @@ test.describe('Student login, image CAPTCHA, and browser verification', () => {
     await page.goto('/');
 
     const captchaInput = page.locator('#captcha-field');
-    const submitButton = page.getByRole('button', { name: /^Sign in securely$/ });
+    const submitButton = page.locator('button[type="submit"]');
 
     await expect(submitButton).toBeDisabled();
     await captchaInput.fill('A!1');
