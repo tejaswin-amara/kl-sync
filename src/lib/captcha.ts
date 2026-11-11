@@ -16,6 +16,13 @@ function hasDistributedStore(): boolean {
   );
 }
 
+function canUseLocalReplayStore(): boolean {
+  return (
+    process.env.NODE_ENV !== 'production' ||
+    process.env.KL_SYNC_E2E_TEST_MODE === 'true'
+  );
+}
+
 export function getCapSecret(): string {
   const secret =
     process.env.CAP_SECRET ||
@@ -132,7 +139,7 @@ export async function registerCaptchaSession(
   }
 
   // Per-instance memory is suitable only for tests/local development.
-  if (process.env.NODE_ENV === 'production') return false;
+  if (!canUseLocalReplayStore()) return false;
 
   cleanExpired();
   if (issuedCaptchaSessions.has(key)) return false;
@@ -169,7 +176,7 @@ export async function consumeCaptchaSession(
     }
   }
 
-  if (process.env.NODE_ENV === 'production') return false;
+  if (!canUseLocalReplayStore()) return false;
 
   cleanExpired();
   const expiresAt = issuedCaptchaSessions.get(key);
@@ -333,7 +340,7 @@ export async function verifyCaptchaToken(
 
     // A local Map cannot guarantee single-use verification across production
     // instances. Do not silently downgrade to it in production.
-    if (process.env.NODE_ENV === 'production') return false;
+    if (!canUseLocalReplayStore()) return false;
 
     cleanExpired();
     if (consumedTokensMap.has(consumedKey)) return false;
