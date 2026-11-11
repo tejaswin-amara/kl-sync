@@ -2,8 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { NextRequest } from 'next/server';
 import { POST } from './route';
-import { encodeSession } from '@/lib/session';
-import { DEMO_SESSION } from '@/lib/fixtures';
+import { GET as getCaptcha } from '@/app/api/captcha/route';
 
 const env = process.env as Record<string, string | undefined>;
 
@@ -93,7 +92,11 @@ test('explicit demo login succeeds with the short-lived HttpOnly ERP CAPTCHA ses
   env.KL_SYNC_DEMO_MODE = 'true';
 
   try {
-    const sessionId = await encodeSession(DEMO_SESSION);
+    const captchaResponse = await getCaptcha();
+    const captchaCookie = captchaResponse.headers
+      .get('set-cookie')
+      ?.match(/kl_captcha_session=[^;]+/)?.[0];
+    assert.ok(captchaCookie);
     const response = await POST(
       jsonRequest(
         {
@@ -103,7 +106,7 @@ test('explicit demo login succeeds with the short-lived HttpOnly ERP CAPTCHA ses
           captchaToken: '',
           rememberMe: false,
         },
-        { cookie: `kl_captcha_session=${sessionId}` }
+        { cookie: captchaCookie }
       )
     );
     const data = (await response.json()) as {
@@ -118,6 +121,21 @@ test('explicit demo login succeeds with the short-lived HttpOnly ERP CAPTCHA ses
     assert.ok(response.cookies.get('kl_erp_session')?.value);
     assert.equal(response.cookies.get('kl_erp_session')?.httpOnly, true);
     assert.equal(response.cookies.get('kl_captcha_session')?.maxAge, 0);
+
+    const replayResponse = await POST(
+      jsonRequest(
+        {
+          username: '2100030000',
+          password: 'demo_password',
+          captcha: 'abcd',
+          captchaToken: '',
+        },
+        { cookie: captchaCookie }
+      )
+    );
+    assert.equal(replayResponse.status, 400);
+    const replayData = (await replayResponse.json()) as { field?: string };
+    assert.equal(replayData.field, 'captcha');
   } finally {
     if (previousDemoMode === undefined) delete env.KL_SYNC_DEMO_MODE;
     else env.KL_SYNC_DEMO_MODE = previousDemoMode;
