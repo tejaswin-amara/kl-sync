@@ -4,6 +4,7 @@ import { NextRequest } from 'next/server';
 import { POST } from './ai/chat/route';
 import { TOOLS_REGISTRY } from '@/lib/ai/tools';
 import { executeTool, processAIChat } from '@/lib/ai/executor';
+import { encodeSession } from '@/lib/session';
 
 describe('Challenger M3 Suite — AI Chat API Route (/api/ai/chat/route.ts)', () => {
   // 1. JSON Response Format
@@ -170,23 +171,39 @@ describe('Challenger M3 Suite — AI Chat API Route (/api/ai/chat/route.ts)', ()
     assert.strictEqual(json.toolCalls[0].tool, 'getFeeDetails');
   });
 
-  test('3.2 Session token resolution from x-session-id header fallback', async () => {
-    const req = new NextRequest('http://localhost/api/ai/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-session-id':
-          'b64.eyJjb29raWVzIjpbXSwiY3NyZlRva2VuIjoiZGVtb19jc3JmXzEyMyJ9',
-      },
-      body: JSON.stringify({
-        messages: [{ role: 'user', content: 'Show fee balance' }],
-      }),
-    });
+  test('3.2 Legacy session headers and request-body tokens are rejected', async () => {
+    const previousDemoMode = process.env.KL_SYNC_DEMO_MODE;
+    process.env.KL_SYNC_DEMO_MODE = 'false';
 
-    const res = await POST(req);
-    assert.strictEqual(res.status, 200);
-    const json = await res.json();
-    assert.strictEqual(json.success, true);
+    try {
+      const sessionToken = await encodeSession({
+        cookies: [{ name: 'PHPSESSID', value: 'ai-auth-test-session' }],
+        csrfToken: 'ai-auth-test-csrf',
+      });
+      const messageBody = {
+        messages: [{ role: 'user', content: 'Show fee balance' }],
+      };
+
+      const headerRequest = new NextRequest('http://localhost/api/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-session-id': sessionToken,
+        },
+        body: JSON.stringify(messageBody),
+      });
+      assert.strictEqual((await POST(headerRequest)).status, 401);
+
+      const bodyRequest = new NextRequest('http://localhost/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...messageBody, sessionId: sessionToken }),
+      });
+      assert.strictEqual((await POST(bodyRequest)).status, 401);
+    } finally {
+      if (previousDemoMode === undefined) delete process.env.KL_SYNC_DEMO_MODE;
+      else process.env.KL_SYNC_DEMO_MODE = previousDemoMode;
+    }
   });
 
   // 4. Offline & Error Fallback
