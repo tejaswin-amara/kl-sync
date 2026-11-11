@@ -7,6 +7,7 @@ const CAPTCHA_CHALLENGE_TTL_MS = 5 * 60_000;
 const MAX_CLOCK_SKEW_MS = 60_000;
 const memoryNonces = new Map<string, number>();
 const consumedTokensMap = new Map<string, number>();
+const issuedCaptchaSessions = new Map<string, number>();
 
 function hasDistributedStore(): boolean {
   return Boolean(
@@ -47,6 +48,9 @@ function cleanExpired(): void {
   for (const [key, expiresAt] of consumedTokensMap) {
     if (expiresAt <= now) consumedTokensMap.delete(key);
   }
+  for (const [key, expiresAt] of issuedCaptchaSessions) {
+    if (expiresAt <= now) issuedCaptchaSessions.delete(key);
+  }
 }
 
 function sha256Hex(input: string): string {
@@ -83,6 +87,99 @@ async function upstashCommand(
   }
 
   return data.result ?? null;
+}
+
+
+/**
+ * Registers one upstream ERP image challenge. The cookie's browser Max-Age is
+ * not sufficient for replay defense: the server also tracks this encrypted
+ * session and permits exactly one login attempt with it.
+ */
+export async function registerCaptchaSession(
+  sessionId: string,
+  ttlMs = CAPTCHA_CHALLENGE_TTL_MS
+): Promise<boolean> {
+  if (
+    typeof sessionId !== 'string' ||
+    sessionId.length < 1 ||
+    sessionId.length > 4096 ||
+    !Number.isFinite(ttlMs) ||
+    ttlMs <= 0
+  ) {
+    return false;
+  }
+
+  const ttl = Math.min(CAPTCHA_CHALLENGE_TTL_MS, Math.max(1, Math.ceil(ttlMs)));
+  const key = `cap-session:${sha256Hex(sessionId)}`;
+
+  if (hasDistributedStore()) {
+    try {
+      const result = await upstashCommand([
+        'SET',
+        key,
+        '1',
+        'NX',
+        'PX',
+        ttl,
+      ]);
+      return result === 'OK';
+    } catch {
+      console.warn(
+        '[CAPTCHA] Could not register the upstream image challenge; rejecting issuance.'
+      );
+      return false;
+    }
+  }
+
+  // Per-instance memory is suitable only for tests/local development.
+  if (process.env.NODE_ENV === 'production') return false;
+
+  cleanExpired();
+  if (issuedCaptchaSessions.has(key)) return false;
+  issuedCaptchaSessions.set(key, Date.now() + ttl);
+  return true;
+}
+
+/**
+ * Atomically consumes the server-issued image challenge. Redis GETDEL ensures
+ * concurrent requests cannot redeem the same encrypted ERP session twice.
+ */
+export async function consumeCaptchaSession(
+  sessionId: string
+): Promise<boolean> {
+  if (
+    typeof sessionId !== 'string' ||
+    sessionId.length < 1 ||
+    sessionId.length > 4096
+  ) {
+    return false;
+  }
+
+  const key = `cap-session:${sha256Hex(sessionId)}`;
+
+  if (hasDistributedStore()) {
+    try {
+      const result = await upstashCommand(['GETDEL', key]);
+      return result === '1';
+    } catch {
+      console.warn(
+        '[CAPTCHA] Distributed image-challenge consumption failed; rejecting login.'
+      );
+      return false;
+    }
+  }
+
+  if (process.env.NODE_ENV === 'production') return false;
+
+  cleanExpired();
+  const expiresAt = issuedCaptchaSessions.get(key);
+  if (!expiresAt || expiresAt <= Date.now()) {
+    issuedCaptchaSessions.delete(key);
+    return false;
+  }
+
+  issuedCaptchaSessions.delete(key);
+  return true;
 }
 
 /**
