@@ -74,7 +74,7 @@ test('Challenger M1 - login accepts the HttpOnly CAPTCHA cookie and rejects lega
   assert.equal(loginResponse.headers.get('x-session-id'), null);
 
   const erpSession = loginResponse.cookies.get('kl_erp_session')?.value;
-  assert.ok(erpSession?.startsWith('enc.'));
+  assert.ok(erpSession && erpSession.startsWith('enc.'));
   assert.equal(loginResponse.cookies.get('kl_erp_session')?.httpOnly, true);
   assert.equal(loginResponse.cookies.get('kl_captcha_session')?.maxAge, 0);
 
