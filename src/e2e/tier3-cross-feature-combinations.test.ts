@@ -17,6 +17,7 @@ import {
   executePredictCGPA,
 } from '@/lib/ai/executor';
 import { attendanceResponseSchema, profileResponseSchema } from '@/lib/schemas';
+import { encodeSession } from '@/lib/session';
 
 // ============================================================================
 // Tier 3: Cross-Feature Combinations (Integration across Multiple Subsystems)
@@ -146,10 +147,10 @@ test('Tier 3 - Combo 4: Encrypted Session Creation -> Proxy Cookie Propagation -
   };
   const sessionToken = await encodeSession(customSession);
 
-  // Request ERP proxy with encrypted session in header
+  // Request ERP proxy with the encrypted HttpOnly session cookie.
   const req = new NextRequest('http://localhost/api/erp-proxy/profile', {
     headers: {
-      'x-session-id': sessionToken,
+      cookie: `kl_erp_session=${sessionToken}`,
     },
   });
 
