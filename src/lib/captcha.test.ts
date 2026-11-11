@@ -90,8 +90,9 @@ test('verifyCaptchaToken rejects tampered signatures and expired signed tokens',
   const token = createSignedToken();
   const [prefix, encoded, signature] = token.split(/[:.]/);
   assert.equal(prefix, 'signed');
+  const tamperedSignature = `${signature[0] === 'A' ? 'B' : 'A'}${signature.slice(1)}`;
   assert.equal(
-    await verifyCaptchaToken(`signed:${encoded}.${signature.slice(0, -1)}x`),
+    await verifyCaptchaToken(`signed:${encoded}.${tamperedSignature}`),
     false
   );
 
