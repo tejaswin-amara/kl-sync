@@ -102,11 +102,7 @@ test('Tier 1 - Feature 2: Zod Runtime Schema Validation Contracts', () => {
   const parsedLogin = loginRequestSchema.safeParse({
     username: '2100030000',
     password: 'password123',
-    captcha: 'ABCD',
-    session: {
-      cookies: [{ name: 'PHPSESSID', value: 'sess_123' }],
-      csrfToken: 'csrf_123',
-    },
+    captcha: 'abcd',
   });
   assert.strictEqual(parsedLogin.success, true);
 });
