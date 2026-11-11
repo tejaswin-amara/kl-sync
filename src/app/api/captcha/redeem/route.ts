@@ -10,31 +10,33 @@ const CAPTCHA_CHALLENGE_TTL_MS = 5 * 60_000;
 const MAX_REDEEM_BODY_BYTES = 64 * 1024;
 const NO_STORE = 'no-store, max-age=0, must-revalidate';
 
-type InstrumentationPayload = {
-  i: string;
-  state: Record<string, number>;
-  d: string;
-};
+type InstrumentationPayload = Record<string, unknown>;
 
+/**
+ * Keep only the transport-level shape check here. capjs-core owns the
+ * cryptographic binding, exact state keys, integer checks, canonical data,
+ * expiry and automation verification. Duplicating its evolving payload
+ * schema caused valid widget instrumentation to be rejected before the
+ * verifier could inspect it.
+ */
 function isInstrumentationPayload(
   value: unknown
 ): value is InstrumentationPayload {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return false;
   }
+
   const payload = value as Record<string, unknown>;
   return (
     typeof payload.i === 'string' &&
     payload.i.length > 0 &&
+    payload.i.length <= 128 &&
     typeof payload.d === 'string' &&
     payload.d.length <= 65_536 &&
     Boolean(
       payload.state &&
         typeof payload.state === 'object' &&
-        !Array.isArray(payload.state) &&
-        Object.values(payload.state).every(
-          (item) => typeof item === 'number' && Number.isFinite(item)
-        )
+        !Array.isArray(payload.state)
     )
   );
 }
