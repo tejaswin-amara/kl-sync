@@ -129,7 +129,7 @@ test('explicit demo login succeeds with the short-lived HttpOnly ERP CAPTCHA ses
           captcha: 'abcd',
           captchaToken: '',
         },
-        { cookie: `kl_captcha_session=${captchaCookie}` }
+        { cookie: captchaCookie }
       )
     );
     assert.equal(replayResponse.status, 400);
