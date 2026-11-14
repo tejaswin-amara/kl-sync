@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import { readdir } from 'node:fs/promises';
 import { dirname, resolve, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const testRoots = ['src', 'tests'];
@@ -41,7 +41,7 @@ if (testFiles.length === 0) {
   process.exitCode = 1;
 } else {
   const tsxCli = resolve(projectRoot, 'node_modules', 'tsx', 'dist', 'cli.mjs');
-  const testEnvironment = resolve(projectRoot, 'scripts', 'test-env.mjs');
+  const testEnvironment = pathToFileURL(resolve(projectRoot, 'scripts', 'test-env.mjs')).href;
   const result = spawnSync(
     process.execPath,
     [tsxCli, '--import', testEnvironment, '--test', ...testFiles],
